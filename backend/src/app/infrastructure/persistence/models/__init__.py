@@ -13,4 +13,7 @@ Every module here must be imported somewhere reachable from
 therefore `alembic revision --autogenerate` — sees every table.
 """
 
-from app.infrastructure.persistence.models import client, geography, identity  # noqa: F401
+from app.infrastructure.persistence.models import client as client
+from app.infrastructure.persistence.models import geography as geography
+from app.infrastructure.persistence.models import identity as identity
+from app.infrastructure.persistence.models import property as property
