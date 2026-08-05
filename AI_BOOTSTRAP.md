@@ -22,11 +22,13 @@ silently proceed on stale documentation.
 
 ## Non-negotiable rules for this project
 
-- **Never implement a business feature without an explicit go-ahead.** As of Stage 1, this project
+- **Never implement a business feature without an explicit go-ahead.** As of Stage 2, this project
   has zero business logic by design (no Matter/Client/Property Management, no Document Automation,
   OCR, QR, Search implementation, Reports, Payments, AI, or Authentication). That's not an
-  oversight — it's the charter for Stages 0–1. Don't start Stage "N+1" work by guessing what it
-  should be; ask.
+  oversight — it's the charter for Stages 0–2. Stage 2 built the complete 49-table database schema,
+  but **nothing is wired to it** — no repositories, services, or API routes touch it yet. Don't
+  start Stage "N+1" work (including wiring the schema to a real feature) by guessing what it should
+  be; ask.
 - **Before writing any code**, read the docs listed above, verify the current project status
   against the actual code (run the tests, check `git log`), and report any inconsistency you find
   before proceeding.

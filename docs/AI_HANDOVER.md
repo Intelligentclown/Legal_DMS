@@ -9,36 +9,44 @@ exists. If you haven't already, read [`/AI_BOOTSTRAP.md`](../AI_BOOTSTRAP.md) an
 
 Legal Document & Matter Management System — a desktop app (Electron + React/TS frontend, Python
 FastAPI backend, PostgreSQL database) for a legal documentation office. Built to be developed over
-many months across many sessions. **Stage 0 (infrastructure) and Stage 1 (core architecture) are
-both complete.** Read [Context.md](Context.md) for fuller narrative if this handover isn't enough
-— note Context.md was written at the end of Stage 0 and hasn't been rewritten for Stage 1; treat
-its "Current Stage"/"Pending Work" sections as stale relative to this file and `ProjectStatus.md`.
+many months across many sessions. **Stage 0 (infrastructure), Stage 1 (core architecture), and
+Stage 2 (database schema) are all complete.** Read [Context.md](Context.md) for fuller narrative if
+this handover isn't enough — note Context.md was written at the end of Stage 0 and hasn't been
+rewritten since; treat its "Current Stage"/"Pending Work" sections as stale relative to this file
+and `ProjectStatus.md`.
 
 ## Current Architecture
 
 Clean Architecture on both sides (domain/application/infrastructure/presentation), detailed in
-[Architecture.md](Architecture.md). As of Stage 1, the backend also has a full reusable platform:
+[Architecture.md](Architecture.md). As of Stage 1, the backend has a full reusable platform:
 a hand-rolled DI container, repository pattern, base service, validation/pagination/query/response
 frameworks, a generic CRUD router factory, an event bus, a background job framework, file storage/
 notification/search/auth/audit abstractions (each with exactly one minimal default
-implementation), a plugin/module registry, a workflow engine, and feature flags. Every one of
-these is framework-only — no business feature has been built on top of any of it yet.
+implementation), a plugin/module registry, a workflow engine, and feature flags. As of Stage 2, the
+backend also has the **complete 49-table database schema** (persistence-layer SQLAlchemy models +
+Alembic migrations + seed data — see [Database.md](Database.md) and [ERD.md](ERD.md)) — but that
+schema is **not wired to anything**: no repository, service, or route reads or writes through it
+yet. Every framework piece and every table is scaffolding — no business feature has been built on
+top of any of it yet.
 
 ## Completed Features
 
-None — Stages 0–1 are infrastructure/framework only. See
+None — Stages 0–2 are infrastructure/framework/schema only. See
 [FeatureRegistry.md](FeatureRegistry.md) (currently just the "System Health Check" plumbing
 feature, not a business feature).
 
 ## Current Stage
 
-Stage 1 — Core Architecture & Domain Foundation. **Complete and verified** (130 backend + 9
-frontend tests passing, lint clean, no regression in the real app's route surface). See
-[ProjectStatus.md](ProjectStatus.md) for the full checklist. **No Stage 2 plan exists.**
+Stage 2 — Database Architecture & Data Model. **Complete and verified** (216 backend + 9 frontend
+tests passing, lint clean, all 12 migrations reversible individually and as a full chain, no
+regression in the real app's route surface). See [ProjectStatus.md](ProjectStatus.md) for the full
+checklist. **No Stage 3 plan exists.**
 
 ## Pending Work
 
-Everything past Stage 1. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md).
+Everything past Stage 2. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md). The most likely
+next step is wiring a real feature (repository → service → route) to a slice of the Stage 2 schema,
+but that must be confirmed with the project owner, not assumed.
 
 ## Open Issues / Known Bugs
 
@@ -50,11 +58,12 @@ Two tooling caveats, no code bugs — full detail in [KnownIssues.md](KnownIssue
 2. `react-router-dom` has one open `npm audit` advisory (RSC-mode CSRF) not applicable to this
    project (no RSC/framework mode used). Re-verify on any `react-router-dom` upgrade.
 
-Two Stage-1-specific patterns worth knowing (not bugs, but easy to trip over if copied wrong):
+Stage-1-specific patterns worth knowing (not bugs, but easy to trip over if copied wrong):
 3. **pytest-asyncio + cached SQLAlchemy engines don't mix.** The app's `get_engine()` singleton is
    `lru_cache`d for production (one process, one event loop). Tests get a fresh event loop per
    function by default, so an async-DB test must create and dispose its own engine — see
-   `tests/integration/test_sqlalchemy_repository.py`'s `db_session` fixture for the pattern.
+   `tests/conftest.py`'s shared `db_session` fixture for the pattern (used by every Stage 2 model
+   test too).
 4. **Generic FastAPI route factories can't use their own PEP 695 type parameters as runtime
    annotations.** `ReadSchema`/`CreateSchema`/etc. in `build_crud_router[T, ReadSchema, ...]`'s
    signature are `TypeVar` placeholders at runtime, not the concrete classes — annotating a nested
@@ -63,23 +72,37 @@ Two Stage-1-specific patterns worth knowing (not bugs, but easy to trip over if 
    documents the fix (annotate with the actual runtime arguments, drop `from __future__ import
    annotations` in that one file) — read its docstring before writing a similar factory.
 
+Stage-2-specific patterns worth knowing:
+5. **`CheckConstraint(name=...)` double-prefixes if given the full expected name.** Pass a short
+   logical name (`name="address_type"`), not the full constraint name — the project's
+   `naming_convention` builds the `ck_<table>_` prefix itself. Does not apply to `Index(name=...)`,
+   which is used verbatim.
+6. **Never name a mapped attribute `metadata`.** It shadows SQLAlchemy's own `Base.metadata` class
+   attribute. See `AuditLog.audit_metadata` (Python name) mapped to the `"metadata"` DB column via
+   `mapped_column("metadata", ...)` for the pattern.
+7. **`alembic/env.py` must actually import the models package**, not just reference it in a
+   comment — otherwise `Base.metadata` is empty and `alembic revision --autogenerate` silently
+   generates nothing. Already fixed and in place; don't remove the
+   `from app.infrastructure.persistence import models` import.
+
 ## Database Status
 
-No business tables. Only Alembic's own `alembic_version` table exists. See
-[Database.md](Database.md) (not yet updated for Stage 1 — still accurate since Stage 1 added no
-tables).
+**Complete 49-table schema** (Stage 2) — see [Database.md](Database.md) and [ERD.md](ERD.md) for
+full detail. **Nothing is wired to it yet**: no repository, service, or API route reads or writes
+through any of these tables. `SqlAlchemyRepository[ModelT]` (Stage 1) already works against any of
+them generically without new code, if a future feature needs to start there.
 
 ## API Status
 
 `GET /api/v1/health` and `GET /api/v1/version` only — unchanged since Stage 0. See
-[API.md](API.md) (not yet updated for Stage 1 — still accurate; the CRUD router factory added in
-Stage 1 was deliberately never mounted into the real app).
+[API.md](API.md) (not yet updated for Stage 1/2 — still accurate; the CRUD router factory added in
+Stage 1 was deliberately never mounted, and Stage 2 added zero routes).
 
 ## Folder Structure
 
-See [FolderStructure.md](FolderStructure.md) for the Stage-0-era tree (not yet updated for Stage
-1's many new backend folders — see [Architecture.md](Architecture.md) instead, which *is* current,
-for the accurate Stage 1 folder layout under `backend/src/app/`).
+[FolderStructure.md](FolderStructure.md) is current as of Stage 2 (updated in this session's
+documentation pass). [Architecture.md](Architecture.md) has the fuller narrative for what goes
+where and why.
 
 ## Important Decisions
 
@@ -89,8 +112,13 @@ Read the ADRs in [`/ADR`](../ADR/) before making architectural changes:
 - **0006** (Stage 1): why the DI container is hand-rolled rather than a library, and why
   `DBSessionDep` deliberately stays outside it.
 - **0007** (Stage 1): why audit logging writes structured logs rather than a database table.
+  **Superseded by 0009.**
+- **0008** (Stage 2): why Stage 2's SQLAlchemy models are persistence-layer models, not domain
+  entities, and why no `relationship()` navigation is declared yet.
+- **0009** (Stage 2): why `audit_logs` reverses ADR-0007's "no DB table" decision — Stage 2's
+  explicit ask was the concrete driving need ADR-0007 said to wait for.
 
-If you make a new significant architectural decision, **add a new ADR** (`0008-...`), don't just
+If you make a new significant architectural decision, **add a new ADR** (`0010-...`), don't just
 change things silently.
 
 ## Current Branch
@@ -100,19 +128,24 @@ that).
 
 ## Files Recently Modified
 
-Stage 1 touched `backend/src/app/{domain,application,infrastructure,presentation,workers}/**` and
-added `frontend/src/domain/types/result.ts` + `frontend/src/shared/types/query.ts`. See `git log`
-for the exact commit sequence (16 subsystem commits + this documentation commit), or
-[CHANGELOG.md](CHANGELOG.md) for the per-commit file breakdown.
+Stage 2 added `backend/src/app/infrastructure/persistence/models/` (11 model modules + mixins),
+12 new files under `backend/alembic/versions/`, and one `backend/tests/integration/test_*.py` per
+schema section plus `test_seed_data.py`. See `git log` for the exact commit sequence (11 schema
+commits + 1 seed-data commit + this documentation commit), or [CHANGELOG.md](CHANGELOG.md) for the
+per-commit file breakdown. (Stage 1, for reference, touched
+`backend/src/app/{domain,application,infrastructure,presentation,workers}/**` and added
+`frontend/src/domain/types/result.ts` + `frontend/src/shared/types/query.ts`.)
 
 ## What Should Be Implemented Next
 
-**Nothing, until the project owner decides what Stage 2 is.** Both Stage 0's and Stage 1's
-charters were explicit that business features are out of scope. That pattern held for two stages
-in a row — don't let that turn into an assumption that "the next stage is always more
-infrastructure" either. **Ask the user what Stage 2 covers** rather than guessing. Do not add
-business entities, a real auth mechanism, or new major dependencies without that explicit
-direction.
+**Nothing, until the project owner decides what Stage 3 is.** Stage 0, Stage 1, and Stage 2's
+charters were all explicit that business features are out of scope. That pattern has now held for
+three stages in a row — don't let that turn into an assumption that "the next stage is always more
+scaffolding" either. **Ask the user what Stage 3 covers** rather than guessing — the most likely
+candidate is wiring a real feature to the Stage 2 schema, but confirm it, and confirm *which*
+feature, rather than assuming Matter Management just because it's listed first in the original
+charter. Do not add business entities, a real auth mechanism, new major dependencies, or any
+repository/service/route touching the Stage 2 tables without that explicit direction.
 
 ## Important Warnings
 
@@ -134,21 +167,26 @@ direction.
   as you work — a stage isn't done until its documentation reflects reality. See
   [DevelopmentGuide.md](DevelopmentGuide.md)'s "Documentation discipline" section.
 
-## Recommended Implementation Order (once Stage 2 is scoped)
+## Recommended Implementation Order (once Stage 3 is scoped)
 
 1. Confirm the first business feature with the project owner (don't assume it's Matter Management
    just because it's listed first in the original charter).
-2. Add an ADR if the feature requires an architectural decision beyond what Stage 1 already
+2. Add an ADR if the feature requires an architectural decision beyond what Stages 1–2 already
    established.
-3. Domain entities first (pure, in `domain/`, extending `Entity`/`AggregateRoot` as needed), then
+3. The schema likely already exists (Stage 2 built all 49 tables) — check [Database.md](Database.md)
+   and the relevant `infrastructure/persistence/models/*.py` file before adding new columns/tables;
+   only extend the schema if the feature genuinely needs something the design didn't anticipate.
+4. Domain entities first (pure, in `domain/`, extending `Entity`/`AggregateRoot` as needed), then
    application use cases (`application/`, likely extending `BaseService`), then infrastructure
-   implementations (a real repository via `SqlAlchemyRepository` or a subclass, a real
-   `FileStorage`/`Notifier`/etc. if the feature needs one beyond what's already registered), then
-   presentation (routes via `build_crud_router` or hand-written, components) last — inside-out,
-   matching the Clean Architecture dependency direction.
-4. Add the Alembic migration for any new tables; update [Database.md](Database.md) (bring it
-   current — it's been accurate-by-no-change since Stage 0, this will be its first real update).
-5. Update [API.md](API.md), [FolderStructure.md](FolderStructure.md) (also due for its first
-   real update), [FeatureRegistry.md](FeatureRegistry.md), [ModuleRegistry.md](ModuleRegistry.md),
-   [ProjectStatus.md](ProjectStatus.md), [PROJECT_STATE.json](../PROJECT_STATE.json),
-   [CHANGELOG.md](CHANGELOG.md), and this file before considering the work done.
+   implementations (a real repository via `SqlAlchemyRepository[ModelT]` against the existing Stage
+   2 model — likely no new repository code needed at all, just instantiate the generic one — plus a
+   real `FileStorage`/`Notifier`/etc. only if the feature needs one beyond what's already
+   registered), then presentation (routes via `build_crud_router` or hand-written, components)
+   last — inside-out, matching the Clean Architecture dependency direction.
+5. If the feature does need a new Alembic migration (new table/column), update
+   [Database.md](Database.md) and [ERD.md](ERD.md) to match.
+6. Update [API.md](API.md), [FolderStructure.md](FolderStructure.md),
+   [FeatureRegistry.md](FeatureRegistry.md) (this will be its first real entry beyond the System
+   Health Check), [ModuleRegistry.md](ModuleRegistry.md), [ProjectStatus.md](ProjectStatus.md),
+   [PROJECT_STATE.json](../PROJECT_STATE.json), [CHANGELOG.md](CHANGELOG.md), and this file before
+   considering the work done.

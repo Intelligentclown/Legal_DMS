@@ -33,6 +33,29 @@
 | `presentation.common` | `backend/src/app/presentation/common/` | Response wrapper + CRUD router factory | `ApiResponse[T]`, `paginated_response()`, `build_crud_router()` | Complete (factory proven test-only) | AI |
 | `workers` | `backend/src/app/workers/` | Job registry | `JobRegistry`, `NoOpJob`, `registry` | Complete (no business jobs) | AI |
 
+## Backend — Stage 2 (database schema)
+
+| Module | Location | Purpose | Public Interface | Status | Owner |
+|---|---|---|---|---|---|
+| `infrastructure.persistence.models.identity` | `.../models/identity.py` | Identity & access schema | `User`, `Role`, `Permission`, `UserRole`, `RolePermission` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.geography` | `.../models/geography.py` | Admin. hierarchy (Country→Village) | `Country`, `State`, `District`, `Taluka`, `Village` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.client` | `.../models/client.py` | Client schema | `Address`, `Client`, `ClientContact` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.property` | `.../models/property.py` | Property schema | `Property`, `PropertyOwner` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.matter` | `.../models/matter.py` | Matter schema | `MatterType`, `MatterStatus`, `Matter` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.workflow` | `.../models/workflow.py` | Workflow schema | `WorkflowDefinition`, `WorkflowState`, `WorkflowHistory` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.document` | `.../models/document.py` | Document schema | `DocumentType`, `DocumentTemplate`, `DocumentVariable`, `Document`, `DocumentVersion` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.storage` | `.../models/storage.py` | File storage/OCR/QR/backup schema | `FileStorageRecord`, `OcrJob`, `OcrResult`, `QrCodeRecord`, `Backup` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.financial` | `.../models/financial.py` | Financial schema | `PaymentMethod`, `Invoice`, `Payment`, `Receipt` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.activity` | `.../models/activity.py` | Activity/audit/notification schema | `ActivityLog`, `AuditLog`, `Notification` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.scheduling` | `.../models/scheduling.py` | Scheduling/tags schema | `Task`, `Appointment`, `Tag`, `MatterTag` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.system` | `.../models/system.py` | System/config/AI/plugin schema | `ApplicationSetting`, `FeatureFlag`, `AiRequest`, `AiResponse`, `PluginRegistryEntry`, `BackgroundJobRecord`, `SystemEvent` | Schema only, unwired | AI |
+| `infrastructure.persistence.models.mixins` | `.../models/mixins.py` | Shared model mixins | `AuditMixin`, `OptimisticLockMixin` | Complete | AI |
+
+"Schema only, unwired" means: the SQLAlchemy model and its Alembic migration exist and are tested
+at the schema level (constraints/FKs/defaults), but no repository, service, or API route touches
+the table yet. Stage 1's generic `SqlAlchemyRepository[ModelT]` already works against any of these
+models without new code — wiring one up is a future-stage decision, not a technical blocker.
+
 ## Frontend — Stage 0 (foundation)
 
 | Module | Location | Purpose | Public Interface | Status | Owner |
@@ -66,4 +89,6 @@ with the project's human owner — update this column if/when human contributors
 modules. "Complete for Stage 1 scope" / "Stage 1 default" labels mean: the port is stable, but the
 concrete implementation is deliberately minimal (in-memory/local/logging) and expected to be
 swapped for a real backend once a feature needs one — that swap should never require touching the
-port itself or its callers.
+port itself or its callers. "Schema only, unwired" (Stage 2) means the database table and ORM
+model exist and are tested at the schema level, but nothing in the application layer reads or
+writes through them yet.

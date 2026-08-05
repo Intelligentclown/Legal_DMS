@@ -176,3 +176,110 @@ features, as scoped.
   file), `docs/SessionReport.md`.
 - Final state: 130 backend tests, 9 frontend tests, all passing; ruff/black/eslint/prettier clean;
   real app's route surface unchanged from Stage 0 (`/api/v1/health`, `/api/v1/version` only).
+
+## Stage 2 — Database Architecture & Data Model
+
+**Version:** 0.3.0
+**Dates:** 2026-08-05 (one continuous session)
+**Summary:** Designed and built the complete production-ready database schema for the entire
+eventual application — 49 tables across 11 domain sections plus a seed-data migration, as pure
+schema: SQLAlchemy models, Alembic migrations, constraints, and indexes. **No business logic, no
+UI, no repositories/services/API routes wired to any of these tables** — that's explicitly
+future-stage work. Architecture proposal (overview, ER diagram, table list, relationships, index
+strategy, migration strategy, performance considerations, future scalability) presented and
+approved before any code was written, per the charter's explicit process.
+**Breaking changes:** None — the real app's route surface (`/api/v1/health`, `/api/v1/version`) is
+unchanged.
+**Migration notes:** 12 new Alembic revisions (11 schema + 1 seed data), all verified against live
+Postgres including full chain reversibility (`alembic downgrade base` → `alembic upgrade head`).
+
+### `39dcab5` — schema conventions + Identity & Access (5 tables)
+- **Added:** `NAMING_CONVENTION` + `Base.metadata` naming convention
+  (`infrastructure/database/base.py`), `AuditMixin`/`OptimisticLockMixin`
+  (`infrastructure/persistence/models/mixins.py`), `infrastructure/persistence/models/identity.py`
+  (`User`, `Role`, `Permission`, `UserRole`, `RolePermission`), migration `4c661976b322`,
+  `ADR/0008-persistence-models-not-domain-entities.md`.
+- **Fixed:** `alembic/env.py` never actually imported the models package (only a comment existed),
+  so `Base.metadata` was empty at autogenerate time — added the real import.
+
+### `53985a3` — geography (5 tables)
+- **Added:** `geography.py` (`Country`, `State`, `District`, `Taluka`, `Village`), migration
+  `198cbb4bbeb6`.
+
+### `a3949f5` — clients (3 tables)
+- **Added:** `client.py` (`Address`, `Client`, `ClientContact`), migration `ac077004afeb`.
+- Documented the `CheckConstraint` naming double-prefix pitfall (pass a short logical name, not the
+  full expected constraint name) inline for future sections.
+
+### `d7cd7ae` — properties (2 tables)
+- **Added:** `property.py` (`Property`, `PropertyOwner`), migration `7789f56da7f9`.
+- `village_id` denormalized directly onto `properties` (in addition to via `address_id`) so
+  village-based search doesn't require a join — documented as deliberate.
+
+### `1723722` — matters & workflow (6 tables)
+- **Added:** `matter.py` (`MatterType`, `MatterStatus`, `Matter`), `workflow.py`
+  (`WorkflowDefinition`, `WorkflowState`, `WorkflowHistory` — polymorphic `entity_type`+`entity_id`),
+  migration `c52ee7c83023`.
+
+### `4c814d0` — documents (5 tables) + file storage records
+- **Added:** `document.py` (`DocumentType`, `DocumentTemplate`, `DocumentVariable`, `Document`,
+  `DocumentVersion`), `storage.py` (`FileStorageRecord` — pulled forward from its originally
+  planned Section 10 slot because `document_templates`/`document_versions` need it), migration
+  `9a68ef4298ae`.
+- **Design decision:** `documents.current_version_id` dropped entirely rather than fighting a
+  circular FK with `document_versions` — "latest version" derived via
+  `ORDER BY version_number DESC LIMIT 1` instead.
+
+### `04e784c` — financial (4 tables)
+- **Added:** `financial.py` (`PaymentMethod`, `Invoice`, `Payment`, `Receipt`), migration
+  `cf6b0519b74c`.
+
+### `7f3f0c6` — activity, audit & notifications (3 tables) + ADR-0009
+- **Added:** `activity.py` (`ActivityLog`, `AuditLog`, `Notification`), migration `40ce220538c1`,
+  `ADR/0009-audit-logs-table-reverses-adr-0007.md`.
+- **Modified:** `ADR/0007-audit-logging-without-database-table.md` (added a "Superseded by
+  ADR-0009" status line).
+- **Fixed:** `AuditLog.metadata` as a Python attribute would shadow SQLAlchemy's own
+  `Base.metadata` — renamed to `audit_metadata`, kept the DB column named `"metadata"` via
+  `mapped_column("metadata", ...)`.
+
+### `0d1f65f` — scheduling & tags (4 tables)
+- **Added:** `scheduling.py` (`Task`, `Appointment`, `Tag`, `MatterTag`), migration `07150e442816`.
+- **Fixed:** `Appointment` initially redeclared `created_by` explicitly, duplicating `AuditMixin`'s
+  own — removed the redundant declaration, then grepped all model files to confirm no other section
+  made the same mistake.
+
+### `544b142` — OCR, QR & backups (4 tables)
+- **Added to `storage.py`:** `OcrJob`, `OcrResult` (GIN expression index on
+  `to_tsvector('english', extracted_text)`), `QrCodeRecord` (polymorphic), `Backup`; migration
+  `ac2214fdce03`.
+- Verified the GIN full-text search index actually works against live Postgres with a real
+  `to_tsvector`/`plainto_tsquery` query, not just that the migration ran.
+
+### `ed89ee4` — system, config, AI & plugins (7 tables)
+- **Added:** `system.py` (`ApplicationSetting`, `FeatureFlag`, `AiRequest`, `AiResponse`,
+  `PluginRegistryEntry`, `BackgroundJobRecord`, `SystemEvent`), migration `5c13f11da784`.
+- Several tables shaped to match existing Stage 1 in-memory frameworks (`feature_flags` mirrors
+  `Settings.feature_flags`, `background_jobs` mirrors `JobRecord`/`JobStatus`, `system_events`
+  mirrors a future persisted `EventBus`, `plugin_registry` persists state for modules already
+  registered via `ModuleRegistry`) so a future implementation can satisfy the existing port without
+  changing it — no wiring done yet.
+
+### `fb24b01` — seed lookup data migration
+- **Added:** migration `9963e15f2752` (`op.bulk_insert` against `sa.table()` shadows, not the ORM
+  models): India + all Indian states/UTs, Gujarat's 33 districts, 6 roles, 18 permissions, 8 matter
+  types, 6 matter statuses, a starter `matter_lifecycle` workflow (6 states), 10 document types, 6
+  payment methods, 6 application settings defaults, 5 feature flags (all disabled).
+- **Fixed:** seeding real values surfaced 4 existing tests that reused the same fixed names/codes
+  now taken by seed data (`"India"`, `"matters:read"`, `"ocr_pipeline"`, ...) — updated those tests
+  to generate unique per-run values instead.
+
+### Documentation pass (this commit)
+- **Added:** `docs/ERD.md`.
+- **Modified:** `docs/Database.md` (full rewrite), `docs/Architecture.md`, `AI_BOOTSTRAP.md`,
+  `PROJECT_STATE.json`, `docs/ProjectStatus.md`, `CHANGELOG.md`, `docs/CHANGELOG.md` (this file),
+  `docs/FeatureRegistry.md`, `docs/ModuleRegistry.md`, `docs/SessionReport.md`,
+  `docs/FolderStructure.md`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`.
+- Final state: 216 backend tests, 9 frontend tests, all passing; ruff/black clean (including
+  `backend/alembic/versions/`); 49 tables across 12 migrations, full chain reversibility verified;
+  real app's route surface unchanged from Stage 0 (`/api/v1/health`, `/api/v1/version` only).

@@ -48,12 +48,38 @@ default implementation. See [ProjectStatus.md](ProjectStatus.md) for the full ch
 [ADR/0007](../ADR/0007-audit-logging-without-database-table.md) for the two Stage 1-specific
 architectural decisions.
 
-## Stage 2+ — Not yet planned
+## Stage 2 — Database Architecture & Data Model
+
+| Item | Priority | Dependencies | Status |
+|---|---|---|---|
+| Schema conventions (naming convention, AuditMixin, OptimisticLockMixin) + Identity & Access | High | Stage 1 | Completed |
+| Geography (Country→Village hierarchy) | High | Identity & Access | Completed |
+| Clients | High | Geography | Completed |
+| Properties | High | Clients | Completed |
+| Matters & Workflow | High | Clients, Properties | Completed |
+| Documents & File Storage | High | Matters | Completed |
+| Financial | Medium | Matters, Clients | Completed |
+| Activity, Audit & Notifications | Medium | Identity & Access | Completed |
+| Scheduling & Tags | Medium | Matters, Clients | Completed |
+| OCR, QR & Backups | Medium | Documents | Completed |
+| System, Config, AI & Plugins | Low | Identity & Access | Completed |
+| Seed lookup data | Medium | All schema sections | Completed |
+| `docs/ERD.md` + full documentation pass | High | All of the above | Completed |
+
+Stage 2 built the complete 49-table schema as pure schema — **no repositories, services, or API
+routes wired to any table**. See [Database.md](Database.md), [ERD.md](ERD.md), and
+[ProjectStatus.md](ProjectStatus.md) for the full checklist, and
+[ADR/0008](../ADR/0008-persistence-models-not-domain-entities.md) /
+[ADR/0009](../ADR/0009-audit-logs-table-reverses-adr-0007.md) for the two Stage 2-specific
+architectural decisions.
+
+## Stage 3+ — Not yet planned
 
 Nothing below has an estimated stage, priority, or dependency graph yet. Listed here only because
 the original project charter named them as the eventual scope; **do not implement any of these
-without an explicit go-ahead** — see [FutureIdeas.md](FutureIdeas.md) for why Stages 0–1 stayed
-deliberately business-logic-free.
+without an explicit go-ahead** — see [FutureIdeas.md](FutureIdeas.md) for why Stages 0–2 stayed
+deliberately business-logic-free. The database schema each of these would sit on already exists
+(Stage 2) — the work here is wiring a repository/service/route to it, not schema design.
 
 | Feature | Status |
 |---|---|
@@ -70,5 +96,5 @@ deliberately business-logic-free.
 | AI features | Not Started |
 | Cloud synchronization | Not Started |
 
-This table should be rewritten with real priorities/dependencies/stages once Stage 2 planning
-actually starts — with explicit direction from the project owner on what Stage 2 covers.
+This table should be rewritten with real priorities/dependencies/stages once Stage 3 planning
+actually starts — with explicit direction from the project owner on what Stage 3 covers.

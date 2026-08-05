@@ -133,3 +133,92 @@ should start by asking the project owner what Stage 2 covers (see
 [AI_HANDOVER.md](AI_HANDOVER.md) and [AI_BOOTSTRAP.md](../AI_BOOTSTRAP.md)) rather than assuming
 scope — this is now the second stage in a row where that's been true; don't let it become an
 assumption that "the next stage is always infrastructure."
+
+## Session: 2026-08-05 — Stage 2 (Database Architecture & Data Model)
+
+**Objectives:** Design and build the complete production-ready database schema for the entire
+eventual application — 49 tables across 11 domain sections plus seed data — as pure schema
+(SQLAlchemy models, Alembic migrations, constraints, indexes), per the user's Stage 2 charter. No
+business logic, UI, or repositories/services/routes wired to the new tables. Architecture proposal
+(overview, ER diagram, table list, relationships, index strategy, migration strategy, performance
+considerations, future scalability) presented via plan mode and approved before any code was
+written.
+
+**Completed Tasks:** All 13 planned sections landed (11 schema sections + seed data + this
+documentation pass), each verified against live Postgres (migration up/down reversibility,
+integration tests) and committed separately — see [CHANGELOG.md](CHANGELOG.md)'s Stage 2 section
+for the full per-commit breakdown. Backend test count grew from 130 to 216.
+
+**Problems Encountered & Solutions:**
+
+- **Empty Alembic autogenerate migration.** `alembic/env.py` only had a *comment* about importing
+  models, never an actual import, so `Base.metadata` was empty at autogenerate time and the first
+  migration attempt generated nothing. **Fixed** by adding the real
+  `from app.infrastructure.persistence import models  # noqa: F401` import.
+- **`CheckConstraint` naming double-prefix bug.** Passing a check constraint's *full* expected name
+  (e.g. `name="ck_addresses_address_type"`) produced the actual DB name
+  `ck_addresses_ck_addresses_address_type`, because the naming convention combines the given name
+  with its own `ck_%(table_name)s_` prefix. **Fixed** by always passing a short logical name
+  (`name="address_type"`) and letting the convention build the rest — confirmed this does *not*
+  apply to `Index(name=...)`, which is used as-is. Documented inline for future sections.
+- **Circular FK risk between `documents` and `document_versions`.** A `documents.current_version_id`
+  pointer back to `document_versions` would create a circular FK between two tables created in the
+  same migration. **Resolved** by dropping the column entirely — "latest version" is derived via
+  `ORDER BY version_number DESC LIMIT 1`, with no proven query need yet for the denormalized
+  pointer.
+- **`AuditLog.metadata` would shadow SQLAlchemy's own `Base.metadata`.** A well-known SQLAlchemy
+  gotcha: naming a mapped attribute `metadata` collides with the declarative base's own class
+  attribute. **Fixed** by naming the Python attribute `audit_metadata` while keeping the actual
+  database column named `"metadata"` via `mapped_column("metadata", JSONB)`, matching
+  `AuditLogger.record()`'s parameter shape at the DB level.
+- **`OptimisticLockMixin` construction bug.** An initial attempt to set
+  `Client.__mapper__.version_id_col` *after* the class body executed was fragile — a plain mixin
+  column isn't a real `InstrumentedAttribute` yet at that point. **Fixed** by using
+  `@declared_attr def __mapper_args__(cls)`, which defers evaluation until the table is fully
+  built, then generalized into a reusable `OptimisticLockMixin`.
+- **`Appointment` duplicated `AuditMixin`'s `created_by` column** by re-declaring it explicitly.
+  Caught before generating the migration; fixed, then grepped every model file for the same
+  `created_by`/`updated_by` pattern to confirm no other section made the same mistake.
+- **Cross-section table dependency not in the original plan.** `document_templates` and
+  `document_versions` (Section 6) both need `file_storage_records`, originally planned for Section
+  10. **Resolved** by creating `file_storage_records` in Section 6 instead, documented as a
+  deliberate deviation in both code comments and commit messages.
+- **Seeding real lookup data collided with existing tests.** Populating `countries`/`permissions`/
+  `feature_flags` etc. with real values (Section 12) surfaced 4 pre-existing tests that used the
+  same fixed names/codes (`"India"`, `"matters:read"`, `"ocr_pipeline"`) now taken by seed rows,
+  failing on the DB's unique constraints. **Fixed** by switching those tests to generate unique
+  per-run values, consistent with the uuid-suffixed pattern already used elsewhere in the suite.
+- **Black reformatting multi-name imports breaks `# noqa` placement** (carried pattern from Stage
+  1, re-confirmed here): `models/__init__.py` uses one `from X import name as name` line per module
+  instead of a grouped import, so black's reformatting never disturbs a trailing noqa comment.
+
+**Files Modified:** See [CHANGELOG.md](CHANGELOG.md) for the full per-commit breakdown (11 schema
+commits + 1 seed-data commit + this documentation commit).
+
+**Documentation Updated:** `docs/ERD.md` (new), `docs/Database.md` (full rewrite),
+`docs/Architecture.md`, `AI_BOOTSTRAP.md`, `PROJECT_STATE.json`, `docs/ProjectStatus.md`,
+`CHANGELOG.md`, `docs/CHANGELOG.md`, `docs/FeatureRegistry.md`, `docs/ModuleRegistry.md`,
+`docs/SessionReport.md` (this file), `docs/FolderStructure.md`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, plus `ADR/0008-persistence-models-not-domain-entities.md` and
+`ADR/0009-audit-logs-table-reverses-adr-0007.md` (with a "Superseded by ADR-0009" line added to
+`ADR/0007`).
+
+**Tests Executed:**
+- Backend: `uv run pytest` — 216 passed (up from 130).
+- Frontend: unchanged, 9 passed (Stage 2 was backend/schema-only).
+- Both: linters (`ruff`, `black --check`) clean after every section, including
+  `backend/alembic/versions/` (every autogenerated migration needed `black` + `ruff --fix` to pass).
+- Every migration applied to and downgraded from a live Postgres container, individually
+  (`alembic upgrade head` / `downgrade -1` / `upgrade head` per section) and as a full chain
+  (`downgrade base` → `upgrade head`) at the end of the stage.
+- The OCR full-text search GIN index was verified with a real `to_tsvector`/`plainto_tsquery` query
+  against inserted rows, not just migration success.
+- Seed data row counts spot-checked directly against the live database via `psql`.
+- Confirmed the real shipped app's route surface is unchanged from Stage 0
+  (`/api/v1/health`, `/api/v1/version` only) — Stage 2 added zero routes, as scoped.
+
+**Next Session Goals:** None set — Stage 2 is complete and Stage 3 is undefined. The database
+schema is now ready for a feature to be wired to it (repository → service → route, inside-out per
+Clean Architecture), but the next session should confirm that's actually what Stage 3 is with the
+project owner rather than assuming — this is now the third stage in a row where scope had to be
+given explicitly rather than inferred.

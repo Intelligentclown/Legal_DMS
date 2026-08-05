@@ -51,8 +51,10 @@ infrastructure/
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base (naming_convention set for consistent constraint/index
                      names), async engine/session, get_db() dependency
-  persistence/models/  Stage 2: the full database schema as SQLAlchemy models, persistence-
-                     layer only (ADR/0008) — see docs/Database.md and docs/ERD.md
+  persistence/models/  Stage 2: the complete 49-table database schema as SQLAlchemy models,
+                     persistence-layer only (ADR/0008), plus a seed-data migration for lookup
+                     tables — see docs/Database.md and docs/ERD.md. No repositories/services/
+                     routes wired to these tables yet.
   audit/              LoggingAuditLogger — structured JSON audit entries, no DB table yet
                        (ADR/0007)
   auth/               AnonymousAuthenticationProvider (no login exists), PermissiveAuthorizationService

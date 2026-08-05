@@ -2,27 +2,28 @@
   "project": "Legal Document & Matter Management System",
   "lastUpdated": "2026-08-05",
   "currentStage": {
-    "id": "stage-1",
-    "name": "Core Architecture & Domain Foundation",
+    "id": "stage-2",
+    "name": "Database Architecture & Data Model",
     "status": "completed"
   },
-  "currentVersion": "0.2.0",
+  "currentVersion": "0.3.0",
   "completion": {
     "currentStageScopePercent": 100,
     "overallProjectPercent": 0,
-    "note": "0% overall is correct, not an error -- Stages 0-1 are infrastructure/framework only by design. No business feature has been scoped yet."
+    "note": "0% overall is correct, not an error -- Stages 0-2 are infrastructure/framework/schema only by design. No business feature has been built or wired to the schema yet."
   },
   "stages": [
     { "id": "stage-0", "name": "Project Foundation", "status": "completed" },
     { "id": "stage-1", "name": "Core Architecture & Domain Foundation", "status": "completed" },
-    { "id": "stage-2", "name": null, "status": "not_started", "note": "Undefined. Do not start without explicit direction from the project owner." }
+    { "id": "stage-2", "name": "Database Architecture & Data Model", "status": "completed" },
+    { "id": "stage-3", "name": null, "status": "not_started", "note": "Undefined. Do not start without explicit direction from the project owner." }
   ],
   "tests": {
-    "backend": { "framework": "pytest", "total": 130, "passing": 130 },
+    "backend": { "framework": "pytest", "total": 216, "passing": 216 },
     "frontend": { "framework": "vitest", "total": 9, "passing": 9 }
   },
   "lint": {
-    "backend": "clean (ruff, black)",
+    "backend": "clean (ruff, black) -- includes backend/alembic/versions/",
     "frontend": "clean (eslint, prettier) -- 3 pre-existing react-refresh warnings are expected, 0 errors"
   },
   "backendSubsystems": [
@@ -47,6 +48,26 @@
     { "name": "Feature Flags", "status": "completed" },
     { "name": "Config Service extension", "status": "completed" }
   ],
+  "databaseSchema": {
+    "status": "completed",
+    "tableCount": 49,
+    "migrationCount": 12,
+    "note": "Pure schema (SQLAlchemy models + Alembic migrations + seed data). No repositories, services, or API routes wired to any of these tables -- that's future-stage work. See docs/Database.md and docs/ERD.md.",
+    "sections": [
+      "Identity & Access (5 tables)",
+      "Geography (5 tables)",
+      "Clients (3 tables)",
+      "Properties (2 tables)",
+      "Matters & Workflow (6 tables)",
+      "Documents & File Storage (5 tables)",
+      "Financial (4 tables)",
+      "Activity, Audit & Notifications (3 tables)",
+      "Scheduling & Tags (4 tables)",
+      "OCR, QR & Backups (4 tables)",
+      "System, Config, AI & Plugins (7 tables)",
+      "Seed lookup data (0 tables, data only)"
+    ]
+  },
   "frontendAdditions": [
     { "name": "Result<T, E> discriminated union", "status": "completed" },
     { "name": "Pagination/query TS types", "status": "completed" }
@@ -67,7 +88,7 @@
     }
   ],
   "openQuestions": [
-    "What does Stage 2 cover? Not yet scoped by the project owner -- do not assume or start any business feature (Matter/Client/Property Management, Document Automation, OCR, QR, Search implementation, Reports, Payments, AI, Authentication login) without explicit direction."
+    "What does Stage 3 cover? Not yet scoped by the project owner -- do not assume or start any business feature (Matter/Client/Property Management, Document Automation, OCR, QR, Search implementation, Reports, Payments, AI, Authentication login, or wiring repositories/services/API routes to the Stage 2 schema) without explicit direction."
   ],
   "adrs": [
     "0001-record-architecture-decisions",
@@ -76,10 +97,12 @@
     "0004-security-foundation-placeholders",
     "0005-docker-compose-local-postgres",
     "0006-dependency-injection-container",
-    "0007-audit-logging-without-database-table"
+    "0007-audit-logging-without-database-table",
+    "0008-persistence-models-not-domain-entities",
+    "0009-audit-logs-table-reverses-adr-0007"
   ],
   "git": {
     "branch": "master",
-    "latestCommitAtThisUpdate": "c18cef3"
+    "latestCommitAtThisUpdate": "fb24b01"
   }
 }

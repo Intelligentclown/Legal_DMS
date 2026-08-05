@@ -24,27 +24,54 @@ Legal_DMS/
 │   ├── alembic.ini
 │   ├── .env.example
 │   ├── alembic/                 # async template; env.py reads DATABASE_URL from Settings
-│   │   └── versions/             # empty — no business migrations yet
+│   │   └── versions/             # 12 migrations: 11 schema sections + 1 seed-data migration
 │   ├── src/app/
 │   │   ├── main.py               # FastAPI app factory
-│   │   ├── domain/                common/entity.py — base Entity/ValueObject
+│   │   ├── domain/                common/entity.py — base Entity/ValueObject/AggregateRoot/Result,
+│   │   │                          events/domain_event.py
 │   │   ├── application/
+│   │   │   ├── common/             BaseService, validation, pagination/query shapes
 │   │   │   ├── errors/            AppError hierarchy
-│   │   │   └── interfaces/         future repository ports (empty)
+│   │   │   ├── interfaces/         framework-agnostic ports (repository, event_bus, job_queue,
+│   │   │   │                       file_storage, notifier, auth, audit, search, feature_flags)
+│   │   │   └── workflow/            WorkflowDefinition/WorkflowEngine (generic state machine)
 │   │   ├── infrastructure/
-│   │   │   ├── config/             Settings (pydantic-settings)
+│   │   │   ├── config/             Settings (pydantic-settings), feature_flags.py
 │   │   │   ├── logging/            structured JSON logging
-│   │   │   ├── database/           SQLAlchemy Base, async engine/session
-│   │   │   └── persistence/         future repository implementations (empty)
+│   │   │   ├── database/           SQLAlchemy Base (naming_convention), async engine/session
+│   │   │   ├── di/                 Container, configure_container()
+│   │   │   ├── events/ jobs/ storage/ notifications/ auth/ audit/ search/ modules/
+│   │   │   │                       one minimal default implementation per Stage 1 port
+│   │   │   └── persistence/
+│   │   │       ├── sqlalchemy_repository.py   SqlAlchemyRepository[ModelT] (generic, Stage 1)
+│   │   │       └── models/                     Stage 2: the complete 49-table schema —
+│   │   │           mixins.py                    AuditMixin, OptimisticLockMixin
+│   │   │           identity.py                  users, roles, permissions, user_roles, role_permissions
+│   │   │           geography.py                 countries, states, districts, talukas, villages
+│   │   │           client.py                    addresses, clients, client_contacts
+│   │   │           property.py                  properties, property_owners
+│   │   │           matter.py                    matter_types, matter_statuses, matters
+│   │   │           workflow.py                  workflow_definitions/states/history
+│   │   │           document.py                  document_types/templates/variables, documents, document_versions
+│   │   │           storage.py                   file_storage_records, ocr_jobs/results, qr_code_records, backups
+│   │   │           financial.py                 payment_methods, invoices, payments, receipts
+│   │   │           activity.py                  activity_logs, audit_logs, notifications
+│   │   │           scheduling.py                tasks, appointments, tags, matter_tags
+│   │   │           system.py                    application_settings, feature_flags, ai_requests/responses,
+│   │   │                                         plugin_registry, background_jobs, system_events
 │   │   ├── presentation/
 │   │   │   ├── api/v1/             health.py, version.py, router.py
-│   │   │   ├── api/deps.py          SettingsDep, DBSessionDep
+│   │   │   ├── api/deps.py          SettingsDep, DBSessionDep, CurrentUserDep
+│   │   │   ├── common/               ApiResponse, build_crud_router() (test-only, never mounted)
 │   │   │   └── middleware/          RequestIDMiddleware, LoggingMiddleware, error_handler.py
-│   │   └── workers/                 future background jobs (empty)
+│   │   └── workers/                 JobRegistry, NoOpJob (no business jobs)
 │   └── tests/
-│       ├── conftest.py            client fixture (FastAPI TestClient)
-│       ├── unit/                   test_example.py — AppError + Settings tests
-│       └── integration/            test_health_endpoint.py
+│       ├── conftest.py            client fixture (TestClient) + shared async db_session fixture
+│       ├── unit/                   AppError + Settings tests
+│       ├── support/                 in-memory test fakes (repository, etc.)
+│       └── integration/            health/version endpoint tests, sqlalchemy_repository tests,
+│                                    and one test_*_models.py per Stage 2 schema section +
+│                                    test_seed_data.py
 │
 ├── frontend/
 │   ├── package.json
@@ -76,8 +103,9 @@ Legal_DMS/
 - `frontend/` and `backend/` are independent projects with their own lockfiles/toolchains
   (npm and uv respectively) — the root `package.json` only orchestrates Electron + dev scripts,
   it does not use npm workspaces.
-- Every `infrastructure/persistence`, `application/interfaces`, and `workers/` folder is an
-  intentionally empty seam for future feature modules — see
-  [Architecture.md](Architecture.md) for what goes where.
+- `infrastructure/persistence/models/` is no longer an empty seam — Stage 2 filled it with the
+  complete 49-table schema. It's still unwired, though: no repository, service, or route reads or
+  writes through these models yet. `application/interfaces/` and `workers/` remain empty seams for
+  future feature modules — see [Architecture.md](Architecture.md) for what goes where.
 - Full file-by-file annotation of what each backend/frontend file does lives inline as module
   docstrings/comments — this document tracks structure, not implementation detail.

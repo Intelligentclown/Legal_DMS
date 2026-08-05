@@ -1,8 +1,11 @@
 # Feature Registry
 
-No business features exist yet — Stages 0 and 1 are infrastructure/framework only, by charter.
-This registry will gain one entry per business feature once a future stage actually scopes one —
-don't assume that's "Stage 2" without confirming with the project owner first.
+No business features exist yet — Stages 0–2 are infrastructure/framework/schema only, by charter.
+Stage 2 built the complete 49-table database schema (see [Database.md](Database.md) and
+[ERD.md](ERD.md)), but **no repository, service, or API route is wired to it** — a table existing
+is not a feature. This registry will gain one entry per business feature once a future stage
+actually wires one up — don't assume that's "Stage 3" without confirming with the project owner
+first.
 
 ## Template for future entries
 
