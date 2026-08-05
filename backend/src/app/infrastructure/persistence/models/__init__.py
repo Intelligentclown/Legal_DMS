@@ -23,4 +23,5 @@ from app.infrastructure.persistence.models import matter as matter
 from app.infrastructure.persistence.models import property as property
 from app.infrastructure.persistence.models import scheduling as scheduling
 from app.infrastructure.persistence.models import storage as storage
+from app.infrastructure.persistence.models import system as system
 from app.infrastructure.persistence.models import workflow as workflow
