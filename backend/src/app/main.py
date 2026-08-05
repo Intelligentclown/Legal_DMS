@@ -9,8 +9,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.infrastructure.config import get_settings
-from app.infrastructure.di.container import configure_container
+from app.infrastructure.di.container import configure_container, container
 from app.infrastructure.logging import configure_logging, get_logger
+from app.infrastructure.modules.registry import registry as module_registry
 from app.presentation.api.v1.router import router as v1_router
 from app.presentation.middleware.error_handler import register_exception_handlers
 from app.presentation.middleware.logging_middleware import LoggingMiddleware
@@ -47,6 +48,10 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     app.include_router(v1_router, prefix=settings.api_v1_prefix)
+
+    # No-op today (the registry is empty) — future feature modules only
+    # need to register themselves; this line never needs to change for that.
+    module_registry.mount_all(app, container)
 
     logger.info("Application startup complete", extra={"environment": settings.environment})
 

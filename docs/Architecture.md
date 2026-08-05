@@ -50,6 +50,13 @@ infrastructure/
                        permission data model yet)
   di/               Container (register/resolve/override), configure_container()
   events/            InMemoryEventBus — in-process publish/subscribe
+  modules/            AppModule protocol + ModuleRegistry — plugin architecture. Lives here
+                       rather than application/interfaces because AppModule references FastAPI
+                       directly (it mounts routes); the application layer's ports stay
+                       framework-agnostic. The global registry is empty in Stage 1 and
+                       main.py calls mount_all() unconditionally (a no-op today) so a future
+                       module only needs to register itself — the core app never needs
+                       editing again to pick it up.
   jobs/               InMemoryJobQueue — asyncio-task-backed job execution + status tracking
   notifications/       LoggingNotifier — logs instead of sending; server-side, distinct from
                         the frontend's toast NotificationProvider
