@@ -21,8 +21,10 @@ from collections.abc import Callable
 from typing import Any
 
 from app.application.interfaces.event_bus import EventBus
+from app.application.interfaces.job_queue import JobQueue
 from app.infrastructure.config import Settings, get_settings
 from app.infrastructure.events.in_memory_event_bus import InMemoryEventBus
+from app.infrastructure.jobs.in_memory_job_queue import InMemoryJobQueue
 
 
 class ContainerError(Exception):
@@ -74,5 +76,8 @@ container = Container()
 
 def configure_container() -> None:
     """Register the app's core services. Called once at startup — see `main.py`."""
+    from app.workers.registry import registry as job_registry
+
     container.register(Settings, get_settings)
     container.register(EventBus, InMemoryEventBus)
+    container.register(JobQueue, lambda: InMemoryJobQueue(job_registry.jobs))

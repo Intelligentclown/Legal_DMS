@@ -34,14 +34,15 @@ application/
   common/           BaseService[T], Validator[T]/validate_all(), PageRequest/PageResult[T],
                      SortSpec/FilterSpec/SearchQuery (shape only — no implementation yet)
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
-  interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus port);
-                     more ports land through Stage 1
+  interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
+                     job_queue.py (Job/JobQueue); more ports land through Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base, async engine/session, get_db() dependency
   di/               Container (register/resolve/override), configure_container()
   events/            InMemoryEventBus — in-process publish/subscribe
+  jobs/               InMemoryJobQueue — asyncio-task-backed job execution + status tracking
   persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
 presentation/
   api/v1/          health, version routers; aggregated in router.py
@@ -49,7 +50,8 @@ presentation/
                      list/get/create/update/delete router factory ("Base Controller"),
                      proven with a test-only entity, never mounted into the real app
   middleware/      RequestIDMiddleware, LoggingMiddleware, exception handlers
-workers/            placeholder for future background jobs (OCR, indexing)
+workers/            JobRegistry (name -> Job) + NoOpJob proving the framework; real jobs
+                     (OCR, PDF conversion, backups, ...) arrive with the feature that needs them
 main.py             FastAPI app factory — wires config, logging, CORS, middleware, routers
 ```
 
