@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.infrastructure.config import get_settings
+from app.infrastructure.di.container import configure_container
 from app.infrastructure.logging import configure_logging, get_logger
 from app.presentation.api.v1.router import router as v1_router
 from app.presentation.middleware.error_handler import register_exception_handlers
@@ -21,6 +22,7 @@ logger = get_logger("main")
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings)
+    configure_container()
 
     app = FastAPI(
         title=settings.app_name,
