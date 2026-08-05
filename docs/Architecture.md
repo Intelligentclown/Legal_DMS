@@ -37,8 +37,10 @@ application/
   interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
                      job_queue.py (Job/JobQueue), file_storage.py (FileStorage),
                      notifier.py (Notifier), auth.py (AuthenticationProvider/CurrentUser/
-                     AuthorizationService), audit.py (AuditLogger), search.py (SearchIndex);
-                     more ports land through Stage 1
+                     AuthorizationService), audit.py (AuditLogger), search.py (SearchIndex)
+  workflow/          WorkflowDefinition/WorkflowEngine — generic state machine. No real
+                     workflow definitions ship (framework only); proven with a toy graph
+                     in tests, not the charter's Draft->Review->...->Completed example
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
