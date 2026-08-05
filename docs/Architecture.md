@@ -27,21 +27,29 @@ The rule this protects: **business logic must never live in a router or a compon
 ## Backend (`backend/src/app/`)
 
 ```
-domain/            pure entities & value objects (Entity, ValueObject base classes)
+domain/
+  common/           Entity, AggregateRoot (collects domain events), ValueObject, Result[T, E]
+  events/            DomainEvent base class
 application/
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
-  interfaces/       ports for future use cases — empty in Stage 0
+  interfaces/       ports for future use cases — empty in Stage 0, filling in during Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base, async engine/session, get_db() dependency
-  persistence/      future repository implementations — empty in Stage 0
+  persistence/      future repository implementations — empty in Stage 0, filling in during Stage 1
 presentation/
   api/v1/          health, version routers; aggregated in router.py
   middleware/      RequestIDMiddleware, LoggingMiddleware, exception handlers
 workers/            placeholder for future background jobs (OCR, indexing)
 main.py             FastAPI app factory — wires config, logging, CORS, middleware, routers
 ```
+
+> Stage 1 is actively adding the reusable cross-cutting platform (DI container, repository
+> pattern, event bus, job framework, storage/notification/search/auth abstractions, plugin
+> architecture, workflow engine) into these same folders. See
+> [ADR/0006-dependency-injection-container.md](../ADR/0006-dependency-injection-container.md) and
+> the Stage 1 section of [ProjectStatus.md](ProjectStatus.md) for what's landed so far.
 
 Dependency injection is FastAPI's own `Depends()` system: routes declare `SettingsDep` /
 `DBSessionDep` (see [`presentation/api/deps.py`](../backend/src/app/presentation/api/deps.py))
