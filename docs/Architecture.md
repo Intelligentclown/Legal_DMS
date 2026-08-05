@@ -32,12 +32,13 @@ domain/
   events/            DomainEvent base class
 application/
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
-  interfaces/       ports for future use cases — empty in Stage 0, filling in during Stage 1
+  interfaces/       repository.py (AbstractRepository[T] port) so far; more ports land through Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base, async engine/session, get_db() dependency
-  persistence/      future repository implementations — empty in Stage 0, filling in during Stage 1
+  di/               Container (register/resolve/override), configure_container()
+  persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
 presentation/
   api/v1/          health, version routers; aggregated in router.py
   middleware/      RequestIDMiddleware, LoggingMiddleware, exception handlers

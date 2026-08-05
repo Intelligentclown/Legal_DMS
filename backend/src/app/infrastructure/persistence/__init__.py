@@ -1,3 +1,4 @@
 """SQLAlchemy repository implementations satisfying `application/interfaces`
-ports go here as feature modules are added. Empty in Stage 0.
+ports. `SqlAlchemyRepository` is the generic base every feature-specific
+repository can use directly or subclass. No business models exist yet.
 """
