@@ -43,8 +43,9 @@ infrastructure/
   persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
 presentation/
   api/v1/          health, version routers; aggregated in router.py
-  common/           ApiResponse[T]/paginated_response() — envelope for future endpoints;
-                     /health and /version stay unwrapped by convention
+  common/           ApiResponse[T]/paginated_response(); build_crud_router() — generic
+                     list/get/create/update/delete router factory ("Base Controller"),
+                     proven with a test-only entity, never mounted into the real app
   middleware/      RequestIDMiddleware, LoggingMiddleware, exception handlers
 workers/            placeholder for future background jobs (OCR, indexing)
 main.py             FastAPI app factory — wires config, logging, CORS, middleware, routers

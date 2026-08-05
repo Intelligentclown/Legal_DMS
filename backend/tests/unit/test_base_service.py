@@ -4,15 +4,15 @@ database needed, this is pure application-layer logic.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
 import pytest
 
 from app.application.common.base_service import BaseService
+from app.application.common.pagination import PageRequest
 from app.application.errors.exceptions import NotFoundError
-from app.application.interfaces.repository import AbstractRepository
+from tests.support.in_memory_repository import InMemoryRepository
 
 
 @dataclass
@@ -21,35 +21,13 @@ class _Widget:
     name: str = ""
 
 
-class _InMemoryWidgetRepository(AbstractRepository[_Widget]):
-    def __init__(self) -> None:
-        self._items: dict[UUID, _Widget] = {}
-
-    async def get_by_id(self, id_: UUID) -> _Widget | None:
-        return self._items.get(id_)
-
-    async def list(self, *, limit: int = 100, offset: int = 0) -> Sequence[_Widget]:
-        return list(self._items.values())[offset : offset + limit]
-
-    async def add(self, entity: _Widget) -> _Widget:
-        self._items[entity.id] = entity
-        return entity
-
-    async def update(self, entity: _Widget) -> _Widget:
-        self._items[entity.id] = entity
-        return entity
-
-    async def delete(self, id_: UUID) -> None:
-        self._items.pop(id_, None)
-
-
 class WidgetService(BaseService[_Widget]):
     pass
 
 
 class TestBaseService:
     async def test_get_by_id_or_raise_returns_entity_when_found(self) -> None:
-        repo = _InMemoryWidgetRepository()
+        repo = InMemoryRepository[_Widget]()
         widget = _Widget(name="thing")
         await repo.add(widget)
         service = WidgetService(repo)
@@ -59,13 +37,63 @@ class TestBaseService:
         assert found is widget
 
     async def test_get_by_id_or_raise_raises_not_found_when_missing(self) -> None:
-        service = WidgetService(_InMemoryWidgetRepository())
+        service = WidgetService(InMemoryRepository[_Widget]())
 
         with pytest.raises(NotFoundError, match="Widget"):
             await service.get_by_id_or_raise(uuid4())
 
     async def test_not_found_message_uses_overridden_resource_name(self) -> None:
-        service = WidgetService(_InMemoryWidgetRepository(), resource_name="Gadget")
+        service = WidgetService(InMemoryRepository[_Widget](), resource_name="Gadget")
 
         with pytest.raises(NotFoundError, match="Gadget"):
             await service.get_by_id_or_raise(uuid4())
+
+    async def test_create_adds_and_returns_the_entity(self) -> None:
+        service = WidgetService(InMemoryRepository[_Widget]())
+        widget = _Widget(name="new")
+
+        created = await service.create(widget)
+
+        assert created is widget
+        assert await service.get_by_id_or_raise(widget.id) is widget
+
+    async def test_update_persists_changes(self) -> None:
+        repo = InMemoryRepository[_Widget]()
+        widget = _Widget(name="original")
+        await repo.add(widget)
+        service = WidgetService(repo)
+
+        widget.name = "renamed"
+        await service.update(widget)
+
+        found = await service.get_by_id_or_raise(widget.id)
+        assert found.name == "renamed"
+
+    async def test_delete_removes_the_entity(self) -> None:
+        repo = InMemoryRepository[_Widget]()
+        widget = _Widget(name="doomed")
+        await repo.add(widget)
+        service = WidgetService(repo)
+
+        await service.delete(widget.id)
+
+        with pytest.raises(NotFoundError):
+            await service.get_by_id_or_raise(widget.id)
+
+    async def test_delete_raises_not_found_when_missing(self) -> None:
+        service = WidgetService(InMemoryRepository[_Widget]())
+
+        with pytest.raises(NotFoundError):
+            await service.delete(uuid4())
+
+    async def test_list_page_returns_items_and_total(self) -> None:
+        repo = InMemoryRepository[_Widget]()
+        for i in range(5):
+            await repo.add(_Widget(name=f"item-{i}"))
+        service = WidgetService(repo)
+
+        page = await service.list_page(PageRequest(page=1, page_size=2))
+
+        assert len(page.items) == 2
+        assert page.total == 5
+        assert page.total_pages == 3

@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.interfaces.repository import AbstractRepository, SupportsId
@@ -33,6 +33,11 @@ class SqlAlchemyRepository[ModelT: SupportsId](AbstractRepository[ModelT]):
         stmt = select(self._model).limit(limit).offset(offset)
         result = await self._session.execute(stmt)
         return result.scalars().all()
+
+    async def count(self) -> int:
+        stmt = select(func.count()).select_from(self._model)
+        result = await self._session.execute(stmt)
+        return result.scalar_one()
 
     async def add(self, entity: ModelT) -> ModelT:
         self._session.add(entity)

@@ -29,6 +29,9 @@ class AbstractRepository[T: SupportsId](ABC):
     async def list(self, *, limit: int = 100, offset: int = 0) -> Sequence[T]: ...
 
     @abstractmethod
+    async def count(self) -> int: ...
+
+    @abstractmethod
     async def add(self, entity: T) -> T: ...
 
     @abstractmethod

@@ -80,6 +80,17 @@ class TestSqlAlchemyRepository:
     ) -> None:
         assert await repository.get_by_id(uuid4()) is None
 
+    async def test_count_reflects_rows_added(
+        self, repository: SqlAlchemyRepository[_TestItem], db_session: AsyncSession
+    ) -> None:
+        assert await repository.count() == 0
+
+        for i in range(4):
+            await repository.add(_TestItem(id=uuid4(), name=f"item-{i}"))
+        await db_session.commit()
+
+        assert await repository.count() == 4
+
     async def test_list_respects_limit(
         self, repository: SqlAlchemyRepository[_TestItem], db_session: AsyncSession
     ) -> None:
