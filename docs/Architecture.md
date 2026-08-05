@@ -35,8 +35,8 @@ application/
                      SortSpec/FilterSpec/SearchQuery (shape only — no implementation yet)
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
   interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
-                     job_queue.py (Job/JobQueue), file_storage.py (FileStorage);
-                     more ports land through Stage 1
+                     job_queue.py (Job/JobQueue), file_storage.py (FileStorage),
+                     notifier.py (Notifier); more ports land through Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
@@ -44,6 +44,8 @@ infrastructure/
   di/               Container (register/resolve/override), configure_container()
   events/            InMemoryEventBus — in-process publish/subscribe
   jobs/               InMemoryJobQueue — asyncio-task-backed job execution + status tracking
+  notifications/       LoggingNotifier — logs instead of sending; server-side, distinct from
+                        the frontend's toast NotificationProvider
   persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
   storage/            LocalFileStorage — filesystem-backed, path-traversal-safe FileStorage
 presentation/
