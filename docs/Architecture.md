@@ -49,7 +49,10 @@ infrastructure/
   config/          pydantic-settings Settings, env-driven (incl. feature_flags dict,
                      "name:true,other:false" — see SettingsFeatureFlagProvider)
   logging/         structured JSON logging (console + rotating file)
-  database/        SQLAlchemy Base, async engine/session, get_db() dependency
+  database/        SQLAlchemy Base (naming_convention set for consistent constraint/index
+                     names), async engine/session, get_db() dependency
+  persistence/models/  Stage 2: the full database schema as SQLAlchemy models, persistence-
+                     layer only (ADR/0008) — see docs/Database.md and docs/ERD.md
   audit/              LoggingAuditLogger — structured JSON audit entries, no DB table yet
                        (ADR/0007)
   auth/               AnonymousAuthenticationProvider (no login exists), PermissiveAuthorizationService

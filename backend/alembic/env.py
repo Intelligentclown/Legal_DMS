@@ -9,6 +9,11 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.infrastructure.config import get_settings
 from app.infrastructure.database.base import Base
 
+# Importing this package registers every persistence model module (see
+# infrastructure/persistence/models/__init__.py) onto Base.metadata, which
+# is what makes `alembic revision --autogenerate` see them.
+from app.infrastructure.persistence import models  # noqa: F401
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -22,9 +27,6 @@ if config.config_file_name is not None:
 # never from a hardcoded value in alembic.ini.
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
-# Import future ORM models here so Base.metadata picks them up for
-# `alembic revision --autogenerate`, e.g.:
-# from app.infrastructure.persistence import matter_model
 target_metadata = Base.metadata
 
 
