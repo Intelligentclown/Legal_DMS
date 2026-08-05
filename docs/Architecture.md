@@ -37,8 +37,8 @@ application/
   interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
                      job_queue.py (Job/JobQueue), file_storage.py (FileStorage),
                      notifier.py (Notifier), auth.py (AuthenticationProvider/CurrentUser/
-                     AuthorizationService), audit.py (AuditLogger); more ports land
-                     through Stage 1
+                     AuthorizationService), audit.py (AuditLogger), search.py (SearchIndex);
+                     more ports land through Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
@@ -54,6 +54,8 @@ infrastructure/
   notifications/       LoggingNotifier — logs instead of sending; server-side, distinct from
                         the frontend's toast NotificationProvider
   persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
+  search/             InMemorySearchIndex — naive substring/filter match proving SearchIndex;
+                        real full-text/OCR/smart search deferred
   storage/            LocalFileStorage — filesystem-backed, path-traversal-safe FileStorage
 presentation/
   api/v1/          health, version routers; aggregated in router.py
