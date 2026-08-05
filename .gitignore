@@ -39,6 +39,9 @@ uv-cache/
 logs/
 *.log
 
+## --- Local file storage (LocalFileStorage default root) ---
+backend/storage/
+
 ## --- Editors / OS ---
 .idea/
 *.swp

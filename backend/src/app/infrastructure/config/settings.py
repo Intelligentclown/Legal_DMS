@@ -33,6 +33,7 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
     log_dir: str = "logs"
+    storage_root: str = "storage"
 
     # NoDecode: env values are comma-separated, not JSON — parsed by the validator below.
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]

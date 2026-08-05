@@ -21,10 +21,12 @@ from collections.abc import Callable
 from typing import Any
 
 from app.application.interfaces.event_bus import EventBus
+from app.application.interfaces.file_storage import FileStorage
 from app.application.interfaces.job_queue import JobQueue
 from app.infrastructure.config import Settings, get_settings
 from app.infrastructure.events.in_memory_event_bus import InMemoryEventBus
 from app.infrastructure.jobs.in_memory_job_queue import InMemoryJobQueue
+from app.infrastructure.storage.local_file_storage import LocalFileStorage
 
 
 class ContainerError(Exception):
@@ -81,3 +83,4 @@ def configure_container() -> None:
     container.register(Settings, get_settings)
     container.register(EventBus, InMemoryEventBus)
     container.register(JobQueue, lambda: InMemoryJobQueue(job_registry.jobs))
+    container.register(FileStorage, lambda: LocalFileStorage(get_settings().storage_root))
