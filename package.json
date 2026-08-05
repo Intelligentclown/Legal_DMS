@@ -1,0 +1,24 @@
+{
+  "name": "legal-dms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Legal Document & Matter Management System — Electron desktop shell",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "electron:build": "tsc -p electron/tsconfig.json",
+    "electron:watch": "tsc -p electron/tsconfig.json --watch",
+    "electron:dev": "npm run electron:build && wait-on http://localhost:5173 && electron .",
+    "electron:start": "electron .",
+    "dev": "concurrently -k -n frontend,electron \"npm --prefix frontend run dev\" \"npm run electron:dev\"",
+    "build": "npm run electron:build && npm --prefix frontend run build",
+    "dist": "npm run build && electron-builder"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "concurrently": "^10.0.4",
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.7.2",
+    "wait-on": "^9.1.0"
+  }
+}
