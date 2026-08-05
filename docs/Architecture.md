@@ -31,6 +31,7 @@ domain/
   common/           Entity, AggregateRoot (collects domain events), ValueObject, Result[T, E]
   events/            DomainEvent base class
 application/
+  common/           BaseService[T] — repository + logger, get_by_id_or_raise() -> NotFoundError
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
   interfaces/       repository.py (AbstractRepository[T] port) so far; more ports land through Stage 1
 infrastructure/
