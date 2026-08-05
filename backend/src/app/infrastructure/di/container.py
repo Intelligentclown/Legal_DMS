@@ -23,6 +23,7 @@ from typing import Any
 from app.application.interfaces.audit import AuditLogger
 from app.application.interfaces.auth import AuthenticationProvider, AuthorizationService
 from app.application.interfaces.event_bus import EventBus
+from app.application.interfaces.feature_flags import FeatureFlagProvider
 from app.application.interfaces.file_storage import FileStorage
 from app.application.interfaces.job_queue import JobQueue
 from app.application.interfaces.notifier import Notifier
@@ -30,7 +31,7 @@ from app.application.interfaces.search import SearchIndex
 from app.infrastructure.audit.audit_logger import LoggingAuditLogger
 from app.infrastructure.auth.anonymous_auth_provider import AnonymousAuthenticationProvider
 from app.infrastructure.auth.permissive_authorization_service import PermissiveAuthorizationService
-from app.infrastructure.config import Settings, get_settings
+from app.infrastructure.config import Settings, SettingsFeatureFlagProvider, get_settings
 from app.infrastructure.events.in_memory_event_bus import InMemoryEventBus
 from app.infrastructure.jobs.in_memory_job_queue import InMemoryJobQueue
 from app.infrastructure.notifications.logging_notifier import LoggingNotifier
@@ -98,3 +99,4 @@ def configure_container() -> None:
     container.register(AuthenticationProvider, AnonymousAuthenticationProvider)
     container.register(AuthorizationService, PermissiveAuthorizationService)
     container.register(AuditLogger, LoggingAuditLogger)
+    container.register(FeatureFlagProvider, lambda: SettingsFeatureFlagProvider(get_settings()))

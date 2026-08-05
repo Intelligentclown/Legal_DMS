@@ -37,12 +37,14 @@ application/
   interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
                      job_queue.py (Job/JobQueue), file_storage.py (FileStorage),
                      notifier.py (Notifier), auth.py (AuthenticationProvider/CurrentUser/
-                     AuthorizationService), audit.py (AuditLogger), search.py (SearchIndex)
+                     AuthorizationService), audit.py (AuditLogger), search.py (SearchIndex),
+                     feature_flags.py (FeatureFlagProvider)
   workflow/          WorkflowDefinition/WorkflowEngine — generic state machine. No real
                      workflow definitions ship (framework only); proven with a toy graph
                      in tests, not the charter's Draft->Review->...->Completed example
 infrastructure/
-  config/          pydantic-settings Settings, env-driven
+  config/          pydantic-settings Settings, env-driven (incl. feature_flags dict,
+                     "name:true,other:false" — see SettingsFeatureFlagProvider)
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base, async engine/session, get_db() dependency
   audit/              LoggingAuditLogger — structured JSON audit entries, no DB table yet

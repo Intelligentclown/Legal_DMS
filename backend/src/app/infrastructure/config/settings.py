@@ -38,11 +38,27 @@ class Settings(BaseSettings):
     # NoDecode: env values are comma-separated, not JSON — parsed by the validator below.
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
+    # NoDecode: env value is "name:true,other:false", not JSON.
+    feature_flags: Annotated[dict[str, bool], NoDecode] = {}
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_cors_origins(cls, value: str | list[str]) -> list[str]:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("feature_flags", mode="before")
+    @classmethod
+    def _parse_feature_flags(cls, value: str | dict[str, bool]) -> dict[str, bool]:
+        if isinstance(value, str):
+            flags: dict[str, bool] = {}
+            for pair in value.split(","):
+                name, _, raw_value = pair.strip().partition(":")
+                if not name:
+                    continue
+                flags[name] = raw_value.strip().lower() in ("1", "true", "yes", "on")
+            return flags
         return value
 
     @property
