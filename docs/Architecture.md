@@ -36,11 +36,18 @@ application/
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
   interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
                      job_queue.py (Job/JobQueue), file_storage.py (FileStorage),
-                     notifier.py (Notifier); more ports land through Stage 1
+                     notifier.py (Notifier), auth.py (AuthenticationProvider/CurrentUser/
+                     AuthorizationService), audit.py (AuditLogger); more ports land
+                     through Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base, async engine/session, get_db() dependency
+  audit/              LoggingAuditLogger — structured JSON audit entries, no DB table yet
+                       (ADR/0007)
+  auth/               AnonymousAuthenticationProvider (no login exists), PermissiveAuthorizationService
+                       (denies anonymous callers, permissive once authenticated — no real
+                       permission data model yet)
   di/               Container (register/resolve/override), configure_container()
   events/            InMemoryEventBus — in-process publish/subscribe
   jobs/               InMemoryJobQueue — asyncio-task-backed job execution + status tracking
@@ -66,10 +73,13 @@ main.py             FastAPI app factory — wires config, logging, CORS, middlew
 > the Stage 1 section of [ProjectStatus.md](ProjectStatus.md) for what's landed so far.
 
 Dependency injection is FastAPI's own `Depends()` system: routes declare `SettingsDep` /
-`DBSessionDep` (see [`presentation/api/deps.py`](../backend/src/app/presentation/api/deps.py))
-rather than importing infrastructure singletons directly. When repository interfaces exist, they'll
-follow the same pattern — a port in `application/interfaces`, a concrete implementation in
-`infrastructure/persistence`, wired via `Depends`.
+`DBSessionDep` / `CurrentUserDep` (see
+[`presentation/api/deps.py`](../backend/src/app/presentation/api/deps.py)) rather than importing
+infrastructure singletons directly. `SettingsDep` and `CurrentUserDep` resolve through the DI
+container (see [ADR/0006](../ADR/0006-dependency-injection-container.md)); `DBSessionDep` stays on
+FastAPI's native generator pattern for request-scoped teardown. Every future port
+(`application/interfaces/...`) with a concrete implementation
+(`infrastructure/...`) follows the same container-registration pattern established for `Settings`.
 
 **Pragmatic exception:** `DBSessionDep` gives routes an `AsyncSession` directly. That's session
 *plumbing*, not business logic — actual query/business logic still belongs in a
