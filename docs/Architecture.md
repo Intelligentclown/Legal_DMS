@@ -31,7 +31,8 @@ domain/
   common/           Entity, AggregateRoot (collects domain events), ValueObject, Result[T, E]
   events/            DomainEvent base class
 application/
-  common/           BaseService[T] — repository + logger, get_by_id_or_raise() -> NotFoundError
+  common/           BaseService[T], Validator[T]/validate_all(), PageRequest/PageResult[T],
+                     SortSpec/FilterSpec/SearchQuery (shape only — no implementation yet)
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
   interfaces/       repository.py (AbstractRepository[T] port) so far; more ports land through Stage 1
 infrastructure/
@@ -42,6 +43,8 @@ infrastructure/
   persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
 presentation/
   api/v1/          health, version routers; aggregated in router.py
+  common/           ApiResponse[T]/paginated_response() — envelope for future endpoints;
+                     /health and /version stay unwrapped by convention
   middleware/      RequestIDMiddleware, LoggingMiddleware, exception handlers
 workers/            placeholder for future background jobs (OCR, indexing)
 main.py             FastAPI app factory — wires config, logging, CORS, middleware, routers
