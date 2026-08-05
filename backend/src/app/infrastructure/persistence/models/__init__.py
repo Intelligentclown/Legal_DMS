@@ -14,8 +14,10 @@ therefore `alembic revision --autogenerate` — sees every table.
 """
 
 from app.infrastructure.persistence.models import client as client
+from app.infrastructure.persistence.models import document as document
 from app.infrastructure.persistence.models import geography as geography
 from app.infrastructure.persistence.models import identity as identity
 from app.infrastructure.persistence.models import matter as matter
 from app.infrastructure.persistence.models import property as property
+from app.infrastructure.persistence.models import storage as storage
 from app.infrastructure.persistence.models import workflow as workflow

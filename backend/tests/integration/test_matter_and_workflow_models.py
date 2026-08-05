@@ -90,18 +90,14 @@ class TestMatter:
     async def test_closed_at_cannot_precede_opened_at(self, db_session: AsyncSession) -> None:
         opened = datetime.now(UTC)
         with pytest.raises(IntegrityError):
-            await _make_matter(
-                db_session, opened_at=opened, closed_at=opened - timedelta(days=1)
-            )
+            await _make_matter(db_session, opened_at=opened, closed_at=opened - timedelta(days=1))
 
     async def test_optimistic_locking_is_enabled(self) -> None:
         assert Matter.__mapper__.version_id_col is Matter.__table__.c.version
 
 
 class TestWorkflow:
-    async def test_state_code_unique_within_definition_only(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_state_code_unique_within_definition_only(self, db_session: AsyncSession) -> None:
         definition = WorkflowDefinition(code=f"WF-{uuid4()}", name="Matter Lifecycle")
         db_session.add(definition)
         await db_session.flush()
