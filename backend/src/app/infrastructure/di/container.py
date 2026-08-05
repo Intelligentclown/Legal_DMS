@@ -20,7 +20,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from app.application.interfaces.event_bus import EventBus
 from app.infrastructure.config import Settings, get_settings
+from app.infrastructure.events.in_memory_event_bus import InMemoryEventBus
 
 
 class ContainerError(Exception):
@@ -73,3 +75,4 @@ container = Container()
 def configure_container() -> None:
     """Register the app's core services. Called once at startup — see `main.py`."""
     container.register(Settings, get_settings)
+    container.register(EventBus, InMemoryEventBus)

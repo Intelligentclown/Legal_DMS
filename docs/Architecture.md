@@ -34,12 +34,14 @@ application/
   common/           BaseService[T], Validator[T]/validate_all(), PageRequest/PageResult[T],
                      SortSpec/FilterSpec/SearchQuery (shape only — no implementation yet)
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
-  interfaces/       repository.py (AbstractRepository[T] port) so far; more ports land through Stage 1
+  interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus port);
+                     more ports land through Stage 1
 infrastructure/
   config/          pydantic-settings Settings, env-driven
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base, async engine/session, get_db() dependency
   di/               Container (register/resolve/override), configure_container()
+  events/            InMemoryEventBus — in-process publish/subscribe
   persistence/      SqlAlchemyRepository[ModelT] — generic CRUD repository implementation
 presentation/
   api/v1/          health, version routers; aggregated in router.py
