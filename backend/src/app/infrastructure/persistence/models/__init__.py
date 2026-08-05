@@ -13,6 +13,7 @@ Every module here must be imported somewhere reachable from
 therefore `alembic revision --autogenerate` — sees every table.
 """
 
+from app.infrastructure.persistence.models import activity as activity
 from app.infrastructure.persistence.models import client as client
 from app.infrastructure.persistence.models import document as document
 from app.infrastructure.persistence.models import financial as financial

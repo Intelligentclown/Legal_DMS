@@ -1,6 +1,8 @@
 # ADR-0007: Audit logging writes structured logs, not a database table
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-0009](0009-audit-logs-table-reverses-adr-0007.md) — Stage 2 added
+the `audit_logs` table this ADR deferred, once a concrete driving need (the charter's explicit
+schema request) existed. The reasoning below was correct for Stage 1; kept for history.
 **Date:** 2026-08-05
 
 ## Problem
