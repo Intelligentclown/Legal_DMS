@@ -8,10 +8,10 @@ same validated instance is reused everywhere via FastAPI's `Depends`.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Environment = Literal["development", "testing", "production"]
 
@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_dir: str = "logs"
 
-    cors_origins: list[str] = ["http://localhost:5173"]
+    # NoDecode: env values are comma-separated, not JSON — parsed by the validator below.
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
     @field_validator("cors_origins", mode="before")
     @classmethod
