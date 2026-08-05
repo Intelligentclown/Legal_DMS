@@ -40,15 +40,16 @@ class TestApplicationSetting:
 
 class TestFeatureFlag:
     async def test_name_must_be_unique(self, db_session: AsyncSession) -> None:
-        db_session.add(FeatureFlag(name="ocr_pipeline"))
+        name = f"test-flag-{uuid4()}"
+        db_session.add(FeatureFlag(name=name))
         await db_session.flush()
 
-        db_session.add(FeatureFlag(name="ocr_pipeline"))
+        db_session.add(FeatureFlag(name=name))
         with pytest.raises(IntegrityError):
             await db_session.flush()
 
     async def test_defaults_to_disabled(self, db_session: AsyncSession) -> None:
-        flag = FeatureFlag(name="ai_drafting")
+        flag = FeatureFlag(name=f"test-flag-{uuid4()}")
         db_session.add(flag)
 
         await db_session.flush()

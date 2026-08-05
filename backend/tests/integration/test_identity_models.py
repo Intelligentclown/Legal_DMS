@@ -69,9 +69,10 @@ class TestRole:
 
 class TestPermission:
     async def test_code_must_be_unique(self, db_session: AsyncSession) -> None:
-        db_session.add(Permission(code="matters:read", category="matters"))
+        code = f"test:{uuid4()}"
+        db_session.add(Permission(code=code, category="matters"))
         await db_session.flush()
-        db_session.add(Permission(code="matters:read", category="matters"))
+        db_session.add(Permission(code=code, category="matters"))
 
         with pytest.raises(IntegrityError):
             await db_session.flush()
