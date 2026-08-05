@@ -1,0 +1,85 @@
+{
+  "project": "Legal Document & Matter Management System",
+  "lastUpdated": "2026-08-05",
+  "currentStage": {
+    "id": "stage-1",
+    "name": "Core Architecture & Domain Foundation",
+    "status": "completed"
+  },
+  "currentVersion": "0.2.0",
+  "completion": {
+    "currentStageScopePercent": 100,
+    "overallProjectPercent": 0,
+    "note": "0% overall is correct, not an error -- Stages 0-1 are infrastructure/framework only by design. No business feature has been scoped yet."
+  },
+  "stages": [
+    { "id": "stage-0", "name": "Project Foundation", "status": "completed" },
+    { "id": "stage-1", "name": "Core Architecture & Domain Foundation", "status": "completed" },
+    { "id": "stage-2", "name": null, "status": "not_started", "note": "Undefined. Do not start without explicit direction from the project owner." }
+  ],
+  "tests": {
+    "backend": { "framework": "pytest", "total": 130, "passing": 130 },
+    "frontend": { "framework": "vitest", "total": 9, "passing": 9 }
+  },
+  "lint": {
+    "backend": "clean (ruff, black)",
+    "frontend": "clean (eslint, prettier) -- 3 pre-existing react-refresh warnings are expected, 0 errors"
+  },
+  "backendSubsystems": [
+    { "name": "Domain foundation (AggregateRoot, DomainEvent, Result)", "status": "completed" },
+    { "name": "Dependency Injection Container", "status": "completed" },
+    { "name": "Repository Pattern (AbstractRepository, SqlAlchemyRepository)", "status": "completed" },
+    { "name": "Base Service", "status": "completed" },
+    { "name": "Validation Framework", "status": "completed" },
+    { "name": "Pagination / Filtering / Sorting / Search query shapes", "status": "completed" },
+    { "name": "Response Wrapper (ApiResponse)", "status": "completed" },
+    { "name": "Base Controller (CRUD router factory)", "status": "completed" },
+    { "name": "Event System (EventBus)", "status": "completed" },
+    { "name": "Background Job Framework", "status": "completed" },
+    { "name": "File Storage Abstraction", "status": "completed" },
+    { "name": "Notification Framework (backend)", "status": "completed" },
+    { "name": "Authentication Framework (no login implemented)", "status": "completed" },
+    { "name": "Authorization Framework", "status": "completed" },
+    { "name": "Audit Logging Framework", "status": "completed" },
+    { "name": "Search Foundation (SearchIndex)", "status": "completed" },
+    { "name": "Plugin Architecture (AppModule, ModuleRegistry)", "status": "completed" },
+    { "name": "Workflow Engine", "status": "completed" },
+    { "name": "Feature Flags", "status": "completed" },
+    { "name": "Config Service extension", "status": "completed" }
+  ],
+  "frontendAdditions": [
+    { "name": "Result<T, E> discriminated union", "status": "completed" },
+    { "name": "Pagination/query TS types", "status": "completed" }
+  ],
+  "businessFeatures": [],
+  "knownIssues": [
+    {
+      "id": "shadcn-cli-windows",
+      "summary": "shadcn/ui init/add commands are broken on this Windows setup (writes to a literal '@' directory instead of resolving the path alias)",
+      "workaround": "Hand-author components under frontend/src/presentation/components/ui/, copying source from ui.shadcn.com",
+      "docs": "docs/KnownIssues.md"
+    },
+    {
+      "id": "react-router-dom-advisory",
+      "summary": "One open high-severity npm audit advisory (RSC-mode CSRF) with no patched release across the current 7.x line",
+      "assessment": "Not applicable -- this project uses plain client-side routing, no RSC/framework mode",
+      "docs": "docs/KnownIssues.md"
+    }
+  ],
+  "openQuestions": [
+    "What does Stage 2 cover? Not yet scoped by the project owner -- do not assume or start any business feature (Matter/Client/Property Management, Document Automation, OCR, QR, Search implementation, Reports, Payments, AI, Authentication login) without explicit direction."
+  ],
+  "adrs": [
+    "0001-record-architecture-decisions",
+    "0002-clean-architecture-layering",
+    "0003-electron-react-fastapi-postgres-stack",
+    "0004-security-foundation-placeholders",
+    "0005-docker-compose-local-postgres",
+    "0006-dependency-injection-container",
+    "0007-audit-logging-without-database-table"
+  ],
+  "git": {
+    "branch": "master",
+    "latestCommitAtThisUpdate": "c18cef3"
+  }
+}

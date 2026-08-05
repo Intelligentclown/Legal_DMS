@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     app_name: str = "Legal Document & Matter Management System"
     api_v1_prefix: str = "/api/v1"
-    app_version: str = "0.1.0"
+    app_version: str = "0.2.0"
 
     database_url: str = "postgresql+asyncpg://legal_dms:legal_dms@localhost:5432/legal_dms_dev"
 

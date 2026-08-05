@@ -3,9 +3,11 @@
 A production-grade desktop application for managing legal matters, clients, and documents,
 built with Electron, React, FastAPI, and PostgreSQL.
 
-> **Status:** Stage 0 — Project Foundation. No business features exist yet. See
-> [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for the current state and
-> [`docs/Roadmap.md`](docs/Roadmap.md) for what's planned.
+> **Status:** Stage 1 — Core Architecture & Domain Foundation complete. No business features exist
+> yet. See [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for the current state,
+> [`PROJECT_STATE.json`](PROJECT_STATE.json) for a machine-readable snapshot, and
+> [`docs/Roadmap.md`](docs/Roadmap.md) for what's planned. Picking this project up fresh? Start at
+> [`AI_BOOTSTRAP.md`](AI_BOOTSTRAP.md).
 
 ## Tech Stack
 

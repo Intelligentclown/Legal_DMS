@@ -6,9 +6,14 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
 
 ## Start here
 
-- **[AI_HANDOVER.md](AI_HANDOVER.md)** — picking this project up cold? Read this first.
+- **[/AI_BOOTSTRAP.md](../AI_BOOTSTRAP.md)** — picking this project up cold? Read this first (it
+  points you to everything else in the right order).
+- **[/PROJECT_STATE.json](../PROJECT_STATE.json)** — machine-readable status snapshot.
+- **[AI_HANDOVER.md](AI_HANDOVER.md)** — the deep handover doc: completed work, open issues,
+  warnings, what to do next.
 - **[Context.md](Context.md)** — full narrative context in one place (goal, architecture, status,
-  decisions, what's next).
+  decisions, what's next) — written at the end of Stage 0; treat as historical background rather
+  than current status.
 - **[ProjectStatus.md](ProjectStatus.md)** — single source of truth for what's done/pending.
 
 ## Reference
@@ -27,7 +32,7 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
 | [CHANGELOG.md](CHANGELOG.md) | Per-stage changelog (files added/modified, breaking changes) |
 | [KnownIssues.md](KnownIssues.md) | Open tooling caveats and their workarounds |
 | [FutureIdeas.md](FutureIdeas.md) | Parked ideas, not yet planned |
-| [FeatureRegistry.md](FeatureRegistry.md) | One entry per business feature (empty until Stage 1) |
+| [FeatureRegistry.md](FeatureRegistry.md) | One entry per business feature (empty — none built yet) |
 | [ModuleRegistry.md](ModuleRegistry.md) | One entry per code module: purpose, status, owner |
 | [SessionReport.md](SessionReport.md) | Log of each development session |
 

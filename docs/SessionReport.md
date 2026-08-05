@@ -61,7 +61,75 @@ session).
 - Live E2E: Postgres (Docker) + FastAPI + Vite dev server + Electron run together; health check
   renders real data; Electron loads and exits cleanly.
 
-**Next Session Goals:** None set — Stage 0 is complete and Stage 1 is undefined. The next session
-should start by asking the project owner what Stage 1 covers (see
-[AI_HANDOVER.md](AI_HANDOVER.md)'s "What Should Be Implemented Next" section) rather than assuming
-scope.
+**Next Session Goals:** None set at the time — Stage 0 was complete and Stage 1 was undefined.
+The next session should start by asking the project owner what Stage 1 covers rather than assuming
+scope. (Resolved: the user provided a full Stage 1 charter — see the session below.)
+
+## Session: 2026-08-05 — Stage 1 (Core Architecture & Domain Foundation)
+
+**Objectives:** Build the reusable cross-cutting platform (DI container, repository pattern, base
+service, validation/pagination/query/response frameworks, CRUD router factory, event system, job
+framework, storage/notification/auth/audit/search abstractions, plugin architecture, workflow
+engine, feature flags) with zero business features, per the user's Stage 1 charter. Architecture
+proposal presented and approved before any code was written, per the charter's explicit process.
+
+**Completed Tasks:** All 17 planned sections landed, each verified (tests + a live smoke check)
+and committed separately — see [CHANGELOG.md](CHANGELOG.md)'s Stage 1 section for the full
+per-commit breakdown. Backend test count grew from 10 to 130; frontend from 3 to 9.
+
+**Problems Encountered & Solutions:**
+
+- **Doc-naming gaps found before starting.** The Stage 1 prompt referenced `AI_BOOTSTRAP.md` and
+  `PROJECT_STATE.json`, neither of which existed (Stage 0 had created `AI_HANDOVER.md` instead,
+  and status lived only in `ProjectStatus.md`). Reported explicitly before proceeding, per the
+  prompt's own "report inconsistencies" instruction, then resolved by creating both files fresh as
+  part of this session's documentation pass — `AI_BOOTSTRAP.md` as a concise entry point distinct
+  from the deeper `AI_HANDOVER.md`.
+- **pytest-asyncio event-loop / connection-pool mismatch.** The app's cached `get_engine()`
+  singleton can't be reused across pytest-asyncio's per-test event loops (asyncpg connections are
+  loop-bound) — surfaced as "Event loop is closed" errors in the repository integration tests.
+  **Fixed** by having the test fixture create and dispose its own engine instead of reusing the
+  app's cached one.
+- **CRUD router factory silently mis-parsed request bodies.** The generic router factory's own
+  PEP 695 type parameters (`ReadSchema`, `CreateSchema`, ...) are `TypeVar` placeholder objects at
+  runtime, not the concrete Pydantic classes passed in. Annotating nested route handlers with those
+  names — combined with `from __future__ import annotations` postponing evaluation to strings —
+  made FastAPI silently treat a JSON request body as an unresolvable query parameter instead.
+  **Fixed** by dropping the postponed-annotations import from that one file and annotating with
+  the actual runtime schema arguments instead; documented prominently in the module docstring so
+  the pattern isn't miscopied into a future feature's router.
+- **Ruff PEP 695 generic-syntax nudge.** `class Result(Generic[T, E])` was flagged (`UP046`) in
+  favor of the native `class Result[T, E]` syntax — adopted throughout Stage 1's generic types for
+  consistency (`Container.register[T]`, `AbstractRepository[T]`, `SqlAlchemyRepository[ModelT]`,
+  etc.).
+- **Architectural correction mid-stage:** the plan originally placed `AppModule` (plugin
+  architecture) in `application/interfaces/`, but it necessarily references FastAPI directly to
+  mount routes — which would break the framework-agnostic-ports convention every other Stage 1
+  port had followed. **Corrected** by moving it to `infrastructure/modules/` instead, documented
+  as a deliberate deviation from the approved plan in both the commit message and
+  `Architecture.md`, rather than silently diverging.
+
+**Files Modified:** See [CHANGELOG.md](CHANGELOG.md) for the full per-commit breakdown (16
+commits for the subsystems, plus this documentation commit).
+
+**Documentation Updated:** `AI_BOOTSTRAP.md`, `PROJECT_STATE.json` (new, repo root),
+`docs/AI_HANDOVER.md`, `docs/Architecture.md` (updated incrementally after each section, plus a
+final coherence pass), `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`, `docs/FeatureRegistry.md`,
+`docs/Roadmap.md`, `docs/CHANGELOG.md`, `docs/SessionReport.md` (this file), plus
+`ADR/0006-dependency-injection-container.md` and
+`ADR/0007-audit-logging-without-database-table.md`.
+
+**Tests Executed:**
+- Backend: `uv run pytest` — 130 passed (up from 10).
+- Frontend: `npm run test` — 9 passed (up from 3).
+- Both: linters (`ruff`, `black --check`, `eslint`, `prettier --check`) clean after every section.
+- After every section that touched the DI container, re-verified `GET /api/v1/health` still
+  returned 200 via a live `TestClient` — no regression across 20 subsystem additions.
+- Confirmed the real shipped app's route surface is unchanged from Stage 0 (`/api/v1/health`,
+  `/api/v1/version` only) — the CRUD router factory and plugin module proofs stayed test-only.
+
+**Next Session Goals:** None set — Stage 1 is complete and Stage 2 is undefined. The next session
+should start by asking the project owner what Stage 2 covers (see
+[AI_HANDOVER.md](AI_HANDOVER.md) and [AI_BOOTSTRAP.md](../AI_BOOTSTRAP.md)) rather than assuming
+scope — this is now the second stage in a row where that's been true; don't let it become an
+assumption that "the next stage is always infrastructure."

@@ -12,7 +12,8 @@ Presentation  →  Application  →  Domain
 ```
 
 - **Domain** — pure entities, value objects, and port interfaces. No framework imports. Business
-  rules live here once they exist (none yet in Stage 0).
+  rules live here once they exist (none yet — Stage 1 only added framework-level base types:
+  `AggregateRoot`, `DomainEvent`, `Result[T, E]`).
 - **Application** — use cases / services orchestrating domain logic through ports. No FastAPI,
   no SQLAlchemy, no React imports.
 - **Infrastructure** — concrete implementations of Application's ports: SQLAlchemy repositories,
@@ -32,7 +33,9 @@ domain/
   events/            DomainEvent base class
 application/
   common/           BaseService[T], Validator[T]/validate_all(), PageRequest/PageResult[T],
-                     SortSpec/FilterSpec/SearchQuery (shape only — no implementation yet)
+                     SortSpec/FilterSpec/SearchQuery (the shared query shape — InMemorySearchIndex
+                     is the one Stage 1 implementation that interprets it; SqlAlchemyRepository's
+                     list()/count() don't yet — that's an extension point for a real feature)
   errors/          AppError hierarchy (ValidationError, NotFoundError, ConflictError, ...)
   interfaces/       repository.py (AbstractRepository[T]), event_bus.py (EventBus),
                      job_queue.py (Job/JobQueue), file_storage.py (FileStorage),
@@ -79,11 +82,13 @@ workers/            JobRegistry (name -> Job) + NoOpJob proving the framework; r
 main.py             FastAPI app factory — wires config, logging, CORS, middleware, routers
 ```
 
-> Stage 1 is actively adding the reusable cross-cutting platform (DI container, repository
-> pattern, event bus, job framework, storage/notification/search/auth abstractions, plugin
-> architecture, workflow engine) into these same folders. See
-> [ADR/0006-dependency-injection-container.md](../ADR/0006-dependency-injection-container.md) and
-> the Stage 1 section of [ProjectStatus.md](ProjectStatus.md) for what's landed so far.
+> Stage 1 added the reusable cross-cutting platform shown above (DI container, repository
+> pattern, base service, validation/pagination/query/response frameworks, CRUD router factory,
+> event bus, job framework, storage/notification/search/auth/audit abstractions, plugin
+> architecture, workflow engine, feature flags) — all framework, zero business features. See
+> [ADR/0006](../ADR/0006-dependency-injection-container.md) and
+> [ADR/0007](../ADR/0007-audit-logging-without-database-table.md) for the two Stage 1-specific
+> architectural decisions, and [ProjectStatus.md](ProjectStatus.md) for the full checklist.
 
 Dependency injection is FastAPI's own `Depends()` system: routes declare `SettingsDep` /
 `DBSessionDep` / `CurrentUserDep` (see

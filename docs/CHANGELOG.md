@@ -68,3 +68,111 @@ tests on both sides, and this documentation set. Zero business features, as scop
 
 ### Documentation pass (this commit)
 - **Added:** full `docs/` set (this file included) and `ADR/` with the Stage 0 decision records.
+
+## Stage 1 — Core Architecture & Domain Foundation
+
+**Version:** 0.2.0
+**Dates:** 2026-08-05 (one continuous session)
+**Summary:** Built the reusable cross-cutting platform every future business feature will plug
+into — DI container, repository pattern, base service, validation/pagination/query/response
+frameworks, a generic CRUD router factory, event system, background job framework, file storage
+abstraction, notification framework, auth/authorization/audit frameworks (no login), search
+foundation, plugin architecture, workflow engine, feature flags. Every port got exactly one
+minimal default implementation (in-memory/local/logging), no new dependencies. Zero business
+features, as scoped.
+**Breaking changes:** None — every extension to Stage 0 code (`Settings`, `deps.py`,
+`AbstractRepository`, `BaseService`) kept its existing public shape.
+**Migration notes:** None — no new database tables.
+
+### `f4a5b0b` — domain foundation (AggregateRoot, DomainEvent, Result)
+- **Added:** `domain/events/domain_event.py` (`DomainEvent`), `domain/common/result.py`
+  (`Result[T, E]`).
+- **Modified:** `domain/common/entity.py` (added `AggregateRoot`).
+
+### `c822a03` — dependency injection container
+- **Added:** `infrastructure/di/container.py` (`Container`, `configure_container()`),
+  `ADR/0006-dependency-injection-container.md`.
+- **Modified:** `presentation/api/deps.py` (`SettingsDep` now container-backed, same public
+  shape), `main.py` (calls `configure_container()`).
+
+### `0203996` — repository pattern
+- **Added:** `application/interfaces/repository.py` (`AbstractRepository[T]`, `SupportsId`),
+  `infrastructure/persistence/sqlalchemy_repository.py` (`SqlAlchemyRepository[ModelT]`).
+- Verified against live Postgres with an isolated test-only declarative base.
+
+### `f8c82fe` — base service
+- **Added:** `application/common/base_service.py` (`BaseService[T]`).
+
+### `46bede6` — validation, pagination/query shapes, response wrapper
+- **Added:** `application/common/validation.py` (`Validator[T]`, `validate_all()`),
+  `application/common/pagination.py` (`PageRequest`, `PageResult[T]`), `application/common/query.py`
+  (`SortSpec`, `FilterSpec`, `SearchQuery`), `presentation/common/response.py` (`ApiResponse[T]`,
+  `paginated_response()`).
+
+### `77df682` — base controller (CRUD router factory)
+- **Added:** `presentation/common/crud_router_factory.py` (`build_crud_router()`),
+  `tests/support/in_memory_repository.py` (shared test fake).
+- **Fixed:** a request-body-becomes-query-parameter bug caused by using the factory's own PEP 695
+  generic type parameters (TypeVar placeholders at runtime) as FastAPI route annotations — fixed
+  by annotating with the actual runtime schema classes instead, documented in the module docstring.
+- **Modified:** `application/interfaces/repository.py` (`+count()`),
+  `infrastructure/persistence/sqlalchemy_repository.py` (`+count()`),
+  `application/common/base_service.py` (`+list_page/create/update/delete`).
+
+### `5e11da4` — event system
+- **Added:** `application/interfaces/event_bus.py` (`EventBus`),
+  `infrastructure/events/in_memory_event_bus.py` (`InMemoryEventBus`).
+
+### `2fc9415` — background job framework
+- **Added:** `application/interfaces/job_queue.py` (`Job`, `JobQueue`, `JobRecord`, `JobStatus`),
+  `workers/registry.py` (`JobRegistry`, `NoOpJob`), `infrastructure/jobs/in_memory_job_queue.py`
+  (`InMemoryJobQueue`).
+
+### `fd94e5d` — file storage abstraction
+- **Added:** `application/interfaces/file_storage.py` (`FileStorage`, `StoredFile`),
+  `infrastructure/storage/local_file_storage.py` (`LocalFileStorage`, path-traversal-safe).
+- **Modified:** `Settings` (`+storage_root`).
+
+### `75c28a5` — backend notification framework
+- **Added:** `application/interfaces/notifier.py` (`Notifier`, `Notification`),
+  `infrastructure/notifications/logging_notifier.py` (`LoggingNotifier`).
+
+### `c05c744` — auth, authorization, and audit logging frameworks (no login)
+- **Added:** `application/interfaces/auth.py` (`CurrentUser`, `AuthenticationProvider`,
+  `AuthorizationService`), `application/interfaces/audit.py` (`AuditLogger`),
+  `infrastructure/auth/` (`AnonymousAuthenticationProvider`, `PermissiveAuthorizationService`),
+  `infrastructure/audit/audit_logger.py` (`LoggingAuditLogger`),
+  `ADR/0007-audit-logging-without-database-table.md`.
+- **Modified:** `presentation/api/deps.py` (`+CurrentUserDep`).
+
+### `f374fa6` — search foundation
+- **Added:** `application/interfaces/search.py` (`SearchIndex`, `SearchHit`, `SearchResults`),
+  `infrastructure/search/in_memory_search_index.py` (`InMemorySearchIndex`).
+
+### `e10978b` — plugin architecture
+- **Added:** `infrastructure/modules/registry.py` (`AppModule`, `ModuleRegistry`).
+- **Modified:** `main.py` (calls `module_registry.mount_all()` unconditionally — a no-op today).
+- Deliberate deviation from the original file plan: `AppModule` lives in `infrastructure/modules/`,
+  not `application/interfaces/`, since it references FastAPI directly.
+
+### `4338c56` — workflow engine
+- **Added:** `application/workflow/engine.py` (`WorkflowDefinition`, `WorkflowEngine`,
+  `Transition`, `WorkflowError`).
+
+### `2527546` — feature flags + config service extension
+- **Added:** `application/interfaces/feature_flags.py` (`FeatureFlagProvider`),
+  `infrastructure/config/feature_flags.py` (`SettingsFeatureFlagProvider`).
+- **Modified:** `Settings` (`+feature_flags`, env-driven `"name:true,other:false"`).
+
+### `c18cef3` — frontend Result type and pagination/query types
+- **Added:** `frontend/src/domain/types/result.ts` (`Result<T, E>`),
+  `frontend/src/shared/types/query.ts` (`PageRequest`, `PaginatedResponse<T>`, `SortSpec`,
+  `FilterSpec`, `SearchQuery`).
+
+### Documentation pass (this commit)
+- **Added:** `AI_BOOTSTRAP.md`, `PROJECT_STATE.json` (repo root).
+- **Modified:** `docs/AI_HANDOVER.md`, `docs/Architecture.md`, `docs/ProjectStatus.md`,
+  `docs/ModuleRegistry.md`, `docs/FeatureRegistry.md`, `docs/Roadmap.md`, `docs/CHANGELOG.md` (this
+  file), `docs/SessionReport.md`.
+- Final state: 130 backend tests, 9 frontend tests, all passing; ruff/black/eslint/prettier clean;
+  real app's route surface unchanged from Stage 0 (`/api/v1/health`, `/api/v1/version` only).

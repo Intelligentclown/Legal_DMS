@@ -1,7 +1,8 @@
 # Feature Registry
 
-No business features exist yet — Stage 0 is infrastructure only. This registry will gain one
-entry per business feature starting in Stage 1.
+No business features exist yet — Stages 0 and 1 are infrastructure/framework only, by charter.
+This registry will gain one entry per business feature once a future stage actually scopes one —
+don't assume that's "Stage 2" without confirming with the project owner first.
 
 ## Template for future entries
 
@@ -17,7 +18,7 @@ entry per business feature starting in Stage 1.
 - **Future Improvements:**
 ```
 
-## Stage 0 infrastructure (not a "feature", listed for completeness)
+## Infrastructure (not a "feature", listed for completeness)
 
 ### System Health Check
 
