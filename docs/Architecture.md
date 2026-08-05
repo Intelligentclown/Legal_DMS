@@ -112,12 +112,15 @@ presentation/
 application/
   services/           future use-case orchestration — empty in Stage 0
 domain/
-  types/              shared TS types (HealthStatus, AppVersion, ...)
+  types/              shared TS types (HealthStatus, AppVersion, Result<T, E> — mirrors the
+                       backend's Result[T, E] as a discriminated union)
 infrastructure/
   api/                httpClient — fetch wrapper reading VITE_API_BASE_URL
   ipc/                ipcBridge — typed wrapper over window.api (Electron preload surface)
 shared/
   config/             env.ts — typed import.meta.env access
+  types/               query.ts — PageRequest/PaginatedResponse/SortSpec/FilterSpec/SearchQuery,
+                        mirroring the backend's query framework for future paginated-list pages
   utils/               cn() (Tailwind class merging), general utilities
   constants/            (empty placeholder)
 test/                 Vitest setup (jsdom, jest-dom matchers, RTL cleanup)
