@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { MainLayout } from "@/presentation/layouts/MainLayout";
+import { HealthCheckPage } from "@/presentation/pages/HealthCheckPage";
 
 export const router = createBrowserRouter([
   {
@@ -9,7 +10,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <p className="text-sm text-muted-foreground">Coming soon.</p>,
+        element: <HealthCheckPage />,
       },
     ],
   },
