@@ -33,3 +33,21 @@ class AuditMixin:
     @declared_attr
     def updated_by(cls) -> Mapped[UUID | None]:
         return mapped_column(ForeignKey("users.id"), default=None)
+
+
+class OptimisticLockMixin:
+    """Combine with `AuditMixin` to make its `version` column actually
+    *enforced* by SQLAlchemy on UPDATE (raises `StaleDataError` if another
+    transaction already changed the row), not just tracked. Opt in per
+    model where concurrent edits are realistic — not every audited table
+    needs this.
+
+    A plain mixin column (`version`, from `AuditMixin`) isn't a real
+    `InstrumentedAttribute` yet while a subclass's class body is executing,
+    so `__mapper_args__` must be a `@declared_attr` to defer evaluation
+    until the table is fully built.
+    """
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict[str, object]:
+        return {"version_id_col": cls.__table__.c.version}
