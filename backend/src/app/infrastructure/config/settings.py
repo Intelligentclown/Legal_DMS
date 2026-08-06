@@ -35,6 +35,16 @@ class Settings(BaseSettings):
     log_dir: str = "logs"
     storage_root: str = "storage"
 
+    # No default, deliberately (Stage 3, ADR/0019/0020's sibling decision D3) -- a JWT signing
+    # secret must never have a code-level fallback that a misconfigured deployment could silently
+    # run with. Must come from .env/an env var; see backend/.env.example. Nothing in this Stage 3
+    # Phase 0 batch signs a real token yet -- this field exists so Settings() has the shape T47's
+    # token utility will read from, without that utility existing yet.
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    access_token_ttl_minutes: int = 20
+    refresh_token_ttl_days: int = 14
+
     # NoDecode: env values are comma-separated, not JSON — parsed by the validator below.
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 

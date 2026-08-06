@@ -18,6 +18,7 @@ starts clean.
 | [ReleaseTemplate.md](ReleaseTemplate.md) | Writing a release note for a version bump. | `docs/releases/vX.Y.Z.md` — see [docs/releases/README.md](../releases/README.md) |
 | [APIEndpointTemplate.md](APIEndpointTemplate.md) | Documenting a new route mounted into the real app. | Append a section + status-table row to `docs/API.md` |
 | [DatabaseMigrationTemplate.md](DatabaseMigrationTemplate.md) | Documenting a new Alembic migration (the documentation only — not the migration file itself, which is source code). | `docs/Database.md` / `docs/ERD.md` |
+| [PhaseLogTemplate.md](PhaseLogTemplate.md) | Starting a new implementation phase's execution record — metadata block, eleven required sections, Reviewer Checklist, QA Decision. | `docs/ImplementationLog/Stage<N>/Phase<M>.md` — see [docs/ImplementationLog/README.md](../ImplementationLog/README.md) |
 
 Add a row above whenever a new recurring document shape gets extracted into its own template here,
 rather than being reinvented by hand each time — see "Adding a new template" below.

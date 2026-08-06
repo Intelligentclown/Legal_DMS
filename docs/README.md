@@ -23,6 +23,11 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
   [releases/v0.3.1.md](releases/v0.3.1.md).
 - **[templates/](templates/)** — reusable document skeletons (currently: the pre-stage checklist
   that must be completed before starting any new stage).
+- **[ImplementationLog/](ImplementationLog/)** — the canonical per-phase execution record (what was
+  actually built, tested, and decided), plus the project's Documentation Ownership assignments and
+  the QA Decision gate every implementation batch must pass before it's documented and merged.
+- **[DefinitionOfDone.md](DefinitionOfDone.md)** — the final gate for a completed batch/PR/release,
+  building on the Reviewer Checklist and QA Decision above.
 
 ## Reference
 

@@ -72,7 +72,8 @@ feature, not a business feature).
 Stage 2 — Database Architecture & Data Model. **Complete and verified** (216 backend + 9 frontend
 tests passing, lint clean, all 12 migrations reversible individually and as a full chain, no
 regression in the real app's route surface). See [ProjectStatus.md](ProjectStatus.md) for the full
-checklist. **No Stage 3 plan exists.** Seven standalone post-Stage-2 additions (Command Bus, Query
+checklist. **No Stage 3 plan existed at this point in the project's timeline** — see below for
+Stage 3's current, since-scoped status. Seven standalone post-Stage-2 additions (Command Bus, Query
 Bus, Transaction Pipeline, Caching Abstraction, Module Manifest Loader, Architecture Health Check,
 Performance Metrics Service) have since landed, followed by a QA review of those seven additions
 (`docs/reviews/Stage_2_5_QA_Review.md`) that fixed two findings (T20/T21 in
@@ -86,6 +87,19 @@ the seven additions, only Architecture Health Check is wired into the real app's
 CI** has since landed: three workflows (`backend.yml`/`frontend.yml`/`release.yml`) validating
 every push and pull request — see [ADR/0017](../ADR/0017-github-actions-ci.md). No application
 code changed; test counts are unaffected (still 282 backend / 9 frontend).
+
+**Stage 3 — Authentication & Authorization is now in progress.** Architecture approved (D1–D7).
+Phase 0 (T41–T45) is done across three batches — `get_db()` commit/rollback fix
+([ADR/0020](../ADR/0020-session-commit-rollback-policy.md)), auth dependencies/config, and the
+finalized `AuthenticationProvider` interface ([ADR/0019](../ADR/0019-authentication-provider-interface-change.md))
+— with a batch-3 re-verification pass against a more precise T44/T45 spec that confirmed batch 2
+already satisfied it exactly and closed two test-coverage gaps. **QA Decision: Approved.** 298
+backend tests passing (up from 282), still 9 frontend. Full technical detail:
+[docs/ImplementationLog/Stage3/Phase0.md](ImplementationLog/Stage3/Phase0.md) — not
+repeated here per this project's canonical-document rules. Two items remain open and untracked
+under a task ID (the `docs/templates/PreStageChecklist.md` sign-off and `ADR-0018`, D1–D6 — the
+*original* content of the T44/T45 IDs, reused for different content per direct instruction), so
+Phase 0's own status stays **In Progress**, not Done, even though every task ID shows complete.
 
 ## Pending Work
 
@@ -150,6 +164,17 @@ Post-Stage-2 pattern worth knowing:
    (`docs/reviews/Stage_2_5_QA_Review.md`, finding Q1) against
    `TransactionPipelineBehavior.dispatch()` and fixed (T20) — copy that file's `except BaseException`
    pattern for any future code with the same "must clean up even on cancellation" shape.
+
+Stage-3-specific pattern worth knowing:
+10. **`get_db()` now commits on success and rolls back on exception** (Stage 3 Phase 0, T42/T43,
+    [ADR/0020](../ADR/0020-session-commit-rollback-policy.md)) — before this fix it never
+    committed at all, so every write silently vanished once the session closed (visible only
+    within the same uncommitted transaction). Repositories still only `flush()`; `get_db()` is the
+    actual transaction boundary. **Deliberately still `except Exception`, not `BaseException`** —
+    unlike pattern #9 above, this fix intentionally didn't widen the catch to cover
+    `asyncio.CancelledError` yet, to keep the hard-prerequisite fix minimal; see ADR-0020's
+    Trade-offs for why, and its Future Impact for the flagged follow-up. Don't "fix" this to match
+    #9 without reading that ADR first — it's a recorded, deliberate scope limit, not an oversight.
 
 ## Database Status
 
@@ -225,14 +250,21 @@ per-commit file breakdown. (Stage 1, for reference, touched
 
 ## What Should Be Implemented Next
 
-**Nothing, until the project owner decides what Stage 3 is.** Stage 0, Stage 1, and Stage 2's
-charters were all explicit that business features are out of scope. That pattern has now held for
-three stages in a row — don't let that turn into an assumption that "the next stage is always more
-scaffolding" either. **Ask the user what Stage 3 covers** rather than guessing — the most likely
-candidate is wiring a real feature to the Stage 2 schema, but confirm it, and confirm *which*
-feature, rather than assuming Matter Management just because it's listed first in the original
-charter. Do not add business entities, a real auth mechanism, new major dependencies, or any
-repository/service/route touching the Stage 2 tables without that explicit direction.
+**Stage 3 (Authentication & Authorization) is scoped and Phase 0 is done — Phase 1 (T46+) awaits a
+further explicit go-ahead.** This supersedes the older "nothing until Stage 3 is decided" framing
+this section used to carry, kept in spirit for context: Stage 0, Stage 1, and Stage 2's charters
+were all explicit that business features are out of scope, and that pattern held for three stages
+in a row. Stage 3 broke that pattern once the project owner explicitly scoped it (D1–D7) and
+authorized Phase 0. **Don't assume
+Phase 1 is authorized just because Phase 0 finished** — every prior instruction has stopped
+explicitly at a task boundary (T43, then T45) pending a further go-ahead; ask before starting
+`T46`+. See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 1–4's full
+file-by-file map once that go-ahead arrives. Two smaller open items, unrelated to Phase 1 itself:
+the `docs/templates/PreStageChecklist.md` sign-off and `ADR-0018` (D1–D6) — see "Current Stage"
+above — and the `role_permissions` exact matrix (T66) still needs its own sign-off before that
+migration is written. Outside of Stage 3, do not add business entities, new major dependencies, or
+any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
+Financial) without separate explicit direction.
 
 ## Important Warnings
 

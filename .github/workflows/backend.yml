@@ -31,6 +31,14 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      # JWT_SECRET_KEY has no code-level default (Stage 3, ADR/0019/0020) -- a deliberate choice
+      # so a misconfigured real deployment can't silently run with a fallback secret. CI needs
+      # *some* value for Settings() to construct (every unit test and the import-smoke step
+      # below both do), so this is an explicitly fake, CI-only value -- never used to sign or
+      # verify anything real, since no JWT signing/verification code exists yet in this Phase 0
+      # batch.
+      JWT_SECRET_KEY: ci-only-fake-secret-not-used-for-anything-real
 
     steps:
       - name: Checkout

@@ -446,7 +446,314 @@ them to the backlog without building them now.
 
 ---
 
-*T1–T18 (Stage 2.5 hardening) remain not started, awaiting approval. T20–T21 (QA-review fixes) and
-T22, T24–T34, T36–T37 (Stage 2.7 CI) are done. T35 (Stage 2.7's live verification) needs an explicit
-go-ahead to commit and push before it can be completed. T38–T40 (Dependabot, PR template, issue
-templates) are recorded backlog only — not scheduled, not implemented.*
+*T1–T18 (Stage 2.5 hardening) remain not started, awaiting approval — except T1–T3, pulled forward
+into Stage 3 below as a hard prerequisite (see T41–T43). T20–T21 (QA-review fixes) and T22–T37
+(Stage 2.7 CI) are all done — **`git log`/`git tag` confirm a merged PR (`2db48d4`) and two tags
+(`v0.3.0`, `v0.3.1`) exist, so T35's live verification did happen**, even though `PROJECT_STATE.json`
+and this file hadn't been updated to say so before this section was written; see the discrepancy
+note at the top of Stage 3 below. T38–T40 (Dependabot, PR template, issue templates) remain recorded
+backlog only — not scheduled, not implemented.*
+
+---
+
+## Stage 3 — Authentication & Authorization
+
+**Status:** Architecture Approved — decisions D1–D7 below are locked in. **Phase 0 (T41–T45) done as
+of 2026-08-06**, across two batches, both per explicit project-owner go-ahead (see
+`docs/ImplementationLog/Stage3/Phase0.md`). `ADR-0020` written as part of T43; `ADR-0019` (D7 only)
+written as part of T45 — **`ADR-0018` (D1–D6) and the `docs/templates/PreStageChecklist.md`
+sign-off remain not done**, see the Phase 0 task table's discrepancy note for why (batch 2 reused
+the T44/T45 IDs for different content per direct instruction). **T42–T43 (the `get_db()`
+commit/rollback fix) were the highest-priority implementation work and had to land before any
+authentication code** — explicit project-owner instruction, consistent with this section's own
+"Hard blocker" note. Implementation stopped after T45 per instruction; Phase 1 (`T46`+) awaits a
+further explicit go-ahead. **A batch-3 re-verification pass (2026-08-06)** confirmed T44/T45 against
+a more precise, exhaustive spec (exact dependency/config/interface requirements, an explicit "no
+framework types in the port" constraint) — already correct, no code changes needed; closed 2
+test-coverage gaps instead (298 tests passing total). QA Decision: Approved — see
+`docs/ImplementationLog/Stage3/Phase0.md`.
+
+### Discrepancy found before proceeding (per `AI_BOOTSTRAP.md`'s "trust the code" rule) — Resolved by T41
+
+`PROJECT_STATE.json` used to say `currentStage: stage-2`, `git.branch: feature/github-actions-ci`,
+and listed an `openQuestion` about T35 not being done. The actual repository disagreed: `git log`
+showed a merge commit (`2db48d4`, "Merge pull request #1 from Intelligentclown/feature/github-actions-ci"),
+the current branch was `main`, the working tree was clean, and **two** tags existed
+(`v0.3.0`, `v0.3.1`). This confirmed the project owner's statement that Stage 2.7 was fully complete —
+the docs just weren't synced after the merge. **T41 closed this out** (2026-08-06): `PROJECT_STATE.json`'s
+`currentStage`, `git.branch`, `git.latestCommitAtThisUpdate`, and `openQuestions` now match reality.
+
+### Scope
+
+Real authentication (login) and authorization (permission-checked routes) for the Legal DMS,
+wired to the Identity & Access schema Stage 2 already built (`users`, `roles`, `permissions`,
+`user_roles`, `role_permissions`) and the `AuthenticationProvider`/`AuthorizationService` ports
+Stage 1 already defined. This is the **first real business-adjacent feature** in the project —
+everything through Stage 2.7 has been framework/schema/tooling only. Strictly scoped to
+authentication and authorization: **no Matter/Client/Property/Document/Financial management, no
+OCR/QR/Search/Reports/Payments/AI** — those remain future stages, not assumed or started here.
+
+### How this roadmap was built
+
+Read, in order: `AI_BOOTSTRAP.md`, `PROJECT_STATE.json`, `docs/Architecture.md`,
+`docs/ProjectStatus.md`, this file's existing sections, `docs/SessionReport.md`,
+`docs/ArchitectureScorecard.md`. Then reviewed the actual code rather than trusting docs alone:
+`backend/src/app/infrastructure/persistence/models/identity.py` (the real `User`/`Role`/
+`Permission`/`UserRole`/`RolePermission` columns), `application/interfaces/auth.py` (the exact
+`CurrentUser`/`AuthenticationProvider`/`AuthorizationService` shapes already committed to),
+`infrastructure/auth/*` (the two Stage 1 stub implementations), `application/errors/exceptions.py`
+(confirmed `UnauthorizedError`/`ForbiddenError` already exist, unused), `tests/unit/test_auth.py`
+(what's already tested), the seed-data migration
+(`backend/alembic/versions/9963e15f2752_seed_lookup_data.py`, to see exactly what identity data
+already exists), `backend/pyproject.toml`/`uv.lock` (confirmed no password-hashing or JWT library
+is installed yet), `electron/preload.ts`/`ipc/channels.ts` (confirmed zero secure-storage IPC
+surface exists), `ADR/0004` (what Stage 0 deliberately prepared vs. deferred for this exact stage),
+and `docs/templates/PreStageChecklist.md` (this project's own required gate before stage code
+starts).
+
+### What already exists to build on (don't rebuild these)
+
+- **Schema, fully ready:** `users` (`email` unique, `full_name`, `phone`, `password_hash` nullable
+  `String(255)`, `is_active`, `last_login_at`, plus `AuditMixin`), `roles`, `permissions`,
+  `user_roles`, `role_permissions` — all five tables exist, Stage 2, no migration needed for the
+  core model.
+- **Seed data, partially ready:** 6 roles already seeded (Administrator, Advocate, Paralegal,
+  Clerk, Accountant, Read Only) and 18 permissions already seeded across 6 categories
+  (`matters:*`, `clients:*`, `properties:*`, `documents:*`, `financial:*`, plus
+  `users:manage`/`roles:manage`/`settings:manage`/`reports:read`). **Deliberately NOT seeded:**
+  `role_permissions` (which permissions each role gets — the seed migration's own docstring says
+  this is "an authorization business decision... better made by the stage that actually implements
+  authorization") and `users` (no auth existed to log in with). Both are this stage's job.
+- **Ports, already defined (Stage 1):** `CurrentUser` (`id`, `display_name`, `roles: frozenset[str]`,
+  `is_authenticated`), `AuthenticationProvider.get_current_user()`, `AuthorizationService.
+  require_permission(user, permission)`. `permissions.code`'s string convention
+  (`"matters:read"`) already matches what `require_permission()` expects — the schema was
+  deliberately designed to slot into this port without changing it.
+- **Errors, already defined:** `UnauthorizedError` (401) and `ForbiddenError` (403) in the `AppError`
+  hierarchy — currently unused anywhere, ready to raise.
+- **Repository, already generic:** `SqlAlchemyRepository[User]` works today with zero new code —
+  Stage 1's repository pattern is entity-agnostic.
+- **What's genuinely missing:** any password-hashing library, any JWT/session-token library, any
+  route, any real `AuthenticationProvider`/`AuthorizationService` implementation, any
+  frontend auth state/login UI, any Electron secure-storage IPC surface, and (depending on the
+  token-design decision below) possibly one new table.
+
+### Hard blocker: fix before anything else in this stage
+
+**Finding F1 from the (still otherwise unapproved) Stage 2.5 backlog — `get_db()` never
+commits — is no longer optional hardening once this stage starts.** Every meaningful thing Stage 3
+does is a database write: creating the first user, hashing and storing a password, recording
+`last_login_at`, assigning a role, seeding `role_permissions`. `get_db()` currently only lets
+`SqlAlchemyRepository` `flush()` within a request's transaction and never calls `session.commit()`
+— the session closes at the end of the request without persisting anything. Every write in this
+stage would appear to succeed and then silently vanish. This is pulled forward as **T41–T43** below,
+verbatim from the existing Stage 2.5 design (already fully specified, never implemented) — see the
+"Stage 2.5 — Architecture Hardening" section above for the original finding writeup (F1) if you want
+the full context.
+
+### Architecture decisions — APPROVED
+
+Per this project's own charter (every stage's architecture proposal presented and approved before
+code), these were the real decisions this stage couldn't proceed without. **All seven approved by
+the project owner, with two refinements beyond the original recommendation (D4, D7) — final,
+locked-in values below.** Nothing has been implemented yet; these are recorded here so
+implementation has exactly one unambiguous spec to build against.
+
+| # | Decision | **Approved** | Why |
+|---|---|---|---|
+| D1 | Token mechanism | **JWT access token (short-lived) + DB-backed, revocable refresh token.** One new migration (`refresh_tokens`). | A legal-document system has real confidentiality obligations — "logout" that can't actually revoke a token is a meaningful gap for a lost/stolen device. Short-lived access tokens (~15–30 min) limit exposure if one leaks; the refresh token is what's actually revocable. |
+| D2 | Password hashing | **Argon2id via `argon2-cffi`.** | OWASP's current default recommendation for new applications. |
+| D3 | JWT library | **`PyJWT`.** | More actively maintained currently than `python-jose`; fully encapsulated behind the token utility (T47) so swappable later at low cost if that changes. |
+| D4 | First-admin bootstrap | **A one-time CLI command with an *interactive* password prompt** (`getpass`-style — the password is never a command-line argument, environment variable, or anything that would land in shell history or a process list). | Refines the original recommendation with the specific detail that matters most: a plaintext password must never pass through argv or env. |
+| D5 | Self-registration | **None** — only admin-created users, via a `users:manage`-protected endpoint. | Every seeded role is internal staff; no client-facing portal exists or is planned. |
+| D6 | Frontend token storage (Electron) | **Refresh token in OS-level encrypted storage via Electron's `safeStorage` API** (main process only, new IPC channel); **access token held in-memory only** (React state, never persisted — lost on app restart, forcing a silent refresh or re-login). | Matches this project's existing security posture (`contextIsolation`, no generic IPC passthrough). |
+| D7 | `AuthenticationProvider` port signature | **`async def get_current_user(self, token: str | None) -> CurrentUser`** — exact approved signature. A genuine breaking change to an existing Stage 1 port, done explicitly and documented in `ADR-0019` rather than silently. | The only way a real implementation can know which request's token to validate; every alternative (hidden request-scoped global, constructor injection of a request-bound object) would be worse. |
+
+**ADRs approved:**
+- **`ADR-0018` — Authentication & Authorization Architecture** (records D1–D6: token mechanism,
+  password hashing, JWT library, bootstrap strategy, self-registration, frontend token storage).
+- **`ADR-0019` — `AuthenticationProvider` interface change** (records D7 specifically — the port
+  signature break, why it's necessary, and what it constrains for any future
+  `AuthenticationProvider` implementation).
+- **`ADR-0020` — Session commit/rollback policy** (records the `get_db()` fix, T42–T43 below — "every
+  session commits on success, rolls back on exception" as a deliberate policy, not an incidental
+  patch; this is the ADR the Stage 2.5 section above had flagged as worth writing once T1 landed).
+
+**Still open, distinct from D1–D7 — needs your sign-off before T66 specifically (not blocking
+anything else):** the exact `role_permissions` matrix proposed in T66 below (which of the 18
+permissions each of the 6 roles gets) was a proposal, not one of the seven approved decisions —
+flagging so it isn't assumed approved by association.
+
+### Task breakdown
+
+Complexity: **XS** / **S** / **M**, same convention as Stage 2.5/2.7 — nothing here is larger than
+M; anything that looked bigger was split further.
+
+#### Phase 0 — Unblock & prerequisites (before any Phase 1 code)
+
+| ID | Task | Complexity | Depends on | Priority |
+|---|---|---|---|---|
+| T41 | ~~Sync `PROJECT_STATE.json`/this file's stale fields to match reality (`currentStage`, `git.branch`, remove the resolved T35 `openQuestion`).~~ **Done** (2026-08-06). | S | — | — |
+| T42 | ~~**Fix `get_db()`: commit on clean exit, rollback on exception** (Stage 2.5's F1/T1, pulled forward — see that section for the exact design).~~ **Done** (2026-08-06). | XS | — | **Highest priority — must land before any Phase 1 code, per explicit instruction.** |
+| T43 | ~~Regression test proving a write survives across two independent sessions (Stage 2.5's T2), the commit-contract documentation note (T3), **and `ADR-0020` (session commit/rollback policy)** recording this as deliberate policy.~~ **Done** (2026-08-06 — 5 regression tests in `tests/integration/test_get_db_transaction_policy.py`; `ADR-0020` written; `docs/Architecture.md`/`docs/AI_HANDOVER.md` updated). | S | T42 | **Highest priority, same as T42.** |
+| T44 | ~~Complete `docs/templates/PreStageChecklist.md` for Stage 3, signed off, stored at `docs/reviews/PreStageChecklist_Stage3_<date>.md` — this project's own required gate.~~ **Superseded 2026-08-06** — see discrepancy note below. What was actually done under the ID "T44": add the approved auth dependencies (`argon2-cffi`, `PyJWT`) and `Settings` config (`jwt_secret_key`, `jwt_algorithm`, `access_token_ttl_minutes`, `refresh_token_ttl_days`) — no hashing/JWT logic. **The `PreStageChecklist` sign-off itself remains not done.** | S | T41, T42, T43 | — |
+| T45 | ~~Write `ADR-0018` (Authentication & Authorization Architecture — D1–D6) and `ADR-0019` (`AuthenticationProvider` interface change — D7).~~ **Partially superseded 2026-08-06** — see discrepancy note below. What was actually done under the ID "T45": the `AuthenticationProvider.get_current_user()` signature change (D7) in `application/interfaces/auth.py`, cascaded to `AnonymousAuthenticationProvider`/`presentation/api/deps.py`, plus `ADR-0019` (written, matching this row's original scope for D7). **`ADR-0018` (D1–D6) was not written** — outside batch-2's described scope. | S | D1–D7 (✅ approved) | — |
+
+**Discrepancy note (2026-08-06):** the project owner's batch-2 instruction described different
+content under the IDs "T44"/"T45" than this table originally defined (dependencies/config for T44;
+the finalized `AuthenticationProvider` interface for T45, versus this table's original checklist-
+sign-off / ADR-writing tasks). Flagged before implementing; proceeded on the explicit instruction
+given (direct instruction is the more authoritative source), documented in full in
+`docs/ImplementationLog/Stage3/Phase0.md`'s "⚠ Task-ID discrepancy" section. **Net open items this
+left behind, now untracked by any ID:** the `PreStageChecklist.md` sign-off (T44's original
+content), and `ADR-0018` (T45's original D1–D6 half) — both need a decision on how to be tracked
+going forward (new IDs, or reconciling the numbering) before Phase 1 begins.
+
+#### Phase 1 — Backend: credentials & token foundation
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T46 | Add the chosen password-hashing dependency (D2); `hash_password()`/`verify_password()` utility + unit tests (correct password verifies, wrong password fails, hash is never plaintext-equal to input). | S | T45 |
+| T47 | Add the chosen JWT dependency (D3); token utility — encode/decode access & refresh tokens (claims: `sub`, `roles`, `exp`, `jti`) + unit tests (round-trip, expired token rejected, tampered signature rejected). | S | T45 |
+| T48 | Extend `Settings` with auth config: JWT signing secret (env-driven, no default in code), algorithm, access-token TTL, refresh-token TTL. | XS | T47 |
+| T49 | New Alembic migration: `refresh_tokens` table (`id`, `user_id` FK, `token_hash`, `issued_at`, `expires_at`, `revoked_at` nullable) — per approved D1. | S | T45 |
+| T50 | `AuthService` (application layer): `authenticate(email, password) -> Result[User, AppError]`, `issue_tokens(user)`, `refresh(refresh_token)`, `revoke(refresh_token)`. | M | T46, T47, T49 |
+| T51 | Tests for `AuthService`: correct credentials, wrong password, unknown email, inactive user, expired/invalid/already-revoked refresh token, refresh rotation (old token revoked, new one issued). | M | T50 |
+
+#### Phase 2 — Backend: wiring auth into the request pipeline
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T52 | Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid). | M | T50, ADR-0019 |
+| T53 | Real `RbacAuthorizationService` implementing `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`. | S | T52 |
+| T54 | `RequirePermission(...)` FastAPI dependency factory (closes Stage 2.5's flagged-not-scheduled F11 — now explicitly in scope). | S | T53 |
+| T55 | Wire `JwtAuthenticationProvider`/`RbacAuthorizationService` into `configure_container()`, replacing the `Anonymous`/`Permissive` defaults. | XS | T52, T53 |
+| T56 | Update `presentation/api/deps.py`'s `CurrentUserDep` for the new provider signature. | XS | T55 |
+| T57 | Tests: valid token → correct `CurrentUser`; missing/expired/malformed/tampered token → 401; authenticated-but-unpermitted → 403; `configure_container()` resolves the real implementations. | M | T55, T56 |
+
+#### Phase 3 — Backend: routes
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T58 | `POST /api/v1/auth/login` — email + password in, access + refresh tokens out (or a structured 401). | S | T57 |
+| T59 | `POST /api/v1/auth/refresh` — refresh token in, new access (+ rotated refresh) token out. | S | T57 |
+| T60 | `POST /api/v1/auth/logout` — revokes the presented refresh token. | XS–S | T57 |
+| T61 | `GET /api/v1/auth/me` — current user's profile + roles, from `CurrentUserDep`. | XS | T57 |
+| T62 | User management routes (admin-only, `users:manage`): list, get, create (hashes password), update, deactivate. | M | T54, T46 |
+| T63 | Role-assignment routes: assign/remove a role for a user (`users:manage` or `roles:manage`). | S | T54 |
+| T64 | Integration tests for every route above — happy path, wrong credentials, missing/invalid token, wrong permission, each asserting the exact status code and error shape. | M | T58–T63 |
+| T65 | Wire login success/failure and permission-denied events into the existing `AuditLogger`. | S | T58, T54 |
+
+#### Phase 4 — Data: seed & bootstrap
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T66 | New migration seeding `role_permissions` — map the 18 existing permissions to the 6 existing roles against a concrete proposed matrix (e.g. Administrator: all 18; Advocate: matters/clients/properties/documents `read`+`write`, financial `read`, reports `read`; Paralegal: same minus `write` on financial and minus `delete` everywhere; Clerk: matters/clients/documents `read`+`write`, no financial; Accountant: financial `read`+`write`, matters/clients `read`, reports `read`; Read Only: every `:read` permission, nothing else) — **the exact matrix is itself worth a quick sign-off, not just accepted silently**, since it's a real access-control decision. | S | T45 |
+| T67 | First-admin bootstrap: one-time CLI command, interactive password prompt (`getpass` or equivalent — never argv/env/a config file) per approved D4. | S | T46, T62 |
+| T68 | Tests: seed row counts match the approved matrix; bootstrap creates exactly one admin and is idempotent on re-run (doesn't create a second one, doesn't error). | S | T66, T67 |
+
+#### Phase 5 — Frontend
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T69 | `post`/`put`/`delete` added to `httpClient.ts` (closes Stage 2.5's F10 — now actually needed, since login is a `POST`), parsing the backend's structured `{"error":{"code","message"}}` body. | S | — |
+| T70 | Auth state management — a React context/provider holding the current user + tokens, `login()`/`logout()` actions. | M | T69 |
+| T71 | Electron secure token storage (D6): new IPC channel(s), preload surface, main-process handlers using `safeStorage`. | M | — |
+| T72 | Login page/form. | S | T70 |
+| T73 | Protected-route wrapper — redirects unauthenticated users to `/login`. | S | T70 |
+| T74 | Attach `Authorization` header to outgoing requests; handle a 401 response globally (clear session, redirect to login). | S | T70, T71 |
+| T75 | Current-user display + logout action in `MainLayout`'s header. | XS | T70 |
+| T76 | Frontend tests (RTL) for T70–T75: login form validation/submission, protected route redirect, 401 handling, logout clears state. | M | T72–T75 |
+
+#### Phase 6 — Hardening & close-out
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T77 | Gate `/docs`/`/redoc` behind `settings.is_development` (Stage 2.5's F4 — bundled now since API docs exposure is meaningfully more sensitive once real auth/user data exists). | XS | — |
+| T78 | Tighten CORS `allow_methods`/`allow_headers` from wildcards, or record an explicit ADR-note decision not to (Stage 2.5's F5 — same bundling rationale as T77). | XS–S | — |
+| T79 | Full backend + frontend suite run, lint clean, and a live smoke walkthrough (login → access a protected route → refresh → logout, exercised for real, not just via tests). | S | All of the above |
+| T80 | Full documentation pass: `docs/Architecture.md`, `docs/API.md`, `docs/FeatureRegistry.md`, `docs/ArchitectureScorecard.md`, `docs/ProjectStatus.md`, `PROJECT_STATE.json`, both `CHANGELOG.md` files, `docs/SessionReport.md`, this file. | M | T79 |
+
+### Explicitly out of scope for this stage (flagged, not silently dropped)
+
+- **Password reset / forgot-password** — needs real email sending; only `LoggingNotifier` exists
+  today (no real backend implements `Notifier`). A future stage's decision, not assumed here.
+- **Multi-factor authentication (MFA)** — not requested; would be additive on top of this stage's
+  token design if scoped later.
+- **OAuth/SSO / social login** — not requested; this schema/design doesn't preclude it later.
+- **Rate limiting / account lockout on repeated failed logins** — genuinely worth having eventually,
+  needs its own small design pass (in-memory vs. `Cache`-backed vs. a dedicated dependency); flagged
+  as a near-term follow-up, not bundled into this already-large stage.
+- **Session-management UI** (viewing/revoking active sessions/devices) — D1(a)'s `refresh_tokens`
+  table makes this possible later without a schema change; not built now.
+- **Row-level / column-level access control** — `ArchitectureScorecard.md` already names this as
+  Stage 3+ only once a real permission model *and* real routes exist; this stage delivers the
+  permission model and its first routes, but per-row scoping (e.g. "Advocate X can only see their
+  own matters") is a business-feature-stage decision, not an auth-stage one.
+- **Wiring any non-identity business schema** (Matters/Clients/Properties/Documents/Financial/etc.)
+  — explicitly a later stage; this one only touches the Identity & Access tables.
+
+### Recommended implementation order
+
+1. **T41 → T42 → T43 → T44.** Close the doc discrepancy, fix the one correctness bug that would
+   silently break everything else in this stage, gate the stage properly per this project's own
+   process.
+2. **Your decisions on D1–D7 → T45.** Nothing in Phase 1 onward should start until these are
+   answered — several (D1, D7) change what gets built, not just how.
+3. **Phase 1 (T46–T51), sequential within itself** — password hashing and JWT utilities are
+   independent of each other and can be built in parallel; `AuthService` needs both.
+4. **Phase 2 (T52–T57), sequential** — each step wires on top of the last; this is the "real auth
+   exists" milestone.
+5. **Phase 3 (T58–T65) and Phase 4 (T66–T68) in parallel** — routes and seed/bootstrap data don't
+   depend on each other, both depend on Phase 2 being done (T62/T67 specifically need T46/T54).
+6. **Phase 5 (T69–T76)** — can start as soon as Phase 3's login/refresh/me routes (T58, T59, T61)
+   exist; doesn't need user-management or role-assignment routes (T62/T63) to begin.
+7. **Phase 6 (T77–T80)** last — hardening and the live end-to-end walkthrough only make sense once
+   backend and frontend both work together.
+
+### Acceptance criteria
+
+**Phase 0 done when:** `get_db()` commits on success/rolls back on exception, proven by a test that
+writes in one session and reads in a genuinely separate one; `PreStageChecklist.md` is filled in and
+signed off with no unexplained unchecked box; `PROJECT_STATE.json` matches real repository state.
+
+**Phase 1 done when:** a wrong password never verifies against a correct hash and vice versa; a
+JWT with a tampered signature or past its `exp` claim is rejected by the decode utility, not just
+"probably rejected downstream"; `AuthService.authenticate()` returns a failure `Result` (never
+raises) for every wrong-credential case and a success `Result` carrying a real `User` for the
+right one.
+
+**Phase 2 done when:** hitting any endpoint using `CurrentUserDep` with no token, an expired token,
+or a tampered token returns 401 with the project's standard `{"error":{"code","message"}}` shape —
+never a 500; hitting a `RequirePermission("x")`-guarded route as an authenticated user who lacks
+`x` returns 403; the same route with `x` returns 200.
+
+**Phase 3 done when:** `POST /auth/login` with real seeded-admin credentials (once T67's bootstrap
+has run) returns a working access + refresh token pair; `POST /auth/refresh` with a valid refresh
+token returns a new access token and the old refresh token can no longer be reused (per D1's
+revocation design); `POST /auth/logout` followed by another `/auth/refresh` with the same token
+fails; every user-management route enforces `users:manage` and returns 403 without it.
+
+**Phase 4 done when:** querying `role_permissions` shows every role has exactly the permission set
+the approved matrix (T66) specifies — no more, no less; running the bootstrap command twice creates
+exactly one admin user, not two, and doesn't error on the second run.
+
+**Phase 5 done when:** a fresh Electron launch with no stored token redirects straight to `/login`;
+entering correct credentials lands on the app's main view with the current user's name visible;
+closing and reopening the app (within the refresh token's validity) does **not** require logging in
+again; an expired/revoked session redirects back to `/login` automatically on the next API call
+that gets a 401; logging out clears the stored token such that a relaunch also requires login again.
+
+**Stage 3 overall done when:** every phase's criteria above hold; the full backend + frontend test
+suites are green; ruff/black/eslint/prettier are clean; a real, live walkthrough (not just automated
+tests) of login → protected action → token refresh (or natural expiry) → logout has been performed
+and observed; every architecture decision (D1–D7) has a matching ADR; all documentation listed in
+T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark Stage 3 complete.
+
+---
+
+*Stage 3's architecture (D1–D7, `ADR-0018`/`0019`/`0020`) is approved. **Implementation itself has
+not started and awaits a further explicit go-ahead** — see
+`docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68) prepared for
+that go-ahead. T1–T18 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately
+pending. T38–T40 (Dependabot, PR template, issue templates) remain backlog-only.*

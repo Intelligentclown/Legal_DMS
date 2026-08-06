@@ -46,11 +46,13 @@ class TestSettingsCorsOriginsParsing:
         ],
     )
     def test_parses_comma_separated_origins(self, raw: str, expected: list[str]) -> None:
-        settings = Settings(_env_file=None, cors_origins=raw)
+        settings = Settings(_env_file=None, jwt_secret_key="test-secret", cors_origins=raw)
 
         assert settings.cors_origins == expected
 
     def test_accepts_a_list_directly(self) -> None:
-        settings = Settings(_env_file=None, cors_origins=["http://localhost:5173"])
+        settings = Settings(
+            _env_file=None, jwt_secret_key="test-secret", cors_origins=["http://localhost:5173"]
+        )
 
         assert settings.cors_origins == ["http://localhost:5173"]

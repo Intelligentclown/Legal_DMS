@@ -115,3 +115,12 @@ See [`docs/CodingStandards.md`](docs/CodingStandards.md).
 ## Contributing / Development Workflow
 
 See [`docs/DevelopmentGuide.md`](docs/DevelopmentGuide.md).
+## Writing Rules
+
+- Record only implementation that actually happened.
+- Never record planned work as completed.
+- Never duplicate ADR content.
+- Never duplicate CHANGELOG entries.
+- Always reference related ADRs, commits, pull requests, and releases.
+- One Phase file per implementation phase.
+- Once a Phase is completed, it should never be rewritten except to correct factual errors.

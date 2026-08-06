@@ -14,7 +14,7 @@ from app.infrastructure.di.container import configure_container, container
 
 class TestSettingsFeatureFlagsParsing:
     def test_defaults_to_empty(self) -> None:
-        settings = Settings(_env_file=None)
+        settings = Settings(_env_file=None, jwt_secret_key="test-secret")
 
         assert settings.feature_flags == {}
 
@@ -31,31 +31,35 @@ class TestSettingsFeatureFlagsParsing:
     def test_parses_comma_separated_name_value_pairs(
         self, raw: str, expected: dict[str, bool]
     ) -> None:
-        settings = Settings(_env_file=None, feature_flags=raw)
+        settings = Settings(_env_file=None, jwt_secret_key="test-secret", feature_flags=raw)
 
         assert settings.feature_flags == expected
 
     def test_accepts_a_dict_directly(self) -> None:
-        settings = Settings(_env_file=None, feature_flags={"beta": True})
+        settings = Settings(
+            _env_file=None, jwt_secret_key="test-secret", feature_flags={"beta": True}
+        )
 
         assert settings.feature_flags == {"beta": True}
 
 
 class TestSettingsFeatureFlagProvider:
     def test_returns_true_for_an_enabled_flag(self) -> None:
-        settings = Settings(_env_file=None, feature_flags="beta:true")
+        settings = Settings(_env_file=None, jwt_secret_key="test-secret", feature_flags="beta:true")
         provider = SettingsFeatureFlagProvider(settings)
 
         assert provider.is_enabled("beta") is True
 
     def test_returns_false_for_a_disabled_flag(self) -> None:
-        settings = Settings(_env_file=None, feature_flags="beta:false")
+        settings = Settings(
+            _env_file=None, jwt_secret_key="test-secret", feature_flags="beta:false"
+        )
         provider = SettingsFeatureFlagProvider(settings)
 
         assert provider.is_enabled("beta") is False
 
     def test_unknown_flag_defaults_to_disabled(self) -> None:
-        settings = Settings(_env_file=None)
+        settings = Settings(_env_file=None, jwt_secret_key="test-secret")
         provider = SettingsFeatureFlagProvider(settings)
 
         assert provider.is_enabled("does-not-exist") is False
