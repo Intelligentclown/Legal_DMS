@@ -9,11 +9,15 @@ Legal_DMS/
 ├── .env.example                 # docker-compose Postgres credentials
 ├── .vscode/                     # workspace settings + recommended extensions
 ├── README.md
+├── AI_BOOTSTRAP.md              # entry point for a fresh AI session — read this first
+├── PROJECT_STATE.json           # machine-readable point-in-time snapshot
+├── IMPLEMENTATION_QUEUE.md      # actionable task backlog for the current stage
 ├── CHANGELOG.md                 # pointer to docs/CHANGELOG.md
 ├── package.json                 # root: Electron build/dev orchestration
 ├── electron-builder.yml         # packaging config
 │
 ├── docs/                        # project memory system — see docs/README.md
+│   └── reviews/                  # point-in-time QA/code review reports
 ├── ADR/                         # architecture decision records
 │
 ├── backend/
@@ -33,15 +37,24 @@ Legal_DMS/
 │   │   │   ├── common/             BaseService, validation, pagination/query shapes
 │   │   │   ├── errors/            AppError hierarchy
 │   │   │   ├── interfaces/         framework-agnostic ports (repository, event_bus, job_queue,
-│   │   │   │                       file_storage, notifier, auth, audit, search, feature_flags)
+│   │   │   │                       file_storage, notifier, auth, audit, search, feature_flags,
+│   │   │   │                       command_bus, query_bus, unit_of_work, cache, metrics)
 │   │   │   └── workflow/            WorkflowDefinition/WorkflowEngine (generic state machine)
 │   │   ├── infrastructure/
 │   │   │   ├── config/             Settings (pydantic-settings), feature_flags.py
 │   │   │   ├── logging/            structured JSON logging
 │   │   │   ├── database/           SQLAlchemy Base (naming_convention), async engine/session
-│   │   │   ├── di/                 Container, configure_container()
+│   │   │   ├── di/                 Container, configure_container(), health_check.py
+│   │   │   │                       (assert_container_healthy — wired into main.py's create_app())
 │   │   │   ├── events/ jobs/ storage/ notifications/ auth/ audit/ search/ modules/
 │   │   │   │                       one minimal default implementation per Stage 1 port
+│   │   │   │                       (modules/ also has manifest.py — ModuleManifestLoader,
+│   │   │   │                       post-Stage-2, not wired into main.py)
+│   │   │   ├── commands/           InMemoryCommandBus, TransactionPipelineBehavior (post-Stage-2)
+│   │   │   ├── queries/            InMemoryQueryBus (post-Stage-2)
+│   │   │   ├── transactions/       InMemoryUnitOfWork (post-Stage-2, registered non-singleton)
+│   │   │   ├── cache/              InMemoryCache (post-Stage-2)
+│   │   │   ├── metrics/            LoggingMetricsService (post-Stage-2)
 │   │   │   └── persistence/
 │   │   │       ├── sqlalchemy_repository.py   SqlAlchemyRepository[ModelT] (generic, Stage 1)
 │   │   │       └── models/                     Stage 2: the complete 49-table schema —

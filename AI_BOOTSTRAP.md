@@ -15,6 +15,9 @@ the full picture — follow the links in the order given.*
    including problems hit and how they were resolved.
 6. **[docs/AI_HANDOVER.md](docs/AI_HANDOVER.md)** — the deep handover doc: completed work, open
    issues, warnings, and exactly what to do (and not assume) next.
+7. **[IMPLEMENTATION_QUEUE.md](IMPLEMENTATION_QUEUE.md)** — the actionable task backlog for the
+   current stage (granular, dependency-ordered), including any pending QA review findings and their
+   classification/resolution status.
 
 If anything in `PROJECT_STATE.json` or `docs/ProjectStatus.md` disagrees with what you find in the
 actual code (`git log`, file contents), **trust the code and report the discrepancy** — don't

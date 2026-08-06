@@ -37,4 +37,8 @@ a patched `7.x`/`8.x` release exists before assuming this is still the only one.
 available in a given environment, only DB-independent checks are possible (app import, `TestClient`
 requests to `/health`/`/version`, `alembic history` which loads `env.py` but doesn't connect). This
 was hit once during Stage 0 development (Docker wasn't installed yet) and resolved once Docker
-Desktop was installed — see [SessionReport.md](SessionReport.md).
+Desktop was installed — see [SessionReport.md](SessionReport.md). Recurred during the 2026-08-06
+QA review resolution and documentation sync (no Docker in that environment) — the 175 DB-independent
+unit tests were re-run and confirmed passing; the 107 integration tests were not re-run, consistent
+with [docs/reviews/Stage_2_5_QA_Review.md](reviews/Stage_2_5_QA_Review.md)'s own note about the same
+constraint.

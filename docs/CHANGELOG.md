@@ -283,3 +283,288 @@ Postgres including full chain reversibility (`alembic downgrade base` → `alemb
 - Final state: 216 backend tests, 9 frontend tests, all passing; ruff/black clean (including
   `backend/alembic/versions/`); 49 tables across 12 migrations, full chain reversibility verified;
   real app's route surface unchanged from Stage 0 (`/api/v1/health`, `/api/v1/version` only).
+
+## Post-Stage-2 — Command Bus
+
+**Version:** 0.3.1
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Adds a `CommandBus` port (single-handler command dispatch, distinct from
+`EventBus`'s many-subscriber model) with one in-memory default implementation, following Stage 1's
+existing port + default-implementation pattern exactly. Zero business commands. See
+[ADR/0010](../ADR/0010-command-bus.md) for the full decision record.
+**Breaking changes:** None — purely additive; no existing port, route, or table touched.
+**Migration notes:** None — no schema change.
+
+### Command Bus
+- **Added:** `backend/src/app/application/interfaces/command_bus.py` (`Command` marker class,
+  `CommandHandler` type, `CommandBus` ABC with `register`/`dispatch`, `CommandBusError`),
+  `backend/src/app/infrastructure/commands/in_memory_command_bus.py` (`InMemoryCommandBus`),
+  `backend/src/app/infrastructure/commands/__init__.py`.
+- **Modified:** `backend/src/app/infrastructure/di/container.py` — registers
+  `CommandBus -> InMemoryCommandBus` in `configure_container()`, alongside `EventBus`.
+- **Added tests:** `backend/tests/unit/test_command_bus.py` (7 tests) — dispatch to the registered
+  handler, dispatch returning the handler's failure `Result`, routing by command type,
+  unregistered-dispatch raises `CommandBusError`, double-registration raises `CommandBusError`,
+  handler exceptions propagate rather than being swallowed, DI container resolves `CommandBus` to
+  `InMemoryCommandBus`.
+- **Fixed:** ruff `B024` (`Command` declared as an `ABC` with no abstract methods) — `Command` is a
+  plain marker class, not an `ABC`, since a command declares only data.
+- Final state: 223 backend tests (up from 216), 9 frontend tests (unchanged — no frontend
+  involvement), all passing; ruff/black clean; real app's route surface unchanged
+  (`/api/v1/health`, `/api/v1/version` only) — this addition touches no route.
+
+## Post-Stage-2 — Query Bus
+
+**Version:** 0.3.2
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Adds a `QueryBus` port mirroring `CommandBus`'s shape exactly (single-handler
+dispatch per query type, `Result[R, AppError]` return), resolving [ADR/0010](../ADR/0010-command-bus.md)'s
+explicit deferral of a Query bus companion. Zero business queries. See
+[ADR/0011](../ADR/0011-query-bus.md) for the full decision record.
+**Breaking changes:** None — purely additive; no existing port, route, or table touched.
+**Migration notes:** None — no schema change.
+
+### Query Bus
+- **Added:** `backend/src/app/application/interfaces/query_bus.py` (`Query` marker class,
+  `QueryHandler` type, `QueryBus` ABC with `register`/`dispatch`, `QueryBusError`),
+  `backend/src/app/infrastructure/queries/in_memory_query_bus.py` (`InMemoryQueryBus`),
+  `backend/src/app/infrastructure/queries/__init__.py`.
+- **Modified:** `backend/src/app/infrastructure/di/container.py` — registers
+  `QueryBus -> InMemoryQueryBus` in `configure_container()`, alongside `CommandBus`.
+- **Added tests:** `backend/tests/unit/test_query_bus.py` (7 tests) — same coverage shape as the
+  Command Bus's tests: dispatch to the registered handler, dispatch returning the handler's
+  failure `Result`, routing by query type, unregistered-dispatch raises `QueryBusError`,
+  double-registration raises `QueryBusError`, handler exceptions propagate, DI container resolves
+  `QueryBus` to `InMemoryQueryBus`.
+- No lint findings this time — `Query` was written as a plain marker class (not an `ABC`) from the
+  start, applying the `B024` lesson learned while building `Command`.
+- Final state: 230 backend tests (up from 223), 9 frontend tests (unchanged), all passing;
+  ruff/black clean; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only).
+
+## Post-Stage-2 — Transaction Pipeline
+
+**Version:** 0.3.3
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Resolves the "transaction wrapping" trade-off both [ADR/0010](../ADR/0010-command-bus.md)
+and [ADR/0011](../ADR/0011-query-bus.md) explicitly deferred. Three candidate designs were
+presented before writing code; the project owner chose a `CommandBus` decorator over changing
+`CommandHandler`'s signature or fixing the unrelated `get_db()` commit bug. See
+[ADR/0012](../ADR/0012-transaction-pipeline.md) for the full decision record.
+**Breaking changes:** None — purely additive; `Command`/`CommandHandler`/`CommandBus`'s existing
+container registration are both untouched.
+**Migration notes:** None — no schema change.
+
+### Transaction Pipeline
+- **Added:** `backend/src/app/application/interfaces/unit_of_work.py` (`UnitOfWork` ABC with
+  `begin`/`commit`/`rollback`, `UnitOfWorkError`),
+  `backend/src/app/infrastructure/transactions/in_memory_unit_of_work.py` (`InMemoryUnitOfWork`),
+  `backend/src/app/infrastructure/transactions/__init__.py`,
+  `backend/src/app/infrastructure/commands/transaction_pipeline_behavior.py`
+  (`TransactionPipelineBehavior` — a `CommandBus` decorator taking an inner bus and a `UnitOfWork`
+  factory).
+- **Modified:** `backend/src/app/infrastructure/di/container.py` — registers `UnitOfWork ->
+  InMemoryUnitOfWork` with `singleton=False` (the first non-singleton registration in this
+  project — a unit of work is per-operation state, not a shared service). `CommandBus`'s own
+  registration is unchanged; the pipeline is available but not applied by default.
+  `backend/src/app/infrastructure/commands/__init__.py` — exports `TransactionPipelineBehavior`
+  alongside `InMemoryCommandBus`.
+- **Added tests:** `backend/tests/unit/test_unit_of_work.py` (7 tests) — begin/commit/rollback
+  lifecycle, double-begin raises, commit/rollback-without-begin raise, a new transaction can begin
+  after a commit, DI resolves `UnitOfWork` to `InMemoryUnitOfWork`, and resolving it twice returns
+  two different instances (proving non-singleton registration).
+  `backend/tests/unit/test_transaction_pipeline_behavior.py` (6 tests) — dispatch commits the unit
+  of work on a successful `Result`, rolls it back on a failure `Result`, rolls back and re-raises
+  on a handler exception, `register()` delegates to the inner bus, and each dispatch gets its own
+  fresh unit of work (two distinct instances, each committed exactly once).
+- No lint findings.
+- Final state: 243 backend tests (up from 230), 9 frontend tests (unchanged), all passing;
+  ruff/black clean; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only).
+
+## Post-Stage-2 — Caching Abstraction
+
+**Version:** 0.3.4
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Adds a `Cache` port + `InMemoryCache` default, read as a standalone capability
+(matching this project's "\<Thing\> Abstraction"/"Foundation" naming convention for standalone
+ports) rather than a pipeline behavior wrapping `QueryBus`. See
+[ADR/0013](../ADR/0013-caching-abstraction.md) for the full decision record, including why the
+`QueryBus`-wrapping reading was set aside.
+**Breaking changes:** None — purely additive; no existing port, route, or table touched.
+**Migration notes:** None — no schema change.
+
+### Caching Abstraction
+- **Added:** `backend/src/app/application/interfaces/cache.py` (`Cache` ABC —
+  `get`/`set`/`delete`/`clear`, `set` takes an optional `ttl_seconds`),
+  `backend/src/app/infrastructure/cache/in_memory_cache.py` (`InMemoryCache` — dict-backed, lazy
+  TTL expiry checked against `time.monotonic()`), `backend/src/app/infrastructure/cache/__init__.py`.
+- **Modified:** `backend/src/app/infrastructure/di/container.py` — registers `Cache ->
+  InMemoryCache` as a singleton (the default; unlike `UnitOfWork`, a shared cache instance is the
+  correct semantics).
+- **Added tests:** `backend/tests/unit/test_cache.py` (10 tests) — get on a missing key returns
+  `None`, set-then-get, overwrite, delete (present and missing key), clear removes every entry, an
+  entry with no TTL never expires, an entry expires once its TTL elapses (clock monkeypatched, no
+  real sleep), DI resolves `Cache` to `InMemoryCache`, and two resolves return the same instance
+  (singleton).
+- No lint findings.
+- Final state: 253 backend tests (up from 243), 9 frontend tests (unchanged), all passing;
+  ruff/black clean; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only).
+
+## Post-Stage-2 — Module Manifest Loader
+
+**Version:** 0.3.5
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Closes a gap `ModuleRegistry`'s own docstring left open: it promised a future
+module "only needs to register itself; the core app never needs editing again to pick it up," but
+nothing actually knew which packages to import to trigger that registration side effect. See
+[ADR/0014](../ADR/0014-module-manifest-loader.md) for the full decision record, including why a
+DB-backed loader reading the `plugin_registry` table was set aside as out-of-scope schema-wiring.
+**Breaking changes:** None — purely additive; `ModuleRegistry`/`AppModule` and `main.py`'s startup
+are both untouched.
+**Migration notes:** None — no schema change.
+
+### Module Manifest Loader
+- **Added:** `backend/src/app/infrastructure/modules/manifest.py` (`ModuleManifestEntry`,
+  `ModuleManifest` with `from_dict()`, `ModuleManifestLoader` with `load_from_file()`/
+  `import_enabled()`, `ModuleManifestError`).
+- **Modified:** `backend/src/app/infrastructure/modules/__init__.py` — exports the new names
+  alongside the existing `AppModule`/`ModuleRegistry`/`registry`.
+- **Added tests:** `backend/tests/unit/test_module_manifest_loader.py` (12 tests) — manifest
+  parsing (explicit fields, `enabled` defaulting to `true`, empty/missing `modules` key, a missing
+  required field raising `ModuleManifestError`), file loading (a real `tmp_path` JSON file, a
+  missing file, malformed JSON), and import behavior (only enabled entries imported in manifest
+  order via an injectable fake importer, an import failure raises and stops rather than continuing,
+  plus two tests against the real default `importlib.import_module` — one importing a real stdlib
+  module, one wrapping a real `ModuleNotFoundError`).
+- **Fixed:** two test lines exceeded the 100-character limit; `black` auto-wrapped them, no manual
+  changes needed.
+- Final state: 265 backend tests (up from 253), 9 frontend tests (unchanged), all passing;
+  ruff/black clean; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only).
+
+## Post-Stage-2 — Architecture Health Check
+
+**Version:** 0.3.6
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Resolves `IMPLEMENTATION_QUEUE.md`'s T15/F7 finding: `configure_container()`
+registered factories but nothing resolved them at startup, so a broken factory only failed the
+first time a request happened to need it. See [ADR/0015](../ADR/0015-architecture-health-check.md)
+for the full decision record, including why this is the one post-Stage-2 addition wired directly
+into `main.py`'s startup path (unlike Command Bus, Query Bus, Transaction Pipeline, Caching
+Abstraction, and Module Manifest Loader, all left unwired).
+**Breaking changes:** None — additive to `Container`/`main.py`; the app's route surface and every
+existing registration's factory are untouched. A container that was already broken before this
+change would now fail at startup instead of at first request — a behavior change in the direction
+T15 asked for, not a regression.
+**Migration notes:** None — no schema change.
+
+### Architecture Health Check
+- **Added:** `backend/src/app/infrastructure/di/health_check.py` (`ContainerHealthCheckFailure`,
+  `ContainerHealthCheckError`, `check_container_health()`, `assert_container_healthy()`).
+- **Modified:** `backend/src/app/infrastructure/di/container.py` — `Container` gained
+  `registered_interfaces() -> list[type]`. `backend/src/app/infrastructure/di/__init__.py` —
+  exports the new names. `backend/src/app/main.py` — `create_app()` calls
+  `assert_container_healthy(container)` immediately after `configure_container()`.
+  `IMPLEMENTATION_QUEUE.md` — T15 and finding F7 marked done/resolved, pointing at ADR-0015.
+- **Added tests:** `backend/tests/unit/test_container_health_check.py` (7 tests) — a healthy
+  container reports no failures, a broken factory is caught and reported (not raised) rather than
+  propagating, multiple broken factories are all reported in one pass, an empty container is
+  trivially healthy, `assert_container_healthy` raises `ContainerHealthCheckError` with the
+  failure detail included in the exception message, and the real `configure_container()` result is
+  confirmed healthy against the actual app container.
+- **Fixed:** one import-order lint finding in the new test file, auto-fixed via `ruff --fix`.
+- Final state: 272 backend tests (up from 265), 9 frontend tests (unchanged), all passing;
+  ruff/black clean; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only)
+  — confirmed via the existing health-endpoint integration tests, which import `app.main` and
+  therefore exercise the new startup check on every run.
+
+## Post-Stage-2 — Performance Metrics Service
+
+**Version:** 0.3.7
+**Date:** 2026-08-05
+**Summary:** Standalone framework addition requested directly by the project owner — not part of a
+numbered stage. Unlike the six additions before it, didn't map onto an item already named in an
+existing ADR trade-off or `IMPLEMENTATION_QUEUE.md` finding — read as a standalone port via this
+project's naming convention (`Cache`/`AuthorizationService`-style "Service", not a pipeline
+wrapping `CommandBus`/`QueryBus`, and no new `/metrics` route). See
+[ADR/0016](../ADR/0016-performance-metrics-service.md) for the full decision record, including the
+three options considered.
+**Breaking changes:** None — purely additive; no existing port, route, or table touched.
+**Migration notes:** None — no schema change.
+
+### Performance Metrics Service
+- **Added:** `backend/src/app/application/interfaces/metrics.py` (`MetricsService` — abstract
+  `increment`/`gauge`/`record_duration`, each accepting optional `tags: dict[str, str] | None`,
+  plus a concrete `timer()` context-manager convenience built on `record_duration`, the same
+  pattern as `EventBus.publish_all()`), `backend/src/app/infrastructure/metrics/logging_metrics_service.py`
+  (`LoggingMetricsService` — logs each event as structured JSON to an `app.metrics` logger
+  channel, mirroring `LoggingAuditLogger`'s `app.audit` channel), `backend/src/app/infrastructure/metrics/__init__.py`.
+- **Modified:** `backend/src/app/infrastructure/di/container.py` — registers `MetricsService ->
+  LoggingMetricsService` as a singleton.
+- **Added tests:** `backend/tests/unit/test_metrics_service.py` (8 tests) — increment logs a
+  structured counter entry (default value 1, and an explicit value + tags), gauge logs a
+  structured gauge entry, record_duration logs a structured duration entry, `timer()` records a
+  duration on normal exit and also records one then re-raises on an exception (not swallowing
+  it), DI resolves `MetricsService` to `LoggingMetricsService`, and two resolves return the same
+  instance (singleton).
+- **Fixed:** two `ruff` `SIM117` findings (nested `with` statements) in the new test file, fixed by
+  combining the context managers into single `with` statements.
+- Final state: 280 backend tests (up from 272), 9 frontend tests (unchanged), all passing;
+  ruff/black clean; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only)
+  — this addition touches no route.
+
+## Post-Stage-2 — QA Review Resolution
+
+**Version:** 0.3.8
+**Date:** 2026-08-06
+**Summary:** A QA review ([docs/reviews/Stage_2_5_QA_Review.md](reviews/Stage_2_5_QA_Review.md))
+evaluated the seven post-Stage-2 framework additions above (Command Bus, Query Bus, Transaction
+Pipeline, Caching Abstraction, Module Manifest Loader, Architecture Health Check, Performance
+Metrics Service) against Architecture, Performance, SOLID, Maintainability, Security, Scalability,
+Thread Safety, Error Handling, and Code Duplication. Nine findings (Q1–Q9) were classified in
+`IMPLEMENTATION_QUEUE.md`; two ("Fix Immediately") were cheap, safe, and unblocked, and are fixed
+here as T20/T21. The rest are either genuine gaps correctly gated on a dependency that doesn't
+exist yet, or already-accepted ADR-documented trade-offs — see `IMPLEMENTATION_QUEUE.md`'s "QA
+Review Findings" section for the full classification and rationale.
+**Breaking changes:** None — both fixes are behavior-preserving except for the specific bug closed
+(cancellation now rolls back where it previously didn't); no port signature, route, or table
+touched.
+**Migration notes:** None — no schema change.
+
+### T20 — `TransactionPipelineBehavior` rolls back on cancellation (Q1)
+- **Problem:** `dispatch()`'s `try`/`except Exception` block did not catch `asyncio.CancelledError`
+  (a `BaseException` subclass since Python 3.8, not an `Exception` subclass) — a cancelled dispatch
+  (client disconnect, request timeout, server shutdown grace period) skipped `rollback()` entirely,
+  leaving the unit of work `_active=True`. Invisible today because `InMemoryUnitOfWork` backs no
+  real resource; would become a real leaked-connection/held-lock risk once a resource-backed
+  `UnitOfWork` (e.g. wrapping a SQLAlchemy `AsyncSession`) is plugged in.
+- **Fixed:** `backend/src/app/infrastructure/commands/transaction_pipeline_behavior.py:47` — widened
+  to `except BaseException:`, with an inline comment explaining why `Exception` alone was wrong;
+  still re-raises after `rollback()` so cancellation propagates correctly to the caller.
+- **Added tests:** `backend/tests/unit/test_transaction_pipeline_behavior.py` grew from 5 to 7 —
+  `test_dispatch_rolls_back_and_reraises_on_cancellation` (proves rollback + re-raise for
+  `asyncio.CancelledError` specifically) and `test_dispatch_rolls_back_and_reraises_on_a_base_exception`
+  (proves the same for an arbitrary `BaseException` subclass generally). The 5 pre-existing tests in
+  that file are unchanged and still pass.
+
+### T21 — `MetricsService`/`LoggingMetricsService` document unredacted tags (Q8)
+- **Problem:** `tags: dict[str, str]` on `MetricsService.increment/gauge/record_duration` is logged
+  verbatim by `LoggingMetricsService` with no redaction — undocumented, so a future caller tagging a
+  metric with something like a raw email or document ID would land in plaintext structured logs
+  with no warning.
+- **Fixed:** `backend/src/app/application/interfaces/metrics.py` and
+  `backend/src/app/infrastructure/metrics/logging_metrics_service.py` — one docstring line added to
+  each stating `tags` values are not redacted. No behavior change.
+- **Added tests:** None needed — the existing `test_increment_accepts_an_explicit_value_and_tags`
+  already asserted tags pass through the logger unmodified; the documented behavior and the tested
+  behavior now agree.
+- Final state: 282 backend tests (up from 280), 9 frontend tests (unchanged). Full unit suite
+  (175/175) re-run and passing; the 107 integration tests could not be re-run in this environment
+  (no local Postgres/Docker available) — neither T20 nor T21 touches persistence. ruff/black clean
+  project-wide; no regression in the three pre-existing `test_transaction_pipeline_behavior.py`
+  tests; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only) — neither fix
+  touches a route.

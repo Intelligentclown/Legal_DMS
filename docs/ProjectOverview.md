@@ -10,12 +10,16 @@ faithfully-maintained project memory (this `docs/` + `ADR/` set) matter as much 
 ## Who it's for
 
 A legal documentation office's internal staff, managing matters, clients, properties, and
-documents. (No specific personas/workflows defined yet — that's Stage 1+ scope.)
+documents. (No specific personas/workflows defined yet — that's Stage 3+ scope.)
 
 ## Non-goals (for now)
 
-Stage 0 is infrastructure only. It explicitly does **not** include: Matter Management, Client
-Management, Property Management, Document Automation, OCR, QR, Search, Reports, Payments, or AI.
+Stages 0–2 are infrastructure, core architecture, and database schema only — framework and
+scaffolding, not business features. Post-Stage-2, seven standalone framework additions (Command
+Bus, Query Bus, Transaction Pipeline, Caching Abstraction, Module Manifest Loader, Architecture
+Health Check, Performance Metrics Service) extended that same scaffolding. None of this includes,
+and Stage 3 has not yet been scoped to include: Matter Management, Client Management, Property
+Management, Document Automation, OCR, QR, Search, Reports, Payments, AI, or a real login mechanism.
 See [Roadmap.md](Roadmap.md).
 
 ## Tech stack (summary)

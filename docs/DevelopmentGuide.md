@@ -105,3 +105,12 @@ Whenever a stage of work finishes:
 
 A stage isn't done until its documentation is. See [KnownIssues.md](KnownIssues.md) for anything
 discovered but not (yet) fixed.
+
+## QA review discipline
+
+Every QA/architecture review (whether covering a numbered stage or a set of standalone post-stage
+additions) writes its findings to `docs/reviews/<Stage>_QA_Review.md` — e.g.
+[`docs/reviews/Stage_2_5_QA_Review.md`](reviews/Stage_2_5_QA_Review.md), and going forward
+`Stage_3_QA_Review.md`, `Stage_4_QA_Review.md`, etc. One file per review, named after the stage (or
+addition batch) it covers. This is the durable record of what was evaluated, what was found, and
+what was deliberately deferred — don't let review findings live only in chat history.

@@ -73,6 +73,30 @@ routes wired to any table**. See [Database.md](Database.md), [ERD.md](ERD.md), a
 [ADR/0009](../ADR/0009-audit-logs-table-reverses-adr-0007.md) for the two Stage 2-specific
 architectural decisions.
 
+## Post-Stage-2 — Standalone Framework Additions
+
+Requested directly by the project owner outside the numbered-stage process — framework-only, same
+"no business logic" charter as Stages 0–2. Each is a port + one minimal default implementation,
+following the Stage 1 pattern.
+
+| Item | Priority | Dependencies | Status |
+|---|---|---|---|
+| Command Bus (`CommandBus`, `InMemoryCommandBus`) | — | Stage 2 | Completed |
+| Query Bus (`QueryBus`, `InMemoryQueryBus`) | — | Command Bus | Completed |
+| Transaction Pipeline (`UnitOfWork`, `InMemoryUnitOfWork`, `TransactionPipelineBehavior`) | — | Command Bus, Query Bus | Completed |
+| Caching Abstraction (`Cache`, `InMemoryCache`) | — | Stage 2 | Completed |
+| Module Manifest Loader (`ModuleManifest`, `ModuleManifestLoader`) | — | Stage 1 Plugin Architecture | Completed |
+| Architecture Health Check (`check_container_health`, `assert_container_healthy`) | — | DI Container | Completed |
+| Performance Metrics Service (`MetricsService`, `LoggingMetricsService`) | — | Stage 2 | Completed |
+| QA review of the seven additions above + resolution of its two immediately-actionable findings | — | All of the above | Completed |
+
+See [ProjectStatus.md](ProjectStatus.md) for the full checklist, [ADR/0010](../ADR/0010-command-bus.md)
+through [ADR/0016](../ADR/0016-performance-metrics-service.md) for the decision records, and
+[docs/reviews/Stage_2_5_QA_Review.md](reviews/Stage_2_5_QA_Review.md) plus
+[IMPLEMENTATION_QUEUE.md](../IMPLEMENTATION_QUEUE.md)'s "QA Review Findings" section for the review
+itself — five findings remain deferred pending a gating dependency, two are accepted ADR-documented
+trade-offs, none are outstanding action items.
+
 ## Stage 3+ — Not yet planned
 
 Nothing below has an estimated stage, priority, or dependency graph yet. Listed here only because

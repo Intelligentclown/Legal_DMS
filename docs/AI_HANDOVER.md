@@ -3,17 +3,32 @@
 *Assume you are a fresh AI model with no memory of this project's prior sessions. This document
 should let you continue immediately without asking clarifying questions about what already
 exists. If you haven't already, read [`/AI_BOOTSTRAP.md`](../AI_BOOTSTRAP.md) and
-[`/PROJECT_STATE.json`](../PROJECT_STATE.json) first — this file is the deep-dive that follows them.*
+[`/PROJECT_STATE.json`](../PROJECT_STATE.json) first — this file is the deep-dive that follows them.
+For a fast, at-a-glance view of what's built and how solid each piece is, see
+[ArchitectureScorecard.md](ArchitectureScorecard.md) — a capability-by-category maturity dashboard
+complementary to this file's narrative. For the full picture of the current version specifically
+(features, fixes, breaking changes, known issues, what's next), see
+[releases/v0.3.8.md](releases/v0.3.8.md) — see [releases/README.md](releases/README.md) for how
+this project's release notes system works. **Before starting a new stage**, complete
+[templates/PreStageChecklist.md](templates/PreStageChecklist.md) — see
+[templates/README.md](templates/README.md) for how.*
 
 ## Project Summary
 
 Legal Document & Matter Management System — a desktop app (Electron + React/TS frontend, Python
 FastAPI backend, PostgreSQL database) for a legal documentation office. Built to be developed over
 many months across many sessions. **Stage 0 (infrastructure), Stage 1 (core architecture), and
-Stage 2 (database schema) are all complete.** Read [Context.md](Context.md) for fuller narrative if
-this handover isn't enough — note Context.md was written at the end of Stage 0 and hasn't been
-rewritten since; treat its "Current Stage"/"Pending Work" sections as stale relative to this file
-and `ProjectStatus.md`.
+Stage 2 (database schema) are all complete**, plus seven post-Stage-2 framework additions (the
+Command Bus, Query Bus, Transaction Pipeline, Caching Abstraction, Module Manifest Loader,
+Architecture Health Check, and Performance Metrics Service — see
+[ADR/0010](../ADR/0010-command-bus.md), [ADR/0011](../ADR/0011-query-bus.md),
+[ADR/0012](../ADR/0012-transaction-pipeline.md), [ADR/0013](../ADR/0013-caching-abstraction.md),
+[ADR/0014](../ADR/0014-module-manifest-loader.md), [ADR/0015](../ADR/0015-architecture-health-check.md),
+and [ADR/0016](../ADR/0016-performance-metrics-service.md)). Read [Context.md](Context.md) for
+fuller
+narrative if this handover isn't enough — note Context.md was written at the end of Stage 0 and
+hasn't been rewritten since; treat its "Current Stage"/"Pending Work" sections as stale relative to
+this file and `ProjectStatus.md`.
 
 ## Current Architecture
 
@@ -22,7 +37,24 @@ Clean Architecture on both sides (domain/application/infrastructure/presentation
 a hand-rolled DI container, repository pattern, base service, validation/pagination/query/response
 frameworks, a generic CRUD router factory, an event bus, a background job framework, file storage/
 notification/search/auth/audit abstractions (each with exactly one minimal default
-implementation), a plugin/module registry, a workflow engine, and feature flags. As of Stage 2, the
+implementation), a plugin/module registry, a workflow engine, and feature flags. Post-Stage-2, a
+**command bus** and a **query bus** were added the same way (`CommandBus`/`QueryBus` ports +
+`InMemoryCommandBus`/`InMemoryQueryBus`, both single-handler dispatch — see
+[ADR/0010](../ADR/0010-command-bus.md) and [ADR/0011](../ADR/0011-query-bus.md)), followed by a
+**transaction pipeline** (`UnitOfWork` port + `InMemoryUnitOfWork`, registered non-singleton, plus
+`TransactionPipelineBehavior` — a `CommandBus` decorator that commits/rolls back based on the
+handler's `Result` — see [ADR/0012](../ADR/0012-transaction-pipeline.md)), a **caching
+abstraction** (`Cache` port + `InMemoryCache`, singleton, TTL-aware, not wired to `QueryBus` — see
+[ADR/0013](../ADR/0013-caching-abstraction.md)), a **module manifest loader**
+(`ModuleManifest`/`ModuleManifestLoader` in `infrastructure/modules/`, closing a gap
+`ModuleRegistry`'s own docstring left open — see [ADR/0014](../ADR/0014-module-manifest-loader.md)),
+an **architecture health check** (`assert_container_healthy()` in `infrastructure/di/`,
+resolving `IMPLEMENTATION_QUEUE.md`'s T15 — **wired into `main.py`'s startup**, unlike the other
+additions, since every registration it checks was already proven working — see
+[ADR/0015](../ADR/0015-architecture-health-check.md)), and a **performance metrics service**
+(`MetricsService` port + `LoggingMetricsService` in `infrastructure/metrics/`, mirroring
+`Notifier`/`AuditLogger`'s "logs structurally, no real backend yet" posture — see
+[ADR/0016](../ADR/0016-performance-metrics-service.md)). As of Stage 2, the
 backend also has the **complete 49-table database schema** (persistence-layer SQLAlchemy models +
 Alembic migrations + seed data — see [Database.md](Database.md) and [ERD.md](ERD.md)) — but that
 schema is **not wired to anything**: no repository, service, or route reads or writes through it
@@ -40,7 +72,17 @@ feature, not a business feature).
 Stage 2 — Database Architecture & Data Model. **Complete and verified** (216 backend + 9 frontend
 tests passing, lint clean, all 12 migrations reversible individually and as a full chain, no
 regression in the real app's route surface). See [ProjectStatus.md](ProjectStatus.md) for the full
-checklist. **No Stage 3 plan exists.**
+checklist. **No Stage 3 plan exists.** Seven standalone post-Stage-2 additions (Command Bus, Query
+Bus, Transaction Pipeline, Caching Abstraction, Module Manifest Loader, Architecture Health Check,
+Performance Metrics Service) have since landed, followed by a QA review of those seven additions
+(`docs/reviews/Stage_2_5_QA_Review.md`) that fixed two findings (T20/T21 in
+`IMPLEMENTATION_QUEUE.md`) — **282 backend tests passing**, still 9 frontend, still lint clean. Of
+the seven additions, only Architecture Health Check is wired into the real app's startup path
+(`main.py`). See [ADR/0010](../ADR/0010-command-bus.md), [ADR/0011](../ADR/0011-query-bus.md),
+[ADR/0012](../ADR/0012-transaction-pipeline.md), [ADR/0013](../ADR/0013-caching-abstraction.md),
+[ADR/0014](../ADR/0014-module-manifest-loader.md),
+[ADR/0015](../ADR/0015-architecture-health-check.md), and
+[ADR/0016](../ADR/0016-performance-metrics-service.md).
 
 ## Pending Work
 
@@ -85,6 +127,20 @@ Stage-2-specific patterns worth knowing:
    generates nothing. Already fixed and in place; don't remove the
    `from app.infrastructure.persistence import models` import.
 
+Post-Stage-2 pattern worth knowing:
+8. **`UnitOfWork` is registered `singleton=False`** — the one exception to this project's "every
+   container registration is a singleton" default. Don't copy the plain `container.register(X,
+   Y)` form for it if you ever re-register it elsewhere; a shared unit-of-work instance across
+   concurrent command dispatches would let one operation's commit/rollback affect another's. See
+   [ADR/0012](../ADR/0012-transaction-pipeline.md).
+9. **Catch `BaseException`, not `Exception`, around anything that must roll back on cancellation.**
+   `asyncio.CancelledError` inherits from `BaseException` (since Python 3.8), not `Exception` — a
+   plain `except Exception` around an `await` lets a cancelled task (client disconnect, request
+   timeout, shutdown grace period) skip cleanup entirely. Found in QA review
+   (`docs/reviews/Stage_2_5_QA_Review.md`, finding Q1) against
+   `TransactionPipelineBehavior.dispatch()` and fixed (T20) — copy that file's `except BaseException`
+   pattern for any future code with the same "must clean up even on cancellation" shape.
+
 ## Database Status
 
 **Complete 49-table schema** (Stage 2) — see [Database.md](Database.md) and [ERD.md](ERD.md) for
@@ -117,8 +173,23 @@ Read the ADRs in [`/ADR`](../ADR/) before making architectural changes:
   entities, and why no `relationship()` navigation is declared yet.
 - **0009** (Stage 2): why `audit_logs` reverses ADR-0007's "no DB table" decision — Stage 2's
   explicit ask was the concrete driving need ADR-0007 said to wait for.
+- **0010–0011** (post-Stage-2): the Command Bus and Query Bus — why each is a plain marker class +
+  single-handler dispatch, not an `ABC`, and why no shared base class between them (see AI_HANDOVER
+  pattern 9's sibling note and QA finding Q4 in `IMPLEMENTATION_QUEUE.md` for why that duplication
+  stays accepted).
+- **0012** (post-Stage-2): the Transaction Pipeline — why `UnitOfWork` is the first non-singleton
+  container registration, and why `TransactionPipelineBehavior` is a `CommandBus` decorator rather
+  than a change to `CommandHandler`'s signature.
+- **0013** (post-Stage-2): the Caching Abstraction — why it's a standalone `Cache` port, not a
+  pipeline wrapping `QueryBus`.
+- **0014** (post-Stage-2): the Module Manifest Loader — why it reads/imports but doesn't register,
+  and why it isn't wired into `main.py` yet.
+- **0015** (post-Stage-2): the Architecture Health Check — the only post-Stage-2 addition wired into
+  the real app's startup path.
+- **0016** (post-Stage-2): the Performance Metrics Service — why it's a standalone "Service" port,
+  not an HTTP `/metrics` route or a bus-wrapping pipeline.
 
-If you make a new significant architectural decision, **add a new ADR** (`0010-...`), don't just
+If you make a new significant architectural decision, **add a new ADR** (`0017-...`), don't just
 change things silently.
 
 ## Current Branch
@@ -169,6 +240,10 @@ repository/service/route touching the Stage 2 tables without that explicit direc
 
 ## Recommended Implementation Order (once Stage 3 is scoped)
 
+0. **Complete [docs/templates/PreStageChecklist.md](templates/PreStageChecklist.md) first** — copy
+   it, verify every section against the real current state of the repository (not what a document
+   claims), and get it signed off before writing any code for the new stage. See
+   [docs/templates/README.md](templates/README.md) for the full workflow.
 1. Confirm the first business feature with the project owner (don't assume it's Matter Management
    just because it's listed first in the original charter).
 2. Add an ADR if the feature requires an architectural decision beyond what Stages 1–2 already
@@ -188,5 +263,9 @@ repository/service/route touching the Stage 2 tables without that explicit direc
 6. Update [API.md](API.md), [FolderStructure.md](FolderStructure.md),
    [FeatureRegistry.md](FeatureRegistry.md) (this will be its first real entry beyond the System
    Health Check), [ModuleRegistry.md](ModuleRegistry.md), [ProjectStatus.md](ProjectStatus.md),
-   [PROJECT_STATE.json](../PROJECT_STATE.json), [CHANGELOG.md](CHANGELOG.md), and this file before
-   considering the work done.
+   [PROJECT_STATE.json](../PROJECT_STATE.json), [ArchitectureScorecard.md](ArchitectureScorecard.md)
+   (new capability rows, and re-check the Overall Architecture Health ratings),
+   [CHANGELOG.md](CHANGELOG.md), and this file before considering the work done. If this bumps
+   `PROJECT_STATE.json`'s `currentVersion`, also create a matching
+   [releases/vX.Y.Z.md](releases/README.md) — see that folder's `README.md` for the required
+   sections and template.

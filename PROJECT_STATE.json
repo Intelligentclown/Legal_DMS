@@ -1,25 +1,38 @@
 {
   "project": "Legal Document & Matter Management System",
-  "lastUpdated": "2026-08-05",
+  "lastUpdated": "2026-08-06",
   "currentStage": {
     "id": "stage-2",
     "name": "Database Architecture & Data Model",
     "status": "completed"
   },
-  "currentVersion": "0.3.0",
+  "currentVersion": "0.3.8",
   "completion": {
     "currentStageScopePercent": 100,
     "overallProjectPercent": 0,
     "note": "0% overall is correct, not an error -- Stages 0-2 are infrastructure/framework/schema only by design. No business feature has been built or wired to the schema yet."
   },
+  "documentation": {
+    "architectureScorecard": "docs/ArchitectureScorecard.md",
+    "releaseNotes": "docs/releases/",
+    "currentReleaseNote": "docs/releases/v0.3.8.md",
+    "templates": "docs/templates/",
+    "preStageChecklist": "docs/templates/PreStageChecklist.md",
+    "note": "Architecture Scorecard is the high-level architectural maturity dashboard (capability-by-category status + Overall Architecture Health ratings). Keep it current alongside this file and docs/ProjectStatus.md whenever a capability's status changes. docs/releases/ holds one comprehensive, frozen-in-time document per released version (docs/releases/README.md explains the system) -- create a new docs/releases/vX.Y.Z.md every time currentVersion below is bumped. docs/templates/ holds reusable document skeletons (docs/templates/README.md explains the system) -- docs/templates/PreStageChecklist.md must be copied, filled in, and signed off (see docs/reviews/ for completed copies) before starting any new stage or standalone framework addition."
+  },
   "stages": [
     { "id": "stage-0", "name": "Project Foundation", "status": "completed" },
     { "id": "stage-1", "name": "Core Architecture & Domain Foundation", "status": "completed" },
     { "id": "stage-2", "name": "Database Architecture & Data Model", "status": "completed" },
-    { "id": "stage-3", "name": null, "status": "not_started", "note": "Undefined. Do not start without explicit direction from the project owner." }
+    { "id": "stage-3", "name": null, "status": "not_started", "note": "Undefined. Do not start without explicit direction from the project owner. Once scoped and approved, complete docs/templates/PreStageChecklist.md before writing any code." }
   ],
   "tests": {
-    "backend": { "framework": "pytest", "total": 216, "passing": 216 },
+    "backend": {
+      "framework": "pytest",
+      "total": 282,
+      "passing": 282,
+      "note": "175 unit tests re-run and confirmed passing in this environment. 107 integration tests require a live Postgres (docker compose up -d), not available in this environment -- not re-run here; last confirmed passing per Stage 2 verification and the 2026-08-06 QA review (neither T20 nor T21 touched persistence)."
+    },
     "frontend": { "framework": "vitest", "total": 9, "passing": 9 }
   },
   "lint": {
@@ -36,6 +49,14 @@
     { "name": "Response Wrapper (ApiResponse)", "status": "completed" },
     { "name": "Base Controller (CRUD router factory)", "status": "completed" },
     { "name": "Event System (EventBus)", "status": "completed" },
+    { "name": "Command Bus (CommandBus port, InMemoryCommandBus)", "status": "completed", "note": "Added post-Stage-2 as a standalone framework addition, not part of a numbered stage -- see ADR/0010" },
+    { "name": "Query Bus (QueryBus port, InMemoryQueryBus)", "status": "completed", "note": "Added post-Stage-2 as a standalone framework addition, symmetric sibling to Command Bus -- see ADR/0011" },
+    { "name": "Transaction Pipeline (UnitOfWork port, InMemoryUnitOfWork, TransactionPipelineBehavior)", "status": "completed", "note": "Added post-Stage-2 as a standalone framework addition, resolves ADR-0010/0011's deferred transaction-wrapping trade-off; UnitOfWork is the first non-singleton container registration -- see ADR/0012" },
+    { "name": "Caching Abstraction (Cache port, InMemoryCache)", "status": "completed", "note": "Added post-Stage-2 as a standalone framework addition; not wired to QueryBus/CommandBus -- see ADR/0013" },
+    { "name": "Module Manifest Loader (ModuleManifest, ModuleManifestLoader)", "status": "completed", "note": "Added post-Stage-2; closes a gap ModuleRegistry's own docstring left open (which packages to import to trigger registration); not wired into main.py -- no real manifest exists yet -- see ADR/0014" },
+    { "name": "Architecture Health Check (check_container_health, assert_container_healthy)", "status": "completed", "note": "Added post-Stage-2, resolves IMPLEMENTATION_QUEUE.md T15/F7; wired into main.py's create_app() -- the only post-Stage-2 addition touching the live startup path -- see ADR/0015" },
+    { "name": "Performance Metrics Service (MetricsService port, LoggingMetricsService)", "status": "completed", "note": "Added post-Stage-2 as a standalone framework addition; mirrors Notifier/AuditLogger's logging-only posture; not wired to CommandBus/QueryBus/routes -- see ADR/0016" },
+    { "name": "QA Review Resolution -- T20/T21 (Stage_2_5_QA_Review.md)", "status": "completed", "note": "TransactionPipelineBehavior.dispatch() now catches BaseException (not just Exception) so asyncio.CancelledError rolls back before re-raising, plus 2 new regression tests; MetricsService/LoggingMetricsService gained docstring notes that tags are logged verbatim with no redaction. Findings Q2/Q3/Q5/Q7/Q9 remain deferred pending their gating dependency; Q4/Q6 are accepted ADR-documented trade-offs -- see IMPLEMENTATION_QUEUE.md" },
     { "name": "Background Job Framework", "status": "completed" },
     { "name": "File Storage Abstraction", "status": "completed" },
     { "name": "Notification Framework (backend)", "status": "completed" },
@@ -99,10 +120,17 @@
     "0006-dependency-injection-container",
     "0007-audit-logging-without-database-table",
     "0008-persistence-models-not-domain-entities",
-    "0009-audit-logs-table-reverses-adr-0007"
+    "0009-audit-logs-table-reverses-adr-0007",
+    "0010-command-bus",
+    "0011-query-bus",
+    "0012-transaction-pipeline",
+    "0013-caching-abstraction",
+    "0014-module-manifest-loader",
+    "0015-architecture-health-check",
+    "0016-performance-metrics-service"
   ],
   "git": {
     "branch": "master",
-    "latestCommitAtThisUpdate": "fb24b01"
+    "latestCommitAtThisUpdate": "847e205"
   }
 }

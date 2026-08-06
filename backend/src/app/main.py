@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.infrastructure.config import get_settings
 from app.infrastructure.di.container import configure_container, container
+from app.infrastructure.di.health_check import assert_container_healthy
 from app.infrastructure.logging import configure_logging, get_logger
 from app.infrastructure.modules.registry import registry as module_registry
 from app.presentation.api.v1.router import router as v1_router
@@ -24,6 +25,9 @@ def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings)
     configure_container()
+    # Fail fast on a broken factory at boot, instead of at whichever request
+    # happens to need that service first. See ADR-0015.
+    assert_container_healthy(container)
 
     app = FastAPI(
         title=settings.app_name,

@@ -36,7 +36,7 @@ Response `200`:
 ```json
 {
   "app_name": "Legal Document & Matter Management System",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "api_prefix": "/api/v1"
 }
 ```

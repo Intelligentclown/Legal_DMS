@@ -1,0 +1,182 @@
+# Architecture Scorecard
+
+**Last Updated:** 2026-08-06
+**Current Project Version:** 0.3.8
+**Current Stage:** Stage 2 — Database Architecture & Data Model (complete), plus seven post-Stage-2
+standalone framework additions and their QA review resolution — see
+[ProjectStatus.md](ProjectStatus.md) for the full narrative and [PROJECT_STATE.json](../PROJECT_STATE.json)
+for the machine-readable snapshot.
+
+A high-level architectural maturity dashboard — one row per capability, grouped by category, so a
+reader can see at a glance what exists, how solid it is, and what's still open. This is a snapshot
+assessment, not a scoring formula; update it whenever a capability's status changes, alongside
+[ProjectStatus.md](ProjectStatus.md) and [PROJECT_STATE.json](../PROJECT_STATE.json). See
+[DevelopmentGuide.md](DevelopmentGuide.md)'s "Documentation discipline" section for the project's
+general rule that a stage isn't done until its documentation reflects reality — this file included.
+
+## Status legend
+
+| Symbol | Meaning |
+|---|---|
+| ✅ | Complete — built, tested, and (where applicable) verified live |
+| 🟡 | Partial — exists but incomplete, unwired, or has a known gap |
+| ⏳ | Planned — scoped or configured, not yet built |
+| ❌ | Not Started — no code exists |
+| ⚠ | Deprecated — superseded or reversed by a later decision |
+
+---
+
+## Core Architecture
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Clean Architecture layering (domain/application/infrastructure/presentation) | ✅ | Stage 1 | 2026-08-05 | Mirrored on both backend and frontend; see [ADR/0002](../ADR/0002-clean-architecture-layering.md). | — |
+| Dependency Injection Container | ✅ | Stage 1 | 2026-08-05 | Hand-rolled `register`/`resolve`/`override`/`registered_interfaces`; see [ADR/0006](../ADR/0006-dependency-injection-container.md). | `resolve()` has a check-then-act race if ever called off the event-loop thread (QA Q3, deferred to when a real `UnitOfWork` lands); no async-factory support (QA Q9, deferred). |
+| Domain Foundation (`AggregateRoot`, `DomainEvent`, `Result[T,E]`) | ✅ | Stage 1 | 2026-08-05 | Pure domain primitives, no framework dependency. | — |
+| Repository Pattern (`AbstractRepository[T]`, `SqlAlchemyRepository[ModelT]`) | ✅ | Stage 1 | 2026-08-05 | Generic, works against any of the 49 Stage 2 tables with zero new code. | `update()`'s "entity must already be attached to this session" contract is undocumented and unenforced (F8, Stage 2.5 backlog, unapproved). |
+| Base Service (CRUD convenience methods) | ✅ | Stage 1 | 2026-08-05 | `get_by_id_or_raise`, `list_page`, `create`, `update`, `delete`. | `delete()` double-fetches (F9, low priority, unapproved). |
+| Event System (`EventBus`, `InMemoryEventBus`) | ✅ | Stage 1 | 2026-08-05 | In-process publish/subscribe, multiple handlers per event type. | — |
+| Command Bus (`CommandBus`, `InMemoryCommandBus`) | ✅ | Post-Stage-2 | 2026-08-05 | Single-handler dispatch, returns `Result[R, AppError]`; see [ADR/0010](../ADR/0010-command-bus.md). | Structurally near-identical to Query Bus/Event Bus with no shared base class — accepted trade-off (QA Q4), revisit only if a third single-handler bus is requested. |
+| Query Bus (`QueryBus`, `InMemoryQueryBus`) | ✅ | Post-Stage-2 | 2026-08-05 | Symmetric sibling to Command Bus; see [ADR/0011](../ADR/0011-query-bus.md). | Same as Command Bus above. |
+| Transaction Pipeline (`UnitOfWork`, `InMemoryUnitOfWork`, `TransactionPipelineBehavior`) | 🟡 | Post-Stage-2 | 2026-08-05 | `CommandBus` decorator; commits/rolls back based on handler `Result`; now correctly rolls back on `asyncio.CancelledError` too (fixed 2026-08-06, QA T20). Not `CommandBus`'s default registration — opt-in only. See [ADR/0012](../ADR/0012-transaction-pipeline.md). | Sequencing has never been exercised against a resource that can fail in interesting ways — `InMemoryUnitOfWork` has no I/O (QA Q2, deferred until a real `UnitOfWork` exists). If `rollback()` itself raises, the original exception loses primacy (QA Q7, same gate). |
+| Caching Abstraction (`Cache`, `InMemoryCache`) | 🟡 | Post-Stage-2 | 2026-08-05 | Dict-backed, lazy TTL expiry via `time.monotonic()`; see [ADR/0013](../ADR/0013-caching-abstraction.md). | Zero callers today; no eviction beyond TTL, non-TTL entries never reclaimed — accepted trade-off (QA Q6), revisit once a real caller appears. |
+| Module Manifest Loader (`ModuleManifest`, `ModuleManifestLoader`) | 🟡 | Post-Stage-2 | 2026-08-05 | Closes the gap `ModuleRegistry`'s docstring left open; see [ADR/0014](../ADR/0014-module-manifest-loader.md). | Not wired into `main.py` — no real manifest exists yet. Unrestricted dynamic import via `importlib.import_module` with no allowlist (QA Q5, deferred until wired in). |
+| Plugin Architecture (`AppModule`, `ModuleRegistry`) | 🟡 | Stage 1 | 2026-08-05 | Global registry empty; `main.py` calls `mount_all()` unconditionally (a no-op today). | Proven only via a throwaway test module — no real plugin exists yet. |
+| Workflow Engine (`WorkflowDefinition`, `WorkflowEngine`) | 🟡 | Stage 1 | 2026-08-05 | Generic state machine, proven via a toy state graph. | No real workflow definitions exist yet (the schema's `workflow_definitions`/`workflow_states` tables are unwired). |
+| Architecture Health Check (`check_container_health`, `assert_container_healthy`) | ✅ | Post-Stage-2 | 2026-08-05 | The only post-Stage-2 addition wired into the real app's startup path (`main.py`'s `create_app()`); resolves `IMPLEMENTATION_QUEUE.md` T15/F7. See [ADR/0015](../ADR/0015-architecture-health-check.md). | — |
+
+## Backend
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| FastAPI application skeleton | ✅ | Stage 0 | 2026-08-03 | App factory (`create_app()`), structured JSON logging, error handling. | — |
+| Validation Framework (`Validator[T]`, `validate_all()`) | ✅ | Stage 1 | 2026-08-05 | — | — |
+| Pagination / Filtering / Sorting / Search query shapes | 🟡 | Stage 1 | 2026-08-05 | `PageRequest`/`PageResult`, `SortSpec`/`FilterSpec`/`SearchQuery` fully defined. | Not yet interpreted anywhere — `SqlAlchemyRepository.list()` only takes `limit`/`offset`; `BaseService.list_page()` and `build_crud_router`'s list route don't forward filters/sort (F2, largest item in the unapproved Stage 2.5 backlog). |
+| Response Wrapper (`ApiResponse[T]`) | ✅ | Stage 1 | 2026-08-05 | — | — |
+| Base Controller / CRUD router factory (`build_crud_router`) | 🟡 | Stage 1 | 2026-08-05 | Generic list/get/create/update/delete router factory. | Proven only against a test-only entity — **never mounted into the real app**, by design, per every stage's "no business functionality" charter. |
+| Persistence session lifecycle (`get_db()`) | 🟡 | Stage 1 | 2026-08-05 | Async SQLAlchemy session dependency. | `get_db()` only `flush()`es, never commits — a write appears to work within a request and then vanishes (F1, **Critical/P0** in the unapproved Stage 2.5 backlog; not yet fixed). Cached engine (`get_engine()`) is never disposed on shutdown (F3). |
+| Background Job Framework (`Job`, `JobQueue`, `InMemoryJobQueue`, `JobRegistry`) | 🟡 | Stage 1 | 2026-08-05 | Asyncio-task-backed execution + status tracking. | Only `NoOpJob` exists — no real job (OCR, PDF conversion, backups) has been built yet; no dependency (Celery/arq/etc.) chosen for a durable queue. |
+| File Storage Abstraction (`FileStorage`, `LocalFileStorage`) | ✅ | Stage 1 | 2026-08-05 | Path-traversal-safe filesystem implementation. | Real backend (S3, etc.) deferred until a feature needs one. |
+| Notification Framework (`Notifier`, `LoggingNotifier`) | 🟡 | Stage 1 | 2026-08-05 | Server-side; logs instead of sending. | No real channel (email/SMS/push) implemented yet. |
+| Search Foundation (`SearchIndex`, `InMemorySearchIndex`) | 🟡 | Stage 1 | 2026-08-05 | Naive substring/filter match, proves the port. | Real full-text/OCR/smart search deferred; the Stage 2 schema's GIN full-text index exists but isn't wired to this port. |
+| Feature Flags (`FeatureFlagProvider`, env-driven) | ✅ | Stage 1 | 2026-08-05 | — | — |
+| Performance Metrics Service (`MetricsService`, `LoggingMetricsService`) | 🟡 | Post-Stage-2 | 2026-08-05 | Logs counters/gauges/durations as structured JSON; docstring now notes `tags` are logged verbatim, no redaction (fixed 2026-08-06, QA T21). See [ADR/0016](../ADR/0016-performance-metrics-service.md). | No real backend (StatsD/Prometheus/CloudWatch/OpenTelemetry) wired; not instrumented into `CommandBus`/`QueryBus` dispatch or HTTP middleware. |
+| CRUD router query-parameter exposure | ❌ | — | — | `build_crud_router`'s list route doesn't expose `sort`/`filter` as query params. | Depends on the Pagination/Filtering framework above being wired first (F2 → T8, unapproved). |
+
+## Frontend
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Electron shell (main process, secure preload, IPC scaffold) | ✅ | Stage 0 | 2026-08-03 | — | — |
+| React + Vite + Tailwind + shadcn/ui foundation | ✅ | Stage 0 | 2026-08-03 | — | — |
+| Frontend↔backend E2E proof (`HealthCheckPage`) | ✅ | Stage 0 | 2026-08-03 | Verified live: Electron → React → FastAPI → Postgres. | — |
+| `Result<T, E>` discriminated union | ✅ | Stage 1 | 2026-08-05 | Mirrors the backend's `Result`. | — |
+| Pagination/query TS types (`PageRequest`, `PaginatedResponse<T>`, `SortSpec`, `FilterSpec`, `SearchQuery`) | ✅ | Stage 1 | 2026-08-05 | Mirrors the backend's query framework shapes. | Frontend types exist ahead of the backend actually interpreting them (see Backend's Pagination row). |
+| HTTP Client (`httpClient.ts`) | 🟡 | Stage 0 | 2026-08-03 | — | Only `get()` implemented; discards the backend's structured `{"error":{"code","message"}}` body for a generic status string (F10, unapproved). Needs `post`/`put`/`delete` before any mutating route exists. |
+| UI component library (shadcn/ui) | 🟡 | Stage 0 | 2026-08-03 | Only `Button` hand-authored so far. | shadcn CLI broken on this Windows setup (see [KnownIssues.md](KnownIssues.md)) — new components must be hand-copied until re-attempted. |
+| Frontend routing | ✅ | Stage 0 | 2026-08-03 | Plain client-side SPA routing (`react-router-dom`, `createBrowserRouter`), no RSC/framework mode. | — |
+| Frontend test setup (Vitest + React Testing Library) | ✅ | Stage 0 | 2026-08-03 | 9/9 tests passing. | — |
+
+## Security
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Security foundation placeholders | 🟡 | Stage 0 | 2026-08-03 | See [ADR/0004](../ADR/0004-security-foundation-placeholders.md) for what's prepared in advance vs. deliberately deferred. | — |
+| Authentication Framework (`AuthenticationProvider`, `AnonymousAuthenticationProvider`) | 🟡 | Stage 1 | 2026-08-05 | No login mechanism implemented — deliberately out of scope until explicit direction. | Real login is a Stage 3+ decision, not assumed. |
+| Authorization Framework (`AuthorizationService`, `PermissiveAuthorizationService`) | 🟡 | Stage 1 | 2026-08-05 | Denies anonymous callers, permissive once authenticated — no real permission data model wired yet (the schema's `roles`/`permissions` tables exist, unwired). | No reusable `RequirePermission(...)` FastAPI dependency exists (F11) — flagged, not scheduled; borders the "no auth yet" charter boundary. |
+| Audit Logging Framework (`AuditLogger`, `LoggingAuditLogger`, `audit_logs` table) | ✅ | Stage 1 / Stage 2 | 2026-08-05 | Structured logs plus a real DB table — see [ADR/0007](../ADR/0007-audit-logging-without-database-table.md) (superseded) and [ADR/0009](../ADR/0009-audit-logs-table-reverses-adr-0007.md). | — |
+| CORS configuration | 🟡 | Stage 0 | 2026-08-03 | `allow_methods=["*"]`, `allow_headers=["*"]`, `allow_credentials=True` together in `main.py`. | Broader than currently needed (only `GET` routes exist) — deliberate decision or explicit tightening still pending (F5, unapproved). |
+| API docs exposure (`/docs`, `/redoc`) | 🟡 | Stage 0 | 2026-08-03 | Mounted unconditionally in `create_app()`, including when `environment=production`. | Should be gated behind `settings.is_development` (F4, unapproved). |
+| Module manifest dynamic import | 🟡 | Post-Stage-2 | 2026-08-05 | `importlib.import_module()` on every enabled manifest entry, no path restriction. | No live attack surface today (not wired into `main.py`) — needs an allowlist prefix check once it is (QA Q5, deferred). |
+| Metrics tag redaction | ✅ | Post-Stage-2 | 2026-08-06 | `tags` values are logged verbatim by design — now explicitly documented (QA T21) so a future caller doesn't put sensitive data in one. | Actual redaction, if ever needed, is a design decision for a real metrics backend, not documented as required today. |
+| Row-level / column-level access control | ❌ | — | — | No feature exists yet to need it. | Stage 3+, only once a real permission model and real routes exist. |
+
+## Database
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Schema design (49 tables, 12 migrations, 11 domain sections + seed data) | ✅ | Stage 2 | 2026-08-05 | Pure schema — see [Database.md](Database.md) and [ERD.md](ERD.md). | — |
+| Persistence-layer ORM models (not domain entities) | ✅ | Stage 2 | 2026-08-05 | See [ADR/0008](../ADR/0008-persistence-models-not-domain-entities.md). | No `relationship()` navigation declared yet — deliberate, until a feature needs it. |
+| Soft delete / audit columns (`AuditMixin`) | ✅ | Stage 2 | 2026-08-05 | Applied to substantive business tables. | — |
+| Optimistic locking (`OptimisticLockMixin`) | ✅ | Stage 2 | 2026-08-05 | Applied where concurrent edits are realistic. | — |
+| Full-text search index (GIN, OCR'd text) | ✅ | Stage 2 | 2026-08-05 | Verified working against live Postgres with real `to_tsvector`/`plainto_tsquery` queries. | Not wired to the `SearchIndex` port or any feature yet. |
+| Seed lookup data | ✅ | Stage 2 | 2026-08-05 | India + states/UTs + Gujarat districts, roles, permissions, matter types/statuses, a starter workflow, document types, payment methods, default settings/flags. | — |
+| Migration chain integrity check | ❌ | — | — | Nothing verifies the Alembic chain has a single head programmatically. | F6, unapproved — add a test asserting `ScriptDirectory` reports exactly one head. |
+| Repository/service/route wiring to the schema | ❌ | — | — | Zero business tables are read from or written to by any repository, service, or route. | The explicit, most-likely candidate for Stage 3 — not started without project-owner confirmation. |
+
+## Infrastructure
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Local dev environment (Docker Compose Postgres) | ✅ | Stage 0 | 2026-08-03 | `docker-compose.yml`, healthcheck-gated. | Not available in every environment (this documentation-sync session had no Docker) — see [KnownIssues.md](KnownIssues.md). |
+| Dependency management (`uv` backend, `npm` frontend) | ✅ | Stage 0 | 2026-08-03 | Two independent projects, separate lockfiles, deliberately not unified into an npm workspace. | — |
+| Structured logging | ✅ | Stage 0 | 2026-08-03 | JSON logs; `RequestIDMiddleware`/`LoggingMiddleware` add request correlation. | — |
+| Config management (`Settings`, pydantic-settings) | ✅ | Stage 0 / Stage 1 | 2026-08-03 | Env-driven, feature-flag extension in Stage 1. | — |
+| CI/CD pipeline | ❌ | — | — | No `.github/workflows` or equivalent exists anywhere in the repo. | Not evaluated yet — every test/lint run today is manual/local. |
+| Electron packaging (`electron-builder.yml`) | ⏳ | Stage 0 | 2026-08-03 | Config exists (`win`/`mac`/`linux` targets defined). | Never actually built or tested end-to-end — see Deployment section. |
+| Backend distribution strategy (inside the Electron installer) | ❌ | — | — | Backend runs as a standalone process during development only. | Options not yet evaluated: bundled Python runtime (PyInstaller/Nuitka), system Python + venv, or a separate installed service — see [FutureIdeas.md](FutureIdeas.md). |
+
+## Quality
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Backend test suite (pytest) | 🟡 | Ongoing | 2026-08-03 | 282 tests total (175 unit + 107 integration). 175 unit tests re-run and confirmed passing 2026-08-06; the 107 integration tests need a live Postgres, last confirmed passing before the 2026-08-06 QA fixes (which don't touch persistence) — not re-verified against Postgres since. | Re-run the full 282-test suite in a Docker-available environment to close this verification gap. |
+| Frontend test suite (Vitest + RTL) | ✅ | Ongoing | 2026-08-03 | 9/9 passing, confirmed 2026-08-06. | — |
+| Linting (ruff, black, eslint, prettier) | ✅ | Ongoing | 2026-08-03 | Clean project-wide, confirmed 2026-08-06 (includes `backend/alembic/versions/`). | — |
+| ADR discipline | ✅ | Ongoing | 2026-08-03 | 16 ADRs, one per significant architectural decision; see [`/ADR`](../ADR/). | — |
+| Documentation discipline | ✅ | Ongoing | 2026-08-03 | Full `docs/`/`ADR/` set, synced 2026-08-06 — see [Documentation Consistency Report](reviews/Documentation_Consistency_Report_2026-08-06.md). | Structural docs (e.g. [FolderStructure.md](FolderStructure.md)) tend to lag new additions by several sessions unless checked deliberately each time. |
+| QA review process | ✅ | Post-Stage-2 | 2026-08-06 | [Stage_2_5_QA_Review.md](reviews/Stage_2_5_QA_Review.md) — 9 findings classified, 2 fixed immediately (T20/T21), 5 correctly deferred pending a gating dependency, 2 accepted as ADR-documented trade-offs. | Re-classify Q2/Q3/Q5/Q7/Q9 whenever their gating dependency lands. |
+
+## Performance
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Query framework execution (filter/sort translation to SQL) | ❌ | — | — | Types exist (Stage 1); `SqlAlchemyRepository.list()` doesn't interpret `FilterSpec`/`SortSpec` yet. | F2/T4–T10, largest item in the unapproved Stage 2.5 backlog. |
+| Caching | 🟡 | Post-Stage-2 | 2026-08-05 | `InMemoryCache` exists, correctly implemented, zero callers. | Move to a real backend (e.g. Redis) once a hot-path caller appears — accepted trade-off, not scheduled. |
+| Performance metrics instrumentation | 🟡 | Post-Stage-2 | 2026-08-05 | `MetricsService`/`LoggingMetricsService` exist. | Not instrumented into any dispatch path, middleware, or route yet — nothing to measure today. |
+| Connection pool tuning | ❌ | — | — | Only `pool_pre_ping=True` set; no sizing or statement-timeout tuning. | F12 — deliberately deferred until a real workload exists to size against. |
+| DI container async factory support | ❌ | — | — | `Container.resolve()` is fully synchronous. | QA Q9 — only needed once a real async-requiring implementation (e.g. a Redis-backed `Cache`) is proposed. |
+
+## AI
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| AI request/response schema (`ai_requests`, `ai_responses` tables) | 🟡 | Stage 2 | 2026-08-05 | Schema only — deliberately generic/minimal, no consuming feature yet. | Documented as intentionally incomplete pending a real AI feature decision, not a gap. |
+| AI feature implementation | ❌ | — | — | No AI functionality of any kind exists. | Explicitly out of scope until Stage 3+, and only with explicit project-owner direction — not to be assumed. |
+
+## Deployment
+
+| Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
+|---|---|---|---|---|---|
+| Electron desktop packaging | ⏳ | Stage 0 | 2026-08-03 | `electron-builder.yml` configures `win`(nsis)/`mac`(dmg)/`linux`(AppImage) targets. | Never built or tested end-to-end — see Infrastructure section. |
+| Production environment configuration | 🟡 | Stage 0 | 2026-08-03 | `Settings.environment` supports `production`. | `/docs`/`/redoc` still exposed unconditionally regardless of environment (F4, unapproved). |
+| Database migration strategy (production) | 🟡 | Stage 2 | 2026-08-05 | `alembic upgrade head` verified locally, full chain reversible. | No documented production migration runbook (backup-before-migrate, rollback procedure, etc.) exists yet. |
+| Backend service deployment strategy | ❌ | — | — | No decision on how the backend runs in a shipped build. | See Infrastructure section's "Backend distribution strategy." |
+| Monitoring / observability backend | ❌ | — | — | `MetricsService` port exists; no real backend (StatsD/Prometheus/CloudWatch/OpenTelemetry) implements it. | Only worth building once there's a deployed instance to observe. |
+
+---
+
+## Overall Architecture Health
+
+Qualitative assessment as of 2026-08-06, grounded in the category tables above and the
+[Documentation Consistency Report](reviews/Documentation_Consistency_Report_2026-08-06.md). Not a
+formula — a snapshot judgment call, meant to be revised each time this file is updated.
+
+| Dimension | Assessment | Why |
+|---|---|---|
+| **Architecture Completeness** | 🟡 High for framework/scaffolding, 0% for business features | Every Stage 0–2 port has exactly one minimal, tested default implementation; 7 post-Stage-2 additions extended that same discipline. But `overallProjectPercent` is deliberately 0% — no business feature has been built or wired to the Stage 2 schema yet, by design. |
+| **Documentation Quality** | ✅ 9/10 | Full `docs/`/`ADR/` set, an ADR for every significant decision, a session report per unit of work. Docked one point for a recurring pattern: headline tracking docs (test counts, version numbers, status banners) reliably lag one addition behind — see the Consistency Report. |
+| **Technical Debt** | 🟡 Low and explicitly tracked, one Critical item pending approval | `IMPLEMENTATION_QUEUE.md` names every known gap with a severity and a gating condition — nothing is silently swept aside. One real correctness bug (F1: `get_db()` never commits) is rated Critical/P0 but is part of an **unapproved** backlog awaiting project-owner go-ahead, not yet fixed. Five QA findings (Q2/Q3/Q5/Q7/Q9) are correctly deferred pending a dependency that doesn't exist yet. |
+| **Code Quality** | ✅ Clean | `ruff`/`black` (backend) and `eslint`/`prettier` (frontend) both clean project-wide as of 2026-08-06; consistent Clean Architecture layering; no premature abstraction (e.g. QA Q4's accepted bus duplication over a speculative shared base class). |
+| **Test Coverage** | 🟡 Strong for what's built, unverifiable for integration in this environment | 282 backend tests (175 unit confirmed passing 2026-08-06) + 9 frontend tests, all green where runnable. The 107 integration tests require Postgres/Docker, unavailable in this environment — last confirmed passing before, not after, the 2026-08-06 QA fixes (which don't touch persistence, so risk is low but unconfirmed). |
+| **Scalability** | 🟡 Deliberately deferred, seams in place | Every default implementation (in-memory bus/cache/queue, local file storage, logging notifier) is explicitly single-instance by design, with a port boundary already in place for a distributed swap-in later (Redis cache, broker-backed bus, real `UnitOfWork`). No connection-pool tuning yet — nothing to size against. |
+| **Maintainability** | ✅ Strong | Docstrings consistently explain *why*, not *what*; ADRs preserve reasoning outside tribal knowledge; "small, reviewed sections" discipline (one subsystem at a time, verified, committed) held across every stage and addition so far. |
+| **Security** | 🟡 Placeholder-stage, honestly documented | No real login/authorization exists yet — deliberately, per every stage's charter, not an oversight (see [ADR/0004](../ADR/0004-security-foundation-placeholders.md)). Two concrete hardening items (broad CORS wildcards, unconditional `/docs` exposure) are named and unapproved rather than silently shipped. |
+| **Developer Experience** | ✅ Strong | `AI_BOOTSTRAP.md` → `PROJECT_STATE.json` → `docs/ProjectStatus.md` → this file gives a fast, accurate "where are we" answer; consistent conventions (naming, ADRs, session reports) make picking up the project cold genuinely fast — the explicit design goal of this documentation set. |
+
+---
+
+*This file is part of the project's documentation set — keep it current alongside
+[ProjectStatus.md](ProjectStatus.md) and [PROJECT_STATE.json](../PROJECT_STATE.json) whenever a
+capability's status changes. See [AI_HANDOVER.md](AI_HANDOVER.md) for the deep handover doc this
+scorecard summarizes.*

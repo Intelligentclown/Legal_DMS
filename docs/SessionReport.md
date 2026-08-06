@@ -222,3 +222,473 @@ schema is now ready for a feature to be wired to it (repository → service → 
 Clean Architecture), but the next session should confirm that's actually what Stage 3 is with the
 project owner rather than assuming — this is now the third stage in a row where scope had to be
 given explicitly rather than inferred.
+
+## Session: 2026-08-05 — Command Bus (post-Stage-2 framework addition)
+
+**Objectives:** Implement a Command Bus, requested directly by the project owner via chat. Not
+part of any numbered stage — "Command Bus" didn't appear in `docs/Architecture.md`, any ADR,
+`docs/Roadmap.md`, `docs/FutureIdeas.md`, or the (still-unapproved) Stage 2.5 hardening backlog in
+`IMPLEMENTATION_QUEUE.md`. Flagged this discrepancy and asked the project owner to confirm shape
+before writing code, per this project's "don't guess at new architecture" rule. The project owner
+confirmed: a minimal Stage-1-style framework port mirroring `EventBus`, not a full CQRS setup.
+
+**Completed Tasks:**
+1. `CommandBus` port (`application/interfaces/command_bus.py`): `Command` marker class,
+   `CommandHandler` type, `CommandBus` ABC (`register`/`dispatch`), `CommandBusError`.
+2. `InMemoryCommandBus` (`infrastructure/commands/in_memory_command_bus.py`) — dispatches to
+   exactly one registered handler per command type (unlike `EventBus`'s many-subscriber model).
+3. Wired into `configure_container()`.
+4. 7 unit tests (`tests/unit/test_command_bus.py`), proven with a toy command + handler, per
+   Stage 1's existing pattern (`WorkflowEngine`, `EventBus`).
+5. `ADR/0010-command-bus.md` recording the decision, since this is a new architectural addition.
+6. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file.
+
+**Problems Encountered & Solutions:**
+
+- **Ruff `B024`: `Command` declared as an `ABC` with no abstract methods.** Initially modeled
+  `Command` as an `ABC` marker class, mirroring `CommandBus` itself. **Fixed** by making `Command`
+  a plain class (not `ABC`) — a command declares only data, no abstract behavior, matching
+  `DomainEvent`'s own non-`ABC` marker pattern.
+
+**Files Modified:** `backend/src/app/application/interfaces/command_bus.py` (new),
+`backend/src/app/infrastructure/commands/in_memory_command_bus.py` (new),
+`backend/src/app/infrastructure/commands/__init__.py` (new),
+`backend/src/app/infrastructure/di/container.py` (modified),
+`backend/tests/unit/test_command_bus.py` (new), `ADR/0010-command-bus.md` (new).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 223 passed (up from 216; 7 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean after the `B024` fix.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this addition touches no route.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. Stage 3 remains
+undefined; the next session should still confirm Stage 3's scope with the project owner rather
+than assuming, per every prior session's closing note.
+
+## Session: 2026-08-05 — Query Bus (post-Stage-2 framework addition)
+
+**Objectives:** Implement a Query Bus, requested directly by the project owner via chat
+immediately after the Command Bus landed. This resolves [ADR/0010](../ADR/0010-command-bus.md)'s
+explicit deferral of a Query bus companion ("no query-side need is established yet") — the project
+owner's direct request establishes that need. Unlike the Command Bus request, no clarifying
+question was needed: the shape was already unambiguous by precedent (mirror `CommandBus` exactly,
+for reads instead of writes).
+
+**Completed Tasks:**
+1. `QueryBus` port (`application/interfaces/query_bus.py`): `Query` marker class, `QueryHandler`
+   type, `QueryBus` ABC (`register`/`dispatch`), `QueryBusError` — same shape as `CommandBus`.
+2. `InMemoryQueryBus` (`infrastructure/queries/in_memory_query_bus.py`) — single handler per query
+   type, same dispatch semantics as `InMemoryCommandBus`.
+3. Wired into `configure_container()`.
+4. 7 unit tests (`tests/unit/test_query_bus.py`), same coverage shape as
+   `test_command_bus.py`.
+5. `ADR/0011-query-bus.md` recording the decision, including why it resolves ADR-0010's deferral
+   and why it wasn't folded into `CommandBus` as a single generic bus.
+6. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file.
+
+**Problems Encountered & Solutions:** None — the `Command`-as-`ABC` lesson from the previous
+session (ruff `B024`) was applied up front, so `Query` was written as a plain marker class from
+the start. No lint findings.
+
+**Files Modified:** `backend/src/app/application/interfaces/query_bus.py` (new),
+`backend/src/app/infrastructure/queries/in_memory_query_bus.py` (new),
+`backend/src/app/infrastructure/queries/__init__.py` (new),
+`backend/src/app/infrastructure/di/container.py` (modified),
+`backend/tests/unit/test_query_bus.py` (new), `ADR/0011-query-bus.md` (new).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 230 passed (up from 223; 7 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean, no fixes needed.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this addition touches no route.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. Stage 3 remains
+undefined; the next session should still confirm Stage 3's scope with the project owner rather
+than assuming.
+
+## Session: 2026-08-05 — Transaction Pipeline (post-Stage-2 framework addition)
+
+**Objectives:** Implement a Transaction Pipeline, requested directly by the project owner via
+chat. This resolves the "transaction wrapping" trade-off both [ADR/0010](../ADR/0010-command-bus.md)
+and [ADR/0011](../ADR/0011-query-bus.md) explicitly deferred. Unlike Query Bus, this request was
+genuinely ambiguous — "Transaction Pipeline" could plausibly mean a `CommandBus`-wrapping
+decorator, the actual unrelated `get_db()` commit bug already flagged as a P0 finding in
+`IMPLEMENTATION_QUEUE.md`, or a broader generic pipeline-behavior chain — and one interpretation
+would have meant a breaking change to the already-shipped `CommandHandler` signature. Presented
+all three as options before writing any code; the project owner chose the `CommandBus`-decorator
+design.
+
+**Completed Tasks:**
+1. `UnitOfWork` port (`application/interfaces/unit_of_work.py`): `begin`/`commit`/`rollback`,
+   `UnitOfWorkError`.
+2. `InMemoryUnitOfWork` (`infrastructure/transactions/in_memory_unit_of_work.py`) — tracks
+   active/committed/rolled-back state, no backing resource yet.
+3. `TransactionPipelineBehavior` (`infrastructure/commands/transaction_pipeline_behavior.py`) — a
+   `CommandBus` decorator: begins a unit of work, delegates to the inner bus, commits on a
+   successful `Result` or rolls back on failure/exception.
+4. Wired `UnitOfWork -> InMemoryUnitOfWork` into `configure_container()` as **non-singleton** —
+   the first port in this project registered that way, since a unit of work is per-operation
+   state. Left `CommandBus`'s own registration unchanged — the pipeline isn't applied by default.
+5. 13 unit tests across `test_unit_of_work.py` (7) and `test_transaction_pipeline_behavior.py`
+   (6).
+6. `ADR/0012-transaction-pipeline.md` recording the decision, including the three options
+   presented and why the chosen one doesn't touch `Command`/`CommandHandler`/`CommandBus`.
+7. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md` (including a new numbered "pattern worth knowing" about the non-singleton
+   registration), `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file.
+
+**Problems Encountered & Solutions:** None — no lint findings, no test failures. The main
+"problem" was upfront: recognizing the request was ambiguous enough to need a clarifying question
+before writing code, rather than guessing (the Query Bus request immediately prior did not need
+one, since its shape was already fully determined by the Command Bus precedent — this one wasn't).
+
+**Files Modified:** `backend/src/app/application/interfaces/unit_of_work.py` (new),
+`backend/src/app/infrastructure/transactions/in_memory_unit_of_work.py` (new),
+`backend/src/app/infrastructure/transactions/__init__.py` (new),
+`backend/src/app/infrastructure/commands/transaction_pipeline_behavior.py` (new),
+`backend/src/app/infrastructure/commands/__init__.py` (modified — exports
+`TransactionPipelineBehavior`), `backend/src/app/infrastructure/di/container.py` (modified),
+`backend/tests/unit/test_unit_of_work.py` (new),
+`backend/tests/unit/test_transaction_pipeline_behavior.py` (new),
+`ADR/0012-transaction-pipeline.md` (new).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 243 passed (up from 230; 13 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean, no fixes needed.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this addition touches no route.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. Note left for whoever
+picks this up next: `TransactionPipelineBehavior` currently has nothing real to transact —
+`InMemoryUnitOfWork` backs no resource, and no handler exists that could use one. A real
+`SqlAlchemyUnitOfWork` (plus solving how a handler reaches the active session) is future work, not
+started here, per ADR-0012's Trade-offs. Separately, the actual `get_db()` commit bug
+(`IMPLEMENTATION_QUEUE.md` F1/T1–T3) is still open and is a different problem from this one — still
+pending project-owner approval as its own item. Stage 3 also remains undefined; confirm scope with
+the project owner rather than assuming.
+
+## Session: 2026-08-05 — Caching Abstraction (post-Stage-2 framework addition)
+
+**Objectives:** Implement a Caching Abstraction, requested directly by the project owner via chat.
+Given the immediately preceding Transaction Pipeline session resolved ADR-0010/0011's "transaction
+wrapping" deferral via a `CommandBus`-wrapping pipeline behavior, and ADR-0011 separately named
+"caching" as another deferred `QueryBus` pipeline hook, this request carried a real interpretive
+question: pipeline behavior wrapping `QueryBus` (mirroring `TransactionPipelineBehavior`), or a
+standalone port (mirroring `FileStorage`/`SearchIndex`)? Resolved by naming-convention precedent
+— every standalone Stage 1 port is named "\<Thing\> Abstraction/Foundation," every pipeline
+behavior is named for what it does ("Transaction Pipeline," "Command Bus") — without a clarifying
+question, since guessing wrong here is low-cost (purely additive, nothing existing would need
+reworking either way, unlike the Transaction Pipeline request).
+
+**Completed Tasks:**
+1. `Cache` port (`application/interfaces/cache.py`): `get`/`set`/`delete`/`clear`, optional
+   per-entry `ttl_seconds`.
+2. `InMemoryCache` (`infrastructure/cache/in_memory_cache.py`) — dict-backed, lazy TTL expiry via
+   `time.monotonic()` (not wall-clock, to avoid system-clock-change bugs).
+3. Wired `Cache -> InMemoryCache` into `configure_container()` as a singleton (unlike
+   `UnitOfWork`'s deliberate non-singleton registration — a cache is meant to be shared).
+4. 10 unit tests (`tests/unit/test_cache.py`), including TTL expiry tests using a monkeypatched
+   clock rather than a real sleep.
+5. `ADR/0013-caching-abstraction.md` recording the decision, including the naming-convention
+   reasoning for not building a `QueryBus`-wrapping pipeline instead.
+6. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file.
+
+**Problems Encountered & Solutions:** None — no lint findings, no test failures.
+
+**Files Modified:** `backend/src/app/application/interfaces/cache.py` (new),
+`backend/src/app/infrastructure/cache/in_memory_cache.py` (new),
+`backend/src/app/infrastructure/cache/__init__.py` (new),
+`backend/src/app/infrastructure/di/container.py` (modified),
+`backend/tests/unit/test_cache.py` (new), `ADR/0013-caching-abstraction.md` (new).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 253 passed (up from 243; 10 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean, no fixes needed.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this addition touches no route.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. Note left for whoever
+picks this up next: if a `QueryBus`-wrapping caching pipeline (`CachingPipelineBehavior`) is
+wanted later, it should consume this same `Cache` port — following `TransactionPipelineBehavior`'s
+precedent — and will need its own decision on a cache-key scheme for arbitrary `Query` objects,
+deliberately not made here. Stage 3 remains undefined; confirm scope with the project owner rather
+than assuming.
+
+## Session: 2026-08-05 — Module Manifest Loader (post-Stage-2 framework addition)
+
+**Objectives:** Implement a Module Manifest Loader, requested directly by the project owner via
+chat. Unlike the four prior post-Stage-2 additions, this request didn't fork against another
+already-shipped port — it closes an already-documented gap: `ModuleRegistry`'s own docstring
+(`infrastructure/modules/registry.py`) promises a future module "only needs to register itself;
+the core app never needs editing again to pick it up," but nothing in the codebase actually knows
+which packages to import to trigger that registration side effect. Confirmed the design space was
+narrow enough (three options, one of which — a DB-backed loader reading the Stage 2
+`plugin_registry` table — was clearly out of scope as real schema-wiring the charter gates behind
+approval) to proceed without a clarifying question.
+
+**Completed Tasks:**
+1. `ModuleManifestEntry`/`ModuleManifest` (`infrastructure/modules/manifest.py`) — parses a
+   `{"modules": [{"name", "import_path", "enabled"}]}` JSON shape.
+2. `ModuleManifestLoader` — `load_from_file()` reads and parses a manifest file;
+   `import_enabled()` imports every enabled entry via an injectable `importer` (defaulting to
+   `importlib.import_module`), stopping and wrapping the first `ImportError` as
+   `ModuleManifestError` rather than continuing past it.
+3. Exported the new names from `infrastructure/modules/__init__.py`.
+4. 12 unit tests (`tests/unit/test_module_manifest_loader.py`), including two against the real
+   default importer (one importing a real stdlib module, one hitting a real
+   `ModuleNotFoundError`) alongside fake-importer tests for the branching logic.
+5. `ADR/0014-module-manifest-loader.md` recording the decision, including why the DB-backed option
+   was set aside.
+6. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file.
+
+**Problems Encountered & Solutions:** Two test lines exceeded the project's 100-character line
+limit (`ruff` `E501`); `black` auto-wrapped both on a formatting pass, no manual intervention
+needed.
+
+**Files Modified:** `backend/src/app/infrastructure/modules/manifest.py` (new),
+`backend/src/app/infrastructure/modules/__init__.py` (modified — exports the new names),
+`backend/tests/unit/test_module_manifest_loader.py` (new), `ADR/0014-module-manifest-loader.md`
+(new).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 265 passed (up from 253; 12 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean after the auto-wrap fix.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this addition touches no route, and `main.py` itself is untouched.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. Note left for whoever
+picks this up next: this loader isn't called from anywhere yet. Wiring it into `main.py`'s startup
+(reading a real manifest file, calling `import_enabled()` before `registry.mount_all()`) is
+future work for whenever a first real business module exists — deliberately not done here, since
+there's no real manifest to point at yet. Stage 3 remains undefined; confirm scope with the
+project owner rather than assuming.
+
+## Session: 2026-08-05 — Architecture Health Check (post-Stage-2 framework addition)
+
+**Objectives:** Implement an Architecture Health Check, requested directly by the project owner
+via chat. This maps directly onto an already-scoped, already-documented item:
+`IMPLEMENTATION_QUEUE.md`'s T15/finding F7 — `configure_container()` registers factories but
+nothing resolves them at startup, so a broken factory only fails the first time a request happens
+to need it. That backlog as a whole is still "Not Started — pending project-owner approval"; this
+request is read as approving and delivering T15 specifically, not the rest of the list.
+
+**Completed Tasks:**
+1. `Container.registered_interfaces()` — small accessor enumerating current registrations, needed
+   by the health check (the container previously only exposed a single-lookup `is_registered()`).
+2. `check_container_health(container)` / `assert_container_healthy(container)`
+   (`infrastructure/di/health_check.py`) — resolves every registered interface, collecting (not
+   raising on the first) failure; the `assert_` variant raises `ContainerHealthCheckError` listing
+   all of them.
+3. Wired `assert_container_healthy(container)` into `main.py`'s `create_app()`, immediately after
+   `configure_container()` — **the first post-Stage-2 addition actually wired into the live app's
+   startup path**, a deliberate departure from the conservative "build it, prove it with tests,
+   don't wire it in" posture of the five additions before it. Justified because every registration
+   this check exercises was already proven working by the existing test suite (each port's own
+   test file calls `configure_container()` + `container.resolve(X)`), so the wiring adds
+   negligible new risk — verified by re-running the health-endpoint integration tests immediately
+   after wiring, before writing anything else.
+4. 7 unit tests (`tests/unit/test_container_health_check.py`), including one against the real
+   `configure_container()` output.
+5. `ADR/0015-architecture-health-check.md` recording the decision, including why this addition
+   breaks from the prior five's "don't touch `main.py`" pattern.
+6. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`,
+   `IMPLEMENTATION_QUEUE.md` (T15 and F7 marked done/resolved), this file.
+
+**Problems Encountered & Solutions:** One import-order lint finding (`ruff` `I001`) in the new test
+file, auto-fixed via `ruff --fix`. No test failures.
+
+**Files Modified:** `backend/src/app/infrastructure/di/health_check.py` (new),
+`backend/src/app/infrastructure/di/container.py` (modified — `registered_interfaces()`),
+`backend/src/app/infrastructure/di/__init__.py` (modified — exports), `backend/src/app/main.py`
+(modified — startup wiring), `backend/tests/unit/test_container_health_check.py` (new),
+`ADR/0015-architecture-health-check.md` (new), `IMPLEMENTATION_QUEUE.md` (modified).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `IMPLEMENTATION_QUEUE.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 272 passed (up from 265; 7 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean after the import-order fix.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only), and specifically re-ran the health-endpoint integration tests right
+  after wiring the check into `main.py` (before writing any further code) to catch a startup
+  regression immediately if one existed.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. The rest of the Stage
+2.5 hardening backlog (`get_db()` commit bug, query framework completion, CORS/docs exposure,
+migration-head check, etc.) remains open and still pending project-owner approval as its own body
+of work — this session resolved only T15/F7. Stage 3 also remains undefined; confirm scope with
+the project owner rather than assuming.
+
+## Session: 2026-08-05 — Performance Metrics Service (post-Stage-2 framework addition)
+
+**Objectives:** Implement a Performance Metrics Service, requested directly by the project owner
+via chat. Unlike the six prior post-Stage-2 additions, this request didn't map onto anything
+already named in an existing ADR trade-off, `IMPLEMENTATION_QUEUE.md` finding, or another port's
+docstring — there was no pre-existing gap pointing at a specific design. Resolved the resulting
+three-way ambiguity (a `CommandBus`/`QueryBus`-wrapping pipeline behavior, an HTTP `/metrics`
+route, or a standalone port) using this project's established naming convention: "Service" (like
+`AuthorizationService`) reads as a standalone port, not a pipeline; and an HTTP route would have
+broken the "route surface unchanged" invariant every prior addition in this session explicitly
+verified, with nothing in the request asking for HTTP exposure specifically. Proceeded without a
+clarifying question since guessing wrong is low-cost and purely additive either way, same
+reasoning applied to Caching Abstraction.
+
+**Completed Tasks:**
+1. `MetricsService` port (`application/interfaces/metrics.py`): abstract `increment`/`gauge`/
+   `record_duration`, plus a concrete `timer()` context-manager convenience built on
+   `record_duration` — the same "concrete method built on abstract primitives" pattern as
+   `EventBus.publish_all()`.
+2. `LoggingMetricsService` (`infrastructure/metrics/logging_metrics_service.py`) — logs each
+   metric event as structured JSON to an `app.metrics` channel, deliberately mirroring
+   `LoggingNotifier`/`LoggingAuditLogger`'s "no real backend wired yet" posture rather than
+   `Cache`/`EventBus`'s in-memory-state posture, since a metric event has no in-process read-back
+   need.
+3. Wired `MetricsService -> LoggingMetricsService` into `configure_container()` as a singleton.
+4. 8 unit tests (`tests/unit/test_metrics_service.py`), mirroring `test_audit_logger.py`'s
+   `caplog`-based style.
+5. `ADR/0016-performance-metrics-service.md` recording the decision, including the three options
+   considered and why each alternative was set aside.
+6. Documentation pass: `docs/Architecture.md`, `docs/ProjectStatus.md`, `docs/ModuleRegistry.md`,
+   `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file.
+
+**Problems Encountered & Solutions:** Two `ruff` `SIM117` findings (nested `with` statements) in
+the new test file's `timer()` tests, fixed by combining the context managers into single `with`
+statements (one using a comma-separated multi-context form, one using parenthesized multi-line
+form for the three-context case).
+
+**Files Modified:** `backend/src/app/application/interfaces/metrics.py` (new),
+`backend/src/app/infrastructure/metrics/logging_metrics_service.py` (new),
+`backend/src/app/infrastructure/metrics/__init__.py` (new),
+`backend/src/app/infrastructure/di/container.py` (modified),
+`backend/tests/unit/test_metrics_service.py` (new), `ADR/0016-performance-metrics-service.md`
+(new).
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/ProjectStatus.md`,
+`docs/ModuleRegistry.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+`docs/CHANGELOG.md`, `docs/SessionReport.md` (this file).
+
+**Tests Executed:**
+- Backend: `pytest` — 280 passed (up from 272; 8 new).
+- Frontend: unchanged, 9 passed (no frontend involvement).
+- Both: linters (`ruff`, `black --check`) clean after the `SIM117` fixes.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this addition touches no route.
+
+**Next Session Goals:** None set — this was a scoped, standalone addition. Note left for whoever
+picks this up next: if request-timing instrumentation is wanted later (e.g. a
+`MetricsPipelineBehavior` wrapping `CommandBus`/`QueryBus`, or HTTP middleware recording per-route
+latency), it should consume this same `MetricsService` port — following
+`TransactionPipelineBehavior`'s precedent — rather than a new metrics abstraction. A real metrics
+backend (StatsD/Prometheus/CloudWatch/OpenTelemetry) satisfying this same port is separate future
+work. Stage 3 remains undefined; confirm scope with the project owner rather than assuming.
+
+## Session: 2026-08-06 — QA Review Resolution (post-Stage-2 QA fixes)
+
+**Objectives:** A QA review of the seven post-Stage-2 framework additions
+(`docs/reviews/Stage_2_5_QA_Review.md`) had already been completed and classified into
+`IMPLEMENTATION_QUEUE.md`'s "QA Review Findings" section. This session's job was narrower: confirm
+the two "Fix Immediately" findings (Q1/T20, Q8/T21) were actually applied correctly in source (they
+were, per source inspection — not re-implemented here), then close the loop by syncing every
+project document to reflect the resolution, the corrected backend test count, and the current
+overall project state. No source code was modified this session — documentation only.
+
+**Completed Tasks:**
+1. Verified T20's fix directly against source: `transaction_pipeline_behavior.py:47` catches
+   `except BaseException:` with an explanatory inline comment, and
+   `test_transaction_pipeline_behavior.py` has the two new regression tests
+   (`test_dispatch_rolls_back_and_reraises_on_cancellation`,
+   `test_dispatch_rolls_back_and_reraises_on_a_base_exception`) plus the original 5, for 7 total.
+2. Verified T21's fix directly against source: both `application/interfaces/metrics.py` and
+   `infrastructure/metrics/logging_metrics_service.py` carry the "tags are logged verbatim, no
+   redaction" docstring note.
+3. Re-ran the backend test suite: 175 unit tests pass (no DB needed). The 107 integration tests
+   could not be re-run — no Docker/Postgres available in this environment, the same constraint the
+   QA review itself noted. Backend total by collection: **282** (175 unit + 107 integration), not
+   the previously-documented 280 — the two T20 regression tests hadn't been rolled into the
+   headline count yet. Confirmed via `pytest --collect-only` and cross-checked against a manual
+   `grep -c "def test_"` per file.
+4. Re-ran the frontend test suite: 9/9 passing, matches existing docs.
+5. Re-ran backend lint (`ruff check`, `black --check`): clean project-wide.
+6. Confirmed no `ArchitectureScorecard.md` file exists anywhere in this repo (searched by filename
+   and by content for "scorecard"/"architecture score") — nothing to update under that name; noted
+   in the Documentation Consistency Report instead of fabricating a file that was never created.
+7. Confirmed `IMPLEMENTATION_QUEUE.md` already correctly documents T20/T21 as Done, dated
+   2026-08-06, with the QA findings table fully classified (Fix Immediately / Future Stage /
+   Accepted Trade-off) — no changes needed there.
+8. Full documentation sync pass: bumped the project version to 0.3.8 and the backend test count to
+   282 everywhere it was cited; added a "QA Review Resolution" section to `docs/ProjectStatus.md`,
+   `docs/CHANGELOG.md`, and root `CHANGELOG.md`; added a "patterns worth knowing" entry (catch
+   `BaseException` for cancellation-safe cleanup) and an ADR-0010–0016 summary to
+   `docs/AI_HANDOVER.md`; corrected `docs/API.md`'s stale `/api/v1/version` example response
+   (`"0.1.0"` → the actual `settings.app_version`, `"0.2.0"`); updated `docs/FolderStructure.md`'s
+   root file list and `infrastructure/` subtree (both were missing the 5 post-Stage-2 directories
+   and 3 root files); refreshed the root `README.md` status banner and `docs/ProjectOverview.md`'s
+   "Non-goals" section, both still describing Stage 0/Stage 1 despite Stage 2 + 7 post-Stage-2
+   additions being complete; added a Post-Stage-2 section to `docs/Roadmap.md`; added a
+   `docs/reviews/` pointer and `ERD.md` row to `docs/README.md`'s reference table; added an
+   `IMPLEMENTATION_QUEUE.md` pointer to `AI_BOOTSTRAP.md`'s read order; added a brief
+   `BaseException` note to `docs/Architecture.md`'s Transaction Pipeline description.
+
+**Problems Encountered & Solutions:** No Docker/Postgres available in this environment (same
+constraint the 2026-08-06 QA review itself hit) — the 107 integration tests could not be re-run
+directly. Resolved by re-running only the DB-independent unit suite (175/175 pass) and relying on
+the QA review's own prior confirmation that neither T20 nor T21 touches persistence, so the
+untested integration suite carries no incremental risk from this change.
+
+**Files Modified:** Documentation only — `PROJECT_STATE.json`, `docs/ProjectStatus.md`,
+`docs/AI_HANDOVER.md`, `CHANGELOG.md`, `docs/CHANGELOG.md`, `docs/API.md`,
+`docs/FolderStructure.md`, `README.md`, `docs/ProjectOverview.md`, `docs/Roadmap.md`,
+`docs/README.md`, `AI_BOOTSTRAP.md`, `docs/Architecture.md`, `docs/KnownIssues.md`, this file. No
+source code, tests, or ADRs were modified.
+
+**Documentation Updated:** All of the above (this session was a documentation sync, not a code
+change).
+
+**Tests Executed:**
+- Backend: `pytest tests/unit` — 175 passed. `pytest --collect-only` — 282 collected total (175
+  unit + 107 integration). Integration tests not executed (no Postgres/Docker in this environment).
+- Frontend: `vitest run` — 9 passed.
+- Both: linters (`ruff check`, `black --check`, and frontend's existing lint config untouched)
+  clean.
+- Confirmed the real shipped app's route surface is unchanged (`/api/v1/health`,
+  `/api/v1/version` only) — this session touched no code.
+
+**Next Session Goals:** None set. Stage 3 remains undefined — confirm scope with the project owner
+rather than assuming. Whoever picks this up next in an environment with Docker available should
+re-run the full 282-test suite (not just the 175 unit tests) to close the one remaining verification
+gap this session couldn't close: confirming the 107 integration tests still pass against a live
+Postgres after T20/T21.

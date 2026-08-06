@@ -15,6 +15,14 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
   decisions, what's next) — written at the end of Stage 0; treat as historical background rather
   than current status.
 - **[ProjectStatus.md](ProjectStatus.md)** — single source of truth for what's done/pending.
+- **[ArchitectureScorecard.md](ArchitectureScorecard.md)** — architectural maturity dashboard:
+  every capability's status, stage, and notes in one place, plus an Overall Architecture Health
+  assessment.
+- **[releases/](releases/)** — one comprehensive, frozen-in-time document per released version
+  (features, fixes, breaking changes, known issues, what's next). Current release:
+  [releases/v0.3.8.md](releases/v0.3.8.md).
+- **[templates/](templates/)** — reusable document skeletons (currently: the pre-stage checklist
+  that must be completed before starting any new stage).
 
 ## Reference
 
@@ -24,6 +32,7 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
 | [Roadmap.md](Roadmap.md) | Feature status by stage |
 | [Architecture.md](Architecture.md) | Clean Architecture layering, folder-by-folder |
 | [Database.md](Database.md) | Tables, migrations, local DB setup |
+| [ERD.md](ERD.md) | Entity-relationship diagram for the full schema |
 | [API.md](API.md) | Endpoints, request/response shapes, error format |
 | [FolderStructure.md](FolderStructure.md) | Full annotated folder tree |
 | [CodingStandards.md](CodingStandards.md) | Backend/frontend conventions |
@@ -35,6 +44,7 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
 | [FeatureRegistry.md](FeatureRegistry.md) | One entry per business feature (empty — none built yet) |
 | [ModuleRegistry.md](ModuleRegistry.md) | One entry per code module: purpose, status, owner |
 | [SessionReport.md](SessionReport.md) | Log of each development session |
+| [reviews/](reviews/) | Point-in-time QA/code review reports (e.g. the post-Stage-2 QA review) |
 
 ## Architecture Decision Records
 
