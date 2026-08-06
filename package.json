@@ -4,6 +4,10 @@
   "private": true,
   "description": "Legal Document & Matter Management System — Electron desktop shell",
   "main": "dist-electron/main.js",
+  "engines": {
+    "node": ">=24.13.1",
+    "npm": ">=11.11.1"
+  },
   "scripts": {
     "electron:build": "tsc -p electron/tsconfig.json",
     "electron:watch": "tsc -p electron/tsconfig.json --watch",

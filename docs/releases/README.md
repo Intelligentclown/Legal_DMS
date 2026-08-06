@@ -7,16 +7,22 @@ existing docs" below before assuming this duplicates something else.
 
 ## When to create a new release note
 
-**Every time [`PROJECT_STATE.json`](../../PROJECT_STATE.json)'s `currentVersion` is bumped**, create
-a matching `docs/releases/vX.Y.Z.md`. One document per version, no exceptions — including
-documentation-only or QA-fix releases that don't ship a new business feature (see
-[`v0.3.8.md`](v0.3.8.md) for an example of exactly that). If a version bump ever ships without a
-matching release note, treat that the same way this project already treats any other
-documentation gap: the release isn't done until it does.
+**Every time an actual `git tag` is cut**, create a matching `docs/releases/vX.Y.Z.md` and only
+then bump [`PROJECT_STATE.json`](../../PROJECT_STATE.json)'s `currentVersion` to match. One
+document per *tagged* version, no exceptions — including documentation-only or QA-fix releases
+that don't ship a new business feature (see [`v0.3.1.md`](v0.3.1.md) for an example of a release
+that bundles several such units of work together, precisely because none of them were tagged
+individually). If a version bump ever ships without a matching release note, treat that the same
+way this project already treats any other documentation gap: the release isn't done until it does.
 
-This project versions per meaningful unit of work (each standalone framework addition, each QA-fix
-pass, each stage) rather than only at stage boundaries — see the root
-[`CHANGELOG.md`](../../CHANGELOG.md) for the version history this folder mirrors one-to-one.
+**Corrected convention (as of `v0.3.1`):** this system originally bumped `currentVersion` per
+meaningful unit of work (each standalone framework addition, each QA-fix pass) rather than only at
+actual releases — which silently produced nine documented versions (0.3.1 through 0.3.9) while only
+one (`v0.3.0`) was ever really `git tag`-released. `v0.3.1` consolidates that drift back to reality;
+see its own "Versioning note" section for the full story. **Going forward, `currentVersion` and
+`docs/releases/` only advance together with a real `git tag`** — intermediate work between tags
+stays undocumented-as-a-version (it's still fully recorded in `docs/CHANGELOG.md` and
+`docs/SessionReport.md`, just not given its own version number) until the next tag actually cuts.
 
 ## Naming convention
 

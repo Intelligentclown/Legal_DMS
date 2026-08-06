@@ -150,8 +150,10 @@ Abstraction, Module Manifest Loader, Architecture Health Check, and Performance 
 Architecture Hardening" backlog above (T1–T18); nothing here has been folded into that backlog's
 numbering except by explicit cross-reference.
 
-**Status:** Findings reviewed and classified below. No code has been changed. Pending approval
-before either "Fix Immediately" task is started.
+**Status:** Findings reviewed and classified below. **T20 and T21 are done** — see
+[docs/ProjectStatus.md](docs/ProjectStatus.md)'s "QA Review Resolution" section for the verified
+fix detail (backend test count 280 → 282, full unit suite re-run green). Everything else in this
+section (Future Stage / Accepted Trade-off items) is unchanged and not scheduled.
 
 ### Classification legend
 
@@ -215,5 +217,236 @@ that backlog, since both are single-file, zero-risk changes with no open design 
 
 ---
 
-*Awaiting project-owner approval before any task in this file is started — both the T1–T18 Stage
-2.5 hardening backlog and the T20–T21 QA-review fixes above.*
+## Stage 2.7 — GitHub Actions CI
+
+**Status:** Implemented (T22–T34, T36–T37 done). **T35 (live verification) is the one remaining
+step** — it requires an actual `git commit` + `git push` to a real branch/PR to observe GitHub
+Actions run for real, which was deliberately not done automatically (commits/pushes are
+confirm-first actions, not implied by "proceed with implementation"). See "Definition of done"
+below for exactly what's left.
+
+### Decisions finalized by the project owner (superseding this plan's original open questions)
+
+1. **Trigger scope:** `push` on `main`, `feature/**`, `hotfix/**`, `release/**`; `pull_request`
+   targeting `main` only. (Not literally every branch — scoped to this repo's branch-naming
+   convention.)
+2. **`engines` added** to both `package.json` files using the project's actual current versions:
+   Node `>=24.13.1`, npm `>=11.11.1` (confirmed via `node --version` / `npm --version`).
+3. **Python pinned to the project's current development version**, `3.14` (confirmed via `uv run
+   python --version` inside `backend/`), not the `pyproject.toml` floor of `>=3.12` this plan had
+   originally proposed.
+4. **Three separate workflow files**, not one `ci.yml` with three jobs: `backend.yml`,
+   `frontend.yml`, `release.yml`. `release.yml` covers what this plan called the "`build`" job —
+   build verification only.
+5. **No deployment** — confirmed out of scope, not just deferred-pending-a-question.
+6. **No integration tests** — confirmed out of scope, matching this plan's own recommendation.
+7. **Three items added to the backlog, explicitly not implemented this stage**: Dependabot, a pull
+   request template, issue templates. See "Additional backlog items" below.
+
+Full rationale for all of the above lives in
+[ADR/0017-github-actions-ci.md](ADR/0017-github-actions-ci.md), written as part of implementing
+this stage.
+
+### Scope
+
+A CI pipeline that validates every push and pull request: backend formatting/linting/unit tests,
+frontend formatting/linting/unit tests, and build verification (backend boots, frontend/Electron
+compile and bundle). Per the mini-stage charter, **integration tests, Docker, and deployment are
+explicitly future expansion, not built now** — see that section below. This is tooling/process work,
+not a business feature; it touches no application code.
+
+### How this plan was built
+
+Read, in order: `AI_BOOTSTRAP.md`, `PROJECT_STATE.json`, `docs/Architecture.md`,
+`docs/ProjectStatus.md`, `CHANGELOG.md`, `docs/SessionReport.md`, `docs/DevelopmentGuide.md`,
+`docs/TechStack.md`, `docs/CodingStandards.md`, `docs/FolderStructure.md`, `docs/KnownIssues.md`,
+`docs/Roadmap.md`, this file (`IMPLEMENTATION_QUEUE.md`). Then reviewed the actual repository
+structure directly rather than trusting docs alone: confirmed no `.github/` directory exists yet
+(clean slate); read `package.json` (root), `frontend/package.json`, `backend/pyproject.toml`,
+`backend/ruff.toml`, `backend/pytest.ini`, `.gitignore`, `docker-compose.yml`,
+`frontend/src/shared/config/env.ts`, and two representative test files
+(`tests/integration/test_health_endpoint.py`, `tests/integration/test_module_registry.py`) to
+confirm which parts of the suite do and don't need a live Postgres connection.
+
+### Repository facts this plan is built on
+
+- **No existing CI** — `.github/` doesn't exist. Nothing to migrate or avoid breaking.
+- **Backend:** Python `>=3.12` (pyproject; developed locally against newer point releases per
+  `TechStack.md`), managed by `uv` with a committed `backend/uv.lock`. Lint/format: `ruff.toml`
+  (line length 100, `E/W/F/I/UP/B/C4/SIM/RUF`) + `black` (line length 100). Tests: `pytest` +
+  `pytest-asyncio` (`asyncio_mode = auto` in `pytest.ini`), split by directory —
+  `tests/unit/` (~175 tests, no I/O) and `tests/integration/` (~107 tests). Backend total is 282
+  passing as of the last recorded run.
+- **Not every "integration" test needs Postgres.** `tests/integration/test_health_endpoint.py` and
+  `test_module_registry.py` use `TestClient(app)` but touch no database — only the tests that pull
+  in `conftest.py`'s `db_session` fixture (the schema/repository tests) need a live connection, and
+  that fixture already skips gracefully (`pytest.skip(...)`) if Postgres is unreachable rather than
+  failing. That means `tests/integration/` *could* technically run today with zero Postgres setup
+  and mostly skip rather than fail — but a pipeline where most of a directory silently skips every
+  single run is a worse signal than not running it at all (a broken service container would look
+  identical to "everything passed"). This plan keeps the split clean: **`tests/unit/` only for
+  now**, `tests/integration/` deferred to Future Expansion with a real Postgres service and an
+  explicit check that nothing silently skipped.
+- **`Settings` needs no environment setup for unit tests.** Every field in
+  `infrastructure/config/settings.py` has a working default (including `database_url`), so
+  constructing `Settings()` — and therefore importing `app.main` — succeeds with zero env vars set.
+  No `.env` file or secrets are needed in CI for backend lint/test/import-smoke steps.
+- **Frontend:** Node (now pinned via `engines: {"node": ">=24.13.1", "npm": ">=11.11.1"}` in both
+  `package.json` files, added in this stage — see decision 2 above), npm (not pnpm/yarn), committed
+  `frontend/package-lock.json`. Lint/format: `eslint` (flat config) + `prettier`
+  (`format`/`format:check` scripts already exist). Tests: `vitest run` (`npm run test`), 9 tests,
+  no I/O (RTL + jsdom, module-boundary mocks per `CodingStandards.md`). Build: `tsc -b && vite
+  build` (`npm run build` inside `frontend/`).
+- **`VITE_API_BASE_URL` has a safe fallback** (`frontend/src/shared/config/env.ts`:
+  `import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"`) — the frontend build needs no
+  `.env` file or injected secret in CI either.
+- **Root (`package.json`) orchestrates Electron, not an npm workspace.** `npm run build` = `tsc -p
+  electron/tsconfig.json` (compiles `electron/main.ts`/`preload.ts`) **then**
+  `npm --prefix frontend run build`. Root and `frontend/` are independent installs (two separate
+  `package-lock.json` files) — a job that runs the root `build` script needs `npm ci` in *both*
+  places. `npm run dist` (full `electron-builder` packaging into installers) is a heavier,
+  OS-matrix concern, out of scope here — Future Expansion.
+- **Two known, already-accepted issues** (`docs/KnownIssues.md`) are irrelevant to CI as scoped:
+  the shadcn CLI bug is Windows-specific and CI runs on Linux; the `react-router-dom` advisory is
+  already accepted and documented — a future dependency-audit gate (Future Expansion) needs to
+  carve this out explicitly so it doesn't immediately red the pipeline over an already-accepted
+  risk.
+
+### Design decisions
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| Runner OS | `ubuntu-latest` for all three validation jobs | Fastest/cheapest standard GitHub-hosted runner; nothing being validated (lint, unit tests, TS compile, Vite bundle) is platform-specific. Local dev is Windows, but that's a dev-environment fact, not a CI requirement — the one Windows-specific issue in this repo (shadcn CLI) is an accepted, documented workaround, not something CI needs to reproduce. |
+| Python version | Pin to `3.14` — the project's actual current development version (`uv run python --version`), per explicit project-owner direction, superseding this plan's original proposal to pin to the `3.12` floor | The floor-pinning rationale (catch 3.13+-only syntax early) was a reasonable default, but the project owner chose to match current development reality instead — see ADR/0017's Trade-offs for what's given up. |
+| Node version | Pin to `24.13.1` / npm `11.11.1` — the project's actual current versions (`node --version`/`npm --version`), matching the new `engines` field | Both must agree — running CI on an older Node than `engines` declares as the floor would be internally inconsistent. |
+| Job split | Three separate **workflow files** (not three jobs in one file), per explicit naming direction: `backend.yml`, `frontend.yml`, `release.yml` | Matches the bullet structure you gave (backend validation, frontend validation, build verification as distinct concerns) and gives three independently-failing GitHub status checks. `release.yml` is named ahead of its current scope (build verification only today) — see its own header comment and ADR/0017. |
+| Formatting/linting placement | Sub-steps inside `backend.yml`/`frontend.yml`, not their own workflows | They're fast, share the same install/cache as that ecosystem's tests, and splitting them further would only add job-startup overhead without a clearer signal — a failed format-check step still fails the job distinctly in the GitHub UI. |
+| Backend "build verification" | An import/boot smoke step (`uv run python -c "from app.main import app"`) inside `backend.yml`, not a separate workflow | Python has no compiled artifact, so "build" for the backend means "does the app construct cleanly" — which exercises `create_app()`, `configure_container()`, and `assert_container_healthy()` (the Architecture Health Check from the post-Stage-2 work) without needing Postgres, since every registered default implementation is in-memory/logging-only. Cheap, fast, and it's the single most valuable one-line check available for zero cost. |
+| Integration tests | **Not included**, confirmed | Explicit per project-owner decision 6. See the repository-facts note above for why this is a clean line to draw, not an oversight. |
+| Trigger | `push` to `main`/`feature/**`/`hotfix/**`/`release/**` + `pull_request` targeting `main` | Per project-owner decision 1. **Known, accepted trade-off:** a push to a branch with an open PR against `main` still fires both events for the same commit — mitigated, not eliminated, by the `concurrency` cancellation below. |
+| Concurrency | Cancel superseded runs on the same ref (`concurrency: group / cancel-in-progress: true`) | Free to add, meaningfully cuts wasted CI minutes on rapid successive pushes (e.g. fixup commits during review) — standard practice, no downside. |
+| Permissions | Least-privilege `permissions: contents: read` at the workflow level | The pipeline only reads code and runs checks — it doesn't need to write to the repo, comment on PRs, or touch packages. Costs nothing to set explicitly rather than inherit the (broader) repository default. |
+| Artifact retention | Short (e.g. 7 days) for build outputs; test/lint output uploaded only `if: failure()` | Nothing produced here is a release artifact yet (no version is being published) — these exist purely to let a human inspect a CI run without reproducing it locally. Full detail in "Artifact strategy" below. |
+
+### Artifact strategy
+
+Nothing in this stage is a release artifact — no version is tagged or published, so retention stays
+short and the goal is purely "let a human inspect *this* run without re-running it locally":
+
+- **`build` job:** upload `frontend/dist/` (the built SPA) and `dist-electron/` (compiled Electron
+  main/preload JS) on every run, 7-day retention. Small, useful for spot-checking a build without
+  pulling the branch.
+- **`backend`/`frontend` jobs:** no artifact on success. On failure (`if: failure()`), upload
+  whatever test-runner output exists (pytest's own console output is already in the job log; a
+  JUnit XML report via `pytest --junitxml=` / vitest's built-in reporter output is a cheap addition
+  if machine-readable results are ever wanted for a future test-reporting integration, but isn't
+  required just to see red/green).
+- **Nothing is published anywhere** (no GitHub Release, no package registry, no deployment target)
+  — that's explicitly Future Expansion, gated on a deployment decision that doesn't exist yet.
+
+### Task backlog
+
+Complexity: **XS** (a handful of YAML lines, one file) · **S** (one focused job/step group,
+straightforward) · **M** (touches multiple files or needs care). Every task here is XS or S — this
+is inherently small, incremental work.
+
+| ID | Task | Complexity | Depends on | Status |
+|---|---|---|---|---|
+| T22 | Write `ADR/0017-github-actions-ci.md` recording this stage's design decisions. | S | — | **Done** |
+| T23 | Create the three workflow skeletons — `backend.yml`, `frontend.yml`, `release.yml` (per decision 4, superseding the original single-`ci.yml` proposal) — each with name, `on: push`/`pull_request` triggers (per decision 1), `concurrency` group, least-privilege `permissions`. | XS | T22 | **Done** |
+| T24 | `backend.yml`, part 1: checkout (`actions/checkout@v7`), `actions/setup-python@v7` pinned to `3.14` (per decision 3), `astral-sh/setup-uv` (pinned by commit hash, `v9.0.0` — this action no longer publishes moving tags) with caching enabled, `uv sync --locked` (working directory `backend/`). | S | T23 | **Done** |
+| T25 | `backend.yml`, part 2: `ruff check src tests alembic` and `black --check src tests alembic` steps. | XS | T24 | **Done** |
+| T26 | `backend.yml`, part 3: the `tests/unit`-only `pytest` step (`--junitxml` output for the failure-artifact upload). | XS | T24 | **Done** |
+| T27 | `backend.yml`, part 4: the import/boot smoke step (`uv run python -c "from app.main import app"`). | XS | T24 | **Done** |
+| T28 | `frontend.yml`, part 1: checkout, `actions/setup-node@v7` pinned to `24.13.1` (per decisions 2/3) with npm caching (`cache-dependency-path: frontend/package-lock.json`), `npm ci` (working directory `frontend/`). | S | T23 | **Done** |
+| T29 | `frontend.yml`, part 2: `npm run lint` and `npm run format:check` steps. | XS | T28 | **Done** |
+| T30 | `frontend.yml`, part 3: the vitest step (dual `default`+`junit` reporters for the failure-artifact upload). | XS | T28 | **Done** |
+| T31 | `release.yml`, part 1: checkout, `actions/setup-node@v7`, `npm ci` at repo root **and** `npm ci` in `frontend/` (both needed — see repository-facts note above). | S | T23 | **Done** |
+| T32 | `release.yml`, part 2: run `npm run build` (root script — compiles Electron TS, builds the frontend). | XS | T31 | **Done** |
+| T33 | `release.yml`, part 3: `actions/upload-artifact@v7` for `frontend/dist/` and `dist-electron/`, 7-day retention. | XS | T32 | **Done** |
+| T34 | `if: failure()` log/report upload added to `backend.yml` and `frontend.yml` (see Artifact strategy). | XS | T25–T27, T29–T30 | **Done** |
+| T35 | Push a real commit and observe a live run of all three workflows — first actual verification, not just YAML review. Fix anything that only surfaces once it's really running. | S | T24–T34 | **Not done — needs a `git commit` + `git push`, a confirm-first action not taken automatically. All three workflow commands were verified to succeed locally first** (backend: ruff/black/pytest unit/import-smoke all pass; frontend: vitest with dual reporters confirmed working; root: `npm run build` confirmed producing `frontend/dist/` and `dist-electron/`) — but a local dry run is not the same claim as "the workflow YAML runs green on GitHub's runners." |
+| T36 | Add CI status badges to `README.md` (one per workflow). | XS | T35 | **Done** (added ahead of T35 — cosmetic, no risk in doing it before the first live run) |
+| T37 | Documentation pass: `docs/DevelopmentGuide.md`, `docs/ProjectStatus.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, `docs/SessionReport.md`, this file. | S | T35 | **Done** (also ahead of T35, for the same reason) |
+
+### Additional backlog items (recorded per decision 7 — explicitly **not implemented** this stage)
+
+| ID | Item | Notes |
+|---|---|---|
+| T38 | **Dependabot** — `.github/dependabot.yml` for `npm` (root + `frontend/`) and a Python ecosystem equivalent for `backend/uv.lock`/`pyproject.toml`. | Needs its own small design pass (update schedule, grouping, which ecosystems) before implementation — not just a copy-paste config. |
+| T39 | **Pull request template** — `.github/pull_request_template.md`. | Should reflect this project's actual review discipline (small reviewed sections, tests + docs updated, ADR if architectural) rather than a generic template. |
+| T40 | **Issue templates** — `.github/ISSUE_TEMPLATE/` (bug report, feature request at minimum, as YAML forms). | No issue-tracking convention exists yet in this project's docs to model these on — worth a short design pass, not just defaults. |
+
+These three are tracked here so they aren't forgotten, per explicit project-owner instruction to add
+them to the backlog without building them now.
+
+### Safest implementation order
+
+1. **T22 → T23.** Record the design decision, then lay the three empty workflow skeletons
+   (triggers/concurrency/permissions only) — nothing that can fail yet, so there's a stable base
+   before any job logic lands.
+2. **T24–T27, T28–T30, T31–T33** (each group sequential within itself; the three groups are
+   independent of each other and safe to build/commit in any order or interleaved). These are the
+   three parallel jobs — none shares a file with another.
+3. **T34.** Small addition to jobs that already exist from step 2.
+4. **T35.** The one step that actually matters most: a real push/PR is the only way to know the
+   workflow works — GitHub Actions YAML has enough runner-specific behavior (cache key resolution,
+   working-directory scoping, action version pinning) that "looks right" and "runs green" are
+   different claims until observed.
+5. **T36 → T37.** Cosmetic/documentation, last, lowest risk, nothing depends on them.
+
+### Future expansion (not scheduled — explicitly out of scope for this stage)
+
+- **Integration tests.** A fourth job (or a step group added to `backend`): a Postgres 16
+  (`postgres:16-alpine`, matching `docker-compose.yml`) GitHub Actions **service container**, an
+  `alembic upgrade head` step against it, then `pytest tests/integration`. Should explicitly assert
+  zero tests were skipped (rather than trusting a green run), since `conftest.py`'s `db_session`
+  fixture silently skips on an unreachable database — a misconfigured service container would
+  otherwise look identical to "everything passed."
+- **Docker.** No Dockerfile exists yet for the backend itself (`docker-compose.yml` only provisions
+  Postgres for local dev). Building one (multi-stage: `uv`/hatchling wheel build, slim runtime
+  image) and a CI job to build — and, later, push — it is future work, gated on that Dockerfile
+  being designed and approved first, not something this stage invents implicitly.
+- **Full Electron packaging.** `npm run dist` (`electron-builder`) across a `windows-latest` /
+  `macos-latest` / `ubuntu-latest` matrix, producing real installers. Heavier and slower than
+  everything above — a release-triggered workflow (e.g. on a version tag), not an every-push job.
+- **Deployment.** No target, environment, or mechanism has been decided for this project at all —
+  it's a desktop app; "deployment" might mean auto-publishing installers to GitHub Releases, or
+  something else entirely. Per this project's standing rule not to guess at unscoped work, this
+  needs an explicit decision from you before any automation is built around it — flagged, not
+  planned.
+- **Test coverage reporting.** Neither `pytest-cov` nor a Vitest coverage provider is currently a
+  dependency on either side. Adding one is a small tooling decision beyond pure CI plumbing — noted
+  as a nice-to-have, not bundled into this stage's scope.
+- **Dependency audit gate** (`npm audit`, a Python equivalent like `pip-audit`). Useful eventually,
+  but the already-accepted `react-router-dom` advisory (`docs/KnownIssues.md`) means a naive
+  `--audit-level=high` gate would fail on day one over a risk this project has already evaluated and
+  accepted — needs an explicit allowlist/ignore decision before it's added, not a default-on gate.
+- **Branch protection requiring these checks.** This is a GitHub *repository setting*
+  (Settings → Branches → protection rules), not a file this plan can produce — whoever has admin
+  access to the GitHub repo needs to enable "require status checks to pass" manually once the
+  workflow exists and has run at least once (checks can't be required before GitHub has seen them
+  report at least once).
+
+### Definition of done for Stage 2.7
+
+- [x] T22–T34, T36–T37 landed.
+- [ ] **T35 — a real push and a real pull request have both been observed triggering all three
+  workflows (`backend.yml`, `frontend.yml`, `release.yml`), all green, in the GitHub Actions UI** —
+  not just YAML that looks correct and commands that succeed locally. **This is the one open item.**
+  Needs an explicit go-ahead to `git commit` + `git push` (and, to exercise the `pull_request`
+  trigger specifically, open a PR) — per this project's standing rule that commits/pushes are
+  confirm-first actions, not assumed by "proceed with implementation."
+- [x] `docs/DevelopmentGuide.md`, `docs/ProjectStatus.md`, `PROJECT_STATE.json`, `CHANGELOG.md`,
+  `docs/CHANGELOG.md`, `docs/SessionReport.md`, `README.md` (badges + prerequisites), and this file
+  all reflect reality.
+- [x] `ADR/0017-github-actions-ci.md` exists, recording the decisions.
+- [x] No application code changed — this stage touched only `.github/`, `ADR/`, `README.md`,
+  `package.json` (root + `frontend/`, `engines` field only), and the documentation set.
+
+---
+
+*T1–T18 (Stage 2.5 hardening) remain not started, awaiting approval. T20–T21 (QA-review fixes) and
+T22, T24–T34, T36–T37 (Stage 2.7 CI) are done. T35 (Stage 2.7's live verification) needs an explicit
+go-ahead to commit and push before it can be completed. T38–T40 (Dependabot, PR template, issue
+templates) are recorded backlog only — not scheduled, not implemented.*

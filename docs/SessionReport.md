@@ -692,3 +692,191 @@ rather than assuming. Whoever picks this up next in an environment with Docker a
 re-run the full 282-test suite (not just the 175 unit tests) to close the one remaining verification
 gap this session couldn't close: confirming the 107 integration tests still pass against a live
 Postgres after T20/T21.
+
+## Session: 2026-08-06 — Stage 2.7 (GitHub Actions CI)
+
+**Objectives:** Build continuous integration validating every push and pull request, per a
+project-owner request scoped as a mini-stage ("Stage 2.7"), distinct from the numbered stage
+sequence and the post-Stage-2 framework additions. Process had two passes: first, a plan-only pass
+(read all documentation, review the actual repo structure and tooling, propose a design — no code)
+that surfaced one design nuance worth flagging (most of `backend/tests/integration/` could
+technically run without Postgres today because its shared fixture skips gracefully on an
+unreachable database, but a directory that silently skips every run is worse CI hygiene than not
+running it, so the plan recommended excluding it entirely rather than relying on that skip
+behavior). Second, an approval pass where the project owner made seven explicit decisions
+overriding several of the plan's defaults (trigger branch scope; add `engines` using current
+tool versions; pin CI's Python to the current dev version rather than the package floor; three
+separate workflow files named `backend.yml`/`frontend.yml`/`release.yml`; no deployment; no
+integration tests; record but don't build Dependabot/PR-template/issue-templates) — implementation
+proceeded only after that explicit go-ahead, and only for the approved task IDs (T22–T37).
+
+**Completed Tasks:**
+1. Detected the project's actual current tool versions rather than trusting stale documentation:
+   `node --version` → 24.13.1, `npm --version` → 11.11.1, `uv run python --version` (inside
+   `backend/`) → 3.14.4 (no `.python-version` file exists; this is what `uv sync` actually resolved
+   and installed into `backend/.venv`).
+2. Verified the current major version of every third-party GitHub Action before pinning it, rather
+   than guessing from training-data memory (which would have been stale) — used web search plus
+   direct fetches of each action's own GitHub Releases page: `actions/checkout`, `setup-python`,
+   `setup-node`, `upload-artifact` are all at `v7`; `astral-sh/setup-uv` is at `v9.0.0` and, per its
+   own documentation, **no longer publishes moving major/minor tags** — pinned by commit hash
+   (`c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0`) instead, per its own recommended usage.
+3. Wrote `ADR/0017-github-actions-ci.md` recording the full design (three workflow files, version
+   pins, trigger scope, artifact strategy, and — per the "Trade-offs" section — an explicit note
+   that the new `engines` field silently raises the project's previously-undeclared "Node 20+"
+   floor to `>=24.13.1`, which is a real backward-compatibility change, not just a CI detail).
+4. Created `.github/workflows/backend.yml`, `frontend.yml`, `release.yml` (T22–T34) — see
+   `docs/CHANGELOG.md`'s Stage 2.7 entry for the full step-by-step content of each.
+5. Added `engines` to `package.json` and `frontend/package.json`.
+6. **Verified every workflow command locally before finalizing the YAML**, rather than trusting
+   that the commands would work once committed: ran `ruff check`, `black --check`,
+   `pytest tests/unit` (175 passed), and the import-smoke line
+   (`python -c "from app.main import app"`, confirmed it prints "Booted OK: ... 0.2.0") directly in
+   `backend/`; ran the exact dual-reporter `vitest` invocation directly in `frontend/` (9 passed,
+   confirmed a real `test-results/unit-results.xml` was written, then deleted the dry-run artifact);
+   ran `npm run build` from the repo root and confirmed it produced both `frontend/dist/` and
+   `dist-electron/` with real files inside.
+7. Added CI status badges and updated Prerequisites in `README.md`; added a "Continuous
+   Integration" section and updated Prerequisites in `docs/DevelopmentGuide.md`.
+8. Updated `IMPLEMENTATION_QUEUE.md`'s Stage 2.7 section end-to-end: recorded the seven approved
+   decisions (superseding the plan's original open questions), marked T22–T34/T36–T37 done, added
+   T38–T40 as backlog-only entries for Dependabot/PR-template/issue-templates per explicit
+   instruction not to implement them, and left T35 explicitly open.
+9. Full documentation sync: `docs/ProjectStatus.md`, `PROJECT_STATE.json` (version 0.3.8 → 0.3.9,
+   new `git.branch`/`git.note` reflecting the actual uncommitted state), `CHANGELOG.md`,
+   `docs/CHANGELOG.md`.
+
+**Problems Encountered & Solutions:**
+
+- **Version pins would have been guesses without verification.** Both the third-party GitHub Action
+  major versions and this project's own current Node/Python versions needed to be *current facts*,
+  not remembered/assumed ones — training-data knowledge of "the latest `setup-uv` version" would
+  almost certainly have been stale, and guessing at "the project's current Node version" would have
+  defeated the entire point of the project owner's explicit instruction. **Resolved** by actually
+  running `node --version`/`npm --version`/`uv run python --version` locally, and by web-searching
+  plus directly fetching each action's GitHub Releases page rather than asserting a version from
+  memory.
+- **`astral-sh/setup-uv` doesn't support moving version tags anymore.** Discovered only by fetching
+  the action's own README, not something inferable from its version number alone. **Resolved** by
+  pinning to a commit hash with a version comment, matching the action's own documented recommended
+  usage, instead of writing `@v9` (which would not resolve).
+- **Deliberately did not commit or push.** T35 (observing a real GitHub Actions run) requires a
+  `git commit` + `git push`, which this project's standing rules treat as a confirm-first action —
+  distinct from "proceed with implementation," which was read as "write the files," not "commit and
+  push them." Every workflow command was instead verified by running it directly in this
+  environment first, which is a materially weaker claim than "GitHub's runners confirmed this
+  workflow YAML is valid and green" — documented explicitly as the one open item rather than
+  glossed over.
+
+**Files Modified:** `.github/workflows/backend.yml` (new), `.github/workflows/frontend.yml` (new),
+`.github/workflows/release.yml` (new), `ADR/0017-github-actions-ci.md` (new), `package.json`,
+`frontend/package.json`, `README.md`, `docs/DevelopmentGuide.md`, `IMPLEMENTATION_QUEUE.md`,
+`docs/ProjectStatus.md`, `PROJECT_STATE.json`, `CHANGELOG.md`, `docs/CHANGELOG.md`, this file. No
+`backend/src/`, `frontend/src/`, or `electron/` source file was touched.
+
+**Documentation Updated:** All of the above.
+
+**Tests Executed:** No test suite changed, so no full re-run was needed beyond confirming the exact
+commands each workflow runs still pass locally (see "Completed Tasks" #6 above) — backend unit
+175/175, frontend 9/9, backend lint/format clean, root build producing real output in both target
+directories. The 107 Postgres-dependent integration tests were not touched or re-run (unrelated to
+this stage's scope; still deferred per explicit decision, not a gap in this session's own
+verification).
+
+**Addendum — commit-prep verification (same day, 2026-08-06):** before staging anything for commit,
+re-ran the full backend suite with no path restriction. Postgres turned out to be reachable in this
+environment this time (`docker ps` showed `legal_dms_postgres` healthy) — **282/282 passed, zero
+skipped**, so the 107 integration tests are now actually confirmed green too, not just assumed
+unaffected. Re-ran backend ruff/black and frontend eslint/prettier/vitest: all clean/passing, no
+change from the numbers above. Checked `git status --ignored` to confirm no temp/generated files
+(build output, caches, `test-results/`) were staged or present-but-unignored. `PROJECT_STATE.json`
+and `docs/ProjectStatus.md` updated to reflect the full-suite confirmation.
+
+**Next Session Goals:** Get explicit approval to `git commit` + `git push` this stage's changes (and
+ideally open a real pull request against `main`) so T35 — the one remaining Stage 2.7 item — can
+actually be observed: all three workflows running green in the GitHub Actions UI. Once that's
+confirmed, mark T35 done and Stage 2.7 fully complete. Separately, Stage 3 still remains undefined —
+confirm scope with the project owner rather than assuming, as every prior session's closing note has
+said.
+
+## Session: 2026-08-06 — Versioning correction (0.3.1–0.3.9 → 0.3.0/0.3.1)
+
+**Objectives:** During commit-prep for the Stage 2.7 CI work, the project owner pointed out that
+their last actual `git tag` was `v0.3.0`, and asked why a single infrastructure change (GitHub
+Actions CI) had been documented as jumping to "0.3.9" instead of the expected "0.3.1." Checking
+`git tag -l` confirmed only `v0.3.0` exists — every version from 0.3.1 through 0.3.9 had only ever
+existed in documentation (`PROJECT_STATE.json`'s `currentVersion`, both `CHANGELOG.md` files,
+`docs/releases/`), bumped once per completed unit of work by prior sessions' own convention,
+regardless of whether anything was actually tagged/released. The project owner chose to renumber
+this release as `v0.3.1` — treating `v0.3.0` as the real baseline and this as the first actual
+release since.
+
+**Completed Tasks:**
+1. First pass (later corrected — see Problems below): consolidated the root `CHANGELOG.md`'s nine
+   separate headers into a single `[0.3.1]` entry, on the assumption that nothing had shipped since
+   `v0.3.0` at all.
+2. **Checked what commit the `v0.3.0` tag actually points to** (`git show v0.3.0 --stat`) rather
+   than assuming — it's `8c81d27`, "docs: synchronize project after Stage 2.5 QA closure," which
+   already contains `ADR/0010`–`0016`, every post-Stage-2 addition's source, and even
+   `docs/releases/v0.3.8.md` itself. So `v0.3.0` was never "just Stage 2" — it already includes all
+   seven post-Stage-2 additions and the QA review resolution; the tag name simply wasn't bumped to
+   match when it was cut. Also found `main` is exactly one commit ahead of the tag
+   (`73df68c`, a small documentation-templates addition — `docs/templates/DatabaseMigrationTemplate.md`
+   + a `docs/templates/README.md` update), and the working branch (`feature/github-actions-ci`) is
+   that commit plus this session's uncommitted CI work, nothing else.
+3. **Corrected the over-broad first pass** accordingly: root `CHANGELOG.md`'s `[0.3.0]` entry
+   expanded to state explicitly that it already contains the seven additions + QA resolution (their
+   original 0.3.1–0.3.8 stamps were never real tags); a new, correctly-scoped `[0.3.1]` entry covers
+   only what's genuinely new since the tag — the migration template and the CI work.
+4. Mirrored the correction in `docs/CHANGELOG.md`: the versioning-note callout rewritten to explain
+   the tag's actual content; the eight affected sections' (Command Bus through QA Review Resolution)
+   `**Version:**` fields corrected to `0.3.0` (not `0.3.1`); a new "Documentation templates —
+   database migration template" section added (the commit that predates this session and had never
+   been changelogged anywhere); the GitHub Actions CI section's version confirmed as the one
+   genuinely correct `0.3.1`.
+5. Rewrote `docs/releases/v0.3.1.md` to match the corrected scope (migration template + CI only,
+   with an explicit versioning note pointing to `docs/CHANGELOG.md` for the `v0.3.0`-covered work),
+   then deleted `docs/releases/v0.3.8.md` and `v0.3.9.md` — neither had ever been a real release (no
+   matching tag existed for either), so removing them isn't the same as editing an already-shipped
+   release note, which `docs/releases/README.md` explicitly warns against.
+6. Updated `docs/releases/README.md`'s own stated convention: version bumps and new release notes
+   now only happen in step with an actual `git tag`, not per completed unit of work — the exact
+   policy change needed so this drift can't recur.
+7. Synced every remaining pointer: `PROJECT_STATE.json` (`currentVersion` 0.3.9 → 0.3.1,
+   `currentReleaseNote` → `docs/releases/v0.3.1.md`), `docs/ProjectStatus.md`, `docs/AI_HANDOVER.md`,
+   `docs/README.md`, `docs/ArchitectureScorecard.md` — confirmed via a repo-wide grep for
+   `0.3.9`/`0.3.8` that nothing current-state-facing was missed.
+
+**Problems Encountered & Solutions:**
+
+- **Initially consolidated 0.3.1–0.3.9 into `v0.3.1` without first checking what the `v0.3.0` tag's
+  commit actually contained** — assumed "only one tag exists" meant "nothing since Stage 2 has
+  shipped," which was wrong: the tag itself already bundles all seven post-Stage-2 additions and
+  the QA fix. **Caught before presenting the correction as finished**, by checking `git show v0.3.0
+  --stat` and `git log v0.3.0..main` directly instead of continuing to reason from the untested
+  assumption. Rewrote `CHANGELOG.md` (both files) and `docs/releases/v0.3.1.md` to the corrected,
+  narrower scope. Lesson: "only one tag exists" tells you *how many* releases happened, not *what's
+  in* the one that did — that requires actually inspecting the tagged commit.
+- **Whether deleting `v0.3.8.md`/`v0.3.9.md` violates the release-notes system's own "never edit a
+  past release note" rule.** Resolved by distinguishing "released" from "documented": that rule
+  exists to keep an *actually shipped* release's historical record frozen and trustworthy. Neither
+  file ever corresponded to a real `git tag`, so neither was ever actually released — removing them
+  corrects a process error made before anything shipped, not rewriting history a consumer might
+  have relied on.
+- **What to do with this session's own prior narrative** (an earlier entry in this file describes
+  bumping the version "0.3.8 → 0.3.9," which was accurate at the time it was written). Resolved by
+  leaving that entry untouched and adding this one instead — corrections get a new dated note, not
+  a silent rewrite of what already happened.
+
+**Files Modified:** `CHANGELOG.md` (root), `docs/CHANGELOG.md`, `docs/releases/v0.3.1.md` (new),
+`docs/releases/v0.3.8.md` (deleted), `docs/releases/v0.3.9.md` (deleted),
+`docs/releases/README.md`, `PROJECT_STATE.json`, `docs/ProjectStatus.md`, `docs/AI_HANDOVER.md`,
+`docs/README.md`, `docs/ArchitectureScorecard.md`, this file.
+
+**Documentation Updated:** All of the above — documentation-only, no source touched.
+
+**Tests Executed:** None — no source change, so no test suite was affected or re-run.
+
+**Next Session Goals:** Same as the prior entry — get explicit approval to commit and push so T35
+can be observed, and going forward, only bump `currentVersion`/add a `docs/releases/` entry in step
+with an actual `git tag`, per the corrected convention in `docs/releases/README.md`.

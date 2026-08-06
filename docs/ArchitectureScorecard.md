@@ -1,9 +1,9 @@
 # Architecture Scorecard
 
 **Last Updated:** 2026-08-06
-**Current Project Version:** 0.3.8
+**Current Project Version:** 0.3.1 (see [docs/CHANGELOG.md](CHANGELOG.md)'s versioning note)
 **Current Stage:** Stage 2 — Database Architecture & Data Model (complete), plus seven post-Stage-2
-standalone framework additions and their QA review resolution — see
+standalone framework additions, their QA review resolution, and Stage 2.7 (GitHub Actions CI) — see
 [ProjectStatus.md](ProjectStatus.md) for the full narrative and [PROJECT_STATE.json](../PROJECT_STATE.json)
 for the machine-readable snapshot.
 
@@ -112,7 +112,7 @@ general rule that a stage isn't done until its documentation reflects reality �
 | Dependency management (`uv` backend, `npm` frontend) | ✅ | Stage 0 | 2026-08-03 | Two independent projects, separate lockfiles, deliberately not unified into an npm workspace. | — |
 | Structured logging | ✅ | Stage 0 | 2026-08-03 | JSON logs; `RequestIDMiddleware`/`LoggingMiddleware` add request correlation. | — |
 | Config management (`Settings`, pydantic-settings) | ✅ | Stage 0 / Stage 1 | 2026-08-03 | Env-driven, feature-flag extension in Stage 1. | — |
-| CI/CD pipeline | ❌ | — | — | No `.github/workflows` or equivalent exists anywhere in the repo. | Not evaluated yet — every test/lint run today is manual/local. |
+| CI/CD pipeline | 🟡 | Stage 2.7 | 2026-08-06 | `.github/workflows/backend.yml`/`frontend.yml`/`release.yml` — lint/format/unit-tests for both projects plus build verification, on every push (`main`/`feature/**`/`hotfix/**`/`release/**`) and PR (to `main`). See [ADR/0017](../ADR/0017-github-actions-ci.md). 🟡 not ✅: workflow commands verified locally, but no real GitHub Actions run has been observed yet (`IMPLEMENTATION_QUEUE.md` T35, pending an explicit go-ahead to push). | Integration tests (Postgres service container), Docker image build, and any deployment/packaging automation are explicitly deferred — see ADR/0017's Future Impact. |
 | Electron packaging (`electron-builder.yml`) | ⏳ | Stage 0 | 2026-08-03 | Config exists (`win`/`mac`/`linux` targets defined). | Never actually built or tested end-to-end — see Deployment section. |
 | Backend distribution strategy (inside the Electron installer) | ❌ | — | — | Backend runs as a standalone process during development only. | Options not yet evaluated: bundled Python runtime (PyInstaller/Nuitka), system Python + venv, or a separate installed service — see [FutureIdeas.md](FutureIdeas.md). |
 
@@ -120,10 +120,10 @@ general rule that a stage isn't done until its documentation reflects reality �
 
 | Capability | Status | Stage | Date Introduced | Notes | Future Improvements |
 |---|---|---|---|---|---|
-| Backend test suite (pytest) | 🟡 | Ongoing | 2026-08-03 | 282 tests total (175 unit + 107 integration). 175 unit tests re-run and confirmed passing 2026-08-06; the 107 integration tests need a live Postgres, last confirmed passing before the 2026-08-06 QA fixes (which don't touch persistence) — not re-verified against Postgres since. | Re-run the full 282-test suite in a Docker-available environment to close this verification gap. |
+| Backend test suite (pytest) | ✅ | Ongoing | 2026-08-03 | 282 tests total (175 unit + 107 integration) — full suite, zero skips, re-run and confirmed passing 2026-08-06 during Stage 2.7 commit-prep (Postgres was reachable this time; `docker ps` confirmed). | Keep re-running the full suite (not just unit) whenever Postgres is available, since it isn't guaranteed to be in every environment — see [KnownIssues.md](KnownIssues.md). |
 | Frontend test suite (Vitest + RTL) | ✅ | Ongoing | 2026-08-03 | 9/9 passing, confirmed 2026-08-06. | — |
 | Linting (ruff, black, eslint, prettier) | ✅ | Ongoing | 2026-08-03 | Clean project-wide, confirmed 2026-08-06 (includes `backend/alembic/versions/`). | — |
-| ADR discipline | ✅ | Ongoing | 2026-08-03 | 16 ADRs, one per significant architectural decision; see [`/ADR`](../ADR/). | — |
+| ADR discipline | ✅ | Ongoing | 2026-08-03 | 17 ADRs, one per significant architectural decision; see [`/ADR`](../ADR/). | — |
 | Documentation discipline | ✅ | Ongoing | 2026-08-03 | Full `docs/`/`ADR/` set, synced 2026-08-06 — see [Documentation Consistency Report](reviews/Documentation_Consistency_Report_2026-08-06.md). | Structural docs (e.g. [FolderStructure.md](FolderStructure.md)) tend to lag new additions by several sessions unless checked deliberately each time. |
 | QA review process | ✅ | Post-Stage-2 | 2026-08-06 | [Stage_2_5_QA_Review.md](reviews/Stage_2_5_QA_Review.md) — 9 findings classified, 2 fixed immediately (T20/T21), 5 correctly deferred pending a gating dependency, 2 accepted as ADR-documented trade-offs. | Re-classify Q2/Q3/Q5/Q7/Q9 whenever their gating dependency lands. |
 

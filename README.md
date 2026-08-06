@@ -1,12 +1,16 @@
 # Legal Document & Matter Management System
 
+[![Backend](https://github.com/Intelligentclown/Legal_DMS/actions/workflows/backend.yml/badge.svg)](https://github.com/Intelligentclown/Legal_DMS/actions/workflows/backend.yml)
+[![Frontend](https://github.com/Intelligentclown/Legal_DMS/actions/workflows/frontend.yml/badge.svg)](https://github.com/Intelligentclown/Legal_DMS/actions/workflows/frontend.yml)
+[![Release](https://github.com/Intelligentclown/Legal_DMS/actions/workflows/release.yml/badge.svg)](https://github.com/Intelligentclown/Legal_DMS/actions/workflows/release.yml)
+
 A production-grade desktop application for managing legal matters, clients, and documents,
 built with Electron, React, FastAPI, and PostgreSQL.
 
 > **Status:** Stage 2 — Database Architecture & Data Model complete, plus seven post-Stage-2
 > framework additions (Command Bus, Query Bus, Transaction Pipeline, Caching Abstraction, Module
-> Manifest Loader, Architecture Health Check, Performance Metrics Service) and their QA review
-> resolution. No business features exist yet. See
+> Manifest Loader, Architecture Health Check, Performance Metrics Service), their QA review
+> resolution, and Stage 2.7 (GitHub Actions CI). No business features exist yet. See
 > [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for the current state,
 > [`PROJECT_STATE.json`](PROJECT_STATE.json) for a machine-readable snapshot, and
 > [`docs/Roadmap.md`](docs/Roadmap.md) for what's planned. Picking this project up fresh? Start at
@@ -26,8 +30,10 @@ See [`docs/TechStack.md`](docs/TechStack.md) for the full rationale behind each 
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for local PostgreSQL)
-- [Node.js](https://nodejs.org/) 20+ and npm
-- [Python](https://www.python.org/) 3.12+
+- [Node.js](https://nodejs.org/) 24+ and npm 11+ (see `engines` in `package.json` — bumped from the
+  previously-undeclared "20+" as of Stage 2.7, to match the CI pipeline)
+- [Python](https://www.python.org/) 3.12+ (CI is pinned to 3.14, the actual development version —
+  see `ADR/0017-github-actions-ci.md`; the package's own supported floor is unchanged)
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ## Getting Started

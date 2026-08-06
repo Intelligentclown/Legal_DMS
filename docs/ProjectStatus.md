@@ -2,9 +2,11 @@
 
 **Current Stage:** Stage 2 — Database Architecture & Data Model (plus seven post-Stage-2 framework
 additions: the Command Bus, Query Bus, Transaction Pipeline, Caching Abstraction, Module Manifest
-Loader, Architecture Health Check, and Performance Metrics Service — see below — and a QA review
-of those seven additions with two findings fixed, see "QA Review Resolution" below)
-**Current Version:** 0.3.8
+Loader, Architecture Health Check, and Performance Metrics Service; a QA review of those seven
+additions with two findings fixed; and Stage 2.7 — GitHub Actions CI, see below)
+**Current Version:** 0.3.1 (see [CHANGELOG.md](../CHANGELOG.md)'s versioning note — the `v0.3.0`
+tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
+what's genuinely new since that tag, previously mislabeled 0.3.9)
 **Last Updated:** 2026-08-06
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope). 0% of the
 overall project — Stages 0–2 are infrastructure/framework/schema only, no business features exist
@@ -14,7 +16,7 @@ a capability-by-category architectural maturity dashboard (status, stage, notes,
 improvements per capability, plus an Overall Architecture Health assessment). For a comprehensive,
 point-in-time snapshot of each released version specifically (features, bug fixes, breaking
 changes, migration notes, known issues, and what's next), see [releases/](releases/) — the current
-release is [releases/v0.3.8.md](releases/v0.3.8.md). Before starting the next stage, complete
+release is [releases/v0.3.1.md](releases/v0.3.1.md). Before starting the next stage, complete
 [templates/PreStageChecklist.md](templates/PreStageChecklist.md) — see
 [templates/README.md](templates/README.md) for how it's used.
 
@@ -355,9 +357,49 @@ ADR-documented trade-offs.
   in the three pre-existing `test_transaction_pipeline_behavior.py` tests; real app route surface
   unchanged (`/api/v1/health`, `/api/v1/version` only) — neither fix touches a route.
 
+## Completed — GitHub Actions CI (Stage 2.7)
+
+A mini-stage, distinct from the numbered Stage 0–2 sequence and the post-Stage-2 framework
+additions: continuous integration validating every push and pull request. Plan reviewed and
+approved by the project owner with seven explicit decisions before implementation started. See
+[ADR/0017](../ADR/0017-github-actions-ci.md) for the full design record and
+`IMPLEMENTATION_QUEUE.md`'s Stage 2.7 section for the task-by-task detail.
+
+- **Added:** `.github/workflows/backend.yml` (ruff, black --check, `pytest tests/unit`, an
+  application-import/boot smoke test — Python 3.14), `.github/workflows/frontend.yml` (eslint,
+  prettier --check, vitest — Node 24.13.1/npm 11.11.1), `.github/workflows/release.yml` (build
+  verification only — compiles Electron TS + builds the frontend; **not** a packaging or deployment
+  pipeline despite the name). All three trigger on push to `main`/`feature/**`/`hotfix/**`/
+  `release/**` and on pull requests targeting `main`, with per-workflow `concurrency` cancellation
+  and least-privilege `permissions: contents: read`. `engines` added to both `package.json` files
+  (`node: >=24.13.1`, `npm: >=11.11.1`), which also raises the project's previously
+  documentation-only "Node 20+" floor to match. `ADR/0017-github-actions-ci.md` records the full
+  decision set, including three items the project owner explicitly deferred (integration tests,
+  Docker, deployment) and three recorded as backlog-only, not implemented
+  (Dependabot, a PR template, issue templates — `IMPLEMENTATION_QUEUE.md` T38–T40).
+- **Verified locally before finalizing:** `ruff check`, `black --check`, `pytest tests/unit`
+  (175 passed), and the import smoke test all confirmed passing in the actual `backend/` project;
+  the frontend's dual-reporter vitest invocation confirmed working (9 passed); the root `npm run
+  build` confirmed producing both `frontend/dist/` and `dist-electron/`.
+- **Commit-prep verification (2026-08-06, same day):** re-ran the full backend suite with no path
+  restriction — Postgres was reachable this time (`docker ps` confirmed `legal_dms_postgres`
+  healthy, unlike the prior QA Review Resolution session) — **282/282 passed, zero skipped**,
+  confirming the 107 integration tests (untouched by this stage) are still green. Re-ran backend
+  ruff/black and frontend eslint/prettier: both clean (frontend's 3 pre-existing react-refresh
+  warnings are the same expected ones, 0 errors). Re-ran frontend's full test script: 9/9. Confirmed
+  via `git status --ignored` that no temporary/generated files (`dist/`, `dist-electron/`,
+  `test-results/`, caches) are staged or untracked-and-uningored. **Still not verified: a real
+  GitHub Actions run.** That requires a commit and push, which needs an explicit go-ahead per this
+  project's standing rule on confirm-first git actions — tracked as the one open item
+  (`IMPLEMENTATION_QUEUE.md` T35).
+- **Lint:** N/A — no application code changed; only workflow YAML, two `package.json` `engines`
+  additions, one new ADR, and documentation.
+
 ## Pending
 
-Stage 3 is undefined — nothing planned in detail. See [Roadmap.md](Roadmap.md).
+Stage 3 is undefined — nothing planned in detail. See [Roadmap.md](Roadmap.md). Separately,
+Stage 2.7's one open item (a live GitHub Actions run, `IMPLEMENTATION_QUEUE.md` T35) needs an
+explicit go-ahead to commit and push before it can be marked fully done.
 
 ## Blocked Tasks
 

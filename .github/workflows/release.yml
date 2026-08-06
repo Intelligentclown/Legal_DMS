@@ -1,0 +1,72 @@
+# Build verification only — NOT a release/deployment pipeline yet.
+#
+# Compiles the Electron main/preload TypeScript and builds the frontend (type-check + Vite
+# bundle), then uploads both build outputs as short-retention artifacts so a run can be inspected
+# without reproducing it locally. No packaging (electron-builder) and no publishing/deployment —
+# both are explicitly out of scope for this stage (see ADR/0017-github-actions-ci.md and
+# IMPLEMENTATION_QUEUE.md's "Future expansion" section). The name anticipates where this file
+# grows once a release process is actually scoped and approved.
+#
+# Action versions pinned to their latest stable major release as of 2026-08-06 (verified against
+# each action's own GitHub Releases page) — re-check for newer majors periodically, this isn't
+# kept current automatically.
+
+name: Release
+
+on:
+  push:
+    branches: [main, "feature/**", "hotfix/**", "release/**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Pinned to the project's actual current development version (confirmed via `node
+      # --version` / `npm --version`), matching the engines field added to both package.json
+      # files in this same stage — see ADR/0017.
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.13.1"
+
+      # Root (Electron orchestration) and frontend/ are two independent npm projects with their
+      # own lockfiles — see docs/FolderStructure.md — both need their own install.
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # Runs `electron:build` (tsc -p electron/tsconfig.json) then the frontend's own `build`
+      # (tsc -b && vite build) — see package.json's `build` script.
+      - name: Build (Electron TS + frontend)
+        run: npm run build
+
+      - name: Upload frontend build output
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 7
+
+      - name: Upload compiled Electron output
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-electron
+          path: dist-electron
+          retention-days: 7
