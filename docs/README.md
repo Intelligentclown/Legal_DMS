@@ -20,7 +20,7 @@ context. See the root [README.md](../README.md) for how to install/run/test the 
   assessment.
 - **[releases/](releases/)** — one comprehensive, frozen-in-time document per released version
   (features, fixes, breaking changes, known issues, what's next). Current release:
-  [releases/v0.3.8.md](releases/v0.3.8.md).
+  [releases/v0.3.1.md](releases/v0.3.1.md).
 - **[templates/](templates/)** — reusable document skeletons (currently: the pre-stage checklist
   that must be completed before starting any new stage).
 

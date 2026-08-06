@@ -8,7 +8,7 @@ For a fast, at-a-glance view of what's built and how solid each piece is, see
 [ArchitectureScorecard.md](ArchitectureScorecard.md) — a capability-by-category maturity dashboard
 complementary to this file's narrative. For the full picture of the current version specifically
 (features, fixes, breaking changes, known issues, what's next), see
-[releases/v0.3.8.md](releases/v0.3.8.md) — see [releases/README.md](releases/README.md) for how
+[releases/v0.3.1.md](releases/v0.3.1.md) — see [releases/README.md](releases/README.md) for how
 this project's release notes system works. **Before starting a new stage**, complete
 [templates/PreStageChecklist.md](templates/PreStageChecklist.md) — see
 [templates/README.md](templates/README.md) for how.*
@@ -82,13 +82,23 @@ the seven additions, only Architecture Health Check is wired into the real app's
 [ADR/0012](../ADR/0012-transaction-pipeline.md), [ADR/0013](../ADR/0013-caching-abstraction.md),
 [ADR/0014](../ADR/0014-module-manifest-loader.md),
 [ADR/0015](../ADR/0015-architecture-health-check.md), and
-[ADR/0016](../ADR/0016-performance-metrics-service.md).
+[ADR/0016](../ADR/0016-performance-metrics-service.md). Separately, **Stage 2.7 — GitHub Actions
+CI** has since landed: three workflows (`backend.yml`/`frontend.yml`/`release.yml`) validating
+every push and pull request — see [ADR/0017](../ADR/0017-github-actions-ci.md). No application
+code changed; test counts are unaffected (still 282 backend / 9 frontend).
 
 ## Pending Work
 
 Everything past Stage 2. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md). The most likely
 next step is wiring a real feature (repository → service → route) to a slice of the Stage 2 schema,
-but that must be confirmed with the project owner, not assumed.
+but that must be confirmed with the project owner, not assumed. Separately, **Stage 2.7 has one open
+item**: `IMPLEMENTATION_QUEUE.md` T35 — a real GitHub Actions run has not been observed yet, since
+that requires a `git commit` + `git push`, a confirm-first action not taken as part of
+implementation. If you're picking this up next and have the go-ahead to push, that's the fastest
+way to close Stage 2.7 out completely; if something looks wrong once it actually runs on GitHub's
+runners (cache paths, working-directory typos, an action version that's moved on), fix it there —
+everything was verified by running the underlying commands locally, which is not the same claim as
+"the YAML itself runs green on GitHub's infrastructure."
 
 ## Open Issues / Known Bugs
 
@@ -188,14 +198,20 @@ Read the ADRs in [`/ADR`](../ADR/) before making architectural changes:
   the real app's startup path.
 - **0016** (post-Stage-2): the Performance Metrics Service — why it's a standalone "Service" port,
   not an HTTP `/metrics` route or a bus-wrapping pipeline.
+- **0017** (Stage 2.7): GitHub Actions CI — three separate workflow files over one; pinning CI to
+  the project's actual current Python/Node versions rather than the documented supported floors,
+  per explicit project-owner direction; why `release.yml` does build verification only today
+  despite its name; and why integration tests/Docker/deployment are deferred rather than guessed
+  at.
 
-If you make a new significant architectural decision, **add a new ADR** (`0017-...`), don't just
+If you make a new significant architectural decision, **add a new ADR** (`0018-...`), don't just
 change things silently.
 
 ## Current Branch
 
-`master` (no feature-branch workflow adopted yet — confirm with the project owner before changing
-that).
+`feature/github-actions-ci` — a feature branch was in use for Stage 2.7's work (unlike every prior
+stage, which worked directly on `master`/`main`); confirm with the project owner whether this
+becomes the project's standing workflow or was scoped to this one stage before assuming either way.
 
 ## Files Recently Modified
 

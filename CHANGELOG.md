@@ -3,78 +3,43 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.3.8] — QA Review Resolution (post-Stage-2 QA fixes)
+## [0.3.1] — Database migration template, and GitHub Actions CI
 
-Two findings fixed from a QA review of the seven post-Stage-2 framework additions
-([`docs/reviews/Stage_2_5_QA_Review.md`](docs/reviews/Stage_2_5_QA_Review.md)): `TransactionPipelineBehavior.dispatch()`
-now catches `BaseException` instead of `Exception` so `asyncio.CancelledError` still rolls back
-before re-raising, and `MetricsService`/`LoggingMetricsService` gained docstring notes that `tags`
-are logged verbatim with no redaction. Backend tests: 280 → 282. See
-[`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status,
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail,
-[`IMPLEMENTATION_QUEUE.md`](IMPLEMENTATION_QUEUE.md) (T20/T21) for the task record, and
-[`docs/releases/v0.3.8.md`](docs/releases/v0.3.8.md) for the full release note.
+**Versioning note:** the git tag `v0.3.0` was actually cut on the commit that already includes
+seven post-Stage-2 framework additions and their QA review resolution (internally documented at
+the time as versions 0.3.1 through 0.3.8, none of which were ever tagged individually — see the
+`[0.3.0]` entry below, corrected to reflect what that tag actually contains). This entry covers
+only what's genuinely new **since** that tag: a small documentation-template addition already on
+`main`, and this session's GitHub Actions CI work. See
+[`docs/releases/v0.3.1.md`](docs/releases/v0.3.1.md) for the full release note and
+[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for per-item detail.
 
-## [0.3.7] — Performance Metrics Service (post-Stage-2 framework addition)
+- **Database migration template** (`docs/templates/DatabaseMigrationTemplate.md`, new) and
+  `docs/templates/README.md` updated to reference it.
+- **Stage 2.7: GitHub Actions CI** ([ADR/0017](ADR/0017-github-actions-ci.md)) — three workflows
+  (`backend.yml`/`frontend.yml`/`release.yml`) validating every push and pull request: backend
+  lint/format/unit-tests/import-smoke, frontend lint/format/vitest, and build verification (no
+  deployment, no integration tests, per explicit scope). `engines` added to both `package.json`
+  files. See [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status and
+  [`IMPLEMENTATION_QUEUE.md`](IMPLEMENTATION_QUEUE.md) for the task-by-task record (one item, a
+  live CI run, still pending an explicit go-ahead to push).
 
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage — a `MetricsService` port + `LoggingMetricsService`, not wired to `CommandBus`/`QueryBus`
-dispatch, HTTP middleware, or a `/metrics` route. See
-[`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status,
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and
-[`ADR/0016`](ADR/0016-performance-metrics-service.md) for the decision record.
+## [0.3.0] — Stage 2: Database Architecture & Data Model, plus seven post-Stage-2 framework additions and QA resolution
 
-## [0.3.6] — Architecture Health Check (post-Stage-2 framework addition)
-
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage — resolves `IMPLEMENTATION_QUEUE.md`'s T15/F7 finding. The only post-Stage-2 addition wired
-into the real app's startup path (`main.py`). See [`docs/ProjectStatus.md`](docs/ProjectStatus.md)
-for live status, [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and
-[`ADR/0015`](ADR/0015-architecture-health-check.md) for the decision record.
-
-## [0.3.5] — Module Manifest Loader (post-Stage-2 framework addition)
-
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage — closes a gap `ModuleRegistry`'s own docstring left open (which packages to import so their
-registration side effect runs). See [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live
-status, [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and
-[`ADR/0014`](ADR/0014-module-manifest-loader.md) for the decision record.
-
-## [0.3.4] — Caching Abstraction (post-Stage-2 framework addition)
-
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage — a `Cache` port + `InMemoryCache`, not wired to `QueryBus`/`CommandBus`. See
-[`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status,
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and
-[`ADR/0013`](ADR/0013-caching-abstraction.md) for the decision record.
-
-## [0.3.3] — Transaction Pipeline (post-Stage-2 framework addition)
-
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage — resolves the "transaction wrapping" trade-off the Command Bus and Query Bus ADRs both
-deferred. See [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status,
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and
-[`ADR/0012`](ADR/0012-transaction-pipeline.md) for the decision record.
-
-## [0.3.2] — Query Bus (post-Stage-2 framework addition)
-
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage — symmetric sibling to the Command Bus below. See
-[`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status,
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and [`ADR/0011`](ADR/0011-query-bus.md) for
-the decision record.
-
-## [0.3.1] — Command Bus (post-Stage-2 framework addition)
-
-Standalone framework addition requested directly by the project owner, not part of a numbered
-stage. See [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status,
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for detail, and [`ADR/0010`](ADR/0010-command-bus.md) for
-the decision record.
-
-## [0.3.0] — Stage 2: Database Architecture & Data Model
-
-Complete. See [`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status and
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for the detailed, per-commit changelog of this stage.
+Stage 2 complete. **This tag's commit also includes** seven standalone framework additions
+requested directly by the project owner outside the numbered stage sequence — **Command Bus**
+([ADR/0010](ADR/0010-command-bus.md)), **Query Bus** ([ADR/0011](ADR/0011-query-bus.md)),
+**Transaction Pipeline** ([ADR/0012](ADR/0012-transaction-pipeline.md)), **Caching Abstraction**
+([ADR/0013](ADR/0013-caching-abstraction.md)), **Module Manifest Loader**
+([ADR/0014](ADR/0014-module-manifest-loader.md)), **Architecture Health Check**
+([ADR/0015](ADR/0015-architecture-health-check.md)), **Performance Metrics Service**
+([ADR/0016](ADR/0016-performance-metrics-service.md)) — plus a **QA review**
+([`docs/reviews/Stage_2_5_QA_Review.md`](docs/reviews/Stage_2_5_QA_Review.md)) of those seven,
+fixing two findings. These were originally documented under their own incrementing patch versions
+(0.3.1–0.3.8) as each landed, but none were tagged separately — they're all part of this `v0.3.0`
+tag's actual content. Backend tests: 216 → 282 across this span. See
+[`docs/ProjectStatus.md`](docs/ProjectStatus.md) for live status and
+[`docs/CHANGELOG.md`](docs/CHANGELOG.md) for the detailed, per-addition changelog.
 
 ## [0.2.0] — Stage 1: Core Architecture & Domain Foundation
 

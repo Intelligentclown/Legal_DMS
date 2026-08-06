@@ -284,9 +284,20 @@ Postgres including full chain reversibility (`alembic downgrade base` → `alemb
   `backend/alembic/versions/`); 49 tables across 12 migrations, full chain reversibility verified;
   real app's route surface unchanged from Stage 0 (`/api/v1/health`, `/api/v1/version` only).
 
+> **Versioning note (added retroactively):** the sections from here through "Post-Stage-2 —
+> Performance Metrics Service" plus "Post-Stage-2 — QA Review Resolution" were each originally
+> stamped with their own incrementing patch version (0.3.1 through 0.3.8) as they landed. None of
+> those were ever individually `git tag`-released — the `v0.3.0` tag was actually cut on the commit
+> that already includes all of this work, so every `**Version:**` field in those sections now reads
+> `0.3.0` to match what that tag actually contains (see the root [`CHANGELOG.md`](../CHANGELOG.md)'s
+> corrected `[0.3.0]` entry). The one section below that's genuinely a separate, later unit of work —
+> "Post-Stage-2 — GitHub Actions CI" — is correctly `0.3.1`, the first tag since `v0.3.0`. Section
+> structure and dates throughout are otherwise unchanged — this corrects version *labels* only, not
+> the historical record of what happened when.
+
 ## Post-Stage-2 — Command Bus
 
-**Version:** 0.3.1
+**Version:** 0.3.0 (originally stamped 0.3.1 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Adds a `CommandBus` port (single-handler command dispatch, distinct from
@@ -316,7 +327,7 @@ existing port + default-implementation pattern exactly. Zero business commands. 
 
 ## Post-Stage-2 — Query Bus
 
-**Version:** 0.3.2
+**Version:** 0.3.0 (originally stamped 0.3.2 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Adds a `QueryBus` port mirroring `CommandBus`'s shape exactly (single-handler
@@ -345,7 +356,7 @@ explicit deferral of a Query bus companion. Zero business queries. See
 
 ## Post-Stage-2 — Transaction Pipeline
 
-**Version:** 0.3.3
+**Version:** 0.3.0 (originally stamped 0.3.3 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Resolves the "transaction wrapping" trade-off both [ADR/0010](../ADR/0010-command-bus.md)
@@ -385,7 +396,7 @@ container registration are both untouched.
 
 ## Post-Stage-2 — Caching Abstraction
 
-**Version:** 0.3.4
+**Version:** 0.3.0 (originally stamped 0.3.4 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Adds a `Cache` port + `InMemoryCache` default, read as a standalone capability
@@ -415,7 +426,7 @@ ports) rather than a pipeline behavior wrapping `QueryBus`. See
 
 ## Post-Stage-2 — Module Manifest Loader
 
-**Version:** 0.3.5
+**Version:** 0.3.0 (originally stamped 0.3.5 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Closes a gap `ModuleRegistry`'s own docstring left open: it promised a future
@@ -447,7 +458,7 @@ are both untouched.
 
 ## Post-Stage-2 — Architecture Health Check
 
-**Version:** 0.3.6
+**Version:** 0.3.0 (originally stamped 0.3.6 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Resolves `IMPLEMENTATION_QUEUE.md`'s T15/F7 finding: `configure_container()`
@@ -484,7 +495,7 @@ T15 asked for, not a regression.
 
 ## Post-Stage-2 — Performance Metrics Service
 
-**Version:** 0.3.7
+**Version:** 0.3.0 (originally stamped 0.3.7 — see versioning note above)
 **Date:** 2026-08-05
 **Summary:** Standalone framework addition requested directly by the project owner — not part of a
 numbered stage. Unlike the six additions before it, didn't map onto an item already named in an
@@ -519,7 +530,7 @@ three options considered.
 
 ## Post-Stage-2 — QA Review Resolution
 
-**Version:** 0.3.8
+**Version:** 0.3.0 (originally stamped 0.3.8 — see versioning note above)
 **Date:** 2026-08-06
 **Summary:** A QA review ([docs/reviews/Stage_2_5_QA_Review.md](reviews/Stage_2_5_QA_Review.md))
 evaluated the seven post-Stage-2 framework additions above (Command Bus, Query Bus, Transaction
@@ -568,3 +579,70 @@ touched.
   project-wide; no regression in the three pre-existing `test_transaction_pipeline_behavior.py`
   tests; real app's route surface unchanged (`/api/v1/health`, `/api/v1/version` only) — neither fix
   touches a route.
+
+## Documentation templates — database migration template
+
+**Version:** 0.3.1
+**Date:** 2026-08-06
+**Summary:** Small documentation-tooling addition, committed directly to `main` (commit `73df68c`)
+between the QA Review Resolution above and the Stage 2.7 CI work below — not part of either. Adds
+`docs/templates/DatabaseMigrationTemplate.md`, the skeleton for documenting a new Alembic migration
+in `docs/Database.md`/`docs/ERD.md` (documents a migration, doesn't generate one — the migration
+file itself is source code). Updates `docs/templates/README.md`'s template table with 8 rows that
+had been missing (`ADR_Template.md`, `ArchitectureDecisionTemplate.md`, `Feature_Template.md`,
+`Module_Template.md`, `QAReviewTemplate.md`, `SessionReportTemplate.md`, `ReleaseTemplate.md`,
+`DatabaseMigrationTemplate.md` itself) and generalizes its "how to use a template" guidance beyond
+just review-type documents.
+**Files:** `docs/templates/DatabaseMigrationTemplate.md` (new), `docs/templates/README.md`
+(modified).
+**Breaking changes:** None. **Migration notes:** None — no schema/code change, documentation only.
+
+## Stage 2.7 — GitHub Actions CI
+
+**Version:** 0.3.1 (originally stamped 0.3.9 — this one's correct as its own release, see versioning note above)
+**Date:** 2026-08-06
+**Summary:** A mini-stage, distinct from the numbered Stage 0–2 sequence and the post-Stage-2
+framework additions above: continuous integration for every push and pull request. Plan reviewed
+and iterated in two passes (an initial proposal, then seven explicit project-owner decisions
+overriding several of its defaults) before any implementation. See
+[ADR/0017](../ADR/0017-github-actions-ci.md) for the full decision record and
+`IMPLEMENTATION_QUEUE.md`'s Stage 2.7 section for the task-by-task detail.
+**Breaking changes:** None — no application code touched. `engines` in both `package.json` files is
+new and raises the project's previously-undeclared "Node 20+" floor to `>=24.13.1`; anyone
+developing on an older Node version will now see an `npm` engine-mismatch warning (not a hard
+block, by npm's default behavior).
+**Migration notes:** None — no schema, port, or route change.
+
+### GitHub Actions CI
+- **Added:** `.github/workflows/backend.yml` (checkout, `setup-python` pinned to 3.14, `setup-uv`
+  pinned by commit hash to v9.0.0, `uv sync --locked`, `ruff check`, `black --check`,
+  `pytest tests/unit` with JUnit output, an application-import/boot smoke test
+  `from app.main import app`, failure-only test-result artifact upload),
+  `.github/workflows/frontend.yml` (checkout, `setup-node` pinned to 24.13.1 with npm caching,
+  `npm ci`, `eslint`, `prettier --check`, `vitest run` with dual default+junit reporters,
+  failure-only test-result artifact upload), `.github/workflows/release.yml` (build verification
+  only — `npm ci` at root and in `frontend/`, `npm run build`, uploads `frontend/dist/` and
+  `dist-electron/` as 7-day artifacts; explicitly **not** a packaging or deployment pipeline despite
+  the name), `ADR/0017-github-actions-ci.md`. All three workflows share identical triggers (`push`
+  to `main`/`feature/**`/`hotfix/**`/`release/**`, `pull_request` targeting `main`), a
+  per-workflow-per-ref `concurrency` cancellation group, and least-privilege
+  `permissions: contents: read`.
+- **Modified:** `package.json` and `frontend/package.json` — added `engines: {"node": ">=24.13.1",
+  "npm": ">=11.11.1"}` to both, matching the project's actual current tool versions. `README.md` —
+  three workflow status badges, updated Prerequisites. `docs/DevelopmentGuide.md` — new
+  "Continuous Integration" section, updated Prerequisites.
+- **Explicitly out of scope, recorded not implemented:** integration tests and Docker and
+  deployment (all per direct project-owner decision — see ADR/0017's Future Impact), and three
+  backlog items recorded but not built: Dependabot (`IMPLEMENTATION_QUEUE.md` T38), a pull request
+  template (T39), issue templates (T40).
+- **Verified locally, not yet verified live:** every command each workflow runs was confirmed
+  passing directly in this environment first — `ruff check`/`black --check`/`pytest tests/unit`
+  (175 passed)/the import smoke test all succeeded in `backend/`; the dual-reporter `vitest`
+  invocation succeeded in `frontend/` (9 passed) and correctly wrote a JUnit report; the root
+  `npm run build` succeeded, producing both `frontend/dist/` and `dist-electron/`. **A real GitHub
+  Actions run has not been observed** — that requires a commit and push, a confirm-first action not
+  taken as part of implementation; tracked as `IMPLEMENTATION_QUEUE.md` T35, the one open item in
+  this stage.
+- Final state: 282 backend tests / 9 frontend tests, both unchanged by this stage (no application
+  code touched). ruff/black/eslint/prettier all still clean, confirmed by the same manual runs used
+  to verify the workflow commands themselves.

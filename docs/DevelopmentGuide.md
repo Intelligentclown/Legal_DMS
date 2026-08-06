@@ -3,8 +3,11 @@
 ## Prerequisites
 
 - Docker Desktop (local Postgres)
-- Node.js 20+ and npm
-- Python 3.12+ and [uv](https://docs.astral.sh/uv/)
+- Node.js 24+ and npm 11+ (see `engines` in `package.json`/`frontend/package.json` — bumped from
+  the previously-undeclared "20+" as of Stage 2.7's CI work, see
+  [ADR/0017](../ADR/0017-github-actions-ci.md))
+- Python 3.12+ and [uv](https://docs.astral.sh/uv/) (CI is pinned to 3.14, the actual development
+  version — the package's own supported floor is unchanged)
 
 ## First-time setup
 
@@ -91,6 +94,26 @@ npm run dist       # build + electron-builder packaging (Win/Mac/Linux per elect
 
 The backend is not currently bundled into the Electron package — it runs as a standalone service.
 See [FutureIdeas.md](FutureIdeas.md) for the deferred packaging story.
+
+## Continuous Integration
+
+Three GitHub Actions workflows run on every push to `main`/`feature/**`/`hotfix/**`/`release/**`
+and every pull request targeting `main` — see [ADR/0017](../ADR/0017-github-actions-ci.md) for the
+full design record:
+
+- **`.github/workflows/backend.yml`** — exactly the "Running tests" and "Linting & formatting"
+  backend commands above, plus an application-boot smoke test, against Python 3.14. Runs
+  `tests/unit` only (`tests/integration` needs a live Postgres connection — deferred, see
+  `IMPLEMENTATION_QUEUE.md`'s Future Expansion list).
+- **`.github/workflows/frontend.yml`** — exactly the "Running tests" and "Linting & formatting"
+  frontend commands above, against Node 24.13.1.
+- **`.github/workflows/release.yml`** — build verification only (`npm run build`): compiles
+  `electron/*.ts` and builds the frontend. **Not** a packaging or deployment pipeline yet, despite
+  the name — see the file's own header comment and ADR/0017.
+
+If a check fails in CI but passes locally, first confirm you're on the same tool versions CI pins
+(Python 3.14, Node 24.13.1/npm 11.11.1 — see each workflow file) before assuming it's
+environment-specific.
 
 ## Documentation discipline
 
