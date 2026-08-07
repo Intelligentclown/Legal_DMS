@@ -34,6 +34,16 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Commits on a clean exit (the request handler returned normally), rolls
+    back on any exception, before the session closes. See ADR-0020 -- this is
+    a deliberate policy, not incidental: repositories only `flush()` within
+    the transaction; this dependency is what actually persists it.
+    """
     session_factory = get_session_factory()
     async with session_factory() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise

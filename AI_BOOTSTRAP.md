@@ -23,6 +23,21 @@ If anything in `PROJECT_STATE.json` or `docs/ProjectStatus.md` disagrees with wh
 actual code (`git log`, file contents), **trust the code and report the discrepancy** — don't
 silently proceed on stale documentation.
 
+## New Session Protocol
+
+When starting a new AI session:
+
+1. Ignore previous chat history.
+2. Read [`AI_BOOTSTRAP.md`](AI_BOOTSTRAP.md) first.
+3. Read [`PROJECT_STATE.json`](PROJECT_STATE.json).
+4. Read the relevant handoff document (e.g. [`docs/Stage3_Backend_Handoff.md`](docs/Stage3_Backend_Handoff.md)).
+5. Read the active [`ImplementationLog`](docs/ImplementationLog/).
+6. Read related ADRs.
+7. Use the repository as the source of truth.
+8. Do not infer project state from previous conversations.
+9. Summarize understanding before making changes.
+10. Wait for approval before implementation.
+
 ## Non-negotiable rules for this project
 
 - **Never implement a business feature without an explicit go-ahead.** As of Stage 2, this project
@@ -40,6 +55,41 @@ silently proceed on stale documentation.
   `docs/DevelopmentGuide.md`'s "Documentation discipline" section.
 - **Every significant architectural decision gets an ADR** in [`/ADR`](ADR/). Don't change
   architecture silently.
+- **Process changes are versioned.** Any change to the project's development workflow —
+  documentation standards, QA process, AI conventions, implementation workflow, release workflow,
+  etc. — should be proposed, reviewed, and documented before adoption, using the same review and
+  documentation discipline as architectural decisions. Process changes do not necessarily require an
+  ADR, but they must be proposed, reviewed, approved, and documented before adoption. Don't silently
+  start following a different process (or silently revert to an old one) just because it seems
+  reasonable in the moment; propose the change, get it reviewed, and update the document that
+  defines that process (e.g. this file, `docs/ImplementationLog/README.md`,
+  `docs/DevelopmentGuide.md`, `docs/templates/README.md`) as part of adopting it, not after the fact.
+- **When implementation of a phase actually begins, create its Implementation Log entry.** See
+  [`docs/ImplementationLog/README.md`](docs/ImplementationLog/README.md) for the full standard —
+  in short: `docs/ImplementationLog/Stage<N>/Phase<M>.md`, created only when that phase's
+  implementation starts (never in advance, never retroactively), with the metadata block and eleven
+  required sections the README defines, ending with a Reviewer Checklist (implementer
+  self-assessment) and a **QA Decision** (the formal gate). This convention began 2026-08-06 with
+  nothing backfilled — all prior work stays documented only in the ADRs, `docs/SessionReport.md`,
+  both `CHANGELOG.md` files, `docs/ProjectStatus.md`, and `IMPLEMENTATION_QUEUE.md`, per the
+  README's own scope note.
+- **Every completed implementation batch needs a QA Decision before it's treated as done.** Once a
+  phase log's Reviewer Checklist is filled in, record a QA Decision (`Approved` /
+  `Approved with comments` / `Rework required`) — see
+  [`docs/ImplementationLog/README.md`](docs/ImplementationLog/README.md#qa-decision) for exactly
+  what each means. **`Rework required` blocks documentation synchronization and merge** — don't
+  update `docs/AI_HANDOVER.md`/`docs/ProjectStatus.md`/`docs/SessionReport.md`/the changelogs or
+  merge a batch's work until it's `Approved` or `Approved with comments`. A single AI session
+  commonly plays every role in sequence (implement, self-assess, render the QA Decision, then
+  synchronize documentation) — do these steps in that order, don't skip the QA Decision step just
+  because one session is doing all of them.
+- **Documents have a primary owner, not an exclusive one.** See
+  [`docs/ImplementationLog/README.md`](docs/ImplementationLog/README.md#documentation-ownership)
+  for the full assignment (Project Manager → planning docs, Software Architect → ADRs/Architecture.md,
+  Developer → ImplementationLog, QA Reviewer → ArchitectureScorecard.md/QA reports/QA Decision,
+  Documentation Manager → AI_HANDOVER.md/ProjectStatus.md/SessionReport.md/CHANGELOG/releases). Any
+  role may update any document when genuinely necessary — this assigns who's routinely responsible,
+  not who's allowed to touch it.
 - **Small, reviewed sections.** When implementing multi-part work, build one subsystem/section at a
   time, verify it (tests + a live smoke check where relevant), commit, then move on — don't
   generate everything in one giant diff.

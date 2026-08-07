@@ -880,3 +880,229 @@ release since.
 **Next Session Goals:** Same as the prior entry — get explicit approval to commit and push so T35
 can be observed, and going forward, only bump `currentVersion`/add a `docs/releases/` entry in step
 with an actual `git tag`, per the corrected convention in `docs/releases/README.md`.
+
+## Session: 2026-08-06 — Stage 3 Phase 0 (T41–T43)
+
+**Objectives:** Begin Stage 3 (Authentication & Authorization) implementation, scoped explicitly to
+Phase 0 only — T41 (documentation synchronization), T42 (fix `get_db()`'s commit/rollback), T43
+(regression tests + `ADR-0020`) — per explicit project-owner instruction to stop after T43 and not
+continue into T44/T45. Read, in order per instruction: `docs/Stage3_Backend_Handoff.md`,
+`docs/ImplementationLog/README.md`, `AI_BOOTSTRAP.md`, `PROJECT_STATE.json`, `docs/Architecture.md`,
+`IMPLEMENTATION_QUEUE.md`. Created `docs/ImplementationLog/Stage3/Phase0.md` before writing any
+code, per the ImplementationLog convention this project adopted the previous session — the first
+real file created under that convention.
+
+**Completed Tasks:**
+1. **T41** — Verified the discrepancy `IMPLEMENTATION_QUEUE.md`'s Stage 3 section itself already
+   flagged: `git log`/`git branch`/`git tag` showed `main`, merge commit `2db48d4`, tags `v0.3.0`/
+   `v0.3.1`, but `PROJECT_STATE.json` still said `currentStage: stage-2`,
+   `git.branch: feature/github-actions-ci`, and carried a resolved `openQuestion` about T35. Synced
+   both `PROJECT_STATE.json` (`currentStage`, `stages[]`, `completion`, `openQuestions`, `git`) and
+   `IMPLEMENTATION_QUEUE.md` (its own "Discrepancy found" note marked resolved) to match reality.
+2. **T42** — Fixed `get_db()` (`backend/src/app/infrastructure/database/session.py`): wrapped
+   `yield session` in `try`/`except` — commits on clean exit, rolls back and re-raises on
+   `Exception`, before the session closes. Exact fix specified in the handoff doc; previously the
+   dependency never committed at all, so every write appeared to succeed (visible via `flush()`
+   within the same transaction) and then silently vanished once the session closed.
+3. **T43** — Added 5 regression tests (`tests/integration/test_get_db_transaction_policy.py`)
+   driving the real `get_db()` generator directly (`anext()`/`athrow()`, matching exactly how
+   FastAPI drives a generator dependency): a write commits and is visible from a fully independent
+   second session; a write does not persist if the request raises; the original exception (not a
+   broken-rollback artifact) is what propagates; the pre-existing same-session `flush()`-visibility
+   behavior is unchanged; a read-only session still completes cleanly. Wrote
+   `ADR/0020-session-commit-rollback-policy.md` recording this as deliberate policy. Folded in the
+   commit-contract documentation note (the original Stage 2.5 T3): updated `docs/Architecture.md`'s
+   session-plumbing note with a new "Commit/rollback contract" paragraph, and added entry #10 to
+   `docs/AI_HANDOVER.md`'s "patterns worth knowing" list.
+
+**Problems Encountered & Solutions:**
+
+- **`get_engine()`'s `lru_cache` singleton doesn't survive across pytest-asyncio's per-test event
+  loops** — already a documented footgun (`AI_HANDOVER.md` pattern #3), but this time it mattered
+  directly: the regression tests needed to exercise the *real* `get_db()`/`get_engine()`, not a
+  fresh per-test engine like every other integration test fixture uses. **Fixed** by having the new
+  test file's `_schema` fixture call `get_engine.cache_clear()` before and after each test, forcing
+  a fresh engine bound to that test's own event loop while still testing the actual production code
+  path.
+- **Confirming the regression tests weren't vacuous.** Before trusting the new tests, temporarily
+  reverted just the `session.py` fix (`git stash push -- src/app/infrastructure/database/session.py`)
+  and re-ran the test file: `test_a_write_is_durably_visible_from_a_second_independent_session`
+  **failed** as expected (the write rolled back via `AsyncSession`'s own default close-without-
+  commit behavior), the other four passed vacuously (they don't depend on the fix). Restored the fix
+  (`git stash pop`) and re-verified all 5 green before continuing — confirms the one test that
+  matters most is a real regression guard, not a test that would pass either way.
+- One `ruff` `F401` (unused `AsyncSession` import) in the new test file, fixed via `ruff --fix`.
+
+**Files Modified:** `backend/src/app/infrastructure/database/session.py`,
+`backend/tests/integration/test_get_db_transaction_policy.py` (new),
+`ADR/0020-session-commit-rollback-policy.md` (new), `docs/Architecture.md`, `docs/AI_HANDOVER.md`,
+`PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/ImplementationLog/Stage3/Phase0.md` (new),
+this file.
+
+**Documentation Updated:** `docs/Architecture.md`, `docs/AI_HANDOVER.md`, `PROJECT_STATE.json`,
+`IMPLEMENTATION_QUEUE.md`, `docs/ImplementationLog/Stage3/Phase0.md`, `docs/SessionReport.md` (this
+file). Deliberately **not** touched, per explicit instruction to update only documentation affected
+by T41–T43: `docs/ProjectStatus.md`, `CHANGELOG.md`/`docs/CHANGELOG.md`, `docs/ArchitectureScorecard.md`,
+`docs/FeatureRegistry.md`.
+
+**Tests Executed:**
+- Backend: `pytest` — 287 passed (up from 282; 5 new), 0 failed, 0 skipped. Postgres was reachable
+  (`legal_dms_postgres` container healthy).
+- Frontend: not touched, not re-run (no frontend files in scope for T41–T43).
+- Both backend linters (`ruff`, `black --check`) clean after the one `F401` fix.
+- Confirmed the regression tests actually catch the bug (see Problems Encountered) rather than
+  trusting green-by-construction.
+
+**Next Session Goals:** Explicitly stopped after T43 per instruction — **do not continue to T44**
+(`docs/templates/PreStageChecklist.md` sign-off) **or T45** (`ADR-0018`/`ADR-0019`) without a
+further, separate go-ahead. When that arrives: T44 is a straightforward checklist fill-in; T45
+writes the two architecture ADRs recording D1–D7 (token mechanism, password hashing, JWT library,
+bootstrap strategy, self-registration, frontend token storage) and the `AuthenticationProvider`
+signature change (D7) — both already fully decided, just not yet written down as ADRs. Separately,
+the `role_permissions` exact matrix (T66) still needs its own sign-off before that migration is
+written — unrelated to T44/T45, flagged again here so it isn't lost track of.
+
+## Session: 2026-08-06 — Stage 3 Phase 0, batch 2 (T44–T45)
+
+**Objectives:** Continue Stage 3 Phase 0, scoped explicitly to T44 ("add the approved
+authentication dependencies and configuration") and T45 ("create the authentication foundation
+interfaces and abstractions... including the finalized `AuthenticationProvider` interface"), per
+direct project-owner instruction. Stop after T45, no login/JWT generation/password hashing/API
+routes/database writes. Read, in order per instruction: `docs/Stage3_Backend_Handoff.md`,
+`docs/ImplementationLog/Stage3/Phase0.md`, `IMPLEMENTATION_QUEUE.md`,
+`ADR/0020-session-commit-rollback-policy.md`.
+
+**Discrepancy found and flagged before proceeding:** `IMPLEMENTATION_QUEUE.md`'s own Phase 0 table
+— the authoritative task list per `docs/Stage3_Backend_Handoff.md`'s own rule — defines T44 as
+"complete `docs/templates/PreStageChecklist.md`, signed off" and T45 as "write `ADR-0018` and
+`ADR-0019`," not what the instruction described. Flagged this to the project owner in the same
+turn, then proceeded on the explicit, detailed content given (direct instruction is the more
+authoritative source when it conflicts with a static document), and updated
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` to record the redefinition rather than leave them
+internally inconsistent. Full detail in `docs/ImplementationLog/Stage3/Phase0.md`'s "⚠ Task-ID
+discrepancy" section.
+
+**Completed Tasks:**
+1. **T44 (redefined)** — Added `argon2-cffi` (D2) and `PyJWT` (D3) to `backend/pyproject.toml`'s
+   runtime dependencies, ran `uv lock` (5 new packages). Extended `Settings`
+   (`infrastructure/config/settings.py`) with `jwt_secret_key: str` (no default, per the approved
+   decision that a signing secret must never have a code-level fallback), `jwt_algorithm: str =
+   "HS256"`, `access_token_ttl_minutes: int = 20`, `refresh_token_ttl_days: int = 14`. No hashing
+   or JWT encode/decode logic written — dependencies and config shape only.
+2. **T45 (redefined)** — `application/interfaces/auth.py`:
+   `AuthenticationProvider.get_current_user()` now takes an explicit `token: str | None` parameter
+   — the exact approved D7 signature, a genuine breaking change to an existing Stage 1 port.
+   Cascaded to both existing callers so nothing was left broken: `AnonymousAuthenticationProvider`
+   now accepts-and-ignores `token`; `presentation/api/deps.py`'s `get_current_user()` wrapper now
+   passes `token=None` as an explicit, documented Phase-0 placeholder (real extraction is `T56`,
+   Phase 2). Wrote `ADR/0019-authentication-provider-interface-change.md` — not explicitly named in
+   the instruction, but required by this project's "every significant architectural decision gets
+   an ADR" rule for a breaking port change.
+3. Added 6 unit tests (`tests/unit/test_auth.py`): the port's new signature is usable and
+   `token`-sensitive via a minimal fake implementation; `AnonymousAuthenticationProvider` accepts a
+   token but still ignores it; four `Settings` tests covering the new fields' required-ness and
+   defaults.
+
+**Problems Encountered & Solutions:**
+
+- **`jwt_secret_key`'s "no default" requirement cascaded further than expected.** Breaking:
+  (a) CI (`backend.yml`'s unit-test and import-smoke steps set no env vars at all), (b) 10 existing
+  `Settings(_env_file=None, ...)` call sites across `test_example.py`/`test_feature_flags.py`, and
+  (c) local test runs (until the gitignored `backend/.env` got the new key). **Fixed** all three:
+  an explicitly-fake `JWT_SECRET_KEY` added to `backend.yml`'s job-level `env:` (never a Pydantic
+  default — preserves the actual security property the architecture review wanted), every affected
+  call site updated to pass `jwt_secret_key="test-secret"`, and the local `.env` updated with its
+  own clearly-labeled placeholder value.
+- **The `AuthenticationProvider` signature change broke exactly one existing test** — caught
+  immediately by running `test_auth.py` right after the interface edit, before touching anything
+  else downstream. Fixed and extended with new coverage.
+- One `ruff` `E501` (line too long, from the added `jwt_secret_key=` argument) in the reformatted
+  feature-flags test file, fixed via `black`.
+
+**Files Modified:** `backend/pyproject.toml`, `backend/uv.lock`,
+`backend/src/app/infrastructure/config/settings.py`, `backend/.env.example`, `backend/.env`
+(gitignored), `.github/workflows/backend.yml`, `backend/src/app/application/interfaces/auth.py`,
+`backend/src/app/infrastructure/auth/anonymous_auth_provider.py`,
+`backend/src/app/presentation/api/deps.py`, `backend/tests/unit/test_auth.py`,
+`backend/tests/unit/test_example.py`, `backend/tests/unit/test_feature_flags.py`,
+`ADR/0019-authentication-provider-interface-change.md` (new),
+`docs/ImplementationLog/Stage3/Phase0.md`, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, this
+file.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase0.md`, `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/SessionReport.md` (this file). Deliberately not touched (not affected
+by T44–T45): `docs/ProjectStatus.md`, both `CHANGELOG.md` files, `docs/ArchitectureScorecard.md`,
+`docs/FeatureRegistry.md`, `docs/Architecture.md`, `docs/AI_HANDOVER.md`.
+
+**Tests Executed:**
+- Backend: `pytest` — 293 passed (up from 287; 6 new), 0 failed, 0 skipped.
+- Frontend: not touched, not re-run.
+- Both backend linters (`ruff`, `black --check`) clean after the one `E501` fix.
+- Import/boot smoke test (`python -c "from app.main import app; ..."`) re-verified after both the
+  `Settings` and `AuthenticationProvider` changes — confirms the whole DI/health-check startup path
+  still works with the new required config field and the changed port signature.
+
+**Next Session Goals:** Explicitly stopped after T45 per instruction — do not continue to Phase 1
+(`T46`+) without a further, separate go-ahead. Two open items need a tracking decision before
+Phase 1 starts: the *original* T44 content (`docs/templates/PreStageChecklist.md` sign-off) and the
+*original* T45's `ADR-0018` half (D1–D6) — both displaced by this batch's ID reuse, neither done.
+`T56` (Phase 2) must replace `deps.py`'s hardcoded `token=None` with real bearer-token extraction —
+flagged in `ADR-0019` so it isn't forgotten. The `role_permissions` exact matrix (T66) still needs
+its own sign-off, unrelated to any of the above.
+
+## Session: 2026-08-06 — Stage 3 Phase 0, batch 3 (T44–T45 re-verification)
+
+**Objectives:** Re-verify T44/T45 against a more precise, exhaustive instruction (exact dependency
+list, exact `Settings` fields, the literal `get_current_user(token: str | None)` signature, an
+explicit "keep framework types outside the port" constraint) and review T41–T43 for critical
+defects without modifying it. Full technical detail lives in
+`docs/ImplementationLog/Stage3/Phase0.md` (batch 3 sections) per this project's canonical-document
+rules — summarized here, not restated.
+
+**What happened:** Confirmed, by direct re-inspection of every affected file, that batch 2's
+implementation already satisfies the new precise spec exactly — no source changes were needed.
+Reviewed T41–T43 and found no critical defect; left unmodified per instruction. Flagged a
+reading-list discrepancy (`ADR-0018` still doesn't exist — unchanged since batch 2). Closed two
+genuine test-coverage gaps the more precise spec's explicit requirements exposed: a static check
+that `application/interfaces/auth.py` imports nothing from `fastapi`, and presence checks proving
+`argon2-cffi`/`PyJWT` are actually installed and importable. Full backend suite: 298 passed (293 +
+5 new), 0 failed; ruff/black clean; app boots. Self-assessed against the current eleven-item
+Reviewer Checklist and rendered a **QA Decision: Approved** — see `Phase0.md` for both in full.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase0.md` (full technical detail),
+`PROJECT_STATE.json`, `docs/SessionReport.md` (this file, summary only per the no-duplication
+rule).
+
+**Next Session Goals:** Unchanged from the prior entry — still stopped after T45, still awaiting a
+go-ahead for Phase 1 (`T46`+), and the `PreStageChecklist.md`/`ADR-0018` tracking decision remains
+open.
+
+## Session: 2026-08-06 — Stage 3 Phase 0, batch 4 (CI hotfix)
+
+**Objectives:** Diagnose and fix a GitHub Actions failure in
+`tests/unit/test_auth.py::TestSettingsAuthConfig::test_jwt_secret_key_has_no_default` without
+resuming Stage 3 implementation (Phase 1/`T46`+ remains not started). Full technical detail lives
+in `docs/ImplementationLog/Stage3/Phase0.md` (batch 4 sections) per this project's canonical-
+document rules — summarized here, not restated.
+
+**What happened:** The test constructed `Settings(_env_file=None)` expecting a `ValidationError`
+since `jwt_secret_key` has no default. It passed locally but failed in CI. Root cause:
+`.github/workflows/backend.yml` sets a job-level `JWT_SECRET_KEY` env var (added in batch 2) so the
+rest of the suite can construct `Settings()`; `_env_file=None` only suppresses the `.env`-file
+source, not the OS-environment source, so in CI the field resolved from that job-level var and
+validation correctly succeeded — no bug in `Settings` or the D3 "no default" design, confirmed
+against `docs/Stage3_Backend_Handoff.md` and `ADR-0019`/`ADR-0020`. Confirmed by reproducing the
+failure locally with `JWT_SECRET_KEY` set in the shell. Fixed by making the single affected test
+hermetic (`monkeypatch.delenv("JWT_SECRET_KEY", raising=False)` before constructing `Settings`) —
+no implementation code changed. Full backend suite: 298/298 passing (unchanged count); ruff/black
+clean. Self-assessed against the Reviewer Checklist and rendered a **QA Decision: Approved** — see
+`Phase0.md` for both in full.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase0.md` (full technical detail),
+`docs/SessionReport.md` (this file, summary only). `PROJECT_STATE.json` not touched — test count
+and stage status are unchanged by this hotfix.
+
+**Next Session Goals:** Unchanged — Stage 3 Phase 1 (`T46`+) still awaits an explicit go-ahead; the
+`PreStageChecklist.md`/`ADR-0018` tracking decision remains open. CI should now be green on this
+test; T35-style live verification (a real push) is the only way to confirm that in GitHub Actions
+itself.

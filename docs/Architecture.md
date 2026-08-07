@@ -54,7 +54,10 @@ infrastructure/
                      "name:true,other:false" — see SettingsFeatureFlagProvider)
   logging/         structured JSON logging (console + rotating file)
   database/        SQLAlchemy Base (naming_convention set for consistent constraint/index
-                     names), async engine/session, get_db() dependency
+                     names), async engine/session, get_db() dependency -- commits the session
+                     on a clean exit, rolls back on exception, before it closes (deliberate
+                     policy, not incidental; repositories only flush() within the transaction
+                     get_db() is what actually persists it -- Stage 3 Phase 0, ADR/0020)
   persistence/models/  Stage 2: the complete 49-table database schema as SQLAlchemy models,
                      persistence-layer only (ADR/0008), plus a seed-data migration for lookup
                      tables — see docs/Database.md and docs/ERD.md. No repositories/services/
@@ -179,6 +182,15 @@ FastAPI's native generator pattern for request-scoped teardown. Every future por
 **Pragmatic exception:** `DBSessionDep` gives routes an `AsyncSession` directly. That's session
 *plumbing*, not business logic — actual query/business logic still belongs in a
 repository/use-case, not inline in a route handler, once those exist.
+
+**Commit/rollback contract:** `get_db()` commits the session when the request handler returns
+normally and rolls back if it raises, immediately before the session closes — see
+[ADR/0020](../ADR/0020-session-commit-rollback-policy.md). This is why `SqlAlchemyRepository`'s
+`add()`/`update()`/`delete()` only need to `flush()`, never `commit()` themselves: `get_db()` is
+the transaction boundary, not the repository. A route/service performing several repository calls
+against the same request's session gets them all committed — or all rolled back — together as one
+transaction. `except Exception` (not `BaseException`) is a known, deliberate scope limit of this
+fix — see the ADR's Trade-offs for why `asyncio.CancelledError` isn't covered yet.
 
 ## Frontend (`frontend/src/`)
 

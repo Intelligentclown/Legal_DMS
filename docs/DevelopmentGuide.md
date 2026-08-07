@@ -129,6 +129,19 @@ Whenever a stage of work finishes:
 A stage isn't done until its documentation is. See [KnownIssues.md](KnownIssues.md) for anything
 discovered but not (yet) fixed.
 
+**Canonical document roles and ownership:** each document above has exactly one canonical purpose
+and one primary editor — see
+[`docs/ImplementationLog/README.md`](ImplementationLog/README.md#canonical-document-roles) for the
+full no-duplication rules (implementation detail belongs in `docs/ImplementationLog/`, never
+copied into `SessionReport`/`CHANGELOG`/an ADR) and
+[Documentation Ownership](ImplementationLog/README.md#documentation-ownership) for who's routinely
+responsible for what. Not repeated here — that document is authoritative for both.
+
+**QA gate:** an implementation batch doesn't count as done — and doesn't get documentation
+synchronized or merged — until it has a recorded QA Decision (`Approved` /
+`Approved with comments` / `Rework required`). See
+[`docs/ImplementationLog/README.md`](ImplementationLog/README.md#qa-decision) for the workflow.
+
 ## QA review discipline
 
 Every QA/architecture review (whether covering a numbered stage or a set of standalone post-stage
