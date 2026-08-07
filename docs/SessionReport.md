@@ -1106,3 +1106,35 @@ and stage status are unchanged by this hotfix.
 `PreStageChecklist.md`/`ADR-0018` tracking decision remains open. CI should now be green on this
 test; T35-style live verification (a real push) is the only way to confirm that in GitHub Actions
 itself.
+
+## Session: 2026-08-07 — Stage 3 Phase 1, T46 (password hashing utility)
+
+**Objectives:** Implement `T46` only, per explicit project-owner approval (the `PreStageChecklist.md`
+sign-off, `docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`, was completed and approved ahead of
+this session — Phase 0 Approved, Phase 1 approved to begin). Full technical detail lives in
+`docs/ImplementationLog/Stage3/Phase1.md` per this project's canonical-document rules — summarized
+here, not restated.
+
+**What happened:** Added `infrastructure/security/password_hasher.py` — `hash_password()`/
+`verify_password()`, plain functions (not a port, per this project's "no speculative abstractions"
+discipline) using `argon2.PasswordHasher` (D2/`ADR-0018`). `verify_password()` catches the three
+exceptions `argon2-cffi`'s own `verify()` can raise (`VerifyMismatchError`, `VerificationError`,
+`InvalidHash`) and returns `False` for all of them, so a wrong password and a corrupted hash fail
+the same simple way. `argon2-cffi` was already a dependency (`T44`), so no new dependency was added.
+6 new tests in `tests/unit/test_password_hasher.py`, covering `T46`'s named acceptance criteria plus
+two more earned by inspecting the library's actual output (Argon2id variant, per-call salting). Full
+unit suite: 192/192 passing (186 prior + 6 new); ruff/black clean; app still boots. Integration
+suite not re-run this session (Docker/Postgres unreachable in this environment, disclosed rather
+than assumed passing). Self-assessed against the Reviewer Checklist and rendered a **QA Decision:
+Approved** — see `Phase1.md` for both in full. Also corrected `IMPLEMENTATION_QUEUE.md`'s Stage 3
+header, which still described the checklist sign-off as pending even though it had already landed.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase1.md` (new, full technical detail),
+`IMPLEMENTATION_QUEUE.md` (`T46` marked done, Stage 3 header corrected), `PROJECT_STATE.json` (test
+count 298 → 304, new `backendSubsystems` entry, `openQuestions` updated), `docs/SessionReport.md`
+(this file).
+
+**Next Session Goals:** `T47` (JWT dependency + encode/decode token utility) is the next unstarted
+Phase 1 task — independent of `T46`, no code dependency either direction. `Phase0.md`'s own
+`Status` field still reads `In Progress` despite its blocking sign-off now being Approved — a known
+documentation lag, flagged but not corrected this session (out of scope for a `T46`-only batch).

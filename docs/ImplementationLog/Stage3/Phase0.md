@@ -2,15 +2,15 @@
 
 # Stage 3 – Phase 0
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-06
 
-Completed:
+Completed: 2026-08-07
 
 Related Tasks: T41, T42, T43, T44, T45
 
-Related ADRs: ADR-0019, ADR-0020
+Related ADRs: ADR-0018, ADR-0019, ADR-0020
 
 Git Commit: c84a339 (T41-T45, batches 1-3), d80815d (batch 4, CI hotfix)
 
@@ -394,6 +394,14 @@ before touching session/transaction code again.
 - This phase log's Status remains `In Progress`, unchanged by this hotfix — the open
   `PreStageChecklist.md`/`ADR-0018` items are still what's blocking `Done`, not anything this batch
   touched.
+
+**Closure (2026-08-07):** both blocking items are now resolved — `ADR-0018` was written (D1–D6),
+and `docs/reviews/PreStageChecklist_Stage3_2026-08-07.md` was signed off (Reviewer: Dhimant Patel,
+2026-08-07 — Phase 0 Approved, approved to begin Phase 1). Per `IMPLEMENTATION_QUEUE.md`'s own
+Phase 0 acceptance criteria, both conditions for `Done` are now satisfied. **Status updated to
+`Done` above.** This closure was recorded during Stage 3 Phase 1 documentation synchronization,
+after `T46` — the lag between the sign-off landing and this field being updated is itself noted in
+`IMPLEMENTATION_QUEUE.md`'s Stage 3 header and `docs/SessionReport.md`'s Phase 1/T46 entry.
 
 ---
 
