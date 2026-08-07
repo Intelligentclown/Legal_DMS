@@ -471,18 +471,21 @@ of 2026-08-06**, across two batches, both per explicit project-owner go-ahead (s
 `docs/ImplementationLog/Stage3/Phase0.md`). `ADR-0020` written as part of T43; `ADR-0019` (D7 only)
 written as part of T45; `ADR-0018` (D1–D6) subsequently written 2026-08-07, outside any task ID —
 see the Phase 0 task table's discrepancy note for why (batch 2 reused the T44/T45 IDs for
-different content per direct instruction). **The `docs/templates/PreStageChecklist.md` sign-off
-remains the one still-open item** (drafted at
-`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`, not yet formally approved). **T42–T43 (the
+different content per direct instruction). The `docs/templates/PreStageChecklist.md` sign-off is
+now complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`, Reviewer sign-off
+2026-08-07: Phase 0 Approved, approved to begin Phase 1). **`Phase0.md`'s own `Status` field has
+since been updated to `Done` (2026-08-07, during Phase 1/`T46` documentation synchronization) —
+the lag this note previously flagged is closed.** **Phase 1 has begun: `T46` done** (2026-08-07 —
+see `docs/ImplementationLog/Stage3/Phase1.md`); `T47` onward not started. **T42–T43 (the
 `get_db()`
 commit/rollback fix) were the highest-priority implementation work and had to land before any
 authentication code** — explicit project-owner instruction, consistent with this section's own
-"Hard blocker" note. Implementation stopped after T45 per instruction; Phase 1 (`T46`+) awaits a
-further explicit go-ahead. **A batch-3 re-verification pass (2026-08-06)** confirmed T44/T45 against
+"Hard blocker" note. **A batch-3 re-verification pass (2026-08-06)** confirmed T44/T45 against
 a more precise, exhaustive spec (exact dependency/config/interface requirements, an explicit "no
 framework types in the port" constraint) — already correct, no code changes needed; closed 2
-test-coverage gaps instead (298 tests passing total). QA Decision: Approved — see
-`docs/ImplementationLog/Stage3/Phase0.md`.
+test-coverage gaps instead. QA Decision: Approved — see
+`docs/ImplementationLog/Stage3/Phase0.md`. Backend total is 304 tests passing as of `T46`
+(2026-08-07) — see `docs/ImplementationLog/Stage3/Phase1.md`.
 
 ### Discrepancy found before proceeding (per `AI_BOOTSTRAP.md`'s "trust the code" rule) — Resolved by T41
 
@@ -619,10 +622,13 @@ given (direct instruction is the more authoritative source), documented in full 
 left behind, untracked by any task ID:** the `PreStageChecklist.md` sign-off (T44's original
 content) and `ADR-0018` (T45's original D1–D6 half). **Update (2026-08-07):** `ADR-0018` has since
 been written (`ADR/0018-authentication-authorization-architecture.md`), closing that half — still
-outside any task ID, but no longer an unwritten gap. **The `PreStageChecklist.md` sign-off is the
-one item that still needs a tracking decision** (new ID, or reconciling the numbering) — a draft
-exists at `docs/reviews/PreStageChecklist_Stage3_2026-08-07.md` but is not yet formally approved.
-See
+outside any task ID, but no longer an unwritten gap. **Further update (2026-08-07):** the
+`PreStageChecklist.md` sign-off is also now complete and formally approved
+(`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md` — Reviewer: Dhimant Patel, 2026-08-07: Phase
+0 Approved, approved to begin Phase 1). Both originally-orphaned items are closed; the only
+remaining loose end is that neither was ever given its own task ID (the "task IDs are immutable"
+rule below means this is now permanent — a closed gap, not an open one, so no tracking decision is
+actually needed). See
 [docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md](docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md)
 for the canonical disambiguation reference (what each ID means before/after this reuse) and a
 recommended (not yet adopted) "task IDs are immutable" rule to prevent this recurring.
@@ -631,7 +637,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
-| T46 | Add the chosen password-hashing dependency (D2); `hash_password()`/`verify_password()` utility + unit tests (correct password verifies, wrong password fails, hash is never plaintext-equal to input). | S | T45 |
+| T46 | ~~Add the chosen password-hashing dependency (D2); `hash_password()`/`verify_password()` utility + unit tests (correct password verifies, wrong password fails, hash is never plaintext-equal to input).~~ **Done** (2026-08-07 — `infrastructure/security/password_hasher.py`, plain functions using `argon2.PasswordHasher`; 6 tests in `tests/unit/test_password_hasher.py`. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
 | T47 | Add the chosen JWT dependency (D3); token utility — encode/decode access & refresh tokens (claims: `sub`, `roles`, `exp`, `jti`) + unit tests (round-trip, expired token rejected, tampered signature rejected). | S | T45 |
 | T48 | Extend `Settings` with auth config: JWT signing secret (env-driven, no default in code), algorithm, access-token TTL, refresh-token TTL. | XS | T47 |
 | T49 | New Alembic migration: `refresh_tokens` table (`id`, `user_id` FK, `token_hash`, `issued_at`, `expires_at`, `revoked_at` nullable) — per approved D1. | S | T45 |
@@ -770,8 +776,12 @@ T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark St
 
 ---
 
-*Stage 3's architecture (D1–D7, `ADR-0018`/`0019`/`0020`) is approved. **Implementation itself has
-not started and awaits a further explicit go-ahead** — see
-`docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68) prepared for
-that go-ahead. T1–T18 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately
-pending. T38–T40 (Dependabot, PR template, issue templates) remain backlog-only.*
+*Stage 3's architecture (D1–D7, `ADR-0018`/`0019`/`0020`) is approved. **Implementation is
+under way**: Phase 0 (T41–T45) is done (`docs/ImplementationLog/Stage3/Phase0.md`, Status: Done,
+QA Decision: Approved) and the `docs/templates/PreStageChecklist.md` sign-off that gated Phase 1 is
+complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 has begun —
+`T46` done (`docs/ImplementationLog/Stage3/Phase1.md`), `T47` onward not started, no further
+go-ahead needed beyond what's already been given per task. See
+`docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
+(Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
+(Dependabot, PR template, issue templates) remain backlog-only.*
