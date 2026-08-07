@@ -14,13 +14,15 @@ T45/T43)," written before a later direct instruction redefined T44/T45 to cover 
 `ADR-0019` (D7) and `ADR-0020` (session commit/rollback) were written as part of that redefined
 work; **`ADR-0018` (D1–D6) was not written under either T45 or any other task ID at the time —
 it was subsequently written 2026-08-07**, outside this handoff's own scope, closing that specific
-gap (the `docs/templates/PreStageChecklist.md` sign-off remains the one still-open item from the
-original T44/T45 content). See
+gap. The `docs/templates/PreStageChecklist.md` sign-off (the other original T44/T45 item) is also
+now complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`) — nothing from
+the original T44/T45 content remains open. See
 [docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md](reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md)
 for the full disambiguation. **This handoff's Phase 0 section is historical context; its Phase
-1–4 file-by-file map is what remains live. Implementation beyond Phase 0 has not been
-authorized.** Do not write any of the Phase 1+ code below until you have an explicit go-ahead
-separate from this document existing.
+1–4 file-by-file map is what remains live. Phase 1 is under way — `T46` and `T47` are done
+(`docs/ImplementationLog/Stage3/Phase1.md`); `T48` onward has not been authorized.** Do not write
+any code for `T48` or later below until you have an explicit go-ahead separate from this document
+existing.
 
 **Scope of this handoff:** backend only — Phase 0 through Phase 4 (`T41`–`T68`). It does **not**
 cover Phase 5 (frontend, `T69`–`T76`) or Phase 6 (hardening/close-out, `T77`–`T80`) — those get
