@@ -39,6 +39,7 @@ These hold regardless of who (or what) is doing the work:
   writing anything.
 - **Never assume task numbers.** Identify the next unfinished task from
   `IMPLEMENTATION_QUEUE.md`'s actual current content, not from a prior conversation or a guess.
+- **Every implementation cycle begins with the Project Manager.** No feature branch is created until the Project Manager has identified the next unfinished task, verified prerequisites, and the project owner has approved implementation.
 - **Trust code over documentation if they disagree.** Report the discrepancy, then fix the
   documentation — don't silently proceed on stale docs, and don't silently let the mismatch stand.
 - **Documentation must be synchronized after implementation.** A task isn't done when the code
@@ -53,7 +54,9 @@ These hold regardless of who (or what) is doing the work:
 
 ## 3. Standard Development Lifecycle
 
-```
+```text
+Project Manager
+        ↓
 Backend Developer
         ↓
 QA Reviewer
@@ -72,21 +75,26 @@ Merge
         ↓
 Delete Branch
         ↓
+Update Local main
+        ↓
 Next Task
 ```
 
 | Step | Purpose |
 |---|---|
-| **Backend Developer** | Implements the identified task, writes or extends tests, records the work in an `ImplementationLog` phase log, and self-assesses against the Reviewer Checklist. |
-| **QA Reviewer** | Independently reviews the implementation against that checklist and renders a QA Decision (`Approved` / `Approved with comments` / `Rework required`). `Rework required` sends the work back to the Developer — nothing downstream happens until it clears this gate. |
-| **Documentation Manager** | Once QA approves, synchronizes the project-wide documents this task affects — `PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs — without duplicating what the `ImplementationLog` already records. |
-| **Git Commit** | The implementation and its documentation sync are committed, following this project's existing commit-message conventions (see [§5](#5-git-workflow)). |
-| **Push** | The commit(s) go to the task's feature branch, which triggers the branch's own CI run. |
-| **GitHub Actions** | The three workflows (`backend.yml`, `frontend.yml`, `release.yml`) validate the change — see [§6](#6-pull-request-workflow). |
-| **Pull Request** | Opened against `main`, re-triggering the same three workflows against the merge target. |
-| **Merge** | Once checks are green, the PR is merged into `main`. |
-| **Delete Branch** | The feature branch is removed post-merge — branches are disposable, `main` is not. |
-| **Next Task** | Identify the next unfinished task from `IMPLEMENTATION_QUEUE.md`'s current state (per [§2](#2-repository-principles)) and begin again. |
+| **Project Manager** | Rebuilds repository state, identifies the next unfinished task from
+`IMPLEMENTATION_QUEUE.md`, verifies dependencies, phase gates,documentation consistency, implementation status, and blockers, then waits for explicit project-owner approval before implementation begins. |
+| **Backend Developer** | Implements the approved task, writes or extends tests, records the work in an `ImplementationLog` phase log, and self-assesses against the Reviewer Checklist. |
+| **QA Reviewer** | Independently reviews the implementation against the Reviewer Checklist and renders a QA Decision (`Approved` / `Approved with comments` / `Rework required`). `Rework required` sends the work back to the Developer — nothing downstream happens until it clears this gate. |
+| **Documentation Manager** | Once QA approves, synchronizes the project-wide documents this task affects (`PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs, release notes, etc.) without duplicating what the `ImplementationLog` already records. |
+| **Git Commit** | The implementation and documentation synchronization are committed using the project's commit-message conventions (see [§5](#5-git-workflow)). |
+| **Push** | Push the feature branch to GitHub, triggering CI. |
+| **GitHub Actions** | The project's CI workflows validate the change. |
+| **Pull Request** | Opened against `main`, triggering another CI run for the merge target. |
+| **Merge** | Merge into `main` after all required checks pass. |
+| **Delete Branch** | Delete the feature branch after merge. |
+| **Update Local main** | Update the local repository (`git checkout main && git pull`) before beginning new work. |
+| **Next Task** | Start the next cycle by identifying the next unfinished task from `IMPLEMENTATION_QUEUE.md`. Never assume the next task number from previous conversations. |
 
 ## 4. Branch Strategy
 
@@ -150,6 +158,7 @@ git checkout -b feature/<next-task-name>
   `ImplementationLog` phase log and its QA Decision, not restate their content.
 - **Merge policy:** standard merge commits (`Merge pull request #N from ...`), preserving the
   branch's own commit history rather than squashing or rebasing it.
+- **After merge:** update the local `main` branch (`git checkout main && git pull`) before starting the next implementation cycle.
 - **Protected branch workflow:** requiring these checks to pass before merge is a GitHub
   repository setting, not something this repository's files configure — it must be enabled
   separately by whoever has admin access, and can only be required once the checks have reported
@@ -157,17 +166,18 @@ git checkout -b feature/<next-task-name>
 
 ## 7. AI Roles
 
-The same three roles from [§3](#3-standard-development-lifecycle), with what each owns and must
-never do. One session commonly plays all three in sequence — the boundaries still apply to which
-hat is on at a given moment.
+The project defines four standard AI roles. One development session may perform all four sequentially, but each role has distinct responsibilities and boundaries.
 
 | Role | Owns | Must never |
 |---|---|---|
-| **Backend Developer** | Implementing the identified task; tests; the `ImplementationLog` phase log; the Reviewer Checklist self-assessment. | Skip writing tests for new behavior; skip the Reviewer Checklist; expand scope beyond the approved task; merge without a QA Decision. |
-| **QA Reviewer** | Independent review against the Reviewer Checklist; the QA Decision; `docs/ArchitectureScorecard.md`; QA reports. | Approve without actually reviewing; hide a verification gap instead of disclosing it; let `Rework required` work proceed to documentation sync or merge. |
-| **Documentation Manager** | Post-approval synchronization of `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, `docs/SessionReport.md`, changelogs, release notes. | Duplicate `ImplementationLog`'s technical detail; synchronize documentation before a QA Decision exists; rewrite a completed phase log or a past session entry to reflect later knowledge (append a new dated note instead). |
+| **Project Manager** | Repository state, implementation planning, dependency validation, task sequencing, stage gates, documentation consistency checks. | Implement code, review implementation, bypass stage gates, assume task numbers, or approve implementation. |
+| **Backend Developer** | Implementation, unit/integration tests, `ImplementationLog` phase entries, Reviewer Checklist self-assessment. | Skip tests, expand scope, perform unrelated refactoring, or continue automatically to the next task. |
+| **QA Reviewer** | Independent implementation review, QA Decision, architecture validation, regression review, documentation impact review. | Implement features, redesign architecture during review, or approve without verification. |
+| **Documentation Manager** | Synchronization of `PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs, release notes, and other project documentation after QA approval. | Duplicate `ImplementationLog` content, synchronize documentation before QA approval, or rewrite historical records instead of appending updates when required. |
 
-Full assignment detail: [`docs/ImplementationLog/README.md#documentation-ownership`](docs/ImplementationLog/README.md#documentation-ownership).
+Full ownership assignments are defined in:
+
+`docs/ImplementationLog/README.md`
 
 ## 8. Documentation Ownership
 
@@ -184,7 +194,7 @@ document is authoritative; this is a pointer, not a second copy.
 | `CHANGELOG.md` / `docs/CHANGELOG.md` | Release summary | Documentation Manager |
 | `docs/releases/` | Per-version release notes | Documentation Manager |
 | `README.md` / `docs/README.md` | Project entry points | Documentation Manager |
-| `PROJECT_STATE.json` | Point-in-time snapshot | Documentation Manager — assigned 2026-08-07; it's a synchronization document, changing after implementation, QA, releases, and documentation updates, matching this role's existing consistency-maintenance responsibility |
+| `PROJECT_STATE.json` | Point-in-time snapshot | Documentation Manager — maintains the project's synchronized point-in-time state after implementation, QA, releases, and documentation updates. |
 
 Ownership is primary, not exclusive: any role may correct any document when genuinely necessary,
 but routine updates belong to the assigned owner, and a reader should ask that owner first if a
@@ -202,6 +212,7 @@ A task is complete only when every one of the following holds — full checklist
 - GitHub Actions green
 - PR merged
 - Branch cleaned up
+- Local `main` synchronized (`git checkout main && git pull`) before beginning the next task.
 
 ## 10. Release Workflow
 
@@ -264,11 +275,19 @@ AI assistants must:
 
 ## Standard Prompts
 
-The project uses standard prompts for:
+The canonical AI role prompts are maintained under:
 
-- Backend Developer
-- QA Reviewer
-- Documentation Manager
+`docs/prompts/`
 
-These prompts are maintained outside this document to allow evolution without changing the
-workflow itself.
+These prompts are version-controlled alongside the repository and are the canonical instructions for each AI role.
+
+Current standard prompts:
+
+- `ProjectManager.md`
+- `BackendDeveloper.md`
+- `QAReviewer.md`
+- `DocumentationManager.md`
+
+Contributors should use these repository-local prompts instead of relying on previous chat history or external prompt copies.
+
+Changes to these prompts are governed by the project's **Process Changes are Versioned** rule and should be proposed, reviewed, and documented before adoption.
