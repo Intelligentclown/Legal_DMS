@@ -1076,3 +1076,33 @@ rule).
 **Next Session Goals:** Unchanged from the prior entry — still stopped after T45, still awaiting a
 go-ahead for Phase 1 (`T46`+), and the `PreStageChecklist.md`/`ADR-0018` tracking decision remains
 open.
+
+## Session: 2026-08-06 — Stage 3 Phase 0, batch 4 (CI hotfix)
+
+**Objectives:** Diagnose and fix a GitHub Actions failure in
+`tests/unit/test_auth.py::TestSettingsAuthConfig::test_jwt_secret_key_has_no_default` without
+resuming Stage 3 implementation (Phase 1/`T46`+ remains not started). Full technical detail lives
+in `docs/ImplementationLog/Stage3/Phase0.md` (batch 4 sections) per this project's canonical-
+document rules — summarized here, not restated.
+
+**What happened:** The test constructed `Settings(_env_file=None)` expecting a `ValidationError`
+since `jwt_secret_key` has no default. It passed locally but failed in CI. Root cause:
+`.github/workflows/backend.yml` sets a job-level `JWT_SECRET_KEY` env var (added in batch 2) so the
+rest of the suite can construct `Settings()`; `_env_file=None` only suppresses the `.env`-file
+source, not the OS-environment source, so in CI the field resolved from that job-level var and
+validation correctly succeeded — no bug in `Settings` or the D3 "no default" design, confirmed
+against `docs/Stage3_Backend_Handoff.md` and `ADR-0019`/`ADR-0020`. Confirmed by reproducing the
+failure locally with `JWT_SECRET_KEY` set in the shell. Fixed by making the single affected test
+hermetic (`monkeypatch.delenv("JWT_SECRET_KEY", raising=False)` before constructing `Settings`) —
+no implementation code changed. Full backend suite: 298/298 passing (unchanged count); ruff/black
+clean. Self-assessed against the Reviewer Checklist and rendered a **QA Decision: Approved** — see
+`Phase0.md` for both in full.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase0.md` (full technical detail),
+`docs/SessionReport.md` (this file, summary only). `PROJECT_STATE.json` not touched — test count
+and stage status are unchanged by this hotfix.
+
+**Next Session Goals:** Unchanged — Stage 3 Phase 1 (`T46`+) still awaits an explicit go-ahead; the
+`PreStageChecklist.md`/`ADR-0018` tracking decision remains open. CI should now be green on this
+test; T35-style live verification (a real push) is the only way to confirm that in GitHub Actions
+itself.

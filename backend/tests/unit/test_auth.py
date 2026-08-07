@@ -126,7 +126,13 @@ class TestSettingsAuthConfig:
     encoded/decoded anywhere yet -- these tests only prove the config shape
     T47's future token utility will read from."""
 
-    def test_jwt_secret_key_has_no_default(self) -> None:
+    def test_jwt_secret_key_has_no_default(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # CI sets a job-level JWT_SECRET_KEY env var (.github/workflows/backend.yml) so the rest
+        # of the suite can construct Settings() -- _env_file=None only suppresses the .env file
+        # source, not the process environment, so that ambient var must be cleared explicitly for
+        # this test to actually exercise "no value from any source".
+        monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
+
         with pytest.raises(ValidationError, match="jwt_secret_key"):
             Settings(_env_file=None)
 

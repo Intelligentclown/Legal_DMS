@@ -29,11 +29,14 @@ regression tests plus a recorded policy decision (T43) — the hard prerequisite
 phase's writes (users, tokens, role assignments) depend on. **Batch 2:** add the approved
 authentication dependencies and configuration (T44), and create the finalized
 `AuthenticationProvider` interface per D7 (T45) — foundation only, no login/JWT/hashing/routes/DB
-writes. **Batch 3 (this update):** a rigorous re-verification pass against a more precise T44/T45
+writes. **Batch 3:** a rigorous re-verification pass against a more precise T44/T45
 spec (exact dependency/config/interface requirements, an explicit "no framework types in the port"
 constraint) — confirmed batch 2's implementation already satisfies it exactly, and closed two
 genuine test-coverage gaps (dependency importability, the framework-free-port constraint) rather
-than re-implementing anything already correct.
+than re-implementing anything already correct. **Batch 4 (this update, CI hotfix):** fixed a
+CI-only failure in `tests/unit/test_auth.py::TestSettingsAuthConfig::test_jwt_secret_key_has_no_default`
+— the test itself was not hermetic against the process environment, not a defect in `Settings` or
+the D3 "no default" design. See below.
 
 ## ⚠ Task-ID discrepancy (batch 2) — read before trusting "T44"/"T45" elsewhere in this repo
 
@@ -95,6 +98,26 @@ Explicitly **not** done, per instruction ("stop after T45"): Phase 1 onward (`T4
 *original* T44/T45 content (`PreStageChecklist` sign-off, `ADR-0018`) — see the discrepancy note
 above and Deferred Work.
 
+- **Batch 4 — CI hotfix.** GitHub Actions' `backend.yml` job reported
+  `tests/unit/test_auth.py::TestSettingsAuthConfig::test_jwt_secret_key_has_no_default` failing:
+  `Settings()` constructed without raising `ValidationError` even though `jwt_secret_key` has no
+  default. Root cause: `.github/workflows/backend.yml` sets a job-level `JWT_SECRET_KEY` env var
+  (added in batch 2, `ci-only-fake-secret-not-used-for-anything-real`) so the rest of the suite and
+  the import-smoke step can construct `Settings()`. That env var is visible to every step in the
+  job, including this test. The test called `Settings(_env_file=None)`, but `_env_file=None` only
+  suppresses `pydantic-settings`' `.env`-file source — it does **not** suppress the OS-environment
+  source, so in CI the field resolved from `os.environ["JWT_SECRET_KEY"]` and validation correctly
+  succeeded (no bug in `Settings`). Locally this passed only because the developer's shell has no
+  `JWT_SECRET_KEY` exported (only the gitignored `.env` file does, correctly bypassed by
+  `_env_file=None`). Confirmed by reproducing locally with `JWT_SECRET_KEY=<value>` set in the
+  process environment — the test failed identically outside CI, proving it was an environment
+  condition, not a CI-specific fluke. Fixed by making the test explicitly hermetic:
+  `monkeypatch.delenv("JWT_SECRET_KEY", raising=False)` before constructing `Settings(_env_file=None)`,
+  so the test's outcome no longer depends on what the ambient process environment happens to
+  contain. `Settings.jwt_secret_key`'s "no code-level default" behavior itself was not touched —
+  confirmed still correct, matching D3/`docs/Stage3_Backend_Handoff.md` §6 and
+  `docs/ImplementationLog/Stage3/Phase0.md`'s own batch-2 record.
+
 ## Files Modified
 
 **Batch 1 (T41–T43):**
@@ -138,6 +161,16 @@ above and Deferred Work.
 - No source (non-test) files changed — batch 2's implementation already matched the precise spec
   exactly.
 
+**Batch 4 (CI hotfix):**
+- `backend/tests/unit/test_auth.py` — `TestSettingsAuthConfig::test_jwt_secret_key_has_no_default`
+  modified to accept `monkeypatch: pytest.MonkeyPatch` and call
+  `monkeypatch.delenv("JWT_SECRET_KEY", raising=False)` before constructing `Settings(_env_file=None)`.
+- `docs/ImplementationLog/Stage3/Phase0.md` — this file.
+- `docs/SessionReport.md` — new session entry.
+- No source (non-test) files changed — `Settings.jwt_secret_key` was already correct; only the
+  test's isolation was fixed. `PROJECT_STATE.json` not touched — test count and stage status are
+  unchanged by this hotfix.
+
 ## Tests Added
 
 **Batch 1:** 5 tests in `test_get_db_transaction_policy.py` (see prior entry below, unchanged).
@@ -170,6 +203,9 @@ exposed:
    `ExpiredSignatureError`/`InvalidSignatureError` exceptions are importable. Proves T44's other
    dependency addition without encoding/decoding a token (that's `T47`).
 
+**Batch 4 (CI hotfix):** No new tests — one existing test modified for hermeticity (see Files
+Modified). Test count is unchanged (298 before and after).
+
 ## Test Results
 
 **Batch 1:** 287 passed (282 existing + 5 new) — see prior entry below.
@@ -195,6 +231,19 @@ exposed:
 - **Import/boot smoke test:** re-verified, succeeds.
 - No T41–T43 files were touched, so no re-verification of `get_db()`'s own behavior was needed
   beyond confirming its existing tests still pass as part of the full-suite run.
+
+**Batch 4 (CI hotfix):**
+- Reproduced the CI failure locally first: `JWT_SECRET_KEY=<value> uv run python -c
+  "from app.infrastructure.config.settings import Settings; Settings(_env_file=None)"` constructed
+  successfully (no `ValidationError`) with the env var set, matching the CI failure exactly.
+- `pytest tests/unit/test_auth.py -v` — 13/13 passing (including the fixed test, run under the
+  developer's normal shell with no `JWT_SECRET_KEY` set).
+- `pytest tests/unit/test_auth.py::TestSettingsAuthConfig -v` re-run with
+  `JWT_SECRET_KEY=ci-only-fake-secret-not-used-for-anything-real` explicitly set in the process
+  environment (reproducing the exact CI condition) — 4/4 passing, confirming the fix holds under
+  the condition that broke CI, not just in the developer's own shell.
+- **Full backend suite: 298 passed** (unchanged — no test added, one fixed), 0 failed, 0 skipped.
+- **Lint:** `ruff check src tests alembic` and `black --check src tests alembic` — both clean.
 
 ## Design Decisions
 
@@ -232,6 +281,26 @@ Exception` not `BaseException`; regression tests drive `get_db()` directly).
   added against an already-recorded decision (`ADR-0019`). Writing a new ADR for "we added tests"
   would misuse the ADR mechanism.
 
+**Batch 4 (CI hotfix):**
+- **Fixed the test's isolation, not `Settings`.** The failure was diagnosed as a test-hermeticity
+  bug, not an architecture or implementation defect: `jwt_secret_key: str` having no code-level
+  default is exactly the approved D3/D-decision design
+  (`docs/Stage3_Backend_Handoff.md` §6, "no default at all for the actual signing secret"), and it
+  still has none after this fix. The only thing that changed is that the test no longer trusts
+  `_env_file=None` to mean "no env source at all" — it explicitly clears the one OS-level env var
+  (`JWT_SECRET_KEY`) that CI legitimately sets for unrelated reasons (letting the rest of the suite
+  and the import-smoke step construct `Settings()`), via `monkeypatch.delenv(..., raising=False)`.
+  `monkeypatch` is pytest's own fixture for exactly this — scoped to the single test, restored
+  automatically afterward, no risk of leaking into other tests.
+- **No new ADR.** This is a test-hermeticity bug fix, not an architectural decision — nothing about
+  `Settings`, the D1–D7 decisions, or `ADR-0019`/`ADR-0020` changed.
+- **Did not widen the CI env var removal, touch `.github/workflows/backend.yml`, or change any
+  other `Settings(_env_file=None, ...)` call site.** The other call sites
+  (`test_example.py`, `test_feature_flags.py`, and this file's own other three
+  `TestSettingsAuthConfig` tests) all pass `jwt_secret_key="test-secret"` explicitly, so an ambient
+  `JWT_SECRET_KEY` env var can't change their outcome — only the one test asserting *absence* was
+  actually exposed to this class of bug.
+
 ## Problems Encountered
 
 **Batch 1:** see prior entry below (`get_engine()` lru_cache vs. per-test event loops).
@@ -251,6 +320,15 @@ Exception` not `BaseException`; regression tests drive `get_db()` directly).
 
 **Batch 3:** None. Verification confirmed batch 2's implementation, no defects found in T41–T43,
 and both new test additions passed on the first attempt.
+
+**Batch 4 (CI hotfix):** The test passed locally in every prior batch and only failed in GitHub
+Actions specifically, because only the CI job's `backend.yml` sets a job-level `JWT_SECRET_KEY` env
+var — no local developer shell has that set. This made the bug invisible to `uv run pytest` on a
+normal developer machine and visible only in CI, which is exactly why it wasn't caught in batches
+2/3 despite the test having been written and reviewed twice already. Resolved by reproducing the
+exact CI condition locally (setting `JWT_SECRET_KEY` in the shell before invoking pytest) before
+writing the fix, then re-confirming the fix under that same reproduced condition — not just
+re-running the test in its normal (bug-masking) local environment.
 
 ## Deferred Work
 
@@ -273,6 +351,11 @@ and both new test additions passed on the first attempt.
 
 **New from batch 3:** None beyond what batch 2 already deferred — this batch was verification and
 test-coverage only, it found no new work to defer.
+
+**New from batch 4:** None. This was a self-contained hotfix with no follow-on work identified —
+the one other place an ambient-env-var assumption could theoretically bite (a hypothetical future
+test asserting absence of some other required setting) doesn't exist yet, so there's nothing
+concrete to defer against.
 
 ## Future Considerations
 
@@ -299,6 +382,18 @@ before touching session/transaction code again.
 - The two new test files establish a pattern worth reusing in Phase 1: an explicit "no framework
   types in this port" AST check, and "is the dependency actually importable" checks, both cheap and
   high-signal for exactly the kind of drift that's easy to introduce silently later.
+
+**New from batch 4:**
+- **General lesson for Phase 1+:** any future test asserting "a required `Settings` field has no
+  usable value" must explicitly clear the relevant env var(s) via `monkeypatch.delenv(...)` rather
+  than relying on `Settings(_env_file=None)` alone — that argument only suppresses the `.env`-file
+  source, not the OS-environment source, and this project's CI already sets at least one
+  required-field env var (`JWT_SECRET_KEY`) at job level for unrelated reasons. Worth keeping in
+  mind if/when `T47`'s token utility or any later required config field grows its own
+  "has no default" test.
+- This phase log's Status remains `In Progress`, unchanged by this hotfix — the open
+  `PreStageChecklist.md`/`ADR-0018` items are still what's blocking `Done`, not anything this batch
+  touched.
 
 ---
 
@@ -361,9 +456,9 @@ exact matrix (T66) still needs explicit sign-off before that migration is writte
 
 ## Reviewer Checklist
 
-Self-assessed for Phase 0 as a whole (T41–T45, three batches), updated to this project's current
-eleven-item standard (matured after batch 2 was first written — see
-`docs/ImplementationLog/README.md`; the original eight-item self-assessment from batch 2 is
+Self-assessed for Phase 0 as a whole (T41–T45, four batches — batch 4 a CI hotfix, no new task ID),
+updated to this project's current eleven-item standard (matured after batch 2 was first written —
+see `docs/ImplementationLog/README.md`; the original eight-item self-assessment from batch 2 is
 superseded by this one, not kept alongside it, per the "phase log is authoritative for its own
 technical facts" rule).
 
@@ -410,6 +505,10 @@ Notes on the less-obvious ones:
   list) — closing a proof gap for a stated requirement, not adding an unstated one.
 - **Ready for QA:** this log plus `ADR-0019`/`ADR-0020` are meant to be sufficient for a reviewer to
   verify all of Phase 0 without needing to ask what happened or why.
+- **Tests added (batch 4):** no new test was added — the one existing test with a hermeticity gap
+  was fixed in place. Checked `☑` for the phase as a whole since batches 1–3 did add real coverage
+  for their own new behavior; batch 4's fix is recorded distinctly in Problems
+  Encountered/Design Decisions rather than claimed as "new coverage."
 
 ## QA Decision
 
@@ -429,3 +528,22 @@ passing; ruff/black clean; app boots. The only open items (`PreStageChecklist.md
 `ADR-0018`) are explicitly tracked as deferred, not silently dropped, and don't block this batch's
 own correctness. Proceeding to documentation synchronization (`PROJECT_STATE.json`,
 `docs/SessionReport.md`) per the Documentation Manager step below.
+
+### QA Decision — Batch 4 (CI hotfix)
+
+```
+QA Decision (batch 4)
+
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+**Approved.** Root cause correctly isolated to test hermeticity, not `Settings`/architecture — the
+D3 "`jwt_secret_key` has no code-level default" design remains exactly as approved and unchanged by
+this fix. Fix is minimal (one test method, one `monkeypatch.delenv` call), verified both in a normal
+local shell and under the exact CI condition that caused the failure (reproduced by setting
+`JWT_SECRET_KEY` in the process environment before re-running the test). Full backend suite:
+298/298 passing (unchanged count); ruff/black clean. No unrelated files touched. This phase log's
+Status correctly remains `In Progress` — this hotfix doesn't resolve the still-open
+`PreStageChecklist.md`/`ADR-0018` items blocking `Done`.
