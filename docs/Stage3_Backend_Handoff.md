@@ -6,9 +6,21 @@ source-of-truth task list, decisions, and acceptance criteria all live in
 `IMPLEMENTATION_QUEUE.md`'s "Stage 3" section; this document exists to save you re-deriving the
 codebase context that section assumes.
 
-**Status:** Architecture approved (`ADR-0018`/`0019`/`0020`, once written per T45/T43). **This
-handoff is preparation only — implementation has not been authorized to start.** Do not write any
-of the code below until you have an explicit go-ahead separate from this document existing.
+**Status:** Architecture approved. Phase 0 (T41–T45) is done, QA Decision Approved — see
+`IMPLEMENTATION_QUEUE.md`'s Stage 3 status header and
+`docs/ImplementationLog/Stage3/Phase0.md` for the current, authoritative account. **Correction:**
+this line originally read "Architecture approved (`ADR-0018`/`0019`/`0020`, once written per
+T45/T43)," written before a later direct instruction redefined T44/T45 to cover different work.
+`ADR-0019` (D7) and `ADR-0020` (session commit/rollback) were written as part of that redefined
+work; **`ADR-0018` (D1–D6) was not written under either T45 or any other task ID at the time —
+it was subsequently written 2026-08-07**, outside this handoff's own scope, closing that specific
+gap (the `docs/templates/PreStageChecklist.md` sign-off remains the one still-open item from the
+original T44/T45 content). See
+[docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md](reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md)
+for the full disambiguation. **This handoff's Phase 0 section is historical context; its Phase
+1–4 file-by-file map is what remains live. Implementation beyond Phase 0 has not been
+authorized.** Do not write any of the Phase 1+ code below until you have an explicit go-ahead
+separate from this document existing.
 
 **Scope of this handoff:** backend only — Phase 0 through Phase 4 (`T41`–`T68`). It does **not**
 cover Phase 5 (frontend, `T69`–`T76`) or Phase 6 (hardening/close-out, `T77`–`T80`) — those get

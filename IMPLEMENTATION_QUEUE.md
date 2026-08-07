@@ -7,6 +7,14 @@ file is expected to be rewritten at the start of each new stage.
 
 Status values: `Not Started`, `In Progress`, `Done`, `Deferred`, `Blocked`.
 
+**Task IDs are immutable and permanently reserved.** A completed or cancelled task ID (e.g. `T44`)
+is never reassigned to different work, even under direct instruction — see `AI_BOOTSTRAP.md`'s
+"Non-negotiable rules." If scope changes after a task is done, cancel it in place and open a new
+ID for the new scope; don't redefine the old one. (This rule was adopted after the T44/T45 ID-reuse
+incident — see
+[docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md](docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md)
+— which predates the rule and is left as historical record, not renumbered.)
+
 ---
 
 ## Stage 2.5 — Architecture Hardening
@@ -461,9 +469,12 @@ backlog only — not scheduled, not implemented.*
 **Status:** Architecture Approved — decisions D1–D7 below are locked in. **Phase 0 (T41–T45) done as
 of 2026-08-06**, across two batches, both per explicit project-owner go-ahead (see
 `docs/ImplementationLog/Stage3/Phase0.md`). `ADR-0020` written as part of T43; `ADR-0019` (D7 only)
-written as part of T45 — **`ADR-0018` (D1–D6) and the `docs/templates/PreStageChecklist.md`
-sign-off remain not done**, see the Phase 0 task table's discrepancy note for why (batch 2 reused
-the T44/T45 IDs for different content per direct instruction). **T42–T43 (the `get_db()`
+written as part of T45; `ADR-0018` (D1–D6) subsequently written 2026-08-07, outside any task ID —
+see the Phase 0 task table's discrepancy note for why (batch 2 reused the T44/T45 IDs for
+different content per direct instruction). **The `docs/templates/PreStageChecklist.md` sign-off
+remains the one still-open item** (drafted at
+`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`, not yet formally approved). **T42–T43 (the
+`get_db()`
 commit/rollback fix) were the highest-priority implementation work and had to land before any
 authentication code** — explicit project-owner instruction, consistent with this section's own
 "Hard blocker" note. Implementation stopped after T45 per instruction; Phase 1 (`T46`+) awaits a
@@ -605,9 +616,16 @@ the finalized `AuthenticationProvider` interface for T45, versus this table's or
 sign-off / ADR-writing tasks). Flagged before implementing; proceeded on the explicit instruction
 given (direct instruction is the more authoritative source), documented in full in
 `docs/ImplementationLog/Stage3/Phase0.md`'s "⚠ Task-ID discrepancy" section. **Net open items this
-left behind, now untracked by any ID:** the `PreStageChecklist.md` sign-off (T44's original
-content), and `ADR-0018` (T45's original D1–D6 half) — both need a decision on how to be tracked
-going forward (new IDs, or reconciling the numbering) before Phase 1 begins.
+left behind, untracked by any task ID:** the `PreStageChecklist.md` sign-off (T44's original
+content) and `ADR-0018` (T45's original D1–D6 half). **Update (2026-08-07):** `ADR-0018` has since
+been written (`ADR/0018-authentication-authorization-architecture.md`), closing that half — still
+outside any task ID, but no longer an unwritten gap. **The `PreStageChecklist.md` sign-off is the
+one item that still needs a tracking decision** (new ID, or reconciling the numbering) — a draft
+exists at `docs/reviews/PreStageChecklist_Stage3_2026-08-07.md` but is not yet formally approved.
+See
+[docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md](docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md)
+for the canonical disambiguation reference (what each ID means before/after this reuse) and a
+recommended (not yet adopted) "task IDs are immutable" rule to prevent this recurring.
 
 #### Phase 1 — Backend: credentials & token foundation
 

@@ -83,6 +83,15 @@ Leave a field blank rather than guess or pre-fill it — the same "an honest unc
 falsely checked one" discipline `docs/templates/README.md` already applies to checklists applies
 here to metadata fields.
 
+**Task IDs are immutable** (see `AI_BOOTSTRAP.md`'s "Non-negotiable rules"), and that applies here
+too: an Implementation Log must record the task IDs exactly as they existed at the time that phase
+was actually implemented, and a completed phase log is never edited later to relabel, renumber, or
+reassign those IDs if a later task reuses similar wording or a later convention changes — if a task
+ID's scope was genuinely redefined mid-implementation (as happened once, see
+`docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md`), the log documents that
+redefinition in place, in prose, rather than silently presenting the final state as if it had been
+true from the start.
+
 ## Required sections
 
 After the metadata block, every phase log must contain these eleven sections, in this order, even

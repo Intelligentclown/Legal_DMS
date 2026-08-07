@@ -53,6 +53,15 @@ When starting a new AI session:
 - **Documentation is part of the codebase.** A stage isn't done until `docs/`, `ADR/`,
   `PROJECT_STATE.json`, and this file (if it needs updating) all reflect reality. See
   `docs/DevelopmentGuide.md`'s "Documentation discipline" section.
+- **Task IDs are immutable.** Once a task ID has been assigned, it must never be reused for a
+  different task. If scope changes:
+  - Cancel the original task.
+  - Create a new task ID.
+  - Preserve historical references.
+
+  Never overwrite or redefine an existing task ID. See
+  [`docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md`](docs/reviews/Documentation_Migration_Note_T44_T45_2026-08-06.md)
+  for the incident that prompted this rule.
 - **Every significant architectural decision gets an ADR** in [`/ADR`](ADR/). Don't change
   architecture silently.
 - **Process changes are versioned.** Any change to the project's development workflow —

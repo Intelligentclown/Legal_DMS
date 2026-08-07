@@ -12,9 +12,9 @@ Related Tasks: T41, T42, T43, T44, T45
 
 Related ADRs: ADR-0019, ADR-0020
 
-Git Commit:
+Git Commit: c84a339 (T41-T45, batches 1-3), d80815d (batch 4, CI hotfix)
 
-Pull Request:
+Pull Request: #2 (feature/stage3-phase0 -> main, merge commit 78f2677)
 
 Release:
 
