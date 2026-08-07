@@ -1138,3 +1138,39 @@ count 298 → 304, new `backendSubsystems` entry, `openQuestions` updated), `doc
 Phase 1 task — independent of `T46`, no code dependency either direction. `Phase0.md`'s own
 `Status` field still reads `In Progress` despite its blocking sign-off now being Approved — a known
 documentation lag, flagged but not corrected this session (out of scope for a `T46`-only batch).
+
+## Session: 2026-08-07 — Stage 3 Phase 1, T47 (JWT encode/decode utility)
+
+**Objectives:** Implement `T47` only, per explicit project-owner approval. Full technical detail
+lives in `docs/ImplementationLog/Stage3/Phase1.md` (T47 batch sections) per this project's
+canonical-document rules — summarized here, not restated.
+
+**What happened:** Added `infrastructure/security/jwt_service.py` — `create_access_token()`
+(claims `sub`/`roles`/`exp`/`jti`), `create_refresh_token()` (claims `sub`/`exp`/`jti`, no `roles`
+— a refresh token only proves identity, current roles are re-derived from the database when a new
+access token is actually issued), and `decode_token()`, which catches `jwt.PyJWTError` (the base
+class covering every PyJWT failure mode) and returns `None` on any expired/malformed/tampered/
+wrong-secret token, mirroring `T46`'s boolean-outcome contract shape. `PyJWT` was already a
+dependency (`T44`), so no new dependency was added. 9 new tests in
+`tests/unit/test_jwt_service.py`, covering `T47`'s named acceptance criteria (round-trip, expired
+rejected, tampered rejected) plus six more earned by inspecting the utility's actual failure surface
+(wrong secret, malformed input, `jti` uniqueness, both token kinds' expiry, an explicit
+exception-non-leak check). Full unit suite: 201/201 passing (192 prior + 9 new); ruff/black clean
+after one formatting fix; app still boots. Integration suite not re-run (Docker/Postgres
+unreachable in this environment, disclosed rather than assumed passing). Also confirmed, while
+building `T47`, that `T48` ("Extend `Settings` with auth config") is already fully satisfied by
+`T44`'s redefined scope — flagged in `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json`, not
+silently fixed since no batch was asked to close it. Self-assessed against the Reviewer Checklist
+(updated in place to cover Phase 1 as a whole, `T46`+`T47`) and rendered a **QA Decision:
+Approved** — see `Phase1.md` for both in full.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase1.md` (T47 batch sections, updated
+Reviewer Checklist/QA Decision), `IMPLEMENTATION_QUEUE.md` (`T47` marked done, Stage 3 header
+updated, `T48` discrepancy flagged), `PROJECT_STATE.json` (test count 304 → 313, new
+`backendSubsystems` entry, `openQuestions` updated), `docs/SessionReport.md` (this file).
+
+**Next Session Goals:** `T49` (`refresh_tokens` Alembic migration) is the next unstarted Phase 1
+task, depending only on `T45` (done) — independent of `T46`/`T47`. `T50` (`AuthService`) is the
+first task that actually depends on `T46`+`T47`+`T49` together. The `T48` discrepancy (see above)
+still needs a decision — mark it done as a documentation-only correction, or leave it explicitly
+tracked as-is.

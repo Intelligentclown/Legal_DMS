@@ -475,8 +475,12 @@ different content per direct instruction). The `docs/templates/PreStageChecklist
 now complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`, Reviewer sign-off
 2026-08-07: Phase 0 Approved, approved to begin Phase 1). **`Phase0.md`'s own `Status` field has
 since been updated to `Done` (2026-08-07, during Phase 1/`T46` documentation synchronization) —
-the lag this note previously flagged is closed.** **Phase 1 has begun: `T46` done** (2026-08-07 —
-see `docs/ImplementationLog/Stage3/Phase1.md`); `T47` onward not started. **T42–T43 (the
+the lag this note previously flagged is closed.** **Phase 1 under way: `T46` and `T47` done**
+(2026-08-07 — see `docs/ImplementationLog/Stage3/Phase1.md`); `T48` (Extend `Settings` with auth
+config) **appears already satisfied by `T44`'s redefined scope** (`jwt_secret_key`/`jwt_algorithm`/
+`access_token_ttl_minutes`/`refresh_token_ttl_days` all exist) but its row below is not yet marked
+done — flagged, not silently fixed, since no batch has been explicitly asked to close it. `T49`
+onward not started. **T42–T43 (the
 `get_db()`
 commit/rollback fix) were the highest-priority implementation work and had to land before any
 authentication code** — explicit project-owner instruction, consistent with this section's own
@@ -638,7 +642,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
 | T46 | ~~Add the chosen password-hashing dependency (D2); `hash_password()`/`verify_password()` utility + unit tests (correct password verifies, wrong password fails, hash is never plaintext-equal to input).~~ **Done** (2026-08-07 — `infrastructure/security/password_hasher.py`, plain functions using `argon2.PasswordHasher`; 6 tests in `tests/unit/test_password_hasher.py`. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
-| T47 | Add the chosen JWT dependency (D3); token utility — encode/decode access & refresh tokens (claims: `sub`, `roles`, `exp`, `jti`) + unit tests (round-trip, expired token rejected, tampered signature rejected). | S | T45 |
+| T47 | ~~Add the chosen JWT dependency (D3); token utility — encode/decode access & refresh tokens (claims: `sub`, `roles`, `exp`, `jti`) + unit tests (round-trip, expired token rejected, tampered signature rejected).~~ **Done** (2026-08-07 — `infrastructure/security/jwt_service.py`: `create_access_token()`/`create_refresh_token()`/`decode_token()` using PyJWT; 9 tests in `tests/unit/test_jwt_service.py`. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
 | T48 | Extend `Settings` with auth config: JWT signing secret (env-driven, no default in code), algorithm, access-token TTL, refresh-token TTL. | XS | T47 |
 | T49 | New Alembic migration: `refresh_tokens` table (`id`, `user_id` FK, `token_hash`, `issued_at`, `expires_at`, `revoked_at` nullable) — per approved D1. | S | T45 |
 | T50 | `AuthService` (application layer): `authenticate(email, password) -> Result[User, AppError]`, `issue_tokens(user)`, `refresh(refresh_token)`, `revoke(refresh_token)`. | M | T46, T47, T49 |
@@ -776,12 +780,21 @@ T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark St
 
 ---
 
+## Documentation Backlog (flagged, not scheduled — unrelated to any single stage)
+
+| ID | Task | Complexity | Depends on |
+|---|---|---|---|
+| T81 | Root `README.md` has a stray "## Writing Rules" section appended at its end (rules about `ImplementationLog` phase files, ADR/CHANGELOG duplication) — reads as `docs/ImplementationLog/README.md` content misplaced into the root README rather than genuine root-README material. Investigate and, if confirmed misplaced, move or remove it. Flagged during the `PROJECT_WORKFLOW.md` review (2026-08-07); deliberately not fixed immediately, to keep that review focused. | XS | — |
+
+---
+
 *Stage 3's architecture (D1–D7, `ADR-0018`/`0019`/`0020`) is approved. **Implementation is
 under way**: Phase 0 (T41–T45) is done (`docs/ImplementationLog/Stage3/Phase0.md`, Status: Done,
 QA Decision: Approved) and the `docs/templates/PreStageChecklist.md` sign-off that gated Phase 1 is
-complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 has begun —
-`T46` done (`docs/ImplementationLog/Stage3/Phase1.md`), `T47` onward not started, no further
-go-ahead needed beyond what's already been given per task. See
+complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 is under
+way — `T46` and `T47` done (`docs/ImplementationLog/Stage3/Phase1.md`, QA Decision: Approved);
+`T48`'s row is unmarked but its scope already appears satisfied by `T44`'s redefinition (flagged,
+not fixed — no batch has been asked to close it); `T49` onward not started. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
-(Dependabot, PR template, issue templates) remain backlog-only.*
+(Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*

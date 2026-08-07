@@ -274,7 +274,7 @@ document in their column looks wrong.
 | **Software Architect** | ADRs (`/ADR/`); `docs/Architecture.md`; interface/port documentation; architecture decisions generally. |
 | **Backend / Frontend Developer** | `docs/ImplementationLog/` (their own phase logs); developer notes; technical implementation documentation. |
 | **QA Reviewer** | `docs/ArchitectureScorecard.md`; QA reports (`docs/reviews/*_QA_Review.md`); test verification records; the **QA Decision** on each implementation batch (see above). |
-| **Documentation Manager** | `docs/AI_HANDOVER.md`; `docs/ProjectStatus.md`; `docs/SessionReport.md`; both `CHANGELOG.md` files; release notes (`docs/releases/`); README updates project-wide. |
+| **Documentation Manager** | `docs/AI_HANDOVER.md`; `docs/ProjectStatus.md`; `docs/SessionReport.md`; both `CHANGELOG.md` files; release notes (`docs/releases/`); README updates project-wide; [`PROJECT_STATE.json`](../../PROJECT_STATE.json) (assigned 2026-08-07 — a synchronization document that changes after implementation, QA, releases, and documentation updates, the same consistency-maintenance role this row already covers for everything else in it). |
 
 This maps directly onto the QA Decision workflow above: a Developer's phase log reaches "Ready for
 QA," a QA Reviewer records the QA Decision, and only once it's `Approved`/`Approved with comments`
