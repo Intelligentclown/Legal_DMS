@@ -97,7 +97,23 @@ through [ADR/0016](../ADR/0016-performance-metrics-service.md) for the decision 
 itself — five findings remain deferred pending a gating dependency, two are accepted ADR-documented
 trade-offs, none are outstanding action items.
 
-## Stage 3+ — Not yet planned
+## Stage 3 — Authentication & Authorization (in progress)
+
+Scoped, architecture-approved (D1–D7, `ADR-0018`/`0019`/`0020`), and under active implementation —
+see `IMPLEMENTATION_QUEUE.md`'s "Stage 3" section for the full task list (`T41`–`T80`), acceptance
+criteria, and current status; this row is a pointer, not a duplicate. As of 2026-08-07: Phase 0
+(`T41`–`T45`, the `get_db()` commit fix + auth dependencies/config/interface change) and Phase 1's
+`T46`/`T47` (password hashing, JWT encode/decode) are done and merged to `main`; `T48` is done
+(confirmed satisfied by `T44`'s work); `T49` (the `refresh_tokens` migration) is also done,
+independently QA-approved after one rework round; `T50` (`AuthService`) is next, not yet
+authorized.
+
+| Feature | Status |
+|---|---|
+| Authentication / login | In Progress — see `IMPLEMENTATION_QUEUE.md` |
+| Authorization (RBAC) | In Progress — see `IMPLEMENTATION_QUEUE.md` |
+
+## Stage 4+ — Not yet planned
 
 Nothing below has an estimated stage, priority, or dependency graph yet. Listed here only because
 the original project charter named them as the eventual scope; **do not implement any of these
@@ -107,7 +123,6 @@ deliberately business-logic-free. The database schema each of these would sit on
 
 | Feature | Status |
 |---|---|
-| Authentication / login | Not Started |
 | Matter Management | Not Started |
 | Client Management | Not Started |
 | Property Management | Not Started |
@@ -120,5 +135,5 @@ deliberately business-logic-free. The database schema each of these would sit on
 | AI features | Not Started |
 | Cloud synchronization | Not Started |
 
-This table should be rewritten with real priorities/dependencies/stages once Stage 3 planning
-actually starts — with explicit direction from the project owner on what Stage 3 covers.
+This table should be rewritten with real priorities/dependencies/stages once Stage 4 planning
+actually starts — with explicit direction from the project owner on what Stage 4 covers.

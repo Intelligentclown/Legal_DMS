@@ -1,9 +1,12 @@
 # Entity Relationship Diagram
 
-Stage 2's complete 49-table schema. This is a **pure schema** — no repositories, services, or API
-routes are wired to any of these tables yet (that's explicitly future-stage work; see
-[Database.md](Database.md) for the full per-table reference and [ProjectStatus.md](ProjectStatus.md)
-for what Stage 2 did and didn't build).
+Stage 2's complete 49-table schema, plus one Stage 3 addition (`refresh_tokens`, `T49` — see
+Section 1 below and [Database.md](Database.md) for detail). Most of this schema is a **pure
+schema** — no repositories, services, or API routes are wired to it yet (that's explicitly
+future-stage work; see [Database.md](Database.md) for the full per-table reference and
+[ProjectStatus.md](ProjectStatus.md) for what Stage 2 did and didn't build). `refresh_tokens` is
+the first exception in progress — Stage 3's `AuthService` (`T50`, not yet built) is what will
+actually read/write it.
 
 ## Diagram
 
@@ -21,6 +24,7 @@ erDiagram
   roles ||--o{ user_roles : has
   roles ||--o{ role_permissions : has
   permissions ||--o{ role_permissions : has
+  users ||--o{ refresh_tokens : issued
 
   countries ||--o{ states : contains
   states ||--o{ districts : contains
@@ -92,7 +96,8 @@ scale as new entity types are added.
 Each section corresponds to one Alembic migration; see [Database.md](Database.md) for full column
 detail.
 
-1. **Identity & Access** — `users`, `roles`, `permissions`, `user_roles`, `role_permissions`
+1. **Identity & Access** — `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, plus
+   `refresh_tokens` (Stage 3, `T49`, migration `2572cb3570d7` — not part of Stage 2's original 49)
 2. **Geography** — `countries`, `states`, `districts`, `talukas`, `villages`
 3. **Clients** — `addresses`, `clients`, `client_contacts`
 4. **Properties** — `properties`, `property_owners`
