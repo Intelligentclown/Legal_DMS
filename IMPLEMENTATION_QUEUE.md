@@ -476,11 +476,17 @@ now complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`
 2026-08-07: Phase 0 Approved, approved to begin Phase 1). **`Phase0.md`'s own `Status` field has
 since been updated to `Done` (2026-08-07, during Phase 1/`T46` documentation synchronization) —
 the lag this note previously flagged is closed.** **Phase 1 under way: `T46` and `T47` done**
-(2026-08-07 — see `docs/ImplementationLog/Stage3/Phase1.md`); `T48` (Extend `Settings` with auth
-config) **appears already satisfied by `T44`'s redefined scope** (`jwt_secret_key`/`jwt_algorithm`/
-`access_token_ttl_minutes`/`refresh_token_ttl_days` all exist) but its row below is not yet marked
-done — flagged, not silently fixed, since no batch has been explicitly asked to close it. `T49`
-onward not started. **T42–T43 (the
+(2026-08-07 — see `docs/ImplementationLog/Stage3/Phase1.md`, QA Decision: Approved). **`T48`'s
+previously-flagged discrepancy is now resolved** — a Project Manager cross-check (2026-08-07)
+confirmed its content is genuinely satisfied by `T44`'s redefined scope and marked its row `Done`
+accordingly (see T48's row below); this is a correction to this planning document, not new
+implementation. **`T49` (the `refresh_tokens` migration) is now done too**, independently
+QA-approved after one rework round (2026-08-07 — see T49's row below and
+`docs/ImplementationLog/Stage3/Phase1.md`); **`T50` (`AuthService`) is the next unfinished task.**
+`git log`/`git status` (2026-08-07) confirm `T46`/`T47`'s work is merged to
+`main` (PR #5, commit `4d739d2`), and `main` has since advanced further (PR #6,
+`docs/prompts/`/`PROJECT_WORKFLOW.md`, commit `e82d40d`) — current `HEAD`, `T49`'s own work is
+uncommitted on top of it. **T42–T43 (the
 `get_db()`
 commit/rollback fix) were the highest-priority implementation work and had to land before any
 authentication code** — explicit project-owner instruction, consistent with this section's own
@@ -643,8 +649,8 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 |---|---|---|---|
 | T46 | ~~Add the chosen password-hashing dependency (D2); `hash_password()`/`verify_password()` utility + unit tests (correct password verifies, wrong password fails, hash is never plaintext-equal to input).~~ **Done** (2026-08-07 — `infrastructure/security/password_hasher.py`, plain functions using `argon2.PasswordHasher`; 6 tests in `tests/unit/test_password_hasher.py`. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
 | T47 | ~~Add the chosen JWT dependency (D3); token utility — encode/decode access & refresh tokens (claims: `sub`, `roles`, `exp`, `jti`) + unit tests (round-trip, expired token rejected, tampered signature rejected).~~ **Done** (2026-08-07 — `infrastructure/security/jwt_service.py`: `create_access_token()`/`create_refresh_token()`/`decode_token()` using PyJWT; 9 tests in `tests/unit/test_jwt_service.py`. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
-| T48 | Extend `Settings` with auth config: JWT signing secret (env-driven, no default in code), algorithm, access-token TTL, refresh-token TTL. | XS | T47 |
-| T49 | New Alembic migration: `refresh_tokens` table (`id`, `user_id` FK, `token_hash`, `issued_at`, `expires_at`, `revoked_at` nullable) — per approved D1. | S | T45 |
+| T48 | ~~Extend `Settings` with auth config: JWT signing secret (env-driven, no default in code), algorithm, access-token TTL, refresh-token TTL.~~ **Done — satisfied incidentally by T44's redefined scope, confirmed by the Project Manager cross-check on 2026-08-07** (`jwt_secret_key`/`jwt_algorithm`/`access_token_ttl_minutes`/`refresh_token_ttl_days` all exist in `Settings`, verified directly against `backend/src/app/infrastructure/config/settings.py`, and independently confirmed as T47's real consumer of those fields per `docs/ImplementationLog/Stage3/Phase1.md`). This is not a T44 scope-redefinition under the "task IDs are immutable" rule — T48's own originally-scoped content simply already exists, done as a side effect, not reassigned. | XS | T47 |
+| T49 | ~~New Alembic migration: `refresh_tokens` table (`id`, `user_id` FK, `token_hash`, `issued_at`, `expires_at`, `revoked_at` nullable) — per approved D1.~~ **Done** (2026-08-07 — `backend/alembic/versions/2572cb3570d7_refresh_tokens.py` + `RefreshToken` model in `infrastructure/persistence/models/identity.py`; 4 new integration tests in `tests/integration/test_identity_models.py`. Independent QA approval after rework: live PostgreSQL verification pass, `alembic upgrade`/`downgrade`/`upgrade` round-trip pass, `alembic check` — no schema drift, 12/12 `test_identity_models.py` pass, full suite 317/317, ruff/black clean. The `token_hash` migration/model mismatch an earlier review round found is resolved. QA Decision: Approved. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
 | T50 | `AuthService` (application layer): `authenticate(email, password) -> Result[User, AppError]`, `issue_tokens(user)`, `refresh(refresh_token)`, `revoke(refresh_token)`. | M | T46, T47, T49 |
 | T51 | Tests for `AuthService`: correct credentials, wrong password, unknown email, inactive user, expired/invalid/already-revoked refresh token, refresh rotation (old token revoked, new one issued). | M | T50 |
 
@@ -792,9 +798,10 @@ T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark St
 under way**: Phase 0 (T41–T45) is done (`docs/ImplementationLog/Stage3/Phase0.md`, Status: Done,
 QA Decision: Approved) and the `docs/templates/PreStageChecklist.md` sign-off that gated Phase 1 is
 complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 is under
-way — `T46` and `T47` done (`docs/ImplementationLog/Stage3/Phase1.md`, QA Decision: Approved);
-`T48`'s row is unmarked but its scope already appears satisfied by `T44`'s redefinition (flagged,
-not fixed — no batch has been asked to close it); `T49` onward not started. See
+way — `T46`, `T47`, `T48` (satisfied by `T44`'s redefinition, confirmed 2026-08-07), and `T49`
+(the `refresh_tokens` migration, independently QA-approved after rework, 2026-08-07) are all done
+— see `docs/ImplementationLog/Stage3/Phase1.md`. `T50` (`AuthService`) is the next unfinished
+task; not authorized this batch. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
 (Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*

@@ -62,7 +62,7 @@ explicitly future-stage work.
   only metadata (path, hash, checksum, size, provider, version, retention policy), the DB-metadata
   companion to Stage 1's `FileStorage`/`StoredFile` port.
 
-## Tables (49, across 11 sections + 1 seed migration)
+## Tables (49, across 11 sections + 1 seed migration — plus 1 post-Stage-2 addition, `refresh_tokens`)
 
 See [ERD.md](ERD.md) for the diagram and full section-by-section list with descriptions. Full
 column-level detail lives in the model source files themselves
@@ -71,7 +71,7 @@ its section's design choices.
 
 | Section | Module | Tables |
 |---|---|---|
-| 1. Identity & Access | `identity.py` | `users`, `roles`, `permissions`, `user_roles`, `role_permissions` |
+| 1. Identity & Access | `identity.py` | `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, `refresh_tokens` (Stage 3 `T49`, see below) |
 | 2. Geography | `geography.py` | `countries`, `states`, `districts`, `talukas`, `villages` |
 | 3. Clients | `client.py` | `addresses`, `clients`, `client_contacts` |
 | 4. Properties | `property.py` | `properties`, `property_owners` |
@@ -84,7 +84,24 @@ its section's design choices.
 | 11. System, Config, AI & Plugins | `system.py` | `application_settings`, `feature_flags`, `ai_requests`, `ai_responses`, `plugin_registry`, `background_jobs`, `system_events` |
 
 Confirmed live: `SELECT count(*) FROM information_schema.tables WHERE table_schema='public'` (minus
-`alembic_version`) = **49**.
+`alembic_version`) = **49** as of Stage 2's close, **50** including `refresh_tokens` below.
+`refresh_tokens`' migration was hand-written (Docker was unreachable in the environment it was
+authored in) rather than `--autogenerate`d against a real diff, but has since been independently
+verified against a live Postgres instance (2026-08-07, after one QA rework round — see its own
+entry below): `alembic upgrade head` → `downgrade -1` → `upgrade head` round-trips cleanly, and
+`alembic check` reports no schema drift between the model and the migration chain.
+
+### Post-Stage-2 addition: `refresh_tokens` (Stage 3, `T49`)
+
+The DB-backed, revocable half of Stage 3's token design (D1, [ADR-0018](../ADR/0018-authentication-authorization-architecture.md)).
+Columns: `id` (UUID PK), `user_id` (FK → `users.id`), `token_hash` (a hash of the token, never the
+raw value — same principle as `users.password_hash`), `issued_at`, `expires_at`, `revoked_at`
+(nullable — set once when the token is revoked). `token_hash` is both indexed and unique. No
+`AuditMixin` — a system-issued security record, not a human-edited business entity (same reasoning
+as `user_roles`/`role_permissions`); `revoked_at` already covers this table's one lifecycle
+transition. Model: `infrastructure/persistence/models/identity.py`'s `RefreshToken` class. Migration:
+`2572cb3570d7_refresh_tokens.py`. No repository or service reads/writes this table yet — that's
+`T50`'s `AuthService`.
 
 ## Migrations
 
@@ -104,13 +121,20 @@ order:
 | `07150e442816` | Scheduling & Tags |
 | `ac2214fdce03` | OCR, QR & Backups |
 | `5c13f11da784` | System, Config, AI & Plugins |
-| `9963e15f2752` (head) | Seed lookup data |
+| `9963e15f2752` | Seed lookup data |
+| `2572cb3570d7` (head) | `refresh_tokens` (Stage 3, `T49`) |
 
-Every revision was generated via `alembic revision --autogenerate`, hand-reviewed (partial/GIN
-indexes and check constraints aren't autogenerate-detected), formatted with `black` + `ruff check
---fix`, applied to a live Postgres container, and verified reversible
+Every Stage 2 revision was generated via `alembic revision --autogenerate`, hand-reviewed
+(partial/GIN indexes and check constraints aren't autogenerate-detected), formatted with `black` +
+`ruff check --fix`, applied to a live Postgres container, and verified reversible
 (`alembic downgrade -1` → `alembic upgrade head`) before being committed. Full chain reversibility
 (`alembic downgrade base` → `alembic upgrade head`) was also verified at the end of Stage 2.
+**`2572cb3570d7` was the one exception**: hand-written (not `--autogenerate`d) because Postgres
+wasn't reachable when it was authored. That verification gap is now closed (2026-08-07, after one
+QA rework round that also caught and fixed a `token_hash` migration/model mismatch): `alembic
+upgrade head`/`downgrade -1`/`upgrade head` all run clean against a live database, and `alembic
+check` confirms the model and migration chain agree exactly. See
+`docs/ImplementationLog/Stage3/Phase1.md`'s T49 batch for the full QA record.
 
 ## Seed data
 

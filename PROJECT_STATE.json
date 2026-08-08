@@ -5,13 +5,13 @@
     "id": "stage-3",
     "name": "Authentication & Authorization",
     "status": "in_progress",
-    "note": "Architecture approved (D1-D7). Phase 0's T41-T45 are DONE as of 2026-08-06 (QA Decision: Approved -- see docs/ImplementationLog/Stage3/Phase0.md, Status: Done as of 2026-08-07). ADR-0018 (D1-D6), ADR-0019 (D7), ADR-0020 (session policy) all written. docs/reviews/PreStageChecklist_Stage3_2026-08-07.md is signed off (Reviewer approval 2026-08-07: Phase 0 Approved, approved to begin Phase 1). Phase 1 under way: T46 (password hashing, infrastructure/security/password_hasher.py) and T47 (JWT utility, infrastructure/security/jwt_service.py) both done 2026-08-07 -- see docs/ImplementationLog/Stage3/Phase1.md. T48 (Settings auth config) appears already satisfied by T44's redefined scope but its queue row is unmarked -- flagged, not fixed. T49 onward not started."
+    "note": "Architecture approved (D1-D7). Phase 0's T41-T45 are DONE as of 2026-08-06 (QA Decision: Approved -- see docs/ImplementationLog/Stage3/Phase0.md, Status: Done as of 2026-08-07). ADR-0018 (D1-D6), ADR-0019 (D7), ADR-0020 (session policy) all written. docs/reviews/PreStageChecklist_Stage3_2026-08-07.md is signed off (Reviewer approval 2026-08-07: Phase 0 Approved, approved to begin Phase 1). Phase 1 under way: T46 (password hashing) and T47 (JWT utility) done 2026-08-07; T48 (Settings auth config) confirmed satisfied by T44's redefined scope and marked done 2026-08-07 (Project Manager cross-check); T49 (refresh_tokens migration + RefreshToken model) done 2026-08-07, independently QA-approved after one rework round (a token_hash migration/model mismatch, now resolved) -- live PostgreSQL verification pass, migration upgrade/downgrade/upgrade pass, alembic check clean (no drift), 12/12 test_identity_models.py pass, full suite 317/317 pass -- see docs/ImplementationLog/Stage3/Phase1.md. T50 (AuthService) is the next unfinished task; not authorized this batch."
   },
   "currentVersion": "0.3.1",
   "completion": {
-    "currentStageScopePercent": 18,
+    "currentStageScopePercent": 20,
     "overallProjectPercent": 0,
-    "note": "currentStageScopePercent is a rough proxy (7 of Stage 3's ~40 tasks, T41-T80, done) not a precisely-weighted estimate -- tasks vary widely in size. 0% overall is correct, not an error -- Stages 0-2 were infrastructure/framework/schema only by design, and Stage 3 (the first business-adjacent feature) has only just started Phase 1: password hashing and JWT encode/decode exist (T46, T47), no AuthService/routes/DB writes yet."
+    "note": "currentStageScopePercent is a rough proxy (9 of Stage 3's ~40 tasks, T41-T80, done) not a precisely-weighted estimate -- tasks vary widely in size. 0% overall is correct, not an error -- Stages 0-2 were infrastructure/framework/schema only by design, and Stage 3 (the first business-adjacent feature) has only just built its Phase 1 credential/token foundation: password hashing, JWT encode/decode, auth Settings config, and the refresh_tokens table all exist (T46-T49); no AuthService, routes, or actual DB writes through that table yet -- that's T50."
   },
   "documentation": {
     "architectureScorecard": "docs/ArchitectureScorecard.md",
@@ -26,14 +26,14 @@
     { "id": "stage-0", "name": "Project Foundation", "status": "completed" },
     { "id": "stage-1", "name": "Core Architecture & Domain Foundation", "status": "completed" },
     { "id": "stage-2", "name": "Database Architecture & Data Model", "status": "completed" },
-    { "id": "stage-3", "name": "Authentication & Authorization", "status": "in_progress", "note": "Scoped and architecture-approved (D1-D7, IMPLEMENTATION_QUEUE.md). Phase 0's T41-T45 done 2026-08-06 (docs/ImplementationLog/Stage3/Phase0.md), QA Decision Approved. docs/reviews/PreStageChecklist_Stage3_2026-08-07.md signed off 2026-08-07 (Phase 0 Approved, Phase 1 approved to begin). ADR-0018 (D1-D6) written 2026-08-07. Phase 1 under way: T46 (password hashing) and T47 (JWT utility) both done 2026-08-07 -- see docs/ImplementationLog/Stage3/Phase1.md." }
+    { "id": "stage-3", "name": "Authentication & Authorization", "status": "in_progress", "note": "Scoped and architecture-approved (D1-D7, IMPLEMENTATION_QUEUE.md). Phase 0's T41-T45 done 2026-08-06 (docs/ImplementationLog/Stage3/Phase0.md), QA Decision Approved. docs/reviews/PreStageChecklist_Stage3_2026-08-07.md signed off 2026-08-07 (Phase 0 Approved, Phase 1 approved to begin). ADR-0018 (D1-D6) written 2026-08-07. Phase 1 under way: T46, T47, T48, and T49 all done 2026-08-07 -- see docs/ImplementationLog/Stage3/Phase1.md. T50 (AuthService) next, not authorized yet." }
   ],
   "tests": {
     "backend": {
       "framework": "pytest",
-      "total": 313,
-      "passing": 313,
-      "note": "298 (186 unit + 112 integration, confirmed passing as of Stage 3 Phase 0 batch 3, 2026-08-06) + 6 in Stage 3 Phase 1's T46 (tests/unit/test_password_hasher.py) + 9 in T47 (tests/unit/test_jwt_service.py), both 2026-08-07. This session re-confirmed the 186+6+9=201 unit tests directly (0 failed, 0 skipped); the 112 integration tests were not re-run this session (Docker/Postgres not reachable in this environment) -- carried forward from their last actual run, not freshly reconfirmed. See docs/ImplementationLog/Stage3/Phase1.md."
+      "total": 317,
+      "passing": 317,
+      "note": "313 (201 unit + 112 integration, T46+T47 done 2026-08-07) + 4 new integration tests in T49 (tests/integration/test_identity_models.py's TestRefreshToken class, covering the new refresh_tokens table/RefreshToken model). Independently re-confirmed 2026-08-07, in an environment with Postgres reachable (docker ps: legal_dms_postgres healthy): full suite 317/317 passing (0 failed, 0 skipped); alembic upgrade head -> downgrade -1 -> upgrade head round-trip clean; alembic check reports no schema drift. This closes the verification gap T46/T47's own re-confirmation pass could not (Docker was unreachable then). See docs/ImplementationLog/Stage3/Phase1.md."
     },
     "frontend": { "framework": "vitest", "total": 9, "passing": 9 }
   },
@@ -64,6 +64,7 @@
     { "name": "Stage 3 Phase 0 -- auth dependencies, config, and AuthenticationProvider interface (T44-T45, redefined)", "status": "completed", "note": "T44: argon2-cffi + PyJWT dependencies, Settings gained jwt_secret_key (no default)/jwt_algorithm/access_token_ttl_minutes/refresh_token_ttl_days -- no hashing/JWT logic written. T45: AuthenticationProvider.get_current_user() now takes token: str | None (D7), cascaded to AnonymousAuthenticationProvider and presentation/api/deps.py (token=None placeholder pending T56's real extraction). See ADR/0019. Batch 2 reused the T44/T45 IDs for different content than IMPLEMENTATION_QUEUE.md originally defined, per direct instruction -- flagged as a discrepancy; ADR-0018 (D1-D6, the original T45 half) and the PreStageChecklist sign-off (the original T44 content) were both subsequently completed 2026-08-07 -- see ADR/0018-authentication-authorization-architecture.md and docs/reviews/PreStageChecklist_Stage3_2026-08-07.md. Batch 3 (2026-08-06) re-verified this against a more precise spec (exact dependency/config/interface requirements, explicit 'no framework types in the port'), confirmed already-correct, and added 5 tests closing coverage gaps (an AST check that the port imports nothing from fastapi, plus argon2-cffi/PyJWT importability checks). QA Decision: Approved. See docs/ImplementationLog/Stage3/Phase0.md." },
     { "name": "Stage 3 Phase 1 -- password hashing utility (T46)", "status": "completed", "note": "infrastructure/security/password_hasher.py: hash_password()/verify_password(), plain functions (not a port) using argon2.PasswordHasher (D2/ADR-0018). verify_password() catches VerifyMismatchError/VerificationError/InvalidHash, returning False rather than raising. 6 tests in tests/unit/test_password_hasher.py. QA Decision: Approved. See docs/ImplementationLog/Stage3/Phase1.md." },
     { "name": "Stage 3 Phase 1 -- JWT encode/decode utility (T47)", "status": "completed", "note": "infrastructure/security/jwt_service.py: create_access_token()/create_refresh_token()/decode_token(), plain functions (not a port) using PyJWT (D3/ADR-0018). Access tokens carry sub/roles/exp/jti; refresh tokens carry sub/exp/jti (no roles). decode_token() catches jwt.PyJWTError, returning None rather than raising. Settings passed explicitly, never resolved internally. 9 tests in tests/unit/test_jwt_service.py. QA Decision: Approved. See docs/ImplementationLog/Stage3/Phase1.md." },
+    { "name": "Stage 3 Phase 1 -- refresh_tokens migration + model (T49)", "status": "completed", "note": "backend/alembic/versions/2572cb3570d7_refresh_tokens.py + RefreshToken model in infrastructure/persistence/models/identity.py (id, user_id FK, token_hash unique+indexed, issued_at, expires_at, revoked_at nullable; no AuditMixin, same category as UserRole/RolePermission). No repository/service reads or writes this table yet -- that's T50's AuthService. 4 new integration tests in tests/integration/test_identity_models.py. Hand-written (not --autogenerate'd) since Docker was unreachable when authored; independently QA-approved after rework (an earlier token_hash migration/model mismatch, now resolved) once Postgres became reachable: live verification pass, upgrade/downgrade/upgrade round-trip pass, alembic check clean. QA Decision: Approved. See docs/ImplementationLog/Stage3/Phase1.md and docs/Database.md." },
     { "name": "Background Job Framework", "status": "completed" },
     { "name": "File Storage Abstraction", "status": "completed" },
     { "name": "Notification Framework (backend)", "status": "completed" },
@@ -80,7 +81,7 @@
     "status": "completed",
     "tableCount": 49,
     "migrationCount": 12,
-    "note": "Pure schema (SQLAlchemy models + Alembic migrations + seed data). No repositories, services, or API routes wired to any of these tables -- that's future-stage work. See docs/Database.md and docs/ERD.md.",
+    "note": "Stage 2's complete, pure schema: 49 tables, 12 migrations (SQLAlchemy models + Alembic migrations + seed data). No repositories, services, or API routes wired to any of these tables -- that's future-stage work. See docs/Database.md and docs/ERD.md. Plus one Stage 3 (T49) addition since Stage 2 closed: refresh_tokens (migration 2572cb3570d7, 13th migration, 50th table) -- the first exception to 'nothing wired yet,' since T50's AuthService will read/write it directly. Not folded into tableCount/migrationCount above, which remain Stage 2's own closed-scope counts; refresh_tokens is tracked in backendSubsystems' T49 entry instead.",
     "sections": [
       "Identity & Access (5 tables)",
       "Geography (5 tables)",
@@ -117,8 +118,7 @@
   ],
   "openQuestions": [
     "Stage 3's role_permissions exact matrix (T66) needs explicit project-owner sign-off before that specific migration is written -- a proposed matrix exists in IMPLEMENTATION_QUEUE.md but was never one of the seven approved D1-D7 decisions. Does not block Phase 0-3 work.",
-    "T44/T45 ID reuse: both orphaned original-content items (PreStageChecklist sign-off, ADR-0018) are now complete (2026-08-07), closing the practical gap -- but they remain untracked by any task ID, and the 'task IDs are immutable' rule adopted afterward (AI_BOOTSTRAP.md) means this specific reconciliation question was never formally resolved, only made moot by both items getting done anyway. Not a blocker.",
-    "T48 (Extend Settings with auth config) appears already fully satisfied by T44's redefined scope -- jwt_secret_key/jwt_algorithm/access_token_ttl_minutes/refresh_token_ttl_days all exist in Settings, confirmed again while building T47 (2026-08-07) since T47 is the first real consumer of those fields. T48's IMPLEMENTATION_QUEUE.md row remains unmarked -- flagged, not fixed, since no batch has been explicitly asked to close it. Does not block T49+ (T50 depends on T46/T47/T49, not T48)."
+    "T44/T45 ID reuse: both orphaned original-content items (PreStageChecklist sign-off, ADR-0018) are now complete (2026-08-07), closing the practical gap -- but they remain untracked by any task ID, and the 'task IDs are immutable' rule adopted afterward (AI_BOOTSTRAP.md) means this specific reconciliation question was never formally resolved, only made moot by both items getting done anyway. Not a blocker."
   ],
   "adrs": [
     "0001-record-architecture-decisions",
@@ -143,8 +143,8 @@
     "0020-session-commit-rollback-policy"
   ],
   "git": {
-    "branch": "feature/stage3-t47-jwt-utility",
-    "latestCommitAtThisUpdate": "2e5ce80",
-    "note": "Corrected (2026-08-07, Stage 3 Phase 1 documentation sync): latestCommitAtThisUpdate (2e5ce80) still reflects the last merge to main -- docs/stage3-phase0-finalization via PR #3 (merge commit 815cc26, Phase 0 documentation-closure edits), then feature/stage3-t46-password-hashing via PR #4 (merge commit 2e5ce80, containing 26ce84c -- T46's password hashing utility). Current branch feature/stage3-t47-jwt-utility has zero commits ahead of main, but its working tree is NOT clean: T47's implementation (infrastructure/security/jwt_service.py, tests/unit/test_jwt_service.py) plus this documentation-synchronization pass exist as uncommitted changes, not yet committed or pushed. No new tag/release since v0.3.1."
+    "branch": "feature/stage3-t49-refresh-tokens",
+    "latestCommitAtThisUpdate": "e82d40d",
+    "note": "Corrected (2026-08-07, T49 final documentation sync): a working branch (feature/stage3-t49-refresh-tokens) was created off main for T49 since this field was last updated -- zero commits ahead of main (e82d40d, PR #6: docs/project-workflow-prompts). All of T49's work (backend/alembic/versions/2572cb3570d7_refresh_tokens.py, identity.py's RefreshToken model, test_identity_models.py's new tests) plus its documentation synchronization exist as uncommitted changes on this branch, not yet committed or pushed -- see this file's own openQuestions/backendSubsystems entries for what T49 delivered. No new tag/release since v0.3.1."
   }
 }

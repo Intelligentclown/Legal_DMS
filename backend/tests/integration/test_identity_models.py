@@ -12,7 +12,13 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.persistence.models.identity import Permission, Role, User, UserRole
+from app.infrastructure.persistence.models.identity import (
+    Permission,
+    RefreshToken,
+    Role,
+    User,
+    UserRole,
+)
 
 
 async def _make_user(session: AsyncSession, **overrides: object) -> User:
@@ -97,3 +103,58 @@ class TestUserRole:
 
         with pytest.raises(IntegrityError):
             await db_session.flush()
+
+
+class TestRefreshToken:
+    async def test_requires_existing_user(self, db_session: AsyncSession) -> None:
+        db_session.add(
+            RefreshToken(
+                user_id=uuid4(),
+                token_hash=f"hash-{uuid4()}",
+                expires_at=datetime.now(UTC),
+            )
+        )
+
+        with pytest.raises(IntegrityError):
+            await db_session.flush()
+
+    async def test_create_succeeds_with_expected_defaults(self, db_session: AsyncSession) -> None:
+        user = await _make_user(db_session)
+        expires_at = datetime.now(UTC)
+
+        token = RefreshToken(user_id=user.id, token_hash=f"hash-{uuid4()}", expires_at=expires_at)
+        db_session.add(token)
+        await db_session.flush()
+
+        assert token.id is not None
+        assert token.issued_at is not None
+        assert token.revoked_at is None
+
+    async def test_token_hash_must_be_unique(self, db_session: AsyncSession) -> None:
+        user = await _make_user(db_session)
+        shared_hash = f"hash-{uuid4()}"
+        db_session.add(
+            RefreshToken(user_id=user.id, token_hash=shared_hash, expires_at=datetime.now(UTC))
+        )
+        await db_session.flush()
+
+        db_session.add(
+            RefreshToken(user_id=user.id, token_hash=shared_hash, expires_at=datetime.now(UTC))
+        )
+
+        with pytest.raises(IntegrityError):
+            await db_session.flush()
+
+    async def test_revoked_at_can_be_set(self, db_session: AsyncSession) -> None:
+        user = await _make_user(db_session)
+        token = RefreshToken(
+            user_id=user.id, token_hash=f"hash-{uuid4()}", expires_at=datetime.now(UTC)
+        )
+        db_session.add(token)
+        await db_session.flush()
+
+        token.revoked_at = datetime.now(UTC)
+        await db_session.flush()
+        await db_session.refresh(token)
+
+        assert token.revoked_at is not None

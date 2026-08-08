@@ -1174,3 +1174,36 @@ task, depending only on `T45` (done) — independent of `T46`/`T47`. `T50` (`Aut
 first task that actually depends on `T46`+`T47`+`T49` together. The `T48` discrepancy (see above)
 still needs a decision — mark it done as a documentation-only correction, or leave it explicitly
 tracked as-is.
+
+## Session: 2026-08-07 — Stage 3 Phase 1, T49 (`refresh_tokens` migration) + documentation sync
+
+**Objectives:** Implement `T49` (the `refresh_tokens` Alembic migration and its `RefreshToken`
+model), get it independently QA-reviewed, and — as Documentation Manager — synchronize project
+documentation once QA approved. `T48`'s discrepancy was separately closed by a Project Manager
+cross-check (row marked `Done` in `IMPLEMENTATION_QUEUE.md`) ahead of this session. Full technical
+detail lives in `docs/ImplementationLog/Stage3/Phase1.md`'s T49 batch sections per this project's
+canonical-document rules — summarized here, not restated.
+
+**What happened:** `backend/alembic/versions/2572cb3570d7_refresh_tokens.py` and a `RefreshToken`
+model were added, hand-written rather than `--autogenerate`d because Docker/Postgres was
+unreachable in that environment. The Backend Developer role disclosed this honestly, leaving
+"Existing tests pass" and "Ready for QA" unchecked on its own Reviewer Checklist rather than
+assuming green. A QA Reviewer pass (in an environment with Postgres reachable) found and required
+rework on a `token_hash` migration/model mismatch; once fixed, a second QA pass independently
+verified: live PostgreSQL round-trip (`alembic upgrade head` → `downgrade -1` → `upgrade head`,
+clean), `alembic check` (no schema drift), `test_identity_models.py` 12/12 (including 4 new
+`TestRefreshToken` cases), full suite 317/317, ruff/black clean — and rendered **QA Decision:
+Approved**. This Documentation Manager pass then independently re-verified every one of those
+claims directly (not just transcribed them) before synchronizing `IMPLEMENTATION_QUEUE.md`
+(`T49` marked done, Stage 3 header/footer corrected), `PROJECT_STATE.json` (test count 313 → 317,
+new `backendSubsystems` entry, `git` block corrected — it was two merges stale), `docs/Database.md`
+and `docs/Roadmap.md` (both had statements claiming the migration was unverified against a live
+database, now corrected), and this file. `T50` was not started or authorized.
+
+**Documentation Updated:** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+`docs/ImplementationLog/Stage3/Phase1.md` (T49 batch's QA Decision recorded), `docs/Database.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md` (this file). `docs/ERD.md` was checked and found already
+accurate — not modified.
+
+**Next Session Goals:** `T50` (`AuthService`) is the next unfinished task — depends on
+`T46`+`T47`+`T49`, all now done. Not authorized this session.

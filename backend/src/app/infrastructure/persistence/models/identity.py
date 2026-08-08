@@ -74,3 +74,25 @@ class RolePermission(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     role_id: Mapped[UUID] = mapped_column(ForeignKey("roles.id"), index=True)
     permission_id: Mapped[UUID] = mapped_column(ForeignKey("permissions.id"), index=True)
+
+
+class RefreshToken(Base):
+    """D1/ADR-0018: the DB-backed, revocable half of Stage 3's token design.
+    Never stores the raw token, only a hash of it (same principle as
+    `User.password_hash`) -- `T50`'s `AuthService` is what will actually
+    write/read/revoke these rows. No `AuditMixin`: this is a system-issued,
+    high-volume security record, not a human-edited business entity (same
+    reasoning already applied to `UserRole`/`RolePermission` above);
+    `revoked_at` already covers this table's one lifecycle transition, so
+    `AuditMixin`'s `deleted_at`/`created_by`/`updated_by` would be dead
+    columns, not a soft-delete/attribution trail anything here needs.
+    """
+
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
