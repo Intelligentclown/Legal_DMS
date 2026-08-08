@@ -101,6 +101,17 @@ under a task ID (the `docs/templates/PreStageChecklist.md` sign-off and `ADR-001
 *original* content of the T44/T45 IDs, reused for different content per direct instruction), so
 Phase 0's own status stays **In Progress**, not Done, even though every task ID shows complete.
 
+**Update (2026-08-08): Phase 1 (`T46`–`T51`) is now complete.** Password hashing (`T46`), JWT
+encode/decode (`T47`), the `refresh_tokens` migration (`T49`), and `AuthService` plus its tests
+(`T50`/`T51`, one combined batch) are all done — `AuthService.authenticate()`/`issue_tokens()`/
+`refresh()`/`revoke()` is the first real consumer of the credential/token foundation the earlier
+Phase 1 tasks built, via two new narrow repository ports (`UserRepository`,
+`RefreshTokenRepository`). QA Decision: Approved with comments (345/345 full suite passing against
+live PostgreSQL, no rework required). `AuthService` is **not yet wired into `configure_container()`
+or any route** — that's `T52`+ (Phase 2), the next unfinished work, not yet authorized. Full detail:
+[docs/ImplementationLog/Stage3/Phase1.md](ImplementationLog/Stage3/Phase1.md). Backend test count is
+now 345 (up from 298 at Phase 0's close), still 9 frontend.
+
 ## Pending Work
 
 Everything past Stage 2. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md). The most likely
@@ -250,20 +261,20 @@ per-commit file breakdown. (Stage 1, for reference, touched
 
 ## What Should Be Implemented Next
 
-**Stage 3 (Authentication & Authorization) is scoped and Phase 0 is done — Phase 1 (T46+) awaits a
-further explicit go-ahead.** This supersedes the older "nothing until Stage 3 is decided" framing
-this section used to carry, kept in spirit for context: Stage 0, Stage 1, and Stage 2's charters
-were all explicit that business features are out of scope, and that pattern held for three stages
-in a row. Stage 3 broke that pattern once the project owner explicitly scoped it (D1–D7) and
-authorized Phase 0. **Don't assume
-Phase 1 is authorized just because Phase 0 finished** — every prior instruction has stopped
-explicitly at a task boundary (T43, then T45) pending a further go-ahead; ask before starting
-`T46`+. See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 1–4's full
-file-by-file map once that go-ahead arrives. Two smaller open items, unrelated to Phase 1 itself:
-the `docs/templates/PreStageChecklist.md` sign-off and `ADR-0018` (D1–D6) — see "Current Stage"
-above — and the `role_permissions` exact matrix (T66) still needs its own sign-off before that
-migration is written. Outside of Stage 3, do not add business entities, new major dependencies, or
-any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
+**Stage 3 (Authentication & Authorization) is scoped, Phase 0 is done, and Phase 1 (`T46`–`T51`) is
+now also done (2026-08-08) — `T52`+ (Phase 2, wiring auth into the request pipeline) awaits a
+further explicit go-ahead.** This supersedes the older "Phase 1 (T46+) awaits a further explicit
+go-ahead" framing this section used to carry — that go-ahead was given and all six Phase 1 tasks
+(`T46`–`T51`) completed; kept in spirit for context: every prior instruction has stopped explicitly
+at a task or phase boundary pending a further go-ahead (T43, then T45, then T51), and that pattern
+holds again at the Phase 1/Phase 2 boundary — **don't assume `T52` is authorized just because Phase
+1 finished; ask.** See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
+full file-by-file map once that go-ahead arrives. Two smaller open items, unrelated to Phase 1/2:
+the `role_permissions` exact matrix (`T66`) still needs its own sign-off before that migration is
+written, and `T50`/`T51`'s work is uncommitted directly on `main` (no feature branch was created for
+that batch, a deviation from this project's branch strategy — see `PROJECT_STATE.json`'s `git`
+block). Outside of Stage 3, do not add business entities, new major dependencies, or any
+repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
 
 ## Important Warnings

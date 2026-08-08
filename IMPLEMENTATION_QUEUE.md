@@ -483,10 +483,29 @@ accordingly (see T48's row below); this is a correction to this planning documen
 implementation. **`T49` (the `refresh_tokens` migration) is now done too**, independently
 QA-approved after one rework round (2026-08-07 — see T49's row below and
 `docs/ImplementationLog/Stage3/Phase1.md`); **`T50` (`AuthService`) is the next unfinished task.**
-`git log`/`git status` (2026-08-07) confirm `T46`/`T47`'s work is merged to
-`main` (PR #5, commit `4d739d2`), and `main` has since advanced further (PR #6,
-`docs/prompts/`/`PROJECT_WORKFLOW.md`, commit `e82d40d`) — current `HEAD`, `T49`'s own work is
-uncommitted on top of it. **T42–T43 (the
+`git log`/`git status` (Project Manager cross-check, second pass) confirm `T49`'s work has since
+also merged (PR #7, "feat(auth): add refresh token persistence", commit `7bd6836`, merged via
+`26702b6`) — `main` is now at `26702b6`, working tree clean, no branch left over from `T49`. The
+previous note above (written mid-`T49`) is superseded by this one. **`T50` and `T51` are now both
+done** (2026-08-08, Backend Developer session, one batch — `AuthService` plus its own tests,
+implemented together per this project's established T46/T47/T49 precedent even though they're
+separate task IDs; see `docs/ImplementationLog/Stage3/Phase1.md`). **QA Decision: Approved with
+comments** (2026-08-08 — implementation sound, 345/345 full suite passing against live PostgreSQL,
+28/28 new tests passing, ruff/black clean, no rework required; see `docs/ImplementationLog/Stage3/Phase1.md`'s
+QA Decision section). **Phase 1 (`T46`–`T51`) is now complete. `T52` (`JwtAuthenticationProvider`,
+Phase 2) is the next unfinished task; not authorized yet.**
+
+**Process note (2026-08-08, Documentation Manager, per QA's comment on the T50/T51 batch):** the
+`T50`/`T51` batch's Backend Developer role edited this file directly to mark `T50`/`T51` done,
+ahead of a QA Decision and outside this file's own Project-Manager ownership
+(`docs/ImplementationLog/README.md`'s Documentation Ownership table) — a deviation from the `T49`
+batch's own pattern immediately above, which left this file to the Project Manager/Documentation
+Manager roles after QA. QA reviewed the resulting content and found it accurate, so it was **not
+reverted**. Recorded here as the formal correction: routine edits to this file belong to the
+Project Manager role (or the Documentation Manager, marking a task done per the Developer/QA
+record, per `docs/prompts/DocumentationManager.md` §2), exercised only *after* a QA Decision exists
+— the same discipline the `T49` batch followed and every batch after this one should return to.
+**T42–T43 (the
 `get_db()`
 commit/rollback fix) were the highest-priority implementation work and had to land before any
 authentication code** — explicit project-owner instruction, consistent with this section's own
@@ -651,8 +670,8 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 | T47 | ~~Add the chosen JWT dependency (D3); token utility — encode/decode access & refresh tokens (claims: `sub`, `roles`, `exp`, `jti`) + unit tests (round-trip, expired token rejected, tampered signature rejected).~~ **Done** (2026-08-07 — `infrastructure/security/jwt_service.py`: `create_access_token()`/`create_refresh_token()`/`decode_token()` using PyJWT; 9 tests in `tests/unit/test_jwt_service.py`. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
 | T48 | ~~Extend `Settings` with auth config: JWT signing secret (env-driven, no default in code), algorithm, access-token TTL, refresh-token TTL.~~ **Done — satisfied incidentally by T44's redefined scope, confirmed by the Project Manager cross-check on 2026-08-07** (`jwt_secret_key`/`jwt_algorithm`/`access_token_ttl_minutes`/`refresh_token_ttl_days` all exist in `Settings`, verified directly against `backend/src/app/infrastructure/config/settings.py`, and independently confirmed as T47's real consumer of those fields per `docs/ImplementationLog/Stage3/Phase1.md`). This is not a T44 scope-redefinition under the "task IDs are immutable" rule — T48's own originally-scoped content simply already exists, done as a side effect, not reassigned. | XS | T47 |
 | T49 | ~~New Alembic migration: `refresh_tokens` table (`id`, `user_id` FK, `token_hash`, `issued_at`, `expires_at`, `revoked_at` nullable) — per approved D1.~~ **Done** (2026-08-07 — `backend/alembic/versions/2572cb3570d7_refresh_tokens.py` + `RefreshToken` model in `infrastructure/persistence/models/identity.py`; 4 new integration tests in `tests/integration/test_identity_models.py`. Independent QA approval after rework: live PostgreSQL verification pass, `alembic upgrade`/`downgrade`/`upgrade` round-trip pass, `alembic check` — no schema drift, 12/12 `test_identity_models.py` pass, full suite 317/317, ruff/black clean. The `token_hash` migration/model mismatch an earlier review round found is resolved. QA Decision: Approved. See `docs/ImplementationLog/Stage3/Phase1.md`.) | S | T45 |
-| T50 | `AuthService` (application layer): `authenticate(email, password) -> Result[User, AppError]`, `issue_tokens(user)`, `refresh(refresh_token)`, `revoke(refresh_token)`. | M | T46, T47, T49 |
-| T51 | Tests for `AuthService`: correct credentials, wrong password, unknown email, inactive user, expired/invalid/already-revoked refresh token, refresh rotation (old token revoked, new one issued). | M | T50 |
+| T50 | ~~`AuthService` (application layer): `authenticate(email, password) -> Result[User, AppError]`, `issue_tokens(user)`, `refresh(refresh_token)`, `revoke(refresh_token)`.~~ **Done** (2026-08-08 — `application/auth_service.py`, plus two small new ports it needed (`UserRepository`, `RefreshTokenRepository`, each `AbstractRepository` + one lookup method) and a `token_hasher.py` utility (SHA-256, not Argon2 — deterministic hashing needed for exact-match lookup). See `docs/ImplementationLog/Stage3/Phase1.md`.) | M | T46, T47, T49 |
+| T51 | ~~Tests for `AuthService`: correct credentials, wrong password, unknown email, inactive user, expired/invalid/already-revoked refresh token, refresh rotation (old token revoked, new one issued).~~ **Done** (2026-08-08 — implemented in the same batch as T50 per this project's established T46/T47/T49 precedent and the Backend Developer role's "never skip tests for new behavior" rule; 28 tests in `tests/unit/test_auth_service.py` + `tests/unit/test_token_hasher.py`, covering every named scenario plus DB-level-expiry and stale-roles-on-refresh edge cases. See `docs/ImplementationLog/Stage3/Phase1.md`.) | M | T50 |
 
 #### Phase 2 — Backend: wiring auth into the request pipeline
 

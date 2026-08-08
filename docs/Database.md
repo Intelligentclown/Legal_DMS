@@ -100,8 +100,15 @@ raw value — same principle as `users.password_hash`), `issued_at`, `expires_at
 `AuditMixin` — a system-issued security record, not a human-edited business entity (same reasoning
 as `user_roles`/`role_permissions`); `revoked_at` already covers this table's one lifecycle
 transition. Model: `infrastructure/persistence/models/identity.py`'s `RefreshToken` class. Migration:
-`2572cb3570d7_refresh_tokens.py`. No repository or service reads/writes this table yet — that's
-`T50`'s `AuthService`.
+`2572cb3570d7_refresh_tokens.py`. **As of Stage 3 `T50`/`T51` (2026-08-08, QA Decision: Approved
+with comments), this table is read and written for real**: `application/auth_service.py`'s
+`AuthService` (`issue_tokens()`, `refresh()`, `revoke()`) via the new `RefreshTokenRepository` port
+and its `SqlAlchemyRefreshTokenRepository` implementation — the first business-adjacent table in
+this project with a real repository/service consumer, not just schema. `token_hash` is hashed with
+SHA-256 (`infrastructure/security/token_hasher.py`), not Argon2 — deterministic hashing is required
+for the exact-match `WHERE token_hash = ?` lookup a revocable refresh token needs; Argon2's per-call
+random salt would make that lookup impossible. Not yet wired into `configure_container()` or any
+route — see `docs/ImplementationLog/Stage3/Phase1.md`'s T50/T51 batch, Design Decisions.
 
 ## Migrations
 
