@@ -2,19 +2,19 @@
 
 # Stage 3 – Phase 2
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-08
 
-Completed:
+Completed: 2026-08-08
 
 Related Tasks: T52, T53
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — not yet committed.
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5).
 
-Pull Request: T52 — #9. T53 — not yet opened.
+Pull Request: T52 — #9. T53 — #10.
 
 Release:
 
@@ -260,14 +260,23 @@ technical defects, and not corrected retroactively into a cleaner-looking histor
   files are untracked; Deferred Work: no feature branch/commit/PR yet) — restated here explicitly as
   a governance deviation in its own right, the same class of deviation `T52`'s Problems Encountered
   recorded (subsequently closed for `T52` via PR #9/`baed936`; still open for `T53`).
+  **Update (2026-08-08, Documentation Manager, T53 final closeout):** this gap has since closed —
+  `git log` confirms `feature/stage3-t53-rbac-authorization` was branched, committed (`dd754f5`),
+  opened as PR #10, and merged (`a103dca`); `main` and `origin/main` both verified at `a103dca`,
+  working tree clean. Confirmed directly via `git show --stat a103dca`, not assumed. Recorded as a
+  correction, not a silent edit to the paragraph above — the deviation was real at the time it was
+  written and is described accurately here for how it was actually resolved, the same convention
+  `T52`'s own Problems Encountered already used for its analogous branch/commit gap.
 
 None of the four items above reflects a defect in `T53`'s actual code or tests — the Design
 Decisions, Tests Added, and Test Results recorded above for this batch are accurate and
 unchanged by this note; nothing here rewrites what was technically built or how it was verified. All
-four are process/governance gaps, parallel to (not identical to) `T52`'s own three. This pass does
-not correct them — no branch/commit/PR is created, no retroactive in-repository approval record
-predating implementation is inserted, and the QA Decision below stays unrendered pending an actual
-QA Reviewer pass that will need to weigh all four.
+four are process/governance gaps, parallel to (not identical to) `T52`'s own three. **Items 1
+(authorization not pre-recorded) and 2 (Backend Developer approval checkpoint skipped) remain
+exactly as they happened — governance history, not erased by the branch/commit resolution above,
+which only ever addressed item 3/4 (the git-action gap).** The QA Decision below was subsequently
+rendered by the QA Reviewer role (**Approved with comments**) — preserved as written, not altered by
+this update.
 
 ## Deferred Work
 
@@ -288,7 +297,9 @@ QA Reviewer pass that will need to weigh all four.
   and its own tests.
 - **A feature branch, commit, and PR for `T53`'s new code** — not created this batch (a git action;
   same posture as `T52`'s own log entries — implementation and self-assessment first, git actions
-  only when separately authorized).
+  only when separately authorized). **Resolved (2026-08-08):** no longer deferred —
+  `feature/stage3-t53-rbac-authorization` was branched, committed (`dd754f5`), opened as PR #10, and
+  merged (`a103dca`); see the corresponding update under Problems Encountered.
 - **A `TestRolePermission` class in `tests/integration/test_identity_models.py`** (schema-level:
   FK/uniqueness constraints on the `role_permissions` table itself, matching `TestUser`/`TestRole`/
   `TestPermission`/`TestUserRole`/`TestRefreshToken`'s existing sibling coverage) does not exist —
