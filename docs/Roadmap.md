@@ -119,15 +119,17 @@ rendered **Approved with comments** on the process gate (2026-08-08) — recorde
 itself. The third gap (no feature branch, direct-to-`main` work) closed independently: `git log`
 confirms `feature/stage3-t52-jwt-authentication` merged via PR #9 (`baed936`).
 
-**`T53` (`RbacAuthorizationService`) is technically implemented — NOT `Done`:** 13 new tests, full
-suite 369/369 passing, ruff/black clean (`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch).
-Also authorized by the project owner in conversation, and — the correction this paragraph exists to
-make — that authorization was **not** recorded in `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`
-before implementation began; it is documented here only retrospectively. Two further
-process/governance gaps, not technical defects, recorded in `Phase2.md`'s Problems Encountered: the
-Backend Developer role's own required approval checkpoint was skipped, and `T53` was implemented
-directly on `main` (no branch/commit/PR). `T53` has **no QA Decision** and is **not** marked `Done`.
-`T54`–`T57` remain not started, not authorized.
+**`T53` (`RbacAuthorizationService`) is Done:** 13 new tests, full suite 369/369 passing, ruff/black
+clean (`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch). Also authorized by the project owner
+in conversation, and that authorization was **not** recorded in
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation began — documented only
+retrospectively. Two further process/governance gaps, not technical defects, recorded in
+`Phase2.md`'s Problems Encountered: the Backend Developer role's own required approval checkpoint
+was skipped, and `T53` was implemented directly on `main`. QA rendered **Approved with comments**
+weighing all four deviations (2026-08-08). **Closeout:** the git-action deviation has since closed —
+`feature/stage3-t53-rbac-authorization` branched, committed (`dd754f5`), opened as PR #10, and
+merged (`a103dca`); the authorization-recording and approval-checkpoint deviations remain on record
+as governance history, not erased. `T54`–`T57` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

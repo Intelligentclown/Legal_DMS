@@ -137,9 +137,17 @@ retrospectively** — not before implementation began, which is itself a process
 failure mode `T52` already demonstrated once. Two further governance gaps, recorded in full in
 `Phase2.md`'s Problems Encountered: the Backend Developer role's own required approval checkpoint
 (`docs/prompts/BackendDeveloper.md` §5) was skipped, and `T53` was implemented directly on `main` (no
-branch, commit, or PR). **All four are process/governance deviations, not technical defects — `T53`
-is NOT marked `Done` and has NOT received a QA Decision.** `T54`–`T57` remain genuinely not started,
-not authorized. Backend test count is 369, still 9 frontend.
+branch, commit, or PR). **All four are process/governance deviations, not technical defects.**
+
+**Closeout (2026-08-08): `T53` is now Done.** A QA Reviewer role subsequently reviewed `T53` and
+rendered **Approved with comments** — the code/tests approved on the merits, and all four
+process/governance deviations above named explicitly, none disputed. The git-action deviations (no
+branch, uncommitted) have since closed: `feature/stage3-t53-rbac-authorization` was branched,
+committed (`dd754f5`), opened as PR #10, and merged (`a103dca`) — `main`/`origin/main` both verified
+at `a103dca`, working tree clean. The authorization-recording and approval-checkpoint deviations
+remain on record in `Phase2.md`'s Problems Encountered as governance history, not erased by this
+closeout. `T54`–`T57` remain not started, not authorized. Backend test count is 369, still 9
+frontend.
 
 ## Pending Work
 
@@ -290,11 +298,11 @@ per-commit file breakdown. (Stage 1, for reference, touched
 
 ## What Should Be Implemented Next
 
-**Stage 3 (Authentication & Authorization) is scoped, and Phase 0, Phase 1 (`T46`–`T51`), and `T52`
-(the first task of Phase 2) are all done. `T53` (`RbacAuthorizationService`) is implemented in the
-working tree but is explicitly not `Done` and has no QA Decision — see the Current Stage section's
-2026-08-08 correction above for the process/governance gaps involved. `T54`+ awaits a further
-explicit go-ahead, the same as before.** `T52`
+**Stage 3 (Authentication & Authorization) is scoped, and Phase 0, Phase 1 (`T46`–`T51`), `T52`, and
+`T53` (both of Phase 2 so far) are all done. `T54`+ awaits a further explicit go-ahead — see the
+Current Stage section's 2026-08-08 entries above for the process/governance gaps `T52` and `T53`
+each carried (now recorded, and in `T53`'s case, closed out) before assuming that go-ahead is a
+formality.** `T52`
 (`JwtAuthenticationProvider`) was authorized by the project owner in a Project Manager conversation;
 the repository wasn't updated to reflect that before implementation started, and QA's process-gate
 review (see [docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md)) caught
@@ -305,21 +313,25 @@ all three are now closed: the phase log exists, the authorization text is correc
 just asserted.
 
 `T53` (`RbacAuthorizationService`) was, in fact, also authorized by the project owner in
-conversation and has since been implemented — but that authorization was **not** written into the
-repository before implementation began, unlike the discipline `T52`'s own QA comment called for.
-Recorded as a correction, not silently absorbed: `T53`'s code/tests are real (369/369 full suite)
-and its process gaps (authorization recorded only retrospectively, the Backend Developer role's
-approval checkpoint skipped, implemented directly on `main`) are equally real — see
-`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered. `T53` is **not**
-marked `Done` and has **no QA Decision**; don't treat it as closed. **Don't assume `T54` is
-authorized just because `T53`'s code exists — ask; that pattern (stopping explicitly at a task or
-phase boundary pending a further go-ahead) holds throughout this project, and `T53` itself is the
-reason to take it seriously this time.** See
+conversation and implemented — but that authorization was **not** written into the repository
+before implementation began, unlike the discipline `T52`'s own QA comment called for. Recorded as a
+correction, not silently absorbed: `T53`'s code/tests are real (369/369 full suite) and its process
+gaps (authorization recorded only retrospectively, the Backend Developer role's approval checkpoint
+skipped, implemented directly on `main`) are equally real — see
+`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered. **Closeout (2026-08-08):
+`T53` is now `Done`, QA Decision Approved with comments** (code/tests approved on the merits, all
+four deviations named). The two git-action deviations have since closed —
+`feature/stage3-t53-rbac-authorization` branched, committed (`dd754f5`), opened as PR #10, and
+merged (`a103dca`); `main`/`origin/main` both verified at `a103dca` — while the authorization-recording
+and approval-checkpoint deviations remain on record as governance history, not erased. **Don't
+assume `T54` is authorized just because `T53` is `Done` — ask; that pattern (stopping explicitly at
+a task or phase boundary pending a further go-ahead) holds throughout this project, and `T53`'s own
+history is the reason to take it seriously this time.** See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's full file-by-file map.
 Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still needs its own
 sign-off before that migration is written; (2) whenever a task is authorized in conversation, that
 authorization should be written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` **before**
-implementation begins, not reconstructed afterward — both `T52` and now `T53` have demonstrated
+implementation begins, not reconstructed afterward — both `T52` and `T53` have demonstrated
 this exact failure mode; a third recurrence for `T54`+ would no longer be a surprise, it would be a
 pattern. Outside of Stage 3, do not add business entities, new major dependencies, or any
 repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
