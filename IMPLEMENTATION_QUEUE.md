@@ -492,8 +492,24 @@ implemented together per this project's established T46/T47/T49 precedent even t
 separate task IDs; see `docs/ImplementationLog/Stage3/Phase1.md`). **QA Decision: Approved with
 comments** (2026-08-08 — implementation sound, 345/345 full suite passing against live PostgreSQL,
 28/28 new tests passing, ruff/black clean, no rework required; see `docs/ImplementationLog/Stage3/Phase1.md`'s
-QA Decision section). **Phase 1 (`T46`–`T51`) is now complete. `T52` (`JwtAuthenticationProvider`,
-Phase 2) is the next unfinished task; not authorized yet.**
+QA Decision section). **Phase 1 (`T46`–`T51`) is now complete.**
+
+**Phase 2 (`T52` onward) — correction, 2026-08-08:** `T52` (`JwtAuthenticationProvider`) was
+explicitly authorized by the project owner in a Project Manager conversation, and was subsequently
+implemented (`infrastructure/auth/jwt_authentication_provider.py`, 11 tests, full suite 356/356
+passing, ruff/black clean) — but that authorization was never recorded in this file or
+`PROJECT_STATE.json` before implementation began, so both incorrectly read "not authorized yet"
+until this correction. That prior text did not mean the work was actually unapproved; it meant the
+repository had fallen behind a real decision made elsewhere. QA independently reviewed `T52`'s code
+and tests and found them technically correct, but rendered **Rework required** on process grounds
+only: the stale "not authorized" text, a missing `docs/ImplementationLog/Stage3/Phase2.md`, and an
+undocumented direct-to-`main` implementation (no feature branch, unlike every prior Stage 3 batch —
+`T52`'s files remain untracked and uncommitted as of this correction). This documentation
+synchronization pass creates `docs/ImplementationLog/Stage3/Phase2.md` and corrects this file and
+`PROJECT_STATE.json` to close the first two findings; the branch/commit gap remains open (a git
+action, not a documentation one — not authorized as part of this pass) and is tracked in
+`Phase2.md`'s Deferred Work. **`T52` is not yet marked `Done`** — see `Phase2.md` for the pending
+process-gate QA re-review that gates that. `T53`–`T57` remain not started, not authorized.
 
 **Process note (2026-08-08, Documentation Manager, per QA's comment on the T50/T51 batch):** the
 `T50`/`T51` batch's Backend Developer role edited this file directly to mark `T50`/`T51` done,
@@ -677,7 +693,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
-| T52 | Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid). | M | T50, ADR-0019 |
+| T52 | ~~Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid).~~ **Implemented** (2026-08-08 — `infrastructure/auth/jwt_authentication_provider.py`; 11 tests in `tests/unit/test_jwt_authentication_provider.py`; full suite 356/356 passing, ruff/black clean. QA independently verified the code and tests as technically correct. **Not yet closed as Done**, pending the process-gate QA re-review below — see `docs/ImplementationLog/Stage3/Phase2.md`.) | M | T50, ADR-0019 |
 | T53 | Real `RbacAuthorizationService` implementing `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`. | S | T52 |
 | T54 | `RequirePermission(...)` FastAPI dependency factory (closes Stage 2.5's flagged-not-scheduled F11 — now explicitly in scope). | S | T53 |
 | T55 | Wire `JwtAuthenticationProvider`/`RbacAuthorizationService` into `configure_container()`, replacing the `Anonymous`/`Permissive` defaults. | XS | T52, T53 |
@@ -816,11 +832,14 @@ T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark St
 *Stage 3's architecture (D1–D7, `ADR-0018`/`0019`/`0020`) is approved. **Implementation is
 under way**: Phase 0 (T41–T45) is done (`docs/ImplementationLog/Stage3/Phase0.md`, Status: Done,
 QA Decision: Approved) and the `docs/templates/PreStageChecklist.md` sign-off that gated Phase 1 is
-complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 is under
-way — `T46`, `T47`, `T48` (satisfied by `T44`'s redefinition, confirmed 2026-08-07), and `T49`
-(the `refresh_tokens` migration, independently QA-approved after rework, 2026-08-07) are all done
-— see `docs/ImplementationLog/Stage3/Phase1.md`. `T50` (`AuthService`) is the next unfinished
-task; not authorized this batch. See
+complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 (`T46`–`T51`)
+is complete (`docs/ImplementationLog/Stage3/Phase1.md`, QA Decision: Approved with comments).
+**Phase 2 is under way: `T52` (`JwtAuthenticationProvider`) is implemented and technically verified
+by QA** (356/356 full suite, ruff/black clean), **but not yet marked `Done`** — QA's process-gate
+review found the authorization-recording, missing-phase-log, and undocumented-direct-to-`main`
+gaps described above, now partially closed by this synchronization pass
+(`docs/ImplementationLog/Stage3/Phase2.md`); the branch/commit deviation remains open pending a
+separately authorized git action. `T53`–`T57` are not started, not authorized. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
 (Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*

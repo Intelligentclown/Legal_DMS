@@ -106,9 +106,17 @@ criteria, and current status; this row is a pointer, not a duplicate. As of 2026
 encode/decode) merged to `main`; `T48` satisfied by `T44`'s work; `T49` (the `refresh_tokens`
 migration) independently QA-approved after one rework round; `T50`/`T51` (`AuthService` — `authenticate`/
 `issue_tokens`/`refresh`/`revoke` — plus its 28 tests) QA Decision: Approved with comments, 2026-08-08
-(see `docs/ImplementationLog/Stage3/Phase1.md`). `T50`/`T51`'s work is uncommitted on `main` as of
-this update — see `PROJECT_STATE.json`'s `git` block. `T52` (`JwtAuthenticationProvider`, Phase 2) is
-next, not yet authorized.
+(see `docs/ImplementationLog/Stage3/Phase1.md`). `T50`/`T51`'s work was in fact branched, opened as
+PR #8, and merged (`204c098`) — the "uncommitted on `main`" note this section previously carried was
+itself stale by the time of this correction; see `PROJECT_STATE.json`'s `git` block.
+
+**Phase 2 under way:** `T52` (`JwtAuthenticationProvider`) was authorized by the project owner in a
+Project Manager conversation and implemented 2026-08-08 (356/356 full suite passing, 11 new tests —
+see `docs/ImplementationLog/Stage3/Phase2.md`), but that authorization wasn't recorded in the
+repository before implementation began. QA verified the code as technically correct but rendered
+Rework required on process grounds (authorization-recording, missing phase log, undocumented
+direct-to-`main` work — the last of which remains open: `T52`'s files are untracked, uncommitted, no
+feature branch exists). `T52` is not yet marked `Done`. `T53`–`T57` are not started, not authorized.
 
 | Feature | Status |
 |---|---|
