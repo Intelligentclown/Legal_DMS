@@ -110,22 +110,36 @@ Phase 1 tasks built, via two new narrow repository ports (`UserRepository`,
 live PostgreSQL, no rework required). Full detail:
 [docs/ImplementationLog/Stage3/Phase1.md](ImplementationLog/Stage3/Phase1.md).
 
-**Update (2026-08-08): Phase 2 under way — `T52` (`JwtAuthenticationProvider`) implemented, process
-gate open.** `T52` was explicitly authorized by the project owner in a Project Manager conversation
-and implemented (`infrastructure/auth/jwt_authentication_provider.py`, 11 tests, full suite 356/356
-passing, ruff/black clean) — but that authorization was never recorded in `IMPLEMENTATION_QUEUE.md`/
-`PROJECT_STATE.json` before implementation began, and no
-`docs/ImplementationLog/Stage3/Phase2.md` existed until this pass. QA independently verified `T52`'s
-code and tests as technically correct but rendered **Rework required** on process grounds: the
-stale "not authorized" text, the missing phase log, and an undocumented direct-to-`main`
-implementation (`T52`'s files are untracked and uncommitted, no feature branch was ever created).
-This documentation synchronization pass creates
-[docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md) and corrects the
-authorization/phase-log gaps; the branch/commit deviation remains open (a git action, not
-authorized as part of this pass). **`T52` is not yet marked `Done`** — pending the process-gate QA
-re-review. `AuthService`/`JwtAuthenticationProvider` are still **not wired into
-`configure_container()` or any route** — that's `T53`–`T57`, not started, not authorized. Backend
-test count is now 356 (up from 345 at Phase 1's close), still 9 frontend.
+**Update (2026-08-08): Phase 2's `T52` (`JwtAuthenticationProvider`) is Done.** `T52` was explicitly
+authorized by the project owner in a Project Manager conversation and implemented
+(`infrastructure/auth/jwt_authentication_provider.py`, 11 tests, full suite 356/356 passing,
+ruff/black clean) — but that authorization was initially never recorded in
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`, and no `docs/ImplementationLog/Stage3/Phase2.md`
+existed yet either. QA independently verified `T52`'s code and tests as technically correct
+throughout; once a documentation-synchronization pass created
+[docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md) and corrected the
+authorization text, QA rendered **Approved with comments** on the process gate itself (2026-08-08)
+— the comment: authorization given in conversation should land in the repository *before*
+implementation starts, not be reconstructed afterward. The third originally-flagged gap (no feature
+branch, direct-to-`main` implementation) closed independently of any of this: `git log` shows
+`feature/stage3-t52-jwt-authentication` merged via PR #9 (`baed936`). `Phase2.md`'s QA Decision is
+now recorded in-repository (not just in conversation) with that commit/PR referenced, and `T52` is
+marked `Done` in `IMPLEMENTATION_QUEUE.md`. `AuthService`/`JwtAuthenticationProvider` are still
+**not wired into `configure_container()` or any route.**
+
+**Correction (2026-08-08, T53 documentation/process transparency pass):** `T53`
+(`RbacAuthorizationService`) is **technically implemented**, not "not started" as this section
+previously read — `infrastructure/auth/rbac_authorization_service.py` plus a new
+`RolePermissionRepository` port and its SQLAlchemy implementation, 13 new tests, full suite 369/369
+passing, ruff/black clean (see `docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch). It was
+authorized by the project owner in conversation, **documented in the repository only
+retrospectively** — not before implementation began, which is itself a process gap, the same
+failure mode `T52` already demonstrated once. Two further governance gaps, recorded in full in
+`Phase2.md`'s Problems Encountered: the Backend Developer role's own required approval checkpoint
+(`docs/prompts/BackendDeveloper.md` §5) was skipped, and `T53` was implemented directly on `main` (no
+branch, commit, or PR). **All four are process/governance deviations, not technical defects — `T53`
+is NOT marked `Done` and has NOT received a QA Decision.** `T54`–`T57` remain genuinely not started,
+not authorized. Backend test count is 369, still 9 frontend.
 
 ## Pending Work
 
@@ -276,25 +290,38 @@ per-commit file breakdown. (Stage 1, for reference, touched
 
 ## What Should Be Implemented Next
 
-**Stage 3 (Authentication & Authorization) is scoped, Phase 0 and Phase 1 (`T46`–`T51`) are done, and
-Phase 2 is under way — `T52` (`JwtAuthenticationProvider`) is implemented and technically verified,
-but not yet closed out; `T53`+ awaits a further explicit go-ahead.** `T52` was authorized by the
-project owner in a Project Manager conversation, but the repository wasn't updated to reflect that
-before implementation started — QA's process-gate review (see
-[docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md)) caught this and two
-related gaps, now partly closed by this documentation-synchronization pass. **Don't assume `T53` is
-authorized just because `T52`'s code is done and verified — ask; that pattern (stopping explicitly
-at a task or phase boundary pending a further go-ahead) holds throughout this project.** See
+**Stage 3 (Authentication & Authorization) is scoped, and Phase 0, Phase 1 (`T46`–`T51`), and `T52`
+(the first task of Phase 2) are all done. `T53` (`RbacAuthorizationService`) is implemented in the
+working tree but is explicitly not `Done` and has no QA Decision — see the Current Stage section's
+2026-08-08 correction above for the process/governance gaps involved. `T54`+ awaits a further
+explicit go-ahead, the same as before.** `T52`
+(`JwtAuthenticationProvider`) was authorized by the project owner in a Project Manager conversation;
+the repository wasn't updated to reflect that before implementation started, and QA's process-gate
+review (see [docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md)) caught
+that plus two related gaps (a missing phase log, an undocumented direct-to-`main` implementation) —
+all three are now closed: the phase log exists, the authorization text is corrected, and
+`feature/stage3-t52-jwt-authentication` was in fact branched, committed, opened as PR #9, and merged
+(`baed936`). QA's decision — **Approved with comments** — is recorded in `Phase2.md` itself, not
+just asserted.
+
+`T53` (`RbacAuthorizationService`) was, in fact, also authorized by the project owner in
+conversation and has since been implemented — but that authorization was **not** written into the
+repository before implementation began, unlike the discipline `T52`'s own QA comment called for.
+Recorded as a correction, not silently absorbed: `T53`'s code/tests are real (369/369 full suite)
+and its process gaps (authorization recorded only retrospectively, the Backend Developer role's
+approval checkpoint skipped, implemented directly on `main`) are equally real — see
+`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered. `T53` is **not**
+marked `Done` and has **no QA Decision**; don't treat it as closed. **Don't assume `T54` is
+authorized just because `T53`'s code exists — ask; that pattern (stopping explicitly at a task or
+phase boundary pending a further go-ahead) holds throughout this project, and `T53` itself is the
+reason to take it seriously this time.** See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's full file-by-file map.
-Three open items: (1) `T52`'s own files are untracked and uncommitted directly on `main` — no
-feature branch was ever created, unlike every prior Stage 3 batch; branching/committing/pushing this
-already-verified code is unfinished work, not authorized as part of a documentation pass — see
-`PROJECT_STATE.json`'s `git` block; (2) the `role_permissions` exact matrix (`T66`) still needs its
-own sign-off before that migration is written; (3) whenever a Project Manager (or any role)
-authorizes a task in conversation, that authorization should be written into
-`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` **before** implementation begins, not reconstructed
-afterward — `T52`'s process gap is exactly this failure mode, worth avoiding for `T53` onward.
-Outside of Stage 3, do not add business entities, new major dependencies, or any
+Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still needs its own
+sign-off before that migration is written; (2) whenever a task is authorized in conversation, that
+authorization should be written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` **before**
+implementation begins, not reconstructed afterward — both `T52` and now `T53` have demonstrated
+this exact failure mode; a third recurrence for `T54`+ would no longer be a surprise, it would be a
+pattern. Outside of Stage 3, do not add business entities, new major dependencies, or any
 repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
 

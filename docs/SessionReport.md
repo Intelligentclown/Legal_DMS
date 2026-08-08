@@ -1258,6 +1258,42 @@ none of that was authorized or done this session; (2) `docs/ProjectStatus.md`/
 `docs/ArchitectureScorecard.md`'s Stage 3 staleness (see above) is worth a dedicated pass at some
 point, not bundled into a single task batch's documentation sync.
 
+## Session: 2026-08-08 — Stage 3 Phase 2, T52 (`JwtAuthenticationProvider`) — administrative closeout
+
+**Objectives:** As Documentation Manager, close out `T52` administratively — record its
+already-rendered QA Decision (Approved with comments) into `docs/ImplementationLog/Stage3/Phase2.md`
+itself, record the merge that resolved its outstanding branch/commit gap (PR #9, commit `baed936`),
+synchronize `PROJECT_STATE.json`/`docs/AI_HANDOVER.md`/`docs/Roadmap.md`, and mark `T52` `Done` in
+`IMPLEMENTATION_QUEUE.md`. No `T52` code was touched, no new implementation decision was made, and
+`T53` was not started. Full technical detail lives in `Phase2.md` — summarized here, not restated.
+
+**What happened:** `T52` had accumulated three process gaps outside this session (implemented
+directly on `main`, authorization not written into the repository before implementation, no phase
+log) — a QA Reviewer pass had already reviewed the resulting documentation-sync and rendered
+**Approved with comments** on the process gate specifically (the code and tests were independently
+confirmed correct throughout; the "comment" is a process reminder, not an implementation defect),
+and a separate Project Manager cross-check had independently found `git log` showing the
+branch/commit gap closed too (`feature/stage3-t52-jwt-authentication` → PR #9 → `baed936`) — but
+neither fact had actually been written into `Phase2.md`'s own QA Decision/metadata fields, so
+`IMPLEMENTATION_QUEUE.md` correctly still withheld `T52`'s `Done` mark pending that. This session
+closed that last gap: `Phase2.md`'s QA Decision section now records Approved with comments
+in-repository, its `Git Commit`/`Pull Request` metadata fields read `baed936`/`#9`, and its
+`Status`/`Completed` fields read `Done`/`2026-08-08`; the Problems Encountered/Deferred Work entries
+that described the branch/commit gap as open were corrected with dated append-notes (not silently
+rewritten) once independently reconfirmed via `git show baed936 --stat`. `T52` is now marked `Done`
+in `IMPLEMENTATION_QUEUE.md`'s task table and Stage 3 narrative.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase2.md` (QA Decision recorded,
+Status/Completed/Git Commit/Pull Request metadata filled in, dated corrections to two sections),
+`IMPLEMENTATION_QUEUE.md` (`T52` marked `Done`, narrative notes reconciled), `PROJECT_STATE.json`
+(`currentStage`/`stages`/`completion`/`tests.backend`/`backendSubsystems`/`git` all updated),
+`docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file).
+
+**Next Session Goals:** `T53` (`RbacAuthorizationService`) is the next unfinished task — depends on
+`T52` (done). Not authorized this session. Standing item, unrelated to `T52`:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md` remain stale at pre-Stage-3 status — still
+not touched by any Phase 1/2 Documentation Manager pass, worth a dedicated cleanup at some point.
+
 ## Session: 2026-08-08 — Stage 3 Phase 2, T52 process-gate documentation sync
 
 **Objectives:** As Documentation Manager, close QA's process-gate findings on the `T52`
@@ -1303,3 +1339,63 @@ whether the authorization-recording and phase-log gaps are now closed. If cleare
 marked `Done`, but the branch/commit deviation stays open regardless — someone with git-action
 authorization needs to branch, commit, and push `T52`'s existing code before `T53` starts, so a
 second uncommitted batch doesn't stack on top of the first.
+
+## Session: 2026-08-08 — Stage 3 Phase 2, T53 (`RbacAuthorizationService`) — documentation/process correction
+
+**Objectives:** A transparent documentation/process correction only, explicitly scoped by the
+project owner: no `T53` implementation code or tests to be touched, no `T54`–`T57` work, `T53` not
+to be marked `Done`, and no git actions of any kind. Correct the repository so it accurately
+records what actually happened for `T53`, the same way `T52`'s own process gaps were recorded
+rather than smoothed over.
+
+**What happened:** Found, on reconstructing repository state fresh, that a `T53` batch (real
+`RbacAuthorizationService`, a new `RolePermissionRepository` port + SQLAlchemy implementation, 13
+tests, 369/369 full suite passing) already existed in `docs/ImplementationLog/Stage3/Phase2.md`
+and the working tree — written by a Backend Developer role in a session this conversation has no
+visibility into, per this project's repository-first discipline. `IMPLEMENTATION_QUEUE.md` and
+`PROJECT_STATE.json` still read "`T53`–`T57` not started, not authorized," directly contradicting
+that. Corrected this by recording, not hiding, four process/governance deviations — none of them a
+technical defect in `T53`'s code or tests, which are unchanged and independently verified passing:
+(1) `T53` was authorized by the project owner in conversation; (2) that authorization was never
+written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation began — the same
+failure mode `T52`'s own QA comment had already named as worth avoiding, recurring anyway; (3) the
+Backend Developer role's required approval checkpoint (`docs/prompts/BackendDeveloper.md` §5 —
+summarize understanding, then wait for explicit approval of *that summary*, distinct from the
+project owner's task-level authorization) was skipped; (4) `T53` was implemented directly on `main`,
+no feature branch. Added these to `Phase2.md`'s Problems Encountered (T53 batch) rather than
+silently correcting the historical narrative, and left the QA Decision — T53 batch section exactly
+as found: all three boxes unchecked, pending an actual QA Reviewer pass. Corrected the stale "not
+started"/"not authorized" language in `IMPLEMENTATION_QUEUE.md` (the T53 table row and two narrative
+notes) and `PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/`tests.backend`) to state
+`T53` is *technically implemented* but explicitly *not* `Done` and *not* QA-approved — a three-way
+distinction (implemented / QA pending / not Done) preserved throughout rather than collapsed into
+either extreme. Updated `docs/AI_HANDOVER.md` (two sections) and `docs/Roadmap.md` for the same
+reason; left `docs/SessionReport.md`'s own prior entries untouched, since rewriting a past session
+record would itself repeat the mistake being corrected — this new entry is how the correction is
+recorded instead.
+
+**On the mixed working tree:** `git status` shows uncommitted `T52`-closeout documentation changes
+from the prior session (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md`) sitting alongside this session's own edits to the same
+files, plus five untracked `T53` implementation/test files
+(`application/interfaces/role_permission_repository.py`,
+`infrastructure/persistence/sqlalchemy_role_permission_repository.py`,
+`infrastructure/auth/rbac_authorization_service.py`,
+`tests/unit/test_rbac_authorization_service.py`,
+`tests/integration/test_sqlalchemy_role_permission_repository.py`). None of this was staged,
+committed, reverted, or otherwise manipulated — per explicit instruction, this session reports the
+mixed state rather than assuming ownership of resolving it.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase2.md` (T53 batch's Problems
+Encountered extended), `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md` (this file).
+
+**Confirmed:** no `T53` implementation code or test file was modified; `T54`–`T57` were not started;
+`T53` was not marked `Done` and received no QA Decision; no branch, commit, push, or other git
+action was performed.
+
+**Next Session Goals:** An actual QA Reviewer pass is what `T53` needs next — reviewing not just the
+code/tests (already independently verified: 369/369, ruff/black clean) but explicitly weighing the
+four process/governance deviations recorded above, the same way QA weighed `T52`'s three. Separately
+standing: `T53`'s branch/commit/PR gap, and `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s
+pre-Stage-3 staleness — neither addressed this session, both out of its explicitly narrow scope.
