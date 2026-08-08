@@ -101,12 +101,14 @@ trade-offs, none are outstanding action items.
 
 Scoped, architecture-approved (D1–D7, `ADR-0018`/`0019`/`0020`), and under active implementation —
 see `IMPLEMENTATION_QUEUE.md`'s "Stage 3" section for the full task list (`T41`–`T80`), acceptance
-criteria, and current status; this row is a pointer, not a duplicate. As of 2026-08-07: Phase 0
-(`T41`–`T45`, the `get_db()` commit fix + auth dependencies/config/interface change) and Phase 1's
-`T46`/`T47` (password hashing, JWT encode/decode) are done and merged to `main`; `T48` is done
-(confirmed satisfied by `T44`'s work); `T49` (the `refresh_tokens` migration) is also done,
-independently QA-approved after one rework round; `T50` (`AuthService`) is next, not yet
-authorized.
+criteria, and current status; this row is a pointer, not a duplicate. As of 2026-08-08: **Phase 0
+(`T41`–`T45`) and Phase 1 (`T46`–`T51`) are both complete.** `T46`/`T47` (password hashing, JWT
+encode/decode) merged to `main`; `T48` satisfied by `T44`'s work; `T49` (the `refresh_tokens`
+migration) independently QA-approved after one rework round; `T50`/`T51` (`AuthService` — `authenticate`/
+`issue_tokens`/`refresh`/`revoke` — plus its 28 tests) QA Decision: Approved with comments, 2026-08-08
+(see `docs/ImplementationLog/Stage3/Phase1.md`). `T50`/`T51`'s work is uncommitted on `main` as of
+this update — see `PROJECT_STATE.json`'s `git` block. `T52` (`JwtAuthenticationProvider`, Phase 2) is
+next, not yet authorized.
 
 | Feature | Status |
 |---|---|
