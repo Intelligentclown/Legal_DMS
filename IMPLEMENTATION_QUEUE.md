@@ -503,13 +503,51 @@ until this correction. That prior text did not mean the work was actually unappr
 repository had fallen behind a real decision made elsewhere. QA independently reviewed `T52`'s code
 and tests and found them technically correct, but rendered **Rework required** on process grounds
 only: the stale "not authorized" text, a missing `docs/ImplementationLog/Stage3/Phase2.md`, and an
-undocumented direct-to-`main` implementation (no feature branch, unlike every prior Stage 3 batch —
-`T52`'s files remain untracked and uncommitted as of this correction). This documentation
-synchronization pass creates `docs/ImplementationLog/Stage3/Phase2.md` and corrects this file and
-`PROJECT_STATE.json` to close the first two findings; the branch/commit gap remains open (a git
-action, not a documentation one — not authorized as part of this pass) and is tracked in
-`Phase2.md`'s Deferred Work. **`T52` is not yet marked `Done`** — see `Phase2.md` for the pending
-process-gate QA re-review that gates that. `T53`–`T57` remain not started, not authorized.
+undocumented direct-to-`main` implementation (no feature branch, unlike every prior Stage 3 batch).
+A documentation synchronization pass created `docs/ImplementationLog/Stage3/Phase2.md` and closed
+the first two findings; a QA Reviewer pass then reviewed that synchronization and rendered
+**Approved with comments** for the process gate specifically (2026-08-08) — the two documentation
+findings were confirmed closed, and the third (branch/commit) was accepted as disclosed-but-open
+per this project's own established precedent for the same class of deviation on the `T50`/`T51`
+batch.
+
+**Project Manager cross-check (2026-08-08):** rebuilding repository state fresh (per this role's own
+rule not to trust a prior conversation) found that `T52`'s branch/commit gap had closed
+independently — `git log` shows `feature/stage3-t52-jwt-authentication` merged via PR #9
+(`baed936`), carrying `T52`'s code and the prior documentation-sync commit together. All three of
+QA's original process findings were therefore substantively resolved, but the "Approved with
+comments" process-gate decision itself was still only recorded in conversation, not in
+`docs/ImplementationLog/Stage3/Phase2.md`'s own QA Decision section — flagged rather than treated as
+satisfied.
+
+**T52 administrative closeout (2026-08-08, Documentation Manager):** the gap the cross-check above
+flagged is now closed — `Phase2.md`'s QA Decision section records **Approved with comments**
+in-repository (not just in conversation), with `Git Commit: baed936` (feature commit `003ab15`) and
+`Pull Request: #9` filled into its metadata block, and its `Status`/`Completed` fields updated to
+`Done`/`2026-08-08`. **`T52` is now marked `Done` below**, per the Developer/QA record in `Phase2.md`
+(`docs/prompts/DocumentationManager.md` §2 — marking a task done per that record is this role's
+job, not a re-scoping). No implementation code was touched and no new implementation decision was
+made as part of this closeout.
+
+**`T53` documentation/process correction (2026-08-08, Documentation Manager — transparency pass,
+not a closeout):** the statement this row previously carried ("T53–T57 remain not started, not
+authorized") was itself stale and is corrected here. `T53` (`RbacAuthorizationService`) **is
+technically implemented** — five new files (`role_permission_repository.py` port,
+`sqlalchemy_role_permission_repository.py`, `rbac_authorization_service.py`, plus 13 new tests
+across a unit and an integration file), 369/369 full suite passing, ruff/black clean — see
+`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch sections. It was authorized by the project
+owner in conversation; **that authorization was not recorded in this file or `PROJECT_STATE.json`
+before implementation began** — it is being documented here only after the fact, not backdated to
+imply otherwise. Two further process gaps, recorded in full in `Phase2.md`'s Problems Encountered
+(T53 batch): the Backend Developer role's required approval checkpoint
+(`docs/prompts/BackendDeveloper.md` §5 — summarize understanding, then wait for explicit approval of
+*that summary* — distinct from the project owner's task-level authorization) was skipped, and `T53`
+was implemented directly on `main` (no feature branch, no commit, no PR). **All four are
+process/governance deviations, not technical defects** — `T53`'s code and tests are not in question.
+**`T53` is NOT marked `Done` below and has NOT received a QA Decision** — its row is corrected to
+reflect "implemented, QA pending," a distinct state from `Done`, per this project's own "an honest
+unchecked box beats a falsely checked one" discipline. `T54`–`T57` remain genuinely not started, not
+authorized.
 
 **Process note (2026-08-08, Documentation Manager, per QA's comment on the T50/T51 batch):** the
 `T50`/`T51` batch's Backend Developer role edited this file directly to mark `T50`/`T51` done,
@@ -693,8 +731,8 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
-| T52 | ~~Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid).~~ **Implemented** (2026-08-08 — `infrastructure/auth/jwt_authentication_provider.py`; 11 tests in `tests/unit/test_jwt_authentication_provider.py`; full suite 356/356 passing, ruff/black clean. QA independently verified the code and tests as technically correct. **Not yet closed as Done**, pending the process-gate QA re-review below — see `docs/ImplementationLog/Stage3/Phase2.md`.) | M | T50, ADR-0019 |
-| T53 | Real `RbacAuthorizationService` implementing `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`. | S | T52 |
+| T52 | ~~Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid).~~ **Done** (2026-08-08 — `infrastructure/auth/jwt_authentication_provider.py`; 11 tests in `tests/unit/test_jwt_authentication_provider.py`; full suite 356/356 passing, ruff/black clean. QA Decision: Approved with comments (process gate only — code/tests were independently confirmed correct from the start; see `docs/ImplementationLog/Stage3/Phase2.md`). Merged: PR #9, commit `baed936`.) | M | T50, ADR-0019 |
+| T53 | Real `RbacAuthorizationService` implementing `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`. **Implemented, QA pending — NOT `Done`** (2026-08-08 — `infrastructure/auth/rbac_authorization_service.py` + `application/interfaces/role_permission_repository.py` + `infrastructure/persistence/sqlalchemy_role_permission_repository.py`; 13 tests; full suite 369/369 passing, ruff/black clean. Authorized by the project owner in conversation, documented here only retrospectively — not recorded before implementation began. Implemented directly on `main` (no branch/commit/PR yet); the Backend Developer role's required approval checkpoint was skipped. All process/governance deviations, not technical defects — see `docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered.) | S | T52 |
 | T54 | `RequirePermission(...)` FastAPI dependency factory (closes Stage 2.5's flagged-not-scheduled F11 — now explicitly in scope). | S | T53 |
 | T55 | Wire `JwtAuthenticationProvider`/`RbacAuthorizationService` into `configure_container()`, replacing the `Anonymous`/`Permissive` defaults. | XS | T52, T53 |
 | T56 | Update `presentation/api/deps.py`'s `CurrentUserDep` for the new provider signature. | XS | T55 |
@@ -834,12 +872,16 @@ under way**: Phase 0 (T41–T45) is done (`docs/ImplementationLog/Stage3/Phase0.
 QA Decision: Approved) and the `docs/templates/PreStageChecklist.md` sign-off that gated Phase 1 is
 complete and approved (`docs/reviews/PreStageChecklist_Stage3_2026-08-07.md`). Phase 1 (`T46`–`T51`)
 is complete (`docs/ImplementationLog/Stage3/Phase1.md`, QA Decision: Approved with comments).
-**Phase 2 is under way: `T52` (`JwtAuthenticationProvider`) is implemented and technically verified
-by QA** (356/356 full suite, ruff/black clean), **but not yet marked `Done`** — QA's process-gate
-review found the authorization-recording, missing-phase-log, and undocumented-direct-to-`main`
-gaps described above, now partially closed by this synchronization pass
-(`docs/ImplementationLog/Stage3/Phase2.md`); the branch/commit deviation remains open pending a
-separately authorized git action. `T53`–`T57` are not started, not authorized. See
+**Phase 2 is under way: `T52` (`JwtAuthenticationProvider`) is Done** — implemented, technically
+verified, merged (356/356 full suite, ruff/black clean, PR #9/`baed936`), and its process-gate QA
+Decision (Approved with comments) is now recorded in-repository
+(`docs/ImplementationLog/Stage3/Phase2.md`, Status: Done). **`T53` (`RbacAuthorizationService`) is
+technically implemented (369/369 full suite passing) but NOT `Done`** — authorized by the project
+owner in conversation, documented in the repository only retrospectively (not before implementation
+began, as it should have been), implemented directly on `main`, and the Backend Developer role's
+own required approval checkpoint was skipped; all recorded as process/governance deviations, not
+technical defects, in `docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered.
+`T53`'s QA Decision remains unrendered. `T54`–`T57` are not started, not authorized. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
 (Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*

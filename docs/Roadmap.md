@@ -110,13 +110,24 @@ migration) independently QA-approved after one rework round; `T50`/`T51` (`AuthS
 PR #8, and merged (`204c098`) — the "uncommitted on `main`" note this section previously carried was
 itself stale by the time of this correction; see `PROJECT_STATE.json`'s `git` block.
 
-**Phase 2 under way:** `T52` (`JwtAuthenticationProvider`) was authorized by the project owner in a
-Project Manager conversation and implemented 2026-08-08 (356/356 full suite passing, 11 new tests —
-see `docs/ImplementationLog/Stage3/Phase2.md`), but that authorization wasn't recorded in the
-repository before implementation began. QA verified the code as technically correct but rendered
-Rework required on process grounds (authorization-recording, missing phase log, undocumented
-direct-to-`main` work — the last of which remains open: `T52`'s files are untracked, uncommitted, no
-feature branch exists). `T52` is not yet marked `Done`. `T53`–`T57` are not started, not authorized.
+**Phase 2 — `T52` is Done:** `T52` (`JwtAuthenticationProvider`) was authorized by the project owner
+in a Project Manager conversation and implemented 2026-08-08 (356/356 full suite passing, 11 new
+tests — see `docs/ImplementationLog/Stage3/Phase2.md`), but that authorization wasn't recorded in
+the repository before implementation began. QA verified the code as technically correct throughout
+and, once a documentation pass closed the authorization-recording and missing-phase-log gaps,
+rendered **Approved with comments** on the process gate (2026-08-08) — recorded in `Phase2.md`
+itself. The third gap (no feature branch, direct-to-`main` work) closed independently: `git log`
+confirms `feature/stage3-t52-jwt-authentication` merged via PR #9 (`baed936`).
+
+**`T53` (`RbacAuthorizationService`) is technically implemented — NOT `Done`:** 13 new tests, full
+suite 369/369 passing, ruff/black clean (`docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch).
+Also authorized by the project owner in conversation, and — the correction this paragraph exists to
+make — that authorization was **not** recorded in `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`
+before implementation began; it is documented here only retrospectively. Two further
+process/governance gaps, not technical defects, recorded in `Phase2.md`'s Problems Encountered: the
+Backend Developer role's own required approval checkpoint was skipped, and `T53` was implemented
+directly on `main` (no branch/commit/PR). `T53` has **no QA Decision** and is **not** marked `Done`.
+`T54`–`T57` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|
