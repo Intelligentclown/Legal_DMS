@@ -160,8 +160,15 @@ changes exist directly on `main`, uncommitted, unbranched. **One important corre
 explicitly:** unlike `T53`, the Backend Developer role's `docs/prompts/BackendDeveloper.md` §5
 approval checkpoint **was performed and explicitly approved before implementation began** for `T54`
 — `T53`'s own QA Decision had called this checkpoint's absence "overdue for an actual fix," and this
-batch is that fix. `T55`–`T57` remain not started, not authorized. Backend test count is 374, still
-9 frontend.
+batch is that fix.
+
+**Closeout (2026-08-10): `T54` is now Done.** A QA Reviewer role subsequently re-reviewed the process
+gate and rendered a **follow-up decision — Approved with comments** — the original `Rework required`
+above is preserved verbatim as the historical record, not erased. The branch/commit/PR gap has
+closed: `feature/stage3-t54-require-permission` → feature commit `dbd6724` → PR #12 → merged
+`6396f6b` — `main`/`origin/main` both verified at `6396f6b`. The authorization-not-pre-recorded
+finding remains on record as governance history, not erased by this closeout. `T55`–`T57` remain not
+started, not authorized. Backend test count is 374, still 9 frontend.
 
 ## Pending Work
 
@@ -312,12 +319,11 @@ per-commit file breakdown. (Stage 1, for reference, touched
 
 ## What Should Be Implemented Next
 
-**Stage 3 (Authentication & Authorization) is scoped, and Phase 0, Phase 1 (`T46`–`T51`), `T52`, and
-`T53` are all done. `T54` is implemented and QA-reviewed but administratively open (Rework required,
-process grounds only) — not `Done`. `T55`+ awaits a further explicit go-ahead — see the Current
-Stage section's 2026-08-08 entries above for the process/governance gaps `T52`, `T53`, and `T54`
-each carried (now recorded, and in `T52`/`T53`'s case, closed out) before assuming that go-ahead is
-a formality.** `T52`
+**Stage 3 (Authentication & Authorization) is scoped, and Phase 0, Phase 1 (`T46`–`T51`), `T52`,
+`T53`, and `T54` are all done. `T55` is the next unfinished task and awaits a further explicit
+go-ahead — see the Current Stage section's 2026-08-08/2026-08-10 entries above for the
+process/governance gaps `T52`, `T53`, and `T54` each carried (now recorded, and in every case,
+closed out) before assuming that go-ahead is a formality.** `T52`
 (`JwtAuthenticationProvider`) was authorized by the project owner in a Project Manager conversation;
 the repository wasn't updated to reflect that before implementation started, and QA's process-gate
 review (see [docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md)) caught
@@ -343,13 +349,17 @@ and approval-checkpoint deviations remain on record as governance history, not e
 **`T54` (`RequirePermission(...)` FastAPI dependency factory) followed — the predicted third
 recurrence of the authorization-recording gap did happen (`T52`, `T53`, `T54`, three consecutive
 batches), but not the approval-checkpoint gap: unlike `T53`, the Backend Developer role's §5
-checkpoint was actually performed and approved before `T54`'s implementation began.** `T54` is
-technically implemented and QA-reviewed (374/374 full suite, no code issues) but QA rendered
-**Rework required, process grounds only** — pending the same branch/commit/PR resolution that
-eventually closed `T52`/`T53`'s equivalent gaps. See `docs/ImplementationLog/Stage3/Phase2.md`'s T54
-batch. **Don't assume `T55` is authorized just because `T54`'s code exists — ask; that pattern
-(stopping explicitly at a task or phase boundary pending a further go-ahead) holds throughout this
-project, and three consecutive authorization-recording gaps is reason enough to take it seriously.**
+checkpoint was actually performed and approved before `T54`'s implementation began.** `T54` was
+technically implemented and QA-reviewed (374/374 full suite, no code issues); QA's original decision
+was **Rework required, process grounds only**, superseded by a **follow-up decision (2026-08-10):
+Approved with comments** once the branch/commit/PR gap closed the same way `T52`/`T53`'s equivalent
+gaps did — `feature/stage3-t54-require-permission` → feature commit `dbd6724` → PR #12 → merged
+`6396f6b`. Both QA decisions are preserved in `docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch,
+the original verbatim, not erased; the authorization-not-pre-recorded finding remains open governance
+history. **`T55` is now the next unfinished task. Don't assume it's authorized just because `T54` is
+`Done` — ask; that pattern (stopping explicitly at a task or phase boundary pending a further
+go-ahead) holds throughout this project, and three consecutive authorization-recording gaps is reason
+enough to take it seriously.**
 See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's full file-by-file
 map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still needs its own
 sign-off before that migration is written; (2) whenever a task is authorized in conversation, that

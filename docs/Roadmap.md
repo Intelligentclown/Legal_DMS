@@ -131,18 +131,20 @@ weighing all four deviations (2026-08-08). **Closeout:** the git-action deviatio
 merged (`a103dca`); the authorization-recording and approval-checkpoint deviations remain on record
 as governance history, not erased.
 
-**`T54` (`RequirePermission(...)` FastAPI dependency factory) is implemented and QA-reviewed — NOT
-`Done`:** closes Stage 2.5's F11 finding. 5 new tests, full suite 374/374 passing, ruff/black clean
+**`T54` (`RequirePermission(...)` FastAPI dependency factory) is Done:** closes Stage 2.5's F11
+finding. 5 new tests, full suite 374/374 passing, ruff/black clean
 (`docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch). Also authorized by the project owner in
 conversation, and that authorization was **not** recorded in
 `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation began — the third consecutive
-batch with this exact gap (`T52`, `T53`, `T54`). `Phase2.md` had no `T54` batch entry until this
-reconciliation pass. `T54`'s changes exist directly on `main`, uncommitted, unbranched. **Unlike
-`T53`, the Backend Developer role's required approval checkpoint *was* performed and explicitly
-approved before implementation began** — recorded here so `T54` isn't mistakenly assumed to carry
-`T53`'s same deviation. QA rendered **Rework required, process grounds only — no code changes
-needed**. `T54` stays administratively open until a branch/commit/PR closes the remaining gap,
-mirroring exactly how `T52`/`T53` each closed. `T55`–`T57` remain not started, not authorized.
+batch with this exact gap (`T52`, `T53`, `T54`), preserved as governance history, not erased.
+**Unlike `T53`, the Backend Developer role's required approval checkpoint *was* performed and
+explicitly approved before implementation began** — recorded so `T54` isn't mistakenly assumed to
+carry `T53`'s same deviation. QA's original decision (2026-08-08) was **Rework required, process
+grounds only — no code changes needed**; preserved verbatim. **Closeout:** a follow-up QA decision
+(2026-08-10) — **Approved with comments** — superseded it once the branch/commit/PR gap closed:
+`feature/stage3-t54-require-permission` branched, committed (`dbd6724`), opened as PR #12, and
+merged (`6396f6b`); `main`/`origin/main` both verified at `6396f6b`. `T55`–`T57` remain not started,
+not authorized — `T55` is the next unfinished task.
 
 | Feature | Status |
 |---|---|
