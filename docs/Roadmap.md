@@ -129,7 +129,20 @@ was skipped, and `T53` was implemented directly on `main`. QA rendered **Approve
 weighing all four deviations (2026-08-08). **Closeout:** the git-action deviation has since closed —
 `feature/stage3-t53-rbac-authorization` branched, committed (`dd754f5`), opened as PR #10, and
 merged (`a103dca`); the authorization-recording and approval-checkpoint deviations remain on record
-as governance history, not erased. `T54`–`T57` remain not started, not authorized.
+as governance history, not erased.
+
+**`T54` (`RequirePermission(...)` FastAPI dependency factory) is implemented and QA-reviewed — NOT
+`Done`:** closes Stage 2.5's F11 finding. 5 new tests, full suite 374/374 passing, ruff/black clean
+(`docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch). Also authorized by the project owner in
+conversation, and that authorization was **not** recorded in
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation began — the third consecutive
+batch with this exact gap (`T52`, `T53`, `T54`). `Phase2.md` had no `T54` batch entry until this
+reconciliation pass. `T54`'s changes exist directly on `main`, uncommitted, unbranched. **Unlike
+`T53`, the Backend Developer role's required approval checkpoint *was* performed and explicitly
+approved before implementation began** — recorded here so `T54` isn't mistakenly assumed to carry
+`T53`'s same deviation. QA rendered **Rework required, process grounds only — no code changes
+needed**. `T54` stays administratively open until a branch/commit/PR closes the remaining gap,
+mirroring exactly how `T52`/`T53` each closed. `T55`–`T57` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

@@ -563,7 +563,27 @@ remain exactly as they happened — governance history, not erased by this close
 only the git-action gap. **`T53` is now marked `Done` below**, per the Developer/QA record in
 `Phase2.md`, mirroring exactly how `T52` closed (branch → commit → PR → merge → then `Done`). No
 implementation code was touched and no new implementation decision was made as part of this
-closeout. `T54`–`T57` remain not started, not authorized.
+closeout.
+
+**`T54` governance reconciliation (2026-08-08, Documentation Manager):** this row previously read
+"`T54`–`T57` remain not started, not authorized," which is now stale for `T54` specifically and is
+corrected here. `T54` (`RequirePermission(...)` FastAPI dependency factory) **is technically
+implemented and QA-reviewed** — `presentation/api/deps.py` extended with `get_authorization_service()`
+and `RequirePermission(...)`, 5 new tests in `tests/unit/test_auth.py`'s `TestRequirePermission`
+class, full suite 374/374 passing, `ruff`/`black` clean, no scope creep into `T53`/`T55`/`T56`/routes
+— see `docs/ImplementationLog/Stage3/Phase2.md`'s new T54 batch sections. QA independently confirmed
+all of this and rendered **QA Decision: Rework required, on process grounds only** — no code changes
+needed. Three governance findings: (1) authorization exists in a Project Manager conversation, not
+recorded in this file or `PROJECT_STATE.json` before implementation began — the third consecutive
+Stage 3 Phase 2 batch with this exact gap (`T52`, `T53`, `T54`); (2) `Phase2.md` had no `T54` batch
+entry until this pass; (3) `T54`'s changes exist directly on `main`, uncommitted, unbranched. **One
+explicit non-finding, stated to avoid misrepresenting the record:** unlike `T53`, the Backend
+Developer role's required approval checkpoint (`docs/prompts/BackendDeveloper.md` §5 — summarize
+understanding, then wait for explicit approval of *that summary*) **was performed and explicitly
+approved before implementation began** for `T54`. **`T54` is NOT marked `Done` below** — it stays
+"implemented, technically approved, administratively open," the same state `T52`/`T53` each passed
+through before their own branch/commit/PR closed the gap. `T55`–`T57` remain genuinely not started,
+not authorized.
 
 **Process note (2026-08-08, Documentation Manager, per QA's comment on the T50/T51 batch):** the
 `T50`/`T51` batch's Backend Developer role edited this file directly to mark `T50`/`T51` done,
@@ -749,7 +769,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 |---|---|---|---|
 | T52 | ~~Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid).~~ **Done** (2026-08-08 — `infrastructure/auth/jwt_authentication_provider.py`; 11 tests in `tests/unit/test_jwt_authentication_provider.py`; full suite 356/356 passing, ruff/black clean. QA Decision: Approved with comments (process gate only — code/tests were independently confirmed correct from the start; see `docs/ImplementationLog/Stage3/Phase2.md`). Merged: PR #9, commit `baed936`.) | M | T50, ADR-0019 |
 | T53 | ~~Real `RbacAuthorizationService` implementing `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`.~~ **Done** (2026-08-08 — `infrastructure/auth/rbac_authorization_service.py` + `application/interfaces/role_permission_repository.py` + `infrastructure/persistence/sqlalchemy_role_permission_repository.py`; 13 tests; full suite 369/369 passing, ruff/black clean. QA Decision: Approved with comments — code/tests approved on the merits; four process/governance deviations named (authorization not pre-recorded, Backend Developer approval checkpoint skipped, implemented directly on `main`, consequently uncommitted). The latter two are now resolved: merged via PR #10, commit `dd754f5`, merge `a103dca`. The former two remain recorded as governance history, not erased — see `docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered and QA Decision.) | S | T52 |
-| T54 | `RequirePermission(...)` FastAPI dependency factory (closes Stage 2.5's flagged-not-scheduled F11 — now explicitly in scope). | S | T53 |
+| T54 | `RequirePermission(...)` FastAPI dependency factory (closes Stage 2.5's flagged-not-scheduled F11 — now explicitly in scope). **Implemented, QA-reviewed — NOT `Done`** (2026-08-08 — `presentation/api/deps.py` + `get_authorization_service()`; 5 tests in `tests/unit/test_auth.py`'s `TestRequirePermission`; full suite 374/374 passing, ruff/black clean. QA Decision: Rework required, process grounds only — no code changes needed. Authorization not pre-recorded and implemented directly on `main` (uncommitted, unbranched) are open governance findings; the Backend Developer approval checkpoint was performed and approved this time, unlike `T53`. See `docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch.) | S | T53 |
 | T55 | Wire `JwtAuthenticationProvider`/`RbacAuthorizationService` into `configure_container()`, replacing the `Anonymous`/`Permissive` defaults. | XS | T52, T53 |
 | T56 | Update `presentation/api/deps.py`'s `CurrentUserDep` for the new provider signature. | XS | T55 |
 | T57 | Tests: valid token → correct `CurrentUser`; missing/expired/malformed/tampered token → 401; authenticated-but-unpermitted → 403; `configure_container()` resolves the real implementations. | M | T55, T56 |
@@ -898,7 +918,12 @@ approval checkpoint skipped, implemented directly on `main`, consequently uncomm
 deviations have since closed: merged via PR #10, commit `dd754f5`, merge `a103dca` — `main`/`origin/main`
 both verified at `a103dca`. The authorization-recording and approval-checkpoint deviations remain on
 record as governance history in `docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems
-Encountered — not erased by this closeout. `T54`–`T57` are not started, not authorized. See
+Encountered — not erased by this closeout. **`T54` (`RequirePermission`) is implemented and
+QA-reviewed but NOT `Done`** — QA Decision: Rework required, process grounds only (374/374 full
+suite, ruff/black clean, no code changes needed; authorization not pre-recorded and implemented
+directly on `main` remain open governance findings; the Backend Developer approval checkpoint *was*
+performed and approved this time, unlike `T53` — see `Phase2.md`'s T54 batch). `T55`–`T57` are not
+started, not authorized. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
 (Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*
