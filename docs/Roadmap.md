@@ -143,8 +143,31 @@ carry `T53`'s same deviation. QA's original decision (2026-08-08) was **Rework r
 grounds only — no code changes needed**; preserved verbatim. **Closeout:** a follow-up QA decision
 (2026-08-10) — **Approved with comments** — superseded it once the branch/commit/PR gap closed:
 `feature/stage3-t54-require-permission` branched, committed (`dbd6724`), opened as PR #12, and
-merged (`6396f6b`); `main`/`origin/main` both verified at `6396f6b`. `T55`–`T57` remain not started,
-not authorized — `T55` is the next unfinished task.
+merged (`6396f6b`); `main`/`origin/main` both verified at `6396f6b`.
+
+**`T55` was authorized conversationally, 2026-08-10.** Original scope: the two
+`container.register(...)` replacements in `configure_container()`.
+
+**Correction (2026-08-10, same day, after QA review):** this section previously claimed the
+authorization was "recorded ... before implementation began (the first Phase 2 batch to get this
+recording right the first time)." **That claim is inaccurate and is corrected here:** nothing about
+`T55`'s authorization was ever committed before its implementation existed — the committed `HEAD` at
+the time still read `T55` as unauthorized. This is the **fourth** consecutive Stage 3 Phase 2 batch
+with this exact governance gap (`T52`, `T53`, `T54`, `T55`), not an exception to the pattern.
+
+Same day, also conversationally, an architectural clarification + expanded authorization followed:
+the literal registration approach is technically unworkable — `container.resolve()` is
+synchronous/zero-argument, but `JwtAuthenticationProvider`/`RbacAuthorizationService` both need a
+request-scoped `AsyncSession`. The project owner additionally authorized request-scoped `Depends()`
+construction in `presentation/api/deps.py` (`DBSessionDep` → `SqlAlchemyUserRepository`/
+`SqlAlchemyRolePermissionRepository` → the real provider/service), a fresh-per-request RBAC mapping
+with no caching policy, and removal of the existing `Anonymous`/`Permissive` registrations (confirmed
+unused elsewhere by inspection, so actually removed). `T52`/`T53`/`T54` files, `T56`, `T57`, and
+routes remained out of scope, and no scope creep into any of them was found. **`T55` is now
+implemented** (380/380 full suite, ruff/black clean, request-scoped session usage independently
+verified — see `docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch) with **QA Decision: Rework
+required — governance/process grounds only**, not a technical issue. `T55` is **not** marked `Done`;
+branch/commit/PR remain outstanding. `T56`–`T57` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

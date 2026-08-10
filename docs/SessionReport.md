@@ -1522,3 +1522,88 @@ decision was invented.
 `configure_container()`) is the next unfinished task — depends on `T52`+`T53` (done) and, now, `T54`
 (done). Not authorized this session. Standing item, unrelated to `T54`:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-10 — T55 architectural scope clarification + expanded authorization
+
+**Objectives:** A documentation/governance change only, recording — before any implementation begins
+— an architectural clarification and expanded authorization for `T55`. `T55`'s original authorization
+("replace the two `container.register(...)` registrations") had already been recorded in
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` this same day, correctly breaking the
+authorization-recording pattern `T52`/`T53`/`T54` each demonstrated. The Backend Developer's required
+`docs/prompts/BackendDeveloper.md` §5 checkpoint then found that literal scope technically
+unworkable and correctly stopped rather than implement or reinterpret it unilaterally. No source code
+or test file was to be touched; `T55` was not to be started, implemented, or marked `Done`.
+
+**What happened:** Verified the existing `T55` authorization directly in the repository first (per
+explicit instruction, not assumed) — found it exactly where expected, in `IMPLEMENTATION_QUEUE.md`'s
+`T55` row and Stage 3 narrative note, and in `PROJECT_STATE.json`'s `currentStage.note`/`stages[]`
+entry, both still uncommitted in the working tree at the time. Recorded the architectural
+clarification (`container.resolve()` is synchronous/zero-argument; both real providers need a
+request-scoped `AsyncSession` the container can't inject into a sync factory) and the resulting
+expanded authorization — request-scoped `Depends()` construction in `presentation/api/deps.py`
+through `DBSessionDep`, a fresh-per-request RBAC permission mapping with no caching policy, and
+conditional removal of the obsolete container registrations — in `IMPLEMENTATION_QUEUE.md` (the
+`T55` row plus a full narrative paragraph), `PROJECT_STATE.json` (`currentStage.note` and `stages[]`),
+`docs/AI_HANDOVER.md` (two sections), `docs/Roadmap.md`, and `docs/ImplementationLog/Stage3/Phase2.md`
+(an authorization note appended to Future Considerations — explicitly *not* a `T55` batch entry,
+since implementation hasn't started, per this project's own "batch created only when implementation
+begins" convention). Every edit preserved the original authorization text verbatim and added the
+expansion as clearly-dated, additive text — nothing was rewritten to make it look like the expanded
+scope was authorized from the start.
+
+**Documentation Updated:** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/ImplementationLog/Stage3/Phase2.md`, `docs/SessionReport.md` (this file).
+
+**Confirmed:** no implementation or test file was modified; `T55` was not started, implemented, or
+marked `Done`; no branch, commit, or push was performed.
+
+**Next Session Goals:** `T55` is now authorized under the expanded, technically-correct scope
+described above. The Backend Developer role can use this as its implementation checkpoint — build
+the request-scoped `Depends()` chain in `presentation/api/deps.py`, with database-backed integration
+test coverage, strictly within the boundary recorded here (`T52`/`T53`/`T54` files, `T56`, `T57`,
+and routes remain out of scope).
+
+## Session: 2026-08-10 — T55 governance reconciliation after QA review
+
+**Objectives:** A documentation-only correction, following QA's independent review of `T55`'s
+implementation. QA found the code technically correct (380/380 full suite, ruff/black clean, boot
+passes, request-scoped session usage verified, no scope creep) but rendered **Rework required on
+governance grounds**: the working-tree documentation from the prior session claimed `T55`'s expanded
+authorization was "recorded here … before any implementation began" — a claim the committed
+repository state cannot support, since `HEAD` immediately before this session still read `T55` as
+unauthorized and nothing was ever committed. This session's job was to correct that specific claim
+honestly, not erase the underlying governance finding, and not touch any implementation/test file,
+branch, commit, or push.
+
+**What happened:** Verified directly, before editing anything, that the false claim was exactly
+where expected — `IMPLEMENTATION_QUEUE.md`'s `T55` row and Stage 3 narrative note,
+`PROJECT_STATE.json`'s `currentStage.note`/`stages[]`, `docs/AI_HANDOVER.md` (two sections),
+`docs/Roadmap.md`, and `docs/ImplementationLog/Stage3/Phase2.md`'s prior "Authorization note" — and
+that `git log`/`git status` confirmed `HEAD` (`90c5bf2`) predates any of this text and the working
+tree, not a commit, is where both the (now-corrected) claim and `T55`'s own implementation actually
+live. Independently re-verified QA's technical findings rather than transcribing them on faith:
+`uv run pytest -q` — 380/380; `ruff check`/`black --check` — clean; app boot — succeeds; read the
+actual `container.py`/`deps.py`/`test_auth.py` diffs and the new
+`test_auth_dependency_wiring.py` (6 tests, including two `test_uses_the_exact_session_it_was_given`
+cases proving the request-scoped-construction property that made a container registration wrong for
+this task in the first place). Corrected every instance of the false provenance claim across all six
+files to state the accurate account: `T55`'s authorization, its architectural clarification, and its
+expanded scope all existed only in conversation; none was ever committed before implementation
+began; this is the **fourth** consecutive Stage 3 Phase 2 batch with this exact
+authorization-recording gap (`T52`, `T53`, `T54`, `T55`), not a broken pattern. Wrote a full `T55`
+batch into `docs/ImplementationLog/Stage3/Phase2.md` (Tasks Implemented through QA Decision) so the
+technical record and the governance finding both have a proper home, and transcribed QA's own
+`Rework required` decision there without altering it.
+
+**Documentation Updated:** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/ImplementationLog/Stage3/Phase2.md`, `docs/SessionReport.md` (this file).
+
+**Confirmed:** no implementation or test file was modified; `T55` was not started, re-implemented,
+or marked `Done`; the QA Decision (`Rework required`) was transcribed exactly as rendered, not
+altered or re-judged; no branch, commit, or push was performed.
+
+**Next Session Goals:** `T55` needs the same closeout `T52`/`T53`/`T54` each eventually got — a real
+feature branch, commit, and PR, then a QA re-review of the governance finding specifically (not the
+code again) to move toward `Approved`/`Approved with comments` and, eventually, `Done`. Separately:
+the authorization-recording gap has now recurred four times running (`T52`, `T53`, `T54`, `T55`) —
+worth a real process fix before `T56`, not a fifth disclosure.

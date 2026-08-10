@@ -783,7 +783,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 | T52 | ~~Real `JwtAuthenticationProvider` implementing `AuthenticationProvider`'s approved new signature — `async def get_current_user(self, token: str \| None) -> CurrentUser` (D7/`ADR-0019`) — validates the bearer token, loads the `User` + roles, returns a populated `CurrentUser` (or the anonymous default for `token=None`/invalid).~~ **Done** (2026-08-08 — `infrastructure/auth/jwt_authentication_provider.py`; 11 tests in `tests/unit/test_jwt_authentication_provider.py`; full suite 356/356 passing, ruff/black clean. QA Decision: Approved with comments (process gate only — code/tests were independently confirmed correct from the start; see `docs/ImplementationLog/Stage3/Phase2.md`). Merged: PR #9, commit `baed936`.) | M | T50, ADR-0019 |
 | T53 | ~~Real `RbacAuthorizationService` implementing `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`.~~ **Done** (2026-08-08 — `infrastructure/auth/rbac_authorization_service.py` + `application/interfaces/role_permission_repository.py` + `infrastructure/persistence/sqlalchemy_role_permission_repository.py`; 13 tests; full suite 369/369 passing, ruff/black clean. QA Decision: Approved with comments — code/tests approved on the merits; four process/governance deviations named (authorization not pre-recorded, Backend Developer approval checkpoint skipped, implemented directly on `main`, consequently uncommitted). The latter two are now resolved: merged via PR #10, commit `dd754f5`, merge `a103dca`. The former two remain recorded as governance history, not erased — see `docs/ImplementationLog/Stage3/Phase2.md`'s T53 batch, Problems Encountered and QA Decision.) | S | T52 |
 | T54 | ~~Real `RequirePermission(...)` FastAPI dependency factory (closes Stage 2.5's flagged-not-scheduled F11 — now explicitly in scope).~~ **Done** (implemented 2026-08-08, closed out 2026-08-10 — `presentation/api/deps.py` + `get_authorization_service()`; 5 tests in `tests/unit/test_auth.py`'s `TestRequirePermission`; full suite 374/374 passing, ruff/black clean. QA Decision: Approved with comments (follow-up, 2026-08-10) — the original Rework required (2026-08-08, process grounds only, no code changes) is preserved as historical record. Authorization not pre-recorded remains an open governance finding; branch/commit/PR closed via PR #12, feature commit `dbd6724`, merged `6396f6b`. The Backend Developer approval checkpoint was performed and approved this time, unlike `T53`. See `docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch.) | S | T53 |
-| T55 | Wire `JwtAuthenticationProvider`/`RbacAuthorizationService` into `configure_container()`, replacing the `Anonymous`/`Permissive` defaults. | XS | T52, T53 |
+| T55 | Wire `JwtAuthenticationProvider`/`RbacAuthorizationService` into `configure_container()`, replacing the `Anonymous`/`Permissive` defaults. **Authorized by the project owner, conversationally, 2026-08-10** — scope originally limited to this row's own literal description (the two `container.register(...)` replacements). **Correction (2026-08-10, same day, after QA review):** this row previously claimed the authorization was "recorded here before implementation begins" — that claim is inaccurate and is corrected here: the committed `HEAD` at the time still read `T55` as unauthorized, and nothing about this authorization was ever committed before implementation existed. This is the **fourth consecutive** occurrence of the authorization-recording gap already seen on `T52`/`T53`/`T54`. **Architectural clarification + expanded scope (also conversational, same day):** the literal `container.register(...)` approach is technically unworkable (`container.resolve()` is synchronous/zero-arg; both real implementations need a request-scoped `AsyncSession`) — the project owner additionally authorized request-scoped `Depends()` construction in `presentation/api/deps.py` (via `DBSessionDep` → `SqlAlchemyUserRepository`/`SqlAlchemyRolePermissionRepository` → the real provider/service, fresh permission mapping per request, no caching policy) as the technically-correct implementation of this same task. **Implemented** (2026-08-10 — see `docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch: 6 new integration tests, full suite 380/380 passing, ruff/black clean, request-scoped session usage independently verified, no `T52`/`T53`/`T54`/`T56`/`T57`/route scope creep). **QA Decision: Rework required — governance/process grounds only, no code changes required.** Not yet marked `Done`; branch/commit/PR outstanding. | XS | T52, T53 |
 | T56 | Update `presentation/api/deps.py`'s `CurrentUserDep` for the new provider signature. | XS | T55 |
 | T57 | Tests: valid token → correct `CurrentUser`; missing/expired/malformed/tampered token → 401; authenticated-but-unpermitted → 403; `configure_container()` resolves the real implementations. | M | T55, T56 |
 
@@ -936,7 +936,65 @@ QA Decision (2026-08-08): Rework required, process grounds only, preserved verba
 Decision (2026-08-10): Approved with comments, once the branch/commit/PR gap closed (PR #12, feature
 commit `dbd6724`, merged `6396f6b`). Authorization not pre-recorded remains an open governance
 finding, not erased; the Backend Developer approval checkpoint *was* performed and approved for
-`T54`, unlike `T53` — see `Phase2.md`'s T54 batch. `T55`–`T57` are not started, not authorized. See
+`T54`, unlike `T53` — see `Phase2.md`'s T54 batch. **`T55` is authorized, conversationally, by the
+project owner (2026-08-10).**
+
+**Correction (2026-08-10, same day, after QA review):** the two sentences above previously claimed
+this authorization was "recorded here … before any implementation began, breaking the pattern
+`T52`/`T53`/`T54` each demonstrated." **That claim is inaccurate and is corrected here, not silently
+edited away:** the committed `HEAD` at the time this file was last committed still read `T55` as "not
+started, not authorized," and nothing about this authorization — original, clarified, or expanded —
+was ever committed before `T55`'s implementation existed. The pattern was **not** broken; it
+recurred a **fourth** time (`T52`, `T53`, `T54`, `T55`). This is a permanent governance finding, the
+same category as `T52`/`T53`/`T54`'s own authorization-recording gaps, and it cannot be retroactively
+fixed by rewording it — only disclosed accurately, which is what this correction does.
+
+**`T55` architectural scope clarification and expanded authorization (also 2026-08-10, also
+conversational):** the Backend Developer role performed its
+`docs/prompts/BackendDeveloper.md` §5 approval checkpoint against `T55`'s original authorization
+("replace the two `container.register(...)` registrations in `configure_container()`") and found that
+literal wording technically unworkable, not merely inconvenient — `container.resolve()` is
+synchronous and zero-argument, but `JwtAuthenticationProvider` needs a request-scoped `UserRepository`
+backed by the current request's `AsyncSession` (`DBSessionDep`), and `RbacAuthorizationService` needs
+an asynchronously-loaded `permission_codes_by_role_name` mapping from that same request's session. The
+container has no mechanism to inject a request-bound `AsyncSession` into a synchronous factory; opening
+a separate database session or freezing a startup-time snapshot would both be architecturally
+incorrect (the same request-scoped-construction constraint `docs/ImplementationLog/Stage3/Phase2.md`
+already flagged for both `AuthService`/`T50` and `RequirePermission`/`T54`). The Backend Developer
+correctly stopped rather than implementing the literal wording or silently reinterpreting it.
+
+**The project owner, in this same session, authorizes the following expanded `T55` scope — additive
+to the original authorization, not a redefinition of it (the original text above is preserved
+verbatim as the historical record of what was first approved):**
+
+- Request-scoped construction via FastAPI `Depends()` in `presentation/api/deps.py`, through the
+  existing `DBSessionDep`, replacing (not supplementing) the literal `configure_container()`
+  registration approach the original authorization named:
+  - Authentication chain: `DBSessionDep` → `SqlAlchemyUserRepository(session)` →
+    `JwtAuthenticationProvider(user_repository, settings)`.
+  - Authorization chain: `DBSessionDep` → `SqlAlchemyRolePermissionRepository(session)` →
+    `await get_permission_codes_by_role_name()` → `RbacAuthorizationService(permission_codes_by_role_name)`.
+- The RBAC permission mapping is loaded **fresh on every request** — no caching/invalidation policy
+  is authorized as part of `T55`; the existing `Cache` abstraction has no real callers and no
+  approved permission-cache policy, and none is being approved here either.
+- The existing `AuthenticationProvider`/`AuthorizationService` container registrations
+  (`Anonymous`/`Permissive` defaults) may be **removed only if direct repository inspection confirms
+  they are no longer referenced anywhere else** — if still required elsewhere, they must be preserved
+  and that reason documented, not silently dropped.
+- Tests must verify the real request-scoped construction chain, including database-backed
+  integration coverage where appropriate — not just the same unit-level shape `T52`/`T53`/`T54`'s
+  tests already used.
+
+**Explicitly still out of scope, unchanged by this expansion:** `T52`, `T53`, and `T54`'s own
+implementation files; `T56`; `T57`; any route; any unrelated refactoring.
+
+**`T55` is now implemented** (2026-08-10 — request-scoped `Depends()` construction in
+`presentation/api/deps.py`, obsolete container registrations removed; 6 new integration tests, full
+suite 380/380 passing, ruff/black clean, request-scoped session usage independently verified, no
+scope creep — see `docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch). **QA Decision: Rework
+required — governance/process grounds only** (the authorization-recording gap above; no technical
+issue). `T55` is **not** marked `Done`; branch/commit/PR remain outstanding. `T56`/`T57` remain not
+started, not authorized. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
 (Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*
