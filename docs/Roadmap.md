@@ -163,11 +163,15 @@ construction in `presentation/api/deps.py` (`DBSessionDep` → `SqlAlchemyUserRe
 `SqlAlchemyRolePermissionRepository` → the real provider/service), a fresh-per-request RBAC mapping
 with no caching policy, and removal of the existing `Anonymous`/`Permissive` registrations (confirmed
 unused elsewhere by inspection, so actually removed). `T52`/`T53`/`T54` files, `T56`, `T57`, and
-routes remained out of scope, and no scope creep into any of them was found. **`T55` is now
-implemented** (380/380 full suite, ruff/black clean, request-scoped session usage independently
-verified — see `docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch) with **QA Decision: Rework
-required — governance/process grounds only**, not a technical issue. `T55` is **not** marked `Done`;
-branch/commit/PR remain outstanding. `T56`–`T57` remain not started, not authorized.
+routes remained out of scope, and no scope creep into any of them was found. **`T55` is now Done**
+(380/380 full suite, ruff/black clean, request-scoped session usage independently verified — see
+`docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch). Original **QA Decision: Rework required —
+governance/process grounds only** (not a technical issue) preserved verbatim; **follow-up decision
+Approved with comments** is the final disposition, once `feature/stage3-t55-auth-wiring` → PR #15 →
+merged `b094436` closed the branch/commit/PR gap — `main`/`origin/main` both verified at `b094436`.
+The authorization-recording finding (the fourth consecutive occurrence, `T52`/`T53`/`T54`/`T55`)
+remains open governance history, not resolved or erased. `T56`–`T57` remain not started, not
+authorized.
 
 | Feature | Status |
 |---|---|

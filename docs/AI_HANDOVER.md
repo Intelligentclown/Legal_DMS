@@ -188,14 +188,20 @@ request-scoped `AsyncSession`. The project owner additionally authorized request
 construction in `presentation/api/deps.py` instead (via `DBSessionDep` →
 `SqlAlchemyUserRepository`/`SqlAlchemyRolePermissionRepository` → the real provider/service; fresh
 RBAC mapping per request, no caching policy). `T52`/`T53`/`T54` implementation files, `T56`, `T57`,
-and routes remained explicitly out of scope, and no scope creep into any of them was found. **`T55`
-is now implemented** (2026-08-10 — request-scoped construction in `deps.py`, obsolete container
-registrations removed after inspection confirmed them unused; 6 new integration tests, full suite
-380/380 passing, ruff/black clean, request-scoped session usage independently verified — see
-`docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch). **QA Decision: Rework required — governance/
-process grounds only, no code changes needed** (the authorization-recording gap above). `T55` is
-**not** marked `Done`; branch/commit/PR remain outstanding. `T56`–`T57` remain not started, not
-authorized. Backend test count is 380, still 9 frontend.
+and routes remained explicitly out of scope, and no scope creep into any of them was found.
+
+**Closeout (2026-08-10): `T55` is now Done.** Request-scoped construction in `deps.py`, obsolete
+container registrations removed after inspection confirmed them unused; 6 new integration tests, full
+suite 380/380 passing, ruff/black clean, request-scoped session usage independently verified — see
+`docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch. **QA Decision:** original `Rework required` —
+governance/process grounds only, no code changes needed (the authorization-recording gap above) —
+preserved verbatim as historical record; a **follow-up decision, `Approved with comments`**, is the
+final disposition, rendered once the branch/commit/PR gap closed:
+`feature/stage3-t55-auth-wiring` → implementation commit `86a3d5d` → governance commit `f070e28` →
+PR #15 → merged `b094436`. `main`/`origin/main` both verified at `b094436`. **The
+authorization-recording finding is NOT resolved by this closeout** — it remains permanent governance
+history, the fourth consecutive occurrence (`T52`, `T53`, `T54`, `T55`), not erased. `T56`–`T57`
+remain not started, not authorized. Backend test count is 380, still 9 frontend.
 
 ## Pending Work
 
@@ -398,14 +404,17 @@ construction in `presentation/api/deps.py` through `DBSessionDep`
 `RbacAuthorizationService`), a fresh-per-request RBAC mapping with no caching policy, and removal of
 the existing `Anonymous`/`Permissive` registrations (confirmed unused elsewhere by direct inspection,
 so actually removed). `T52`/`T53`/`T54`'s files, `T56`, `T57`, and routes remained explicitly out of
-scope, and no scope creep into any of them was found. **`T55` is now implemented and QA-reviewed:**
-technically correct (380/380 full suite, 6 new integration tests, `ruff`/`black` clean, request-scoped
-session usage independently verified) but **QA Decision: Rework required — governance/process grounds
-only**, because the committed repository state never actually contained this authorization before the
-code existed — the **fourth** consecutive occurrence of the exact authorization-recording gap
-`T52`/`T53`/`T54` each already demonstrated once. `T55` is **not** marked `Done`; branch/commit/PR
-remain outstanding, the normal path to resolving this the way `T52`/`T53`/`T54` each eventually did.
-See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
+scope, and no scope creep into any of them was found. **`T55` is now Done.** Technically correct
+(380/380 full suite, 6 new integration tests, `ruff`/`black` clean, request-scoped session usage
+independently verified); original QA Decision **Rework required — governance/process grounds only**
+(the committed repository state never actually contained this authorization before the code existed —
+the **fourth** consecutive occurrence of the exact authorization-recording gap `T52`/`T53`/`T54` each
+already demonstrated once) preserved verbatim; **follow-up decision `Approved with comments`** is the
+final disposition, once `feature/stage3-t55-auth-wiring` → PR #15 → merged `b094436` closed the
+branch/commit/PR gap. `main`/`origin/main` both verified at `b094436`. The authorization-recording
+finding itself remains open governance history, not resolved or erased by this closeout — it cannot
+be. `T56` is now the next unfinished task, not yet started, not authorized. See
+[docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
 full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
 `T52`/`T53`/`T54`/`T55` have now all failed at, four batches running, genuinely needs to hold for
