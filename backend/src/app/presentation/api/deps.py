@@ -1,12 +1,26 @@
 """Shared FastAPI dependency declarations, reused across routers.
 
-`SettingsDep` and `CurrentUserDep` resolve through the DI container (see
+`SettingsDep` resolves through the DI container (see
 `infrastructure/di/container.py`) rather than calling the concrete
-implementation directly, so they're swappable in tests via
+implementation directly, so it's swappable in tests via
 `container.override(...)` without touching any caller. `DBSessionDep`
 intentionally stays on FastAPI's native generator `Depends()` pattern — a
 request-scoped resource with teardown is exactly what that's for, and the
 container doesn't try to replace it.
+
+`CurrentUserDep`'s two upstream services (`AuthenticationProvider`/
+`AuthorizationService`) follow the *same* request-scoped pattern as
+`DBSessionDep`, not the container (T55) — `JwtAuthenticationProvider`/
+`RbacAuthorizationService` both need a session-backed repository, and the
+container has no mechanism to hand a factory the current request's session
+(`resolve()` is synchronous, takes no arguments, and is usable outside a
+request at all, e.g. from background jobs — it was never meant to be
+request-aware). `get_authentication_provider()`/`get_authorization_service()`
+below construct their service fresh per request instead, directly from
+`DBSessionDep`, mirroring `DBSessionDep`'s own reasoning rather than
+resolving through the container. See `ADR-0006` and
+`docs/ImplementationLog/Stage3/Phase2.md`'s `T55` batch for the full
+reasoning.
 """
 
 from __future__ import annotations
@@ -22,21 +36,44 @@ from app.application.interfaces.auth import (
     AuthorizationService,
     CurrentUser,
 )
+from app.infrastructure.auth.jwt_authentication_provider import JwtAuthenticationProvider
+from app.infrastructure.auth.rbac_authorization_service import RbacAuthorizationService
 from app.infrastructure.config import Settings
 from app.infrastructure.database.session import get_db
 from app.infrastructure.di.container import container
+from app.infrastructure.persistence.sqlalchemy_role_permission_repository import (
+    SqlAlchemyRolePermissionRepository,
+)
+from app.infrastructure.persistence.sqlalchemy_user_repository import SqlAlchemyUserRepository
 
 
 def get_settings_dependency() -> Settings:
     return container.resolve(Settings)
 
 
-def get_authentication_provider() -> AuthenticationProvider:
-    return container.resolve(AuthenticationProvider)
+SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
+DBSessionDep = Annotated[AsyncSession, Depends(get_db)]
 
 
-def get_authorization_service() -> AuthorizationService:
-    return container.resolve(AuthorizationService)
+async def get_authentication_provider(
+    session: DBSessionDep, settings: SettingsDep
+) -> AuthenticationProvider:
+    """Built fresh per request (T55) — `SqlAlchemyUserRepository` needs
+    *this* request's session, not a cached/shared one."""
+    return JwtAuthenticationProvider(SqlAlchemyUserRepository(session), settings)
+
+
+async def get_authorization_service(session: DBSessionDep) -> AuthorizationService:
+    """Built fresh per request (T55): loads the role -> granted-permissions
+    mapping from the database on every call, deliberately uncached — no
+    existing, already-approved caching/invalidation policy covers this data,
+    and `role_permissions`'s low write volume doesn't justify inventing one
+    now (see `docs/ImplementationLog/Stage3/Phase2.md`'s `T55` batch)."""
+    role_permission_repository = SqlAlchemyRolePermissionRepository(session)
+    permission_codes_by_role_name = (
+        await role_permission_repository.get_permission_codes_by_role_name()
+    )
+    return RbacAuthorizationService(permission_codes_by_role_name)
 
 
 async def get_current_user(
@@ -49,8 +86,6 @@ async def get_current_user(
     return await auth_provider.get_current_user(token=None)
 
 
-SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
-DBSessionDep = Annotated[AsyncSession, Depends(get_db)]
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]
 
 
