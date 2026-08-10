@@ -167,8 +167,35 @@ gate and rendered a **follow-up decision — Approved with comments** — the or
 above is preserved verbatim as the historical record, not erased. The branch/commit/PR gap has
 closed: `feature/stage3-t54-require-permission` → feature commit `dbd6724` → PR #12 → merged
 `6396f6b` — `main`/`origin/main` both verified at `6396f6b`. The authorization-not-pre-recorded
-finding remains on record as governance history, not erased by this closeout. `T55`–`T57` remain not
-started, not authorized. Backend test count is 374, still 9 frontend.
+finding remains on record as governance history, not erased by this closeout.
+
+**`T55` authorized conversationally (2026-08-10).** Original scope: "replace the two
+`container.register(...)` registrations in `configure_container()`."
+
+**Correction (2026-08-10, same day, after QA review):** this section previously claimed the
+authorization was "recorded before implementation began, breaking the pattern `T52`/`T53`/`T54` each
+demonstrated." **That claim is inaccurate and is corrected here, not silently removed.** The
+committed `HEAD` at the time still read `T55` as unauthorized, and nothing about this authorization —
+original, clarified, or expanded — was ever committed before `T55`'s implementation existed. The
+pattern was **not** broken; it recurred a **fourth** time (`T52`, `T53`, `T54`, `T55`). This is a
+permanent governance finding, not something a later correction can retroactively fix — only disclose
+accurately.
+
+Same day, also conversationally, an architectural clarification and expanded authorization followed:
+the Backend Developer's required §5 checkpoint found the literal registration wording technically
+unworkable — `container.resolve()` is synchronous/zero-arg, but both real providers need a
+request-scoped `AsyncSession`. The project owner additionally authorized request-scoped `Depends()`
+construction in `presentation/api/deps.py` instead (via `DBSessionDep` →
+`SqlAlchemyUserRepository`/`SqlAlchemyRolePermissionRepository` → the real provider/service; fresh
+RBAC mapping per request, no caching policy). `T52`/`T53`/`T54` implementation files, `T56`, `T57`,
+and routes remained explicitly out of scope, and no scope creep into any of them was found. **`T55`
+is now implemented** (2026-08-10 — request-scoped construction in `deps.py`, obsolete container
+registrations removed after inspection confirmed them unused; 6 new integration tests, full suite
+380/380 passing, ruff/black clean, request-scoped session usage independently verified — see
+`docs/ImplementationLog/Stage3/Phase2.md`'s T55 batch). **QA Decision: Rework required — governance/
+process grounds only, no code changes needed** (the authorization-recording gap above). `T55` is
+**not** marked `Done`; branch/commit/PR remain outstanding. `T56`–`T57` remain not started, not
+authorized. Backend test count is 380, still 9 frontend.
 
 ## Pending Work
 
@@ -356,19 +383,36 @@ Approved with comments** once the branch/commit/PR gap closed the same way `T52`
 gaps did — `feature/stage3-t54-require-permission` → feature commit `dbd6724` → PR #12 → merged
 `6396f6b`. Both QA decisions are preserved in `docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch,
 the original verbatim, not erased; the authorization-not-pre-recorded finding remains open governance
-history. **`T55` is now the next unfinished task. Don't assume it's authorized just because `T54` is
-`Done` — ask; that pattern (stopping explicitly at a task or phase boundary pending a further
-go-ahead) holds throughout this project, and three consecutive authorization-recording gaps is reason
-enough to take it seriously.**
-See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's full file-by-file
-map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still needs its own
-sign-off before that migration is written; (2) whenever a task is authorized in conversation, that
-authorization should be written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` **before**
-implementation begins, not reconstructed afterward — `T52`, `T53`, and now `T54` have all
-demonstrated this exact failure mode; a fourth recurrence for `T55`+ would no longer read as an
-isolated incident in any of this project's own documents. Outside of Stage 3, do not add business
-entities, new major dependencies, or any repository/service/route touching the other Stage 2 tables
-(Matter/Client/Property/Document/Financial) without separate explicit direction.
+history.
+
+**`T55` was implemented next, authorized conversationally on 2026-08-10 — but, contrary to what an
+earlier version of this section claimed, its authorization was NOT actually recorded in the
+repository before implementation began.** Original scope: the two `container.register(...)`
+replacements. Same day, the Backend Developer's §5 checkpoint found that literal approach technically
+unworkable (`container.resolve()` is synchronous/zero-arg; both real providers need a request-scoped
+`AsyncSession` the container can't inject into a sync factory) and correctly stopped rather than
+implement or reinterpret it unilaterally. **The project owner then authorized an expanded,
+technically-correct boundary, same day, also conversationally:** request-scoped `Depends()`
+construction in `presentation/api/deps.py` through `DBSessionDep`
+(`SqlAlchemyUserRepository`/`SqlAlchemyRolePermissionRepository` → `JwtAuthenticationProvider`/
+`RbacAuthorizationService`), a fresh-per-request RBAC mapping with no caching policy, and removal of
+the existing `Anonymous`/`Permissive` registrations (confirmed unused elsewhere by direct inspection,
+so actually removed). `T52`/`T53`/`T54`'s files, `T56`, `T57`, and routes remained explicitly out of
+scope, and no scope creep into any of them was found. **`T55` is now implemented and QA-reviewed:**
+technically correct (380/380 full suite, 6 new integration tests, `ruff`/`black` clean, request-scoped
+session usage independently verified) but **QA Decision: Rework required — governance/process grounds
+only**, because the committed repository state never actually contained this authorization before the
+code existed — the **fourth** consecutive occurrence of the exact authorization-recording gap
+`T52`/`T53`/`T54` each already demonstrated once. `T55` is **not** marked `Done`; branch/commit/PR
+remain outstanding, the normal path to resolving this the way `T52`/`T53`/`T54` each eventually did.
+See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
+full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
+needs its own sign-off before that migration is written; (2) the authorization-recording discipline
+`T52`/`T53`/`T54`/`T55` have now all failed at, four batches running, genuinely needs to hold for
+`T56`+ — a fifth recurrence would no longer read as an isolated incident anywhere in this project's
+own documents. Outside of Stage 3, do not add business entities, new major dependencies, or
+any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
+Financial) without separate explicit direction.
 
 ## Important Warnings
 

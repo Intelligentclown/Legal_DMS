@@ -13,6 +13,18 @@ resources with teardown (the DB session) stay on FastAPI's native generator
 `Depends()` pattern directly — the container isn't meant to replace that,
 it complements it for everything else (services, ports/implementations used
 outside a request too, e.g. background jobs or event handlers).
+
+`AuthenticationProvider`/`AuthorizationService` are deliberately **not**
+registered here (T55) — both real implementations
+(`JwtAuthenticationProvider`/`RbacAuthorizationService`) need a per-request,
+session-backed repository, which this container has no mechanism to supply
+(`resolve()` is synchronous and takes no request context). They're
+constructed directly in `presentation/api/deps.py` from `DBSessionDep`
+instead, the same "request-scoped resource bypasses the container" pattern
+already established here for the DB session itself. The Stage 1 stub
+classes (`AnonymousAuthenticationProvider`/`PermissiveAuthorizationService`)
+still exist and are still used directly (unregistered) by tests — only
+their container registration is gone.
 """
 
 from __future__ import annotations
@@ -21,7 +33,6 @@ from collections.abc import Callable
 from typing import Any
 
 from app.application.interfaces.audit import AuditLogger
-from app.application.interfaces.auth import AuthenticationProvider, AuthorizationService
 from app.application.interfaces.cache import Cache
 from app.application.interfaces.command_bus import CommandBus
 from app.application.interfaces.event_bus import EventBus
@@ -34,8 +45,6 @@ from app.application.interfaces.query_bus import QueryBus
 from app.application.interfaces.search import SearchIndex
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.infrastructure.audit.audit_logger import LoggingAuditLogger
-from app.infrastructure.auth.anonymous_auth_provider import AnonymousAuthenticationProvider
-from app.infrastructure.auth.permissive_authorization_service import PermissiveAuthorizationService
 from app.infrastructure.cache.in_memory_cache import InMemoryCache
 from app.infrastructure.commands.in_memory_command_bus import InMemoryCommandBus
 from app.infrastructure.config import Settings, SettingsFeatureFlagProvider, get_settings
@@ -115,7 +124,5 @@ def configure_container() -> None:
     container.register(Notifier, LoggingNotifier)
     container.register(MetricsService, LoggingMetricsService)
     container.register(SearchIndex, InMemorySearchIndex)
-    container.register(AuthenticationProvider, AnonymousAuthenticationProvider)
-    container.register(AuthorizationService, PermissiveAuthorizationService)
     container.register(AuditLogger, LoggingAuditLogger)
     container.register(FeatureFlagProvider, lambda: SettingsFeatureFlagProvider(get_settings()))

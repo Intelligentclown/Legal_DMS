@@ -2,19 +2,19 @@
 
 # Stage 3 – Phase 2
 
-Status: Done
+Status: In Progress
 
 Started: 2026-08-08
 
-Completed: 2026-08-10
+Completed:
 
-Related Tasks: T52, T53, T54
+Related Tasks: T52, T53, T54, T55
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724).
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — not yet committed.
 
-Pull Request: T52 — #9. T53 — #10. T54 — #12.
+Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — not yet opened.
 
 Release:
 
@@ -497,6 +497,223 @@ no branch/commit/PR is created as part of a documentation reconciliation.
   `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` *before* implementation begins — not because this
   reconciliation pass can enforce it, but because a fourth recurrence would no longer read as an
   isolated incident in any of these documents' own words.
+
+**Authorization note, originally added 2026-08-10 by the Documentation Manager role — corrected the
+same day, below, after QA review found its central provenance claim unprovable.** The paragraph this
+replaces stated that `T55`'s authorization (and its subsequent architectural-clarification/expanded
+scope) was "recorded in `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before any implementation
+began." **That claim is corrected here, not silently removed — it cannot be substantiated and must
+not stand as a repository fact:** the committed `HEAD` immediately before this correction still read
+`T55` as "not started, not authorized"; the authorization/clarification text existed only in an
+uncommitted working tree, alongside `T55`'s own implementation, with no commit-based evidence of
+which came first. A documentation pass asserting "before implementation began" without a commit to
+point to was an overclaim, not a verified fact — repeated here as its own governance lesson, not
+just `T55`'s.
+
+**The accurate account:** the project owner authorized `T55` — and, separately, the architectural
+clarification and expanded scope described below — **conversationally**. Neither was recorded in a
+**committed** repository state before implementation began. This is the **fourth** consecutive Stage
+3 Phase 2 batch with this exact governance gap (`T52`, `T53`, `T54`, now `T55`) — the "fourth
+recurrence" every one of the prior three batches' own QA Decisions warned about, materializing
+despite the warning. It is historical and cannot be retroactively fixed by rewording it — only
+disclosed accurately, the same way `T52`/`T53`/`T54`'s own authorization gaps are recorded above, not
+erased.
+
+**Original scope (as conversationally authorized):** the two `container.register(...)` replacements
+in `configure_container()`. **Architectural clarification (also conversational, per the Backend
+Developer's `docs/prompts/BackendDeveloper.md` §5 checkpoint):** that literal approach is technically
+unworkable — `container.resolve()` is synchronous and zero-argument, but `JwtAuthenticationProvider`
+needs a request-scoped `UserRepository` and `RbacAuthorizationService` needs an asynchronously-loaded
+permission mapping, both backed by the current request's `AsyncSession` (`DBSessionDep`), which the
+container has no mechanism to inject into a synchronous factory — confirming exactly the open
+question this section's own T52/T53-batch bullets above already anticipated. **Expanded scope (also
+conversational):** request-scoped `Depends()` construction in `presentation/api/deps.py`
+(`DBSessionDep` → `SqlAlchemyUserRepository`/`SqlAlchemyRolePermissionRepository` → the real
+provider/service), a fresh-per-request RBAC permission mapping with no caching/invalidation policy,
+and conditional removal of the existing `Anonymous`/`Permissive` container registrations (confirmed
+unused elsewhere by direct repository inspection during implementation — see Design Decisions below
+— so removed, not merely preserved-and-documented). `T52`/`T53`/`T54`'s own implementation files,
+`T56`, `T57`, and any route remain explicitly out of scope, and no scope creep into any of them was
+found. See the `T55` batch immediately below for what was actually built against this scope.
+
+## Tasks Implemented — T55 batch
+
+- **T55 — request-scoped `AuthenticationProvider`/`AuthorizationService` construction.**
+  `presentation/api/deps.py`'s `get_authentication_provider()`/`get_authorization_service()` now
+  build `JwtAuthenticationProvider`/`RbacAuthorizationService` fresh per request, directly from
+  `DBSessionDep`, instead of resolving them from the DI container. `infrastructure/di/container.py`'s
+  two `container.register(AuthenticationProvider, ...)`/`container.register(AuthorizationService,
+  ...)` lines are removed — confirmed unused anywhere else by direct repository inspection (see
+  Design Decisions). No route, no `T52`/`T53`/`T54` file, no `T56`/`T57` content touched.
+
+## Files Modified — T55 batch
+
+- `backend/src/app/presentation/api/deps.py` — modified: `get_authentication_provider()` now
+  `async`, takes `DBSessionDep`/`SettingsDep`, constructs `JwtAuthenticationProvider(
+  SqlAlchemyUserRepository(session), settings)`; new `get_authorization_service()` constructs
+  `SqlAlchemyRolePermissionRepository(session)`, awaits
+  `get_permission_codes_by_role_name()`, and builds `RbacAuthorizationService` from the result.
+- `backend/src/app/infrastructure/di/container.py` — modified: the two auth-port registrations
+  removed, replaced with a docstring note explaining why (request-scoped construction can't go
+  through a synchronous, zero-argument `resolve()`).
+- `backend/tests/unit/test_auth.py` — modified: `TestConfigureContainer`'s test renamed/rewritten
+  from asserting the container resolves the Stage 1 stub defaults to asserting the container no
+  longer registers either port at all.
+- `backend/tests/integration/test_auth_dependency_wiring.py` *(new)* — 6 tests against the real
+  migrated schema, live Postgres.
+- `docs/ImplementationLog/Stage3/Phase2.md` — this file.
+
+No new dependency; no route file touched.
+
+## Tests Added — T55 batch
+
+6 in `backend/tests/integration/test_auth_dependency_wiring.py`:
+
+`TestGetAuthenticationProvider` (3): resolves a real, active user through the full chain (token →
+`JwtAuthenticationProvider` → `SqlAlchemyUserRepository` → DB) to a populated `CurrentUser`; **uses
+the exact session it was given** — the specific property `T55` couldn't be a container registration
+without losing; an unknown user id resolves to anonymous.
+
+`TestGetAuthorizationService` (3): `require_permission()` reflects real `role_permissions` data
+loaded through the real chain; denies a permission not granted to the caller's roles; **uses the
+exact session it was given**, mirroring the authentication side's equivalent test.
+
+Plus one existing unit test rewritten (not counted as new): `TestConfigureContainer`'s single test
+now asserts `AuthenticationProvider`/`AuthorizationService` are *not* container-registered, replacing
+an assertion that stopped being true the moment `T55` removed those registrations.
+
+## Test Results — T55 batch
+
+- New tests: `pytest tests/integration/test_auth_dependency_wiring.py -v` — 6/6 passing.
+- Full backend suite: `uv run pytest -q` (Postgres reachable — `legal_dms_postgres` healthy) —
+  **380 passed** (374 prior + 6 new), 0 failed, 0 skipped. Independently re-run by the Documentation
+  Manager role during this reconciliation, not transcribed from QA's report alone.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (192 files unchanged), re-verified
+  directly.
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly.
+- **Request-scoped session usage** — independently verified via
+  `test_uses_the_exact_session_it_was_given` on both the authentication and authorization sides, the
+  specific property that made a container registration architecturally wrong for this task.
+- **Scope check:** direct `grep`/inspection of `container.py`, `deps.py`, and every `T52`/`T53`/`T54`
+  file confirms no route, no unrelated file, and none of `T52`/`T53`/`T54`'s own implementation files
+  were touched.
+
+## Design Decisions — T55 batch
+
+- **Request-scoped `Depends()` construction, not container registration** — the entire reason this
+  batch needed an architectural clarification in the first place; see the corrected authorization
+  note above for the full technical reasoning (`container.resolve()` is synchronous/zero-argument;
+  both real providers need a request-scoped `AsyncSession`).
+- **The obsolete `Anonymous`/`Permissive` container registrations were removed, not merely
+  preserved-and-flagged** — the expanded authorization made removal conditional on confirming they're
+  unused elsewhere; direct `grep` across `backend/src/` and `backend/tests/` found no remaining
+  reference to either registration (the stub classes themselves are still imported and used directly,
+  unregistered, by tests that construct them explicitly — only the container's registration of them
+  is gone), so the condition was met and they were removed, documented in `container.py`'s own
+  docstring rather than silently.
+- **No caching/invalidation policy for the RBAC permission mapping** — exactly as the expanded
+  authorization specified: loaded fresh on every request via
+  `get_permission_codes_by_role_name()`. Not built now, not deferred as a promise — simply out of
+  this batch's authorized scope.
+
+## Problems Encountered — T55 batch
+
+**The governance finding this reconciliation pass exists to record, stated plainly:** `T55`'s
+authorization, its architectural clarification, and its expanded scope all originated in
+conversation. **None of the three was recorded in a committed repository state before implementation
+began.** This is the fourth consecutive Stage 3 Phase 2 batch to demonstrate this exact gap — `T52`,
+`T53`, and `T54` each demonstrated it before, and each of their own QA Decisions explicitly warned
+that a further recurrence would no longer read as an isolated incident. It didn't stay isolated. This
+is not a technical defect — `T55`'s implementation is correct on the merits (see Test Results) — it
+is a process/governance gap, the same category as `T52`/`T53`/`T54`'s own, and it is recorded here
+the same way theirs were: honestly, without erasing the finding or claiming it was resolved
+retroactively. A prior version of this section additionally overclaimed that the authorization *had*
+been recorded before implementation began — that overclaim is itself corrected above, not repeated
+here.
+
+## Deferred Work — T55 batch
+
+- **`T56`–`T57`** (`CurrentUserDep` update for the new provider signature; integration tests
+  exercising valid/expired/malformed/tampered tokens end-to-end and 401/403 responses) — not started,
+  per `T55`'s own scope.
+- **A feature branch, commit, and PR for `T55`'s changes** — not created this pass (a git action;
+  none was authorized as part of this documentation reconciliation).
+- **A structural fix for the recurring authorization-recording gap** — named four times now
+  (`T52`, `T53`, `T54`, `T55`) without ever being fixed as a process, only re-disclosed each time.
+  Trigger: whoever owns this project's process definition should decide whether to add an actual gate
+  (e.g., a phase log cannot exist without a linked, committed authorization commit) rather than
+  relying on each batch's own documentation pass to remember to flag it.
+
+## Future Considerations — T55 batch
+
+- `T56`'s `CurrentUserDep` update is the next real consumer of this batch's
+  `get_authentication_provider()` — already fully wired, so `T56` should be a small, mechanical
+  change if the signature question it's scoped to answer stays narrow.
+- `T57`'s integration tests are the first point the full pipeline (token → `CurrentUser` →
+  `RequirePermission` → 403) gets exercised end-to-end; `test_auth_dependency_wiring.py`'s tests
+  prove the two halves independently but not yet chained together through a real route, since no
+  route exists yet.
+
+## Reviewer Checklist — T55 batch
+
+Self-assessed by the Documentation Manager role against the repository's actual current state, since
+no separate Backend Developer self-assessment exists in the repository for this batch (the same
+situation `T52`'s own Reviewer Checklist notes).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+☑ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+□ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **No scope creep:** `□` — left honestly unchecked. The *code* stayed exactly within the expanded
+  authorization's boundary (verified above). What did not stay within any committed boundary is the
+  authorization-recording process itself — the fourth recurrence recorded in Problems Encountered.
+  Marking this `☑` would understate that.
+- **Ready for QA:** `☑` — this log states every fact a reviewer would need: the technical scope, the
+  test evidence, and the governance finding, all in one place.
+
+## QA Decision — T55 batch
+
+```
+QA Decision (T55 batch)
+
+□ Approved
+□ Approved with comments
+☑ Rework required
+```
+
+Rendered by the QA Reviewer role. **Technical review: no issues.** `T55`'s implementation is
+technically correct — 380/380 full suite, 6/6 new integration tests, `ruff`/`black` clean, boot
+succeeds, request-scoped session usage independently verified, no `T52`/`T53`/`T54`/`T56`/`T57`/route
+scope creep. **`Rework required` is rendered on governance/process grounds only:** the working-tree
+documentation, as it stood before this correction, claimed the expanded authorization was "recorded
+here … before any implementation began" — a claim the committed repository state cannot support, since
+`HEAD` immediately prior still read `T55` as unauthorized and nothing about the authorization was ever
+committed. That claim must not stand as a repository fact and has been corrected (see the authorization
+note and Problems Encountered above) to state plainly: authorization existed conversationally, but the
+repository record was created/reconciled after implementation had already begun — the fourth
+consecutive occurrence of this exact gap (`T52`, `T53`, `T54`, `T55`).
+
+**This QA Decision belongs to the QA Reviewer role and is not altered by this Documentation Manager
+pass** — it is transcribed here exactly as rendered, not re-judged. `T55` is not marked `Done`.
+Branch/commit/PR remain outstanding, the same as every governance-gap batch before it — normal
+resolution (branch → commit → PR → merge, then a possible follow-up QA re-review) applies, mirroring
+`T52`/`T53`/`T54`. Until then, `T55` stands as: **authorized (conversationally) — implemented — QA
+technically approved — governance rework required — not yet merged or closed.**
 
 ## Reviewer Checklist — T52 batch
 

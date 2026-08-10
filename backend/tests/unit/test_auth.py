@@ -169,13 +169,18 @@ class TestRequirePermission:
 
 
 class TestConfigureContainer:
-    def test_registers_auth_ports_with_stage_one_defaults(self) -> None:
+    def test_does_not_register_auth_ports(self) -> None:
+        """T55: `AuthenticationProvider`/`AuthorizationService` are
+        deliberately NOT container-registered — both real implementations
+        need a per-request session the container can't supply, so
+        `presentation/api/deps.py` constructs them directly from
+        `DBSessionDep` instead. This replaces the old assertion that the
+        container held the Stage 1 stub defaults, which stopped being true
+        once T55 removed those registrations."""
         configure_container()
 
-        assert isinstance(
-            container.resolve(AuthenticationProvider), AnonymousAuthenticationProvider
-        )
-        assert isinstance(container.resolve(AuthorizationService), PermissiveAuthorizationService)
+        assert not container.is_registered(AuthenticationProvider)
+        assert not container.is_registered(AuthorizationService)
 
 
 class TestSettingsAuthConfig:
