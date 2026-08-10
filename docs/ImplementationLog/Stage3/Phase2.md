@@ -2,19 +2,19 @@
 
 # Stage 3 – Phase 2
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-08
 
-Completed:
+Completed: 2026-08-10
 
 Related Tasks: T52, T53, T54
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — not yet committed.
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724).
 
-Pull Request: T52 — #9. T53 — #10. T54 — not yet opened.
+Pull Request: T52 — #9. T53 — #10. T54 — #12.
 
 Release:
 
@@ -814,6 +814,97 @@ each closed. **Until then, `T54` stays in its current state: technically correct
 open, NOT marked `Done`.**
 
 No implementation rework required — `T54`'s code and tests stand as reviewed and confirmed correct.
+
+---
+
+**Follow-up re-review (2026-08-10, QA Reviewer role) — the decision above is preserved verbatim, not
+erased or rewritten.** The original `Rework required` was correct at the time it was rendered
+(2026-08-08): findings 1–3 were real and open. This note records what has changed since, based on
+independent re-verification of the repository, not on the remediation report alone.
+
+**Independently re-verified this pass:**
+- `git branch --show-current` — `main`; `git status` — clean.
+- `git log` — `dbd6724` ("feat(auth): add RequirePermission dependency") exists as a real commit on
+  `feature/stage3-t54-require-permission`, merged via PR #12 (`6396f6b`, "Merge pull request #12
+  from Intelligentclown/feature/stage3-t54-require-permission"). Both `main` and `origin/main`
+  independently confirmed at `6396f6b` via `git log`/`git rev-parse` — not assumed from the report.
+- `git show --stat dbd6724` — confirms the commit contains exactly `T54`'s implementation
+  (`presentation/api/deps.py`, `tests/unit/test_auth.py`) plus the expected documentation
+  reconciliation files; no `T53`/`T55`/`T56` source file, no route file.
+- Full suite re-run post-merge: **374/374 passing**, 0 failed, 0 skipped. `ruff`/`black` re-run
+  clean. Direct grep of `container.py`/`main.py`/`presentation/api/v1/*.py` confirms
+  `RequirePermission`/`get_authorization_service`/`RbacAuthorizationService`/`JwtAuthenticationProvider`
+  are still absent from all of them — **`T55` has not started.**
+
+**Disposition of the three original findings:**
+
+1. **Authorization not recorded before implementation began.** Not something a later commit can
+   retroactively fix — the recording either happened before implementation or it didn't, and for
+   `T54` (as for `T52`/`T53` before it) it didn't. This remains true and is **not** being marked
+   resolved; it stays on the record as governance history, exactly as findings 1/2 on the `T52` and
+   `T53` QA Decisions above were preserved rather than erased once those batches closed out. It is
+   not, on its own, a reason to withhold approval now that the git-provenance gap (finding 3, below)
+   has closed for real — the same judgment already applied twice in this same log.
+2. **`Phase2.md` had no `T54` batch entry.** Resolved — this file now contains the full `T54` batch
+   (Objective, Tasks Implemented, Files Modified, Tests Added, Test Results, Design Decisions,
+   Problems Encountered, Reviewer Checklist, and this QA Decision itself).
+3. **`T54`'s changes existed directly on `main`, uncommitted, unbranched.** Resolved, and verified
+   independently rather than accepted on the strength of the report:
+   `feature/stage3-t54-require-permission` → `dbd6724` → PR #12 → merged `6396f6b`, confirmed by
+   direct `git log`/`git rev-parse`/`git show`, matching exactly how `T52`'s and `T53`'s equivalent
+   findings closed.
+
+**Distinguishing what was and wasn't a code defect, since the two are easy to conflate after a
+process rework:** at no point across the original review or this follow-up did any test fail, any
+lint check fail, or any technical/architectural defect surface. `Rework required` was rendered, and
+is now being superseded, entirely on process/governance grounds — the implementation itself was never
+in question and required no changes at either point.
+
+## QA Decision — T54 batch (follow-up, 2026-08-10)
+
+```
+QA Decision (T54 batch, follow-up)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+**Supersedes the `Rework required` decision above for the purpose of closeout** (that original
+decision is preserved unedited above as the historical record — this is a new, separate, dated
+entry, not a retroactive rewrite). Findings 2 and 3 are resolved and independently confirmed; finding
+1 remains open as permanent governance history, consistent with how the identical class of finding
+was handled on `T52`'s and `T53`'s own QA Decisions. `T54`'s code and tests were correct throughout
+and required no changes at any point in this process. **`T54` is now cleared for the Documentation
+Manager's closeout** (marking it `Done` in `IMPLEMENTATION_QUEUE.md`, updating this file's metadata
+block's `Git Commit`/`Pull Request`/`Status`/`Completed` fields) — not performed by this QA pass,
+consistent with this role's own boundary against project-management-document/git actions.
+
+**Standing comment, carried forward unchanged from `T52`/`T53`:** authorization given in conversation
+must be written into the repository before implementation begins, not reconstructed afterward. `T54`
+is the third consecutive batch to demonstrate the recording half of this gap — but it is also the
+first to demonstrate the fix already called for on the Backend Developer checkpoint half (`§5` was
+actually performed and approved this time). Progress, not full resolution: the recording gap itself
+still needs an actual process fix, not a fourth acknowledgment.
+
+`T55` was not started, authorized, or touched by this review. No implementation code, test, or
+project-management document (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`) was modified as part of
+rendering this follow-up decision — only this phase log's own QA Decision section, which is this
+role's to render per `docs/ImplementationLog/README.md`.
+
+*The sentence immediately below is the closing line of the original (2026-08-08) `Rework required`
+decision above, preserved verbatim as part of that historical record — not deleted, not edited. It
+describes the state as of that original decision, before the branch/commit/PR gap closed. It is
+**superseded** by the follow-up decision's own disposition of finding 3 (resolved, independently
+verified) immediately above this note. Flagged here rather than silently left to read as if it still
+described the current state.*
+
 Branch/commit/PR remain outstanding before this batch can be marked `Done` or proceed past this
 reconciliation — tracked here, not resolved by this decision, consistent with the Documentation
 Manager role's own git-action boundary (no branch, commit, or push performed as part of this pass).
+
+**Documentation Manager closeout (2026-08-10):** the follow-up decision above clears `T54` for
+closeout. This phase log's metadata block (`Status`, `Completed`, `Git Commit`, `Pull Request`) has
+been updated accordingly — see the top of this file. `T54` is now marked `Done` in
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`, per the Developer/QA record here, mirroring exactly
+how `T52`/`T53` each closed. `T55` remains unauthorized and unstarted.
