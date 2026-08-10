@@ -6,15 +6,15 @@ Status: In Progress
 
 Started: 2026-08-08
 
-Completed:
+Completed: 2026-08-10
 
 Related Tasks: T52, T53, T54, T55
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — not yet committed.
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — b094436 (merge; feature commit 86a3d5d; governance-reconciliation commit f070e28).
 
-Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — not yet opened.
+Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — #15.
 
 Release:
 
@@ -637,8 +637,9 @@ here.
 - **`T56`–`T57`** (`CurrentUserDep` update for the new provider signature; integration tests
   exercising valid/expired/malformed/tampered tokens end-to-end and 401/403 responses) — not started,
   per `T55`'s own scope.
-- **A feature branch, commit, and PR for `T55`'s changes** — not created this pass (a git action;
-  none was authorized as part of this documentation reconciliation).
+- **A feature branch, commit, and PR for `T55`'s changes** — not created by this documentation
+  reconciliation pass. **Resolved since:** `feature/stage3-t55-auth-wiring` → `86a3d5d`/`f070e28` →
+  PR #15 → merged `b094436`; see the QA Decision (follow-up) section below.
 - **A structural fix for the recurring authorization-recording gap** — named four times now
   (`T52`, `T53`, `T54`, `T55`) without ever being fixed as a process, only re-disclosed each time.
   Trigger: whoever owns this project's process definition should decide whether to add an actual gate
@@ -709,11 +710,39 @@ repository record was created/reconciled after implementation had already begun 
 consecutive occurrence of this exact gap (`T52`, `T53`, `T54`, `T55`).
 
 **This QA Decision belongs to the QA Reviewer role and is not altered by this Documentation Manager
-pass** — it is transcribed here exactly as rendered, not re-judged. `T55` is not marked `Done`.
-Branch/commit/PR remain outstanding, the same as every governance-gap batch before it — normal
-resolution (branch → commit → PR → merge, then a possible follow-up QA re-review) applies, mirroring
-`T52`/`T53`/`T54`. Until then, `T55` stands as: **authorized (conversationally) — implemented — QA
-technically approved — governance rework required — not yet merged or closed.**
+pass** — it is transcribed here exactly as rendered, not re-judged, and is preserved unedited below
+as the historical record of the process gate's first pass.
+
+## QA Decision — T55 batch (follow-up, 2026-08-10)
+
+```
+QA Decision (T55 batch, follow-up)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+**Supersedes the `Rework required` decision above for the purpose of closeout** (that original
+decision is preserved unedited above as the historical record — this is a new, separate, dated
+entry, not a retroactive rewrite, the same convention `T52`'s and `T54`'s own follow-up decisions
+already used). The branch/commit/PR gap has since closed:
+`feature/stage3-t55-auth-wiring` → implementation commit `86a3d5d` → governance-reconciliation
+commit `f070e28` → PR #15 → merged `b094436`; `main`/`origin/main` both verified at `b094436`.
+Technical re-confirmation: 380/380 full suite, `ruff`/`black` clean, boot succeeds — unchanged since
+the original decision, because nothing about the code changed between the two reviews.
+
+**The authorization-not-pre-recorded governance finding is NOT resolved by this follow-up and is not
+claimed to be.** It cannot be — the repository cannot retroactively acquire a commit that predates
+`T55`'s implementation. It remains on permanent record as the **fourth** consecutive Stage 3 Phase 2
+batch to demonstrate this exact gap (`T52`, `T53`, `T54`, `T55`), exactly as the original decision
+above states. This follow-up closes the *git-provenance* gap (branch/commit/PR now exist) the same
+way `T52`'s and `T53`'s follow-ups did — it does not, and could not, close the *authorization-timing*
+gap, which is history, not a pending item.
+
+**`T55` is now marked `Done`** — code, both QA decisions (original preserved, follow-up as final
+disposition), and documentation are all reconciled. `T56`/`T57` remain untouched, unauthorized, not
+started by this decision or this closeout.
 
 ## Reviewer Checklist — T52 batch
 
