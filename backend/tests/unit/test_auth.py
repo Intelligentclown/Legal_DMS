@@ -22,7 +22,7 @@ from app.infrastructure.auth.anonymous_auth_provider import AnonymousAuthenticat
 from app.infrastructure.auth.permissive_authorization_service import PermissiveAuthorizationService
 from app.infrastructure.config.settings import Settings
 from app.infrastructure.di.container import configure_container, container
-from app.presentation.api.deps import get_current_user
+from app.presentation.api.deps import RequirePermission, get_current_user
 
 
 class TestCurrentUser:
@@ -109,6 +109,63 @@ class TestGetCurrentUserDependency:
         user = await get_current_user(AnonymousAuthenticationProvider())
 
         assert user.is_authenticated is False
+
+
+class _RecordingAuthorizationService(AuthorizationService):
+    """Fake that records every `require_permission()` call, for asserting
+    exactly what `RequirePermission()`'s returned dependency forwards."""
+
+    def __init__(self, *, allow: bool) -> None:
+        self.allow = allow
+        self.calls: list[tuple[CurrentUser, str]] = []
+
+    def require_permission(self, user: CurrentUser, permission: str) -> None:
+        self.calls.append((user, permission))
+        if not self.allow:
+            raise ForbiddenError(f"denied: {permission}")
+
+
+class TestRequirePermission:
+    """T54: the `RequirePermission(...)` FastAPI dependency factory. Its
+    returned dependency is called directly here (matching
+    `TestGetCurrentUserDependency`'s pattern above), bypassing FastAPI's own
+    `Depends()` wiring, since that wiring itself is FastAPI's job to prove
+    correct, not this project's.
+    """
+
+    async def test_allows_when_the_authorization_service_permits(self) -> None:
+        check = RequirePermission("matters:read")
+        user = CurrentUser(id="u1", is_authenticated=True)
+
+        await check(user, _RecordingAuthorizationService(allow=True))  # does not raise
+
+    async def test_raises_forbidden_when_the_authorization_service_denies(self) -> None:
+        check = RequirePermission("matters:read")
+        user = CurrentUser(id="u1", is_authenticated=True)
+
+        with pytest.raises(ForbiddenError):
+            await check(user, _RecordingAuthorizationService(allow=False))
+
+    async def test_passes_the_configured_permission_and_user_through_unchanged(self) -> None:
+        check = RequirePermission("clients:write")
+        user = CurrentUser(id="u1", is_authenticated=True)
+        service = _RecordingAuthorizationService(allow=True)
+
+        await check(user, service)
+
+        assert service.calls == [(user, "clients:write")]
+
+    async def test_denies_anonymous_via_a_real_authorization_service(self) -> None:
+        check = RequirePermission("matters:read")
+
+        with pytest.raises(ForbiddenError, match="Authentication is required"):
+            await check(CurrentUser(), PermissiveAuthorizationService())
+
+    async def test_allows_authenticated_via_a_real_authorization_service(self) -> None:
+        check = RequirePermission("matters:read")
+        user = CurrentUser(id="u1", is_authenticated=True)
+
+        await check(user, PermissiveAuthorizationService())  # does not raise
 
 
 class TestConfigureContainer:

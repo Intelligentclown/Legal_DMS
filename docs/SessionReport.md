@@ -1439,3 +1439,44 @@ commit, branch, push, or other git action was performed by this session.
 **Next Session Goals:** `T54` (`RequirePermission` FastAPI dependency) is the next unfinished task —
 depends on `T53` (done). Not authorized this session. Standing items, unrelated to `T53`:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-08 — Stage 3 Phase 2, T54 (`RequirePermission`) — governance reconciliation
+
+**Objectives:** A documentation-only reconciliation for `T54`, following QA's independent review: no
+implementation/test changes, no `T55` work, `T54` not marked `Done`, no git actions. Add a `T54`
+batch to `docs/ImplementationLog/Stage3/Phase2.md` documenting the situation honestly — including an
+explicit correction that, unlike `T53`, the Backend Developer's approval checkpoint *was* performed
+and approved for this batch, not skipped.
+
+**What happened:** Found `T54`'s implementation already in the working tree — `presentation/api/deps.py`
+extended with `get_authorization_service()`/`RequirePermission(...)`, `tests/unit/test_auth.py`
+extended with a 5-test `TestRequirePermission` class — both existing, tracked files modified in
+place (`M`, not untracked `??`, unlike `T52`/`T53`'s all-new-files shape). Independently re-ran
+everything QA reported rather than transcribing it: 5/5 new tests, 374/374 full suite, `ruff`/`black`
+clean, app boot succeeds, and a direct `grep` of `container.py`/`main.py`/`presentation/api/v1/`
+confirmed no `T53`/`T55`/`T56`/route file was touched. Added a full `T54` batch to `Phase2.md` across
+all eleven standard `ImplementationLog` sections (folding an "Authorization/Scope" note into
+Objective rather than adding a twelfth non-standard heading, since `docs/ImplementationLog/README.md`
+fixes the section list at eleven), transcribing QA's already-rendered decision — **Rework required,
+process grounds only** — into the QA Decision — T54 batch section, not inventing a new one. Recorded
+three governance findings (authorization not pre-recorded, no `Phase2.md` batch entry until this
+pass, implemented directly on `main` uncommitted) and one explicit non-finding: the Backend
+Developer's `docs/prompts/BackendDeveloper.md` §5 approval checkpoint *was* performed and approved
+for `T54`, the fix `T53`'s own QA Decision had called "overdue." Corrected the stale "`T54`–`T57` not
+started, not authorized" language in `IMPLEMENTATION_QUEUE.md` (the T54 row and two narrative notes),
+`PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/`tests.backend`, plus its `git` block,
+found separately stale — `latestCommitAtThisUpdate` still read `a103dca` though `main` had since
+advanced to `25a6078` via a merged T53-closeout PR), `docs/AI_HANDOVER.md` (two sections), and
+`docs/Roadmap.md`.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase2.md` (new T54 batch), `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file).
+
+**Confirmed:** no `T54` (or any) implementation code or test file was modified; `T55` was not
+started; no new technical QA decision was rendered — QA's own process-rework decision was
+transcribed, not re-litigated; no branch, commit, push, or other git action was performed.
+
+**Next Session Goals:** `T54` needs the same closeout `T52`/`T53` each eventually got — a real
+feature branch, commit, and PR for `deps.py`/`test_auth.py`'s changes, then a QA re-review of the
+process gate (not the code again) to move from `Rework required` to `Approved`/`Approved with
+comments` and finally `Done`. Until then, `T55` (`configure_container()` wiring) is not authorized.

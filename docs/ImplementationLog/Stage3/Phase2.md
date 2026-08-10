@@ -2,19 +2,19 @@
 
 # Stage 3 – Phase 2
 
-Status: Done
+Status: In Progress
 
 Started: 2026-08-08
 
-Completed: 2026-08-08
+Completed:
 
-Related Tasks: T52, T53
+Related Tasks: T52, T53, T54
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5).
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — not yet committed.
 
-Pull Request: T52 — #9. T53 — #10.
+Pull Request: T52 — #9. T53 — #10. T54 — not yet opened.
 
 Release:
 
@@ -35,6 +35,25 @@ self-authored account, because no such account exists anywhere in the repository
 Encountered for why. Every fact below was independently verified against the repository, not copied
 from a claim.
 
+**T54 batch (2026-08-08):** the `RequirePermission(...)` FastAPI dependency factory (closes Stage
+2.5's flagged-not-scheduled finding F11, now explicitly in scope) — the first real caller of `T53`'s
+`AuthorizationService.require_permission()` anywhere in the app. No `RbacAuthorizationService`
+changes, no `configure_container()` wiring, no route changes; `T55`–`T57` explicitly not started
+this batch.
+
+**Authorization / Scope:** `T54` was authorized by the project owner in a Project Manager
+conversation — the same authorization channel `T52`/`T53` used. Unlike `T53`, the Backend Developer
+role's `docs/prompts/BackendDeveloper.md` §5 approval checkpoint (reconstruct state, summarize
+understanding — task, acceptance criteria, dependencies — then wait for explicit approval of *that
+summary* before implementing) **was performed and explicitly approved before implementation began**
+— this is reported directly, not independently reconstructible from repository state alone (a
+conversation leaves no repository artifact either way), but it is not disputed here and is recorded
+as fact per the instruction under which this section is written; see Problems Encountered for why
+this distinction from `T53` matters enough to state plainly. What was **not** done before
+implementation began is the same gap `T52`/`T53` already demonstrated: the authorization itself was
+never written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` beforehand, and this phase log had
+no `T54` batch entry until this pass.
+
 ## Tasks Implemented
 
 - **T52 — `JwtAuthenticationProvider`.** `infrastructure/auth/jwt_authentication_provider.py`: decodes
@@ -50,6 +69,17 @@ from a claim.
 `AuthorizationService` — checks `require_permission()` against the caller's roles → `role_permissions`.
 Approved strictly scoped to `T53` and its own tests; `T54`–`T57` explicitly not authorized this
 batch (no `RequirePermission` dependency, no `configure_container()` wiring, no `deps.py` changes).
+
+**T54 batch:** `RequirePermission(permission: str) -> Callable[..., Awaitable[None]]` in
+`presentation/api/deps.py` — a dependency *factory*: called with a permission code
+(`RequirePermission("matters:read")`), it returns an async dependency function that resolves the
+request's `CurrentUser` (via the existing `CurrentUserDep`) and the registered `AuthorizationService`
+(via a new `get_authorization_service()` resolver, mirroring `get_authentication_provider()`'s
+existing shape), then calls `authorization_service.require_permission(user, permission)`. Raises
+`ForbiddenError` on denial — the project's existing exception handler already turns that into the
+standard 403 response shape, so no route needs to catch it itself. Intended usage:
+`Depends(RequirePermission("matters:read"))`, either as a single route's dependency or in a router's
+`dependencies=[...]` list.
 
 ## Files Modified
 
@@ -76,6 +106,20 @@ No dependency file touched. No existing file modified — all five are new files
 updating `infrastructure/auth/__init__.py`'s re-exports, since nothing consumes it yet either way).
 All five files are **untracked** as of this log entry — same as `T52`'s files were before its own
 branch/commit/PR closed that gap; not yet branched, committed, or pushed this batch.
+
+**T54 batch:**
+- `backend/src/app/presentation/api/deps.py` — **modified** (not new): added
+  `get_authorization_service()` and `RequirePermission(...)`.
+- `backend/tests/unit/test_auth.py` — **modified**: added `_RecordingAuthorizationService` (a fake
+  recording every `require_permission()` call) and `TestRequirePermission` (5 tests); updated the
+  `from app.presentation.api.deps import ...` line to also import `RequirePermission`.
+- `docs/ImplementationLog/Stage3/Phase2.md` — this file.
+
+Unlike `T52`/`T53`, this batch touches two **existing, already-tracked** files rather than adding new
+ones — `git status` shows both as `M` (modified), not `??` (untracked). No dependency file touched;
+no other source file changed — `container.py`, `main.py`, and `presentation/api/v1/` (confirmed by
+direct grep) are all untouched. Both modified files remain **uncommitted directly on `main`** as of
+this log entry — see Problems Encountered.
 
 ## Tests Added
 
@@ -114,6 +158,29 @@ grant is reflected under the correct role name; a role with multiple granted per
 of them; a role with zero grants is absent from the mapping entirely (not present with an empty set);
 two different roles sharing the same permission each get their own independent entry.
 
+**T54 batch:** 5 in `backend/tests/unit/test_auth.py`'s new `TestRequirePermission` class, calling
+the dependency function `RequirePermission(...)` returns directly (bypassing FastAPI's own
+`Depends()` wiring — matching `TestGetCurrentUserDependency`'s existing pattern in the same file,
+since proving `Depends()` itself works is FastAPI's job, not this project's):
+
+1. `test_allows_when_the_authorization_service_permits` — an authenticated user against a permitting
+   fake `AuthorizationService` does not raise.
+2. `test_raises_forbidden_when_the_authorization_service_denies` — a denying fake raises
+   `ForbiddenError`.
+3. `test_passes_the_configured_permission_and_user_through_unchanged` — the exact `(user,
+   permission)` pair reaches `AuthorizationService.require_permission()` unmodified, verified via a
+   recording fake (`_RecordingAuthorizationService`).
+4. `test_denies_anonymous_via_a_real_authorization_service` — against the real
+   `PermissiveAuthorizationService` (not a fake), an anonymous `CurrentUser()` raises `ForbiddenError`
+   matching "Authentication is required".
+5. `test_allows_authenticated_via_a_real_authorization_service` — the same real service permits an
+   authenticated user.
+
+Matches `T54`'s own scope exactly (verify the dependency forwards to `AuthorizationService`
+correctly and raises the right exception on denial) plus one earned test (a real service, not just a
+fake, to prove the wiring isn't only correct against a test double) — the same "close real coverage
+gaps, not just the letter of the spec" approach every prior Stage 3 batch has used.
+
 ## Test Results
 
 - New tests: `pytest tests/unit/test_jwt_authentication_provider.py -v` — **11/11 passing**.
@@ -138,6 +205,22 @@ two different roles sharing the same permission each get their own independent e
 - **Import/boot smoke test:** `python -c "from app.main import app"` — succeeds.
   `RbacAuthorizationService` is not wired into `configure_container()` this batch (that's `T55`), so
   this only confirms the new modules don't break import resolution.
+
+**T54 batch:**
+- New tests: `uv run pytest tests/unit/test_auth.py -v -k RequirePermission` — **5/5 passing**,
+  independently re-run by the Documentation Manager role during this reconciliation pass, not
+  assumed from a prior claim.
+- Full backend suite: `uv run pytest -q` — **374 passed** (369 prior + 5 new), 0 failed, 0 skipped —
+  matches the count QA independently reported; re-confirmed directly, not merely transcribed.
+- **Lint:** `uv run ruff check src tests alembic` and `uv run black --check src tests alembic` —
+  both clean, re-verified directly.
+- **Import/boot smoke test:** `uv run python -c "from app.main import app"` — succeeds.
+  `RequirePermission` is a plain dependency factory, not registered anywhere itself (nothing to wire
+  into `configure_container()` — it resolves `AuthorizationService` at call time via the existing
+  container, the same as `get_authentication_provider()` already does), so this only confirms the
+  modified modules don't break import resolution.
+- **Scope check:** direct `grep` of `container.py`, `main.py`, and `presentation/api/v1/` confirms no
+  route, no `configure_container()` entry, and no `T53`/`T55`/`T56` file was touched this batch.
 
 ## Design Decisions
 
@@ -185,6 +268,28 @@ two different roles sharing the same permission each get their own independent e
   indexing — the caller's role assignment is not this service's concern to validate; it only answers
   "does any role this caller holds grant this permission," and an unmapped role simply contributes no
   permissions to that answer.
+
+**T54 batch:**
+- **A dependency *factory* (`RequirePermission(permission) -> a dependency`), not a dependency
+  itself.** FastAPI's `Depends()` needs a zero/param-injected callable at the point it's declared,
+  but `require_permission()` needs a specific *permission code* baked in per route/router — the
+  factory shape is the standard FastAPI pattern for exactly this ("parameterized dependency"), not an
+  invention specific to this project. Matches `docs/Stage3_Backend_Handoff.md`'s own description of
+  `T54` as a "dependency factory," not a dependency.
+- **A new `get_authorization_service()` resolver, mirroring `get_authentication_provider()`'s
+  existing shape exactly** (`container.resolve(AuthorizationService)`), rather than inlining
+  `container.resolve(...)` directly inside `RequirePermission`'s nested function. Keeps `deps.py`'s
+  existing one-resolver-per-port convention intact; `RequirePermission` composes it via `Depends(...)`
+  like any other dependency, not a special case.
+- **No new exception handling in `RequirePermission` itself** — `AuthorizationService.require_permission()`
+  already raises `ForbiddenError` on denial (Stage 1's own contract, exercised again unchanged by
+  `T53`), and this project's existing global exception handler already turns `ForbiddenError` into
+  the standard 403 shape. Adding a `try`/`except` here would just re-raise the same thing, or worse,
+  risk swallowing it — the minimal-code path is also the correct one.
+- **Tests call the returned dependency function directly, not through a real FastAPI route.** Matches
+  `TestGetCurrentUserDependency`'s existing precedent in the same file — proving `Depends()`'s own
+  resolution machinery works is FastAPI's responsibility, verified by FastAPI's own test suite, not
+  something this project needs to re-prove for every dependency it defines.
 
 ## Problems Encountered
 
@@ -278,6 +383,41 @@ which only ever addressed item 3/4 (the git-action gap).** The QA Decision below
 rendered by the QA Reviewer role (**Approved with comments**) — preserved as written, not altered by
 this update.
 
+**T54 batch (2026-08-08, Documentation Manager reconciliation — repository-first, nothing rewritten,
+nothing assumed):** three process/governance deviations and one important non-deviation, all stated
+plainly.
+
+1. **Project Manager authorization exists in conversation, not (yet, at the time implementation
+   began) written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`.** Real, not disputed — the
+   third consecutive Stage 3 Phase 2 batch with this exact recording gap (`T52`, `T53`, now `T54`),
+   despite two prior QA Decisions naming it explicitly as worth fixing. This pass corrects the
+   *documentation*, not the underlying process; it is documented here after the fact, not backdated
+   to claim otherwise.
+2. **No `T54` batch entry existed in this phase log until this pass.** `T53`'s closeout had already
+   moved this file's own `Status` to `Done`, `Completed: 2026-08-08` — this batch reopens it (see the
+   metadata block) rather than starting a new file, per this project's own "one file per phase,
+   appended to as it progresses" convention.
+3. **`T54`'s two modified files (`deps.py`, `test_auth.py`) are uncommitted, directly on `main`.** No
+   `feature/stage3-t54-*` branch exists. Same class of deviation `T52`/`T53` each carried and each
+   eventually closed via a real branch → commit → PR → merge sequence — still open for `T54`.
+
+**Not a deviation — stated explicitly because getting this wrong would misrepresent the record, not
+because it's remarkable in itself:** **the Backend Developer role's `docs/prompts/BackendDeveloper.md`
+§5 approval checkpoint (reconstruct state, summarize understanding, wait for explicit approval of
+that summary before implementing) was performed for `T54` and received explicit approval before
+implementation began.** This is the first Stage 3 Phase 2 batch where that checkpoint was actually
+exercised — `T53`'s own QA Decision named its absence as "the most serious" of its four deviations
+and called it "overdue for an actual fix rather than a third repetition." `T54` is that fix, on this
+one item specifically. This fact rests on what was reported for this reconciliation, since a
+conversation — like the authorization itself — leaves no independently-inspectable repository
+artifact either way; it is recorded as given, not fabricated, and not silently omitted either.
+
+Items 1 and 3 are process/governance gaps, not technical defects — the code and tests above are
+unaffected by any of this, independently re-verified in Test Results, not merely transcribed. Item 2
+is closed by this pass creating the batch entry itself. Items 1 and 3 remain open; this pass does not
+correct them — no retroactive in-repository approval record predating implementation is inserted, and
+no branch/commit/PR is created as part of a documentation reconciliation.
+
 ## Deferred Work
 
 - **`T53`–`T57`** (`RbacAuthorizationService`, `RequirePermission` dependency, `configure_container()`
@@ -306,6 +446,19 @@ this update.
   noticed while reading that file for pattern reference, predates `T53`, and is out of this batch's
   scope (it would test the `T49`-era model, not anything `T53` added). Flagged, not filled in.
 
+**T54 batch:**
+- **`T55`–`T57`** (`configure_container()` wiring for `JwtAuthenticationProvider`/
+  `RbacAuthorizationService`, `deps.py`'s `CurrentUserDep` update for the new provider signature,
+  Phase 2 tests exercising the full pipeline) — explicitly not started, per instruction to scope
+  strictly to `T54`.
+- **A feature branch, commit, and PR for `T54`'s changes** — not created this pass (a git action; the
+  instruction under which this pass runs explicitly excludes it). Trigger: the next session with
+  explicit authorization to take git actions should branch, commit, and push `deps.py`/`test_auth.py`'s
+  changes, mirroring exactly how `T52` and `T53` each eventually closed this same gap.
+- **No route anywhere in the app calls `RequirePermission(...)` yet.** Expected — no route exists to
+  call it from (Stage 3 Phase 3, `T58`+); `RequirePermission` itself is proven correct in isolation
+  (Test Results above), not integration-tested against a real endpoint, since no endpoint exists yet.
+
 ## Future Considerations
 
 - Whoever picks up `T53` should also resolve the standing branch/commit gap for `T52` first (or
@@ -328,6 +481,22 @@ this update.
 - `T66`'s `role_permissions` seed data (still gated on its own sign-off) is what will make
   `RbacAuthorizationService` meaningful end-to-end in the live app; until then, `T53`'s tests are the
   only thing exercising real grants.
+
+**T54 batch:**
+- Whoever picks up `T55` should also resolve the standing branch/commit gap for `T54` first (or
+  alongside) — the same recommendation `T53`'s own Future Considerations made for `T52`, repeating
+  because the underlying gap has now recurred a third time.
+- `T58`+ (Phase 3 routes, e.g. `T62`'s user-management routes) are the first real callers of
+  `RequirePermission(...)` in a router's `dependencies=[...]` list or a single route's own
+  `Depends(...)` — worth re-reading this batch's tests before wiring it in, since they document the
+  exact contract (forwards `(user, permission)` unchanged, raises `ForbiddenError` on denial, no
+  other exception).
+- The recurring authorization-recording gap (three consecutive batches: `T52`, `T53`, `T54`) is a
+  process problem this project's own documentation keeps naming and re-naming rather than fixing.
+  Whoever authorizes `T55` should write that authorization into
+  `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` *before* implementation begins — not because this
+  reconciliation pass can enforce it, but because a fourth recurrence would no longer read as an
+  isolated incident in any of these documents' own words.
 
 ## Reviewer Checklist — T52 batch
 
@@ -554,3 +723,97 @@ No implementation rework required. `T53`'s code and tests stand as reviewed and 
 technical merits. Branch/commit/PR remain outstanding before this batch can be marked `Done` or
 handed to the Documentation Manager — tracked here, not resolved by this decision, consistent with
 this role's own git-action boundary.
+
+## Reviewer Checklist — T54 batch
+
+Self-assessed by the Documentation Manager role against the repository's actual current state, since
+no separate Backend Developer self-assessment exists in the repository for this batch (see Problems
+Encountered — the approval checkpoint was performed and approved, but no written self-assessment
+artifact was left in the repository either way).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+☑ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+□ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **Architecture preserved:** `RequirePermission`/`get_authorization_service` live in
+  `presentation/api/deps.py` alongside every other dependency resolver, calling `AuthorizationService`
+  (a `T53` port) with no change to its `require_permission()` signature. No layering violation on
+  direct inspection.
+- **Existing design patterns followed:** a FastAPI parameterized-dependency factory, mirroring
+  `get_authentication_provider()`'s existing resolver shape exactly rather than inventing a new one.
+- **Tests added:** 5 new tests, independently re-run 5/5 passing — see Tests Added/Test Results.
+- **Existing tests pass:** full suite independently re-run this pass — 374/374, 0 failed, 0 skipped.
+- **Documentation updated:** this phase log (this T54 batch, across all eleven standard sections plus
+  an Authorization/Scope note folded into Objective — see that section's note on why a twelfth
+  heading wasn't added), `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+  `docs/Roadmap.md`, `docs/SessionReport.md` — all part of this same reconciliation pass.
+- **ADR updated (if required):** `□` — correctly not required. No new architectural decision; `T54`
+  implements what Stage 2.5's F11 and `docs/Stage3_Backend_Handoff.md` already specified.
+- **AI_BOOTSTRAP updated (if required):** `□` — no non-negotiable rule or standing convention changed.
+- **No scope creep:** `☑` — exactly `T54`; direct `grep` of `container.py`, `main.py`, and
+  `presentation/api/v1/` confirms no `T53`/`T55`/`T56` file and no route was touched.
+- **Ready for QA:** `□` — left unchecked deliberately, the same convention `T52`'s original entry
+  used. QA has, in fact, already reviewed this batch (see QA Decision below) — but the checklist
+  reflects this log's own documentation state at the point it's written, and the branch/commit gap
+  remains genuinely open, not resolved by writing this checklist.
+
+## QA Decision — T54 batch
+
+```
+QA Decision (T54 batch)
+
+□ Approved
+□ Approved with comments
+☑ Rework required
+```
+
+Rendered by the QA Reviewer role, 2026-08-08 (reported for this reconciliation pass, transcribed
+into the repository, not invented here — this Documentation Manager pass renders no new technical
+QA decision, per its own instructions).
+
+**Technical review: no issues.** `RequirePermission`'s implementation and its 5 tests are confirmed
+correct — 5/5 new tests passing, 374/374 full suite, `ruff`/`black` clean, application boot succeeds,
+no `T53`/`T55`/`T56`/route file touched. **No code changes are required.**
+
+**Rework required is rendered on process grounds only — three findings, one explicit non-finding:**
+
+1. **Authorization exists in the Project Manager conversation, not recorded in
+   `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation began.** The third
+   consecutive Stage 3 Phase 2 batch with this exact gap (`T52`, `T53`, `T54`) — a pattern, not a
+   one-off, as `T53`'s own QA Decision already warned.
+2. **`docs/ImplementationLog/Stage3/Phase2.md` had no `T54` batch entry.** Unlike `T52` (where the
+   whole file was missing) this file already existed, but nothing in it recorded `T54`'s
+   implementation, tests, or design decisions until this reconciliation pass.
+3. **`T54`'s changes exist directly on `main`, uncommitted, unbranched.** Same class of deviation
+   `T52`/`T53` each carried and each eventually closed via a real branch → commit → PR → merge.
+4. **Explicitly not a finding:** the Backend Developer role's `docs/prompts/BackendDeveloper.md` §5
+   approval checkpoint **was performed and explicitly approved before implementation began** for this
+   batch — confirmed distinct from `T53`, where it was skipped. This is the fix `T53`'s own QA
+   Decision called "overdue," and it worked; recorded here so this batch isn't mistakenly assumed to
+   carry the same deviation `T53` did.
+
+**Comment:** this batch corrects finding 2 by existing (this log entry). Findings 1 and 3 remain open
+— the same pattern `T52`/`T53` each went through: `Rework required` (or, for `T52`/`T53`,
+"Approved with comments" once the phase log existed) until the branch/commit/PR gap actually closes,
+at which point a final closeout pass can re-render the decision, mirroring exactly how `T52` and `T53`
+each closed. **Until then, `T54` stays in its current state: technically correct, administratively
+open, NOT marked `Done`.**
+
+No implementation rework required — `T54`'s code and tests stand as reviewed and confirmed correct.
+Branch/commit/PR remain outstanding before this batch can be marked `Done` or proceed past this
+reconciliation — tracked here, not resolved by this decision, consistent with the Documentation
+Manager role's own git-action boundary (no branch, commit, or push performed as part of this pass).

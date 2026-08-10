@@ -146,8 +146,22 @@ branch, uncommitted) have since closed: `feature/stage3-t53-rbac-authorization` 
 committed (`dd754f5`), opened as PR #10, and merged (`a103dca`) — `main`/`origin/main` both verified
 at `a103dca`, working tree clean. The authorization-recording and approval-checkpoint deviations
 remain on record in `Phase2.md`'s Problems Encountered as governance history, not erased by this
-closeout. `T54`–`T57` remain not started, not authorized. Backend test count is 369, still 9
-frontend.
+closeout.
+
+**Governance reconciliation (2026-08-08): `T54` is implemented and QA-reviewed, but NOT `Done`.**
+`RequirePermission(...)` (`presentation/api/deps.py`, plus a new `get_authorization_service()`
+resolver) closes Stage 2.5's F11 finding. 5 new tests, full suite 374/374 passing, ruff/black clean,
+independently re-verified — see `docs/ImplementationLog/Stage3/Phase2.md`'s T54 batch. QA rendered
+**Rework required, process grounds only — no code changes needed.** Three governance findings, the
+same shape as `T52`/`T53`'s own: authorization exists in a Project Manager conversation but wasn't
+recorded in `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation began (the third
+consecutive batch with this gap); `Phase2.md` had no `T54` batch entry until this pass; `T54`'s
+changes exist directly on `main`, uncommitted, unbranched. **One important correction, stated
+explicitly:** unlike `T53`, the Backend Developer role's `docs/prompts/BackendDeveloper.md` §5
+approval checkpoint **was performed and explicitly approved before implementation began** for `T54`
+— `T53`'s own QA Decision had called this checkpoint's absence "overdue for an actual fix," and this
+batch is that fix. `T55`–`T57` remain not started, not authorized. Backend test count is 374, still
+9 frontend.
 
 ## Pending Work
 
@@ -299,10 +313,11 @@ per-commit file breakdown. (Stage 1, for reference, touched
 ## What Should Be Implemented Next
 
 **Stage 3 (Authentication & Authorization) is scoped, and Phase 0, Phase 1 (`T46`–`T51`), `T52`, and
-`T53` (both of Phase 2 so far) are all done. `T54`+ awaits a further explicit go-ahead — see the
-Current Stage section's 2026-08-08 entries above for the process/governance gaps `T52` and `T53`
-each carried (now recorded, and in `T53`'s case, closed out) before assuming that go-ahead is a
-formality.** `T52`
+`T53` are all done. `T54` is implemented and QA-reviewed but administratively open (Rework required,
+process grounds only) — not `Done`. `T55`+ awaits a further explicit go-ahead — see the Current
+Stage section's 2026-08-08 entries above for the process/governance gaps `T52`, `T53`, and `T54`
+each carried (now recorded, and in `T52`/`T53`'s case, closed out) before assuming that go-ahead is
+a formality.** `T52`
 (`JwtAuthenticationProvider`) was authorized by the project owner in a Project Manager conversation;
 the repository wasn't updated to reflect that before implementation started, and QA's process-gate
 review (see [docs/ImplementationLog/Stage3/Phase2.md](ImplementationLog/Stage3/Phase2.md)) caught
@@ -323,19 +338,27 @@ skipped, implemented directly on `main`) are equally real — see
 four deviations named). The two git-action deviations have since closed —
 `feature/stage3-t53-rbac-authorization` branched, committed (`dd754f5`), opened as PR #10, and
 merged (`a103dca`); `main`/`origin/main` both verified at `a103dca` — while the authorization-recording
-and approval-checkpoint deviations remain on record as governance history, not erased. **Don't
-assume `T54` is authorized just because `T53` is `Done` — ask; that pattern (stopping explicitly at
-a task or phase boundary pending a further go-ahead) holds throughout this project, and `T53`'s own
-history is the reason to take it seriously this time.** See
-[docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's full file-by-file map.
-Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still needs its own
+and approval-checkpoint deviations remain on record as governance history, not erased.
+
+**`T54` (`RequirePermission(...)` FastAPI dependency factory) followed — the predicted third
+recurrence of the authorization-recording gap did happen (`T52`, `T53`, `T54`, three consecutive
+batches), but not the approval-checkpoint gap: unlike `T53`, the Backend Developer role's §5
+checkpoint was actually performed and approved before `T54`'s implementation began.** `T54` is
+technically implemented and QA-reviewed (374/374 full suite, no code issues) but QA rendered
+**Rework required, process grounds only** — pending the same branch/commit/PR resolution that
+eventually closed `T52`/`T53`'s equivalent gaps. See `docs/ImplementationLog/Stage3/Phase2.md`'s T54
+batch. **Don't assume `T55` is authorized just because `T54`'s code exists — ask; that pattern
+(stopping explicitly at a task or phase boundary pending a further go-ahead) holds throughout this
+project, and three consecutive authorization-recording gaps is reason enough to take it seriously.**
+See [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's full file-by-file
+map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still needs its own
 sign-off before that migration is written; (2) whenever a task is authorized in conversation, that
 authorization should be written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` **before**
-implementation begins, not reconstructed afterward — both `T52` and `T53` have demonstrated
-this exact failure mode; a third recurrence for `T54`+ would no longer be a surprise, it would be a
-pattern. Outside of Stage 3, do not add business entities, new major dependencies, or any
-repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
-Financial) without separate explicit direction.
+implementation begins, not reconstructed afterward — `T52`, `T53`, and now `T54` have all
+demonstrated this exact failure mode; a fourth recurrence for `T55`+ would no longer read as an
+isolated incident in any of this project's own documents. Outside of Stage 3, do not add business
+entities, new major dependencies, or any repository/service/route touching the other Stage 2 tables
+(Matter/Client/Property/Document/Financial) without separate explicit direction.
 
 ## Important Warnings
 
