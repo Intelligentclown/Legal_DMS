@@ -9,6 +9,7 @@ import ast
 import inspect
 
 import pytest
+from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import ValidationError
 
 from app.application.errors.exceptions import ForbiddenError
@@ -22,7 +23,7 @@ from app.infrastructure.auth.anonymous_auth_provider import AnonymousAuthenticat
 from app.infrastructure.auth.permissive_authorization_service import PermissiveAuthorizationService
 from app.infrastructure.config.settings import Settings
 from app.infrastructure.di.container import configure_container, container
-from app.presentation.api.deps import RequirePermission, get_current_user
+from app.presentation.api.deps import RequirePermission, get_bearer_token, get_current_user
 
 
 class TestCurrentUser:
@@ -104,11 +105,52 @@ class TestPermissiveAuthorizationService:
         service.require_permission(user, "matters:read")  # does not raise
 
 
+class TestGetBearerToken:
+    """T56: extracts the bearer token FastAPI's `HTTPBearer(auto_error=False)`
+    parsed from the request's `Authorization` header. Called directly with
+    an `HTTPAuthorizationCredentials` (or `None`), matching this file's
+    existing pattern of exercising dependency functions without going
+    through FastAPI's own `Depends()` wiring."""
+
+    async def test_extracts_the_token_from_bearer_credentials(self) -> None:
+        credentials = HTTPAuthorizationCredentials(
+            scheme="Bearer", credentials="a-real-bearer-token"
+        )
+
+        token = await get_bearer_token(credentials)
+
+        assert token == "a-real-bearer-token"
+
+    async def test_resolves_to_none_when_no_credentials_are_present(self) -> None:
+        """`HTTPBearer(auto_error=False)` yields `None` itself (rather than
+        raising 401) when the `Authorization` header is missing or
+        malformed -- this is what `get_bearer_token` sees in that case."""
+        token = await get_bearer_token(None)
+
+        assert token is None
+
+
 class TestGetCurrentUserDependency:
     async def test_resolves_to_anonymous_via_the_configured_provider(self) -> None:
-        user = await get_current_user(AnonymousAuthenticationProvider())
+        user = await get_current_user(AnonymousAuthenticationProvider(), token=None)
 
         assert user.is_authenticated is False
+
+    async def test_passes_the_extracted_token_through_to_the_provider(self) -> None:
+        class _RecordingProvider(AuthenticationProvider):
+            def __init__(self) -> None:
+                self.received_token: str | None = "not-called"
+
+            async def get_current_user(self, token: str | None) -> CurrentUser:
+                self.received_token = token
+                return CurrentUser(id="from-token") if token else CurrentUser()
+
+        provider = _RecordingProvider()
+
+        user = await get_current_user(provider, token="a-real-bearer-token")
+
+        assert provider.received_token == "a-real-bearer-token"
+        assert user.id == "from-token"
 
 
 class _RecordingAuthorizationService(AuthorizationService):
