@@ -170,8 +170,18 @@ governance/process grounds only** (not a technical issue) preserved verbatim; **
 Approved with comments** is the final disposition, once `feature/stage3-t55-auth-wiring` → PR #15 →
 merged `b094436` closed the branch/commit/PR gap — `main`/`origin/main` both verified at `b094436`.
 The authorization-recording finding (the fourth consecutive occurrence, `T52`/`T53`/`T54`/`T55`)
-remains open governance history, not resolved or erased. `T56`–`T57` remain not started, not
-authorized.
+remains open governance history, not resolved or erased.
+
+**`T56` (bearer-token extraction in `get_current_user()`) is Done — the first Stage 3 Phase 2 batch
+to actually record authorization before implementation.** `presentation/api/deps.py` gained
+`get_bearer_token()` (FastAPI `HTTPBearer(auto_error=False)`), replacing the `token=None` placeholder
+with the caller's real token. Authorization commit `91e0785` (PR #17, merged `89a3a5e`) predates
+implementation commit `fcc68e0` (PR #18, merged `d69c4eb`), confirmed by timestamp order — breaking
+the pattern `T52`/`T53`/`T54`/`T55` each demonstrated. 3 new tests, full suite 383/383 passing,
+ruff/black clean, boot smoke test passed, Postgres-backed verification completed. **QA Decision:
+Approved with comments** — no technical defects; a non-blocking comment recommends an end-to-end
+`TestClient`-level bearer-token test once a real protected route exists (`T58`+). `T57` remains not
+started, not authorized.
 
 | Feature | Status |
 |---|---|

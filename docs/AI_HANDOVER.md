@@ -200,8 +200,20 @@ final disposition, rendered once the branch/commit/PR gap closed:
 `feature/stage3-t55-auth-wiring` → implementation commit `86a3d5d` → governance commit `f070e28` →
 PR #15 → merged `b094436`. `main`/`origin/main` both verified at `b094436`. **The
 authorization-recording finding is NOT resolved by this closeout** — it remains permanent governance
-history, the fourth consecutive occurrence (`T52`, `T53`, `T54`, `T55`), not erased. `T56`–`T57`
-remain not started, not authorized. Backend test count is 380, still 9 frontend.
+history, the fourth consecutive occurrence (`T52`, `T53`, `T54`, `T55`), not erased.
+
+**`T56` closeout (2026-08-12): Done, and the first Stage 3 Phase 2 batch to get the
+authorization-recording discipline right.** `presentation/api/deps.py` gained `get_bearer_token()`
+(FastAPI `HTTPBearer(auto_error=False)`), replacing `get_current_user()`'s hardcoded `token=None`
+placeholder with the caller's real bearer token. Authorization was recorded as its own dedicated,
+documentation-only commit (`91e0785`, PR #17, merged `89a3a5e`) **before** the implementation commit
+(`fcc68e0`, PR #18, merged `d69c4eb`) — confirmed directly by commit timestamp order, breaking the
+pattern `T52`/`T53`/`T54`/`T55` each demonstrated. 3 new tests, full suite 383/383 passing,
+`ruff`/`black` clean, boot smoke test passed, Postgres-backed verification completed. **QA Decision:
+Approved with comments** — no technical defects; the comment is a non-blocking future observation
+about an end-to-end `TestClient`-level bearer-token test once a real protected route exists
+(`T58`+), not a gap in `T56` itself. `T57` remains not started, not authorized. Backend test count
+is 383, still 9 frontend.
 
 ## Pending Work
 
@@ -413,13 +425,26 @@ already demonstrated once) preserved verbatim; **follow-up decision `Approved wi
 final disposition, once `feature/stage3-t55-auth-wiring` → PR #15 → merged `b094436` closed the
 branch/commit/PR gap. `main`/`origin/main` both verified at `b094436`. The authorization-recording
 finding itself remains open governance history, not resolved or erased by this closeout — it cannot
-be. `T56` is now the next unfinished task, not yet started, not authorized. See
+be.
+
+**`T56` followed, and — for the first time in five Stage 3 Phase 2 batches — the authorization-
+recording discipline actually held.** The project owner's authorization for `T56` (extract the real
+bearer token in `get_current_user()`, replacing the `token=None` placeholder) was recorded as its own
+dedicated, documentation-only commit (`91e0785`, PR #17, merged `89a3a5e`) **before** any
+implementation commit existed — confirmed directly by commit timestamp order (`91e0785` at 15:10:37,
+`fcc68e0` at 15:35:54, same day), not merely asserted. `T56` is now **Done**: `presentation/api/deps.py`
+gained `get_bearer_token()` (FastAPI `HTTPBearer(auto_error=False)`), 3 new tests, full suite
+383/383 passing, `ruff`/`black` clean, boot succeeds, Postgres-backed verification completed — merged
+`fcc68e0` → PR #18 → `d69c4eb`. **QA Decision: Approved with comments** — no technical defects; a
+non-blocking comment recommends an end-to-end `TestClient`-level bearer-token test once a real
+protected route exists (`T58`+). `T57` is now the next unfinished task, not yet started, not
+authorized. See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
 full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
-`T52`/`T53`/`T54`/`T55` have now all failed at, four batches running, genuinely needs to hold for
-`T56`+ — a fifth recurrence would no longer read as an isolated incident anywhere in this project's
-own documents. Outside of Stage 3, do not add business entities, new major dependencies, or
+`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56` broke that streak, but a single
+success doesn't retire the lesson; `T57`+ should hold the same standard `T56` just set. Outside of
+Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
 

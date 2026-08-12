@@ -6,15 +6,15 @@ Status: In Progress
 
 Started: 2026-08-08
 
-Completed: 2026-08-10
+Completed:
 
-Related Tasks: T52, T53, T54, T55
+Related Tasks: T52, T53, T54, T55, T56
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — b094436 (merge; feature commit 86a3d5d; governance-reconciliation commit f070e28).
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — b094436 (merge; feature commit 86a3d5d; governance-reconciliation commit f070e28). T56 — d69c4eb (merge; feature commit fcc68e0; authorization commit 91e0785).
 
-Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — #15.
+Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — #15. T56 — #18 (authorization: #17).
 
 Release:
 
@@ -743,6 +743,180 @@ gap, which is history, not a pending item.
 **`T55` is now marked `Done`** — code, both QA decisions (original preserved, follow-up as final
 disposition), and documentation are all reconciled. `T56`/`T57` remain untouched, unauthorized, not
 started by this decision or this closeout.
+
+## Objective — T56 batch
+
+Replace `get_current_user()`'s `token=None` Stage 3 Phase 0 placeholder (see the Objective section's
+`T52`-era note above) with real bearer-token extraction from the incoming request, so
+`AuthenticationProvider`'s real implementations (`T52`) actually receive the caller's token instead
+of always resolving anonymous. No `T57` work, no route, no `T52`–`T55` file touched.
+
+**Authorization / Scope — the first Stage 3 Phase 2 batch where this was done correctly, not a
+governance finding to disclose:** `T56` was authorized by the project owner, and that authorization
+was recorded in `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` as its own dedicated,
+documentation-only commit (`91e0785`, PR #17, merged as `89a3a5e`) — **before** the implementation
+commit (`fcc68e0`) existed, confirmed directly by commit timestamp order (`91e0785`: 15:10:37;
+`fcc68e0`: 15:35:54, same day) and by `git log`'s own ordering. This is the first of five Stage 3
+Phase 2 batches (`T52` through `T56`) to actually satisfy the discipline every prior batch's QA
+Decision named as missing — see Problems Encountered for the full contrast with `T52`–`T55`.
+
+## Tasks Implemented — T56 batch
+
+- **T56 — bearer-token extraction in `get_current_user()`.** `presentation/api/deps.py` gains
+  `get_bearer_token()`, a small dependency built on FastAPI's `HTTPBearer(auto_error=False)`, and
+  `get_current_user()` now passes its result through to `AuthenticationProvider.get_current_user()`
+  instead of the hardcoded `token=None`. `auto_error=False` means a missing/malformed `Authorization`
+  header resolves to `None` rather than `HTTPBearer` itself raising 401 — whether an anonymous caller
+  is acceptable stays `AuthorizationService`'s decision (`T53`/`T54`), not this dependency's.
+
+## Files Modified — T56 batch
+
+- `backend/src/app/presentation/api/deps.py` — modified: new `_bearer_scheme`/`get_bearer_token()`;
+  `get_current_user()` gains a `token` parameter sourced from `get_bearer_token()`.
+- `backend/tests/unit/test_auth.py` — modified: new `TestGetBearerToken` class (2 tests); existing
+  `TestGetCurrentUserDependency` test updated for the new `token` parameter, plus 1 new test proving
+  the extracted token reaches the provider unchanged.
+- `docs/ImplementationLog/Stage3/Phase2.md` — this file.
+
+No new dependency (`fastapi.security.HTTPBearer` ships with the existing `fastapi` dependency); no
+route, no `T52`–`T55` file, no `T57` content touched.
+
+## Tests Added — T56 batch
+
+3 in `backend/tests/unit/test_auth.py`:
+
+`TestGetBearerToken` (2): a well-formed `HTTPAuthorizationCredentials` yields its `.credentials`
+string; `None` credentials (what `HTTPBearer(auto_error=False)` produces for a missing/malformed
+header) resolve to `None`.
+
+`TestGetCurrentUserDependency` (1 new, 1 existing updated): a recording fake
+`AuthenticationProvider` proves the extracted token reaches `get_current_user(token=...)` unchanged
+(`test_passes_the_extracted_token_through_to_the_provider`); the pre-existing anonymous-resolution
+test updated to pass `token=None` explicitly rather than relying on the old hardcoded default.
+
+## Test Results — T56 batch
+
+- New tests: 3/3 passing, part of the full suite run below (not isolated separately in this pass).
+- Full backend suite: `uv run pytest -q` (Postgres reachable) — **383 passed** (380 prior + 3 new),
+  0 failed, 0 skipped. Independently re-run by the Documentation Manager role during this closeout,
+  not transcribed from the PR description alone.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (192 files unchanged), re-verified
+  directly.
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly.
+- **Scope check:** `git show --stat fcc68e0` confirms exactly two files changed
+  (`presentation/api/deps.py`, `tests/unit/test_auth.py`) — no route, no `T52`–`T55` file, no `T57`
+  content.
+
+## Design Decisions — T56 batch
+
+- **`HTTPBearer(auto_error=False)`, not the default `auto_error=True`.** The default would make
+  `HTTPBearer` itself raise 401 on a missing/malformed header, before `AuthenticationProvider` ever
+  runs — but an anonymous caller is a legitimate, already-handled case (every `AuthenticationProvider`
+  implementation, `T52`'s included, resolves a missing/invalid token to the anonymous `CurrentUser()`
+  default, never raises). Letting `HTTPBearer` short-circuit that would duplicate and potentially
+  contradict the provider's own contract.
+- **A small dedicated `get_bearer_token()` dependency, not inlining `HTTPBearer` directly into
+  `get_current_user()`'s signature.** Keeps `get_current_user()`'s own signature focused on
+  `AuthenticationProvider` + the extracted token, and makes the token-extraction step independently
+  testable (see `TestGetBearerToken`) without needing a full `AuthenticationProvider` in play.
+
+## Problems Encountered — T56 batch
+
+**None on the technical side** — first-run 3/3 new tests, no lint/format fixes needed, no design
+question deferred mid-implementation.
+
+**On the governance side — the opposite of a finding, for once:** `T52`, `T53`, `T54`, and `T55` each
+demonstrated the same authorization-recording gap (project-owner authorization given in conversation,
+never actually committed to the repository before implementation began) — four consecutive batches,
+each one's own QA Decision naming it as a problem that needed fixing before a fifth recurrence. `T56`
+is that fix: authorization commit `91e0785` (PR #17, "docs(project): record T56 authorization before
+implementation") exists as its own dedicated, documentation-only commit, merged (`89a3a5e`) before
+the implementation commit `fcc68e0` was ever written — confirmed by direct commit inspection, not
+assumed. This does not retroactively resolve `T52`–`T55`'s own findings, which remain exactly as
+recorded in their own sections above — but it closes the pattern going forward, at least for this one
+batch.
+
+## Deferred Work — T56 batch
+
+- **`T57`** (integration tests: valid token → correct `CurrentUser`; missing/expired/malformed/
+  tampered token → 401; authenticated-but-unpermitted → 403; `configure_container()` resolves the
+  real implementations) — not started, per `T56`'s own scope.
+- **A feature branch, commit, and PR for `T56`'s changes** — already resolved by the time this
+  section is written: `feature/stage3-t56-token-extraction` → `fcc68e0` → PR #18 → merged `d69c4eb`.
+  Recorded here for consistency with every prior batch's Deferred Work section, not because it was
+  ever actually open.
+
+## Future Considerations — T56 batch
+
+- **QA's non-blocking observation, carried forward for whoever picks up `T57`/Phase 3 routes:** an
+  end-to-end test exercising a real `TestClient` request with a genuine `Authorization: Bearer ...`
+  header, through a real protected route, all the way to a 200/401/403 response, is worth adding once
+  a real protected route exists (Phase 3, `T58`+) — `T56`'s own tests (and `T54`'s, `T57`'s planned
+  ones) prove each layer correct in isolation via direct function calls, not the full FastAPI request
+  pipeline. Not a defect in `T56` — no such route exists yet for that test to exercise — just a gap
+  worth closing once one does.
+- `T57`'s own integration tests are the next real exercise of this batch's `get_bearer_token()` —
+  worth re-reading `TestGetBearerToken`/`TestGetCurrentUserDependency` before writing them, since they
+  already document the exact contract (missing/malformed header → `None` → anonymous; a real token →
+  passed through unchanged).
+
+## Reviewer Checklist — T56 batch
+
+Self-assessed by the Documentation Manager role against the repository's actual current state, since
+no separate Backend Developer self-assessment exists in the repository for this batch (the same
+situation `T52`'s and `T55`'s own Reviewer Checklists note).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+☑ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **No scope creep:** `☑` — unlike `T53`'s/`T55`'s own checklists, this one is honestly checkable
+  without qualification: the code stayed exactly within `T56`'s scope (verified above), and — for the
+  first time in five batches — so did the authorization-recording process.
+- **Ready for QA:** `☑` — this log states every fact a reviewer would need: technical scope, test
+  evidence, and the authorization-provenance record, all in one place.
+
+## QA Decision — T56 batch
+
+```
+QA Decision (T56 batch)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role (reported for this closeout, transcribed into the repository, not
+invented here — this Documentation Manager pass renders no new technical QA decision). **Technical
+review: no defects found.** `T56`'s implementation is correct — 383/383 full suite, `ruff`/`black`
+clean, boot succeeds, Postgres-backed verification completed, no `T52`–`T55`/`T57`/route scope creep.
+Authorization provenance independently confirmed: `91e0785`/PR #17 merged before implementation
+commit `fcc68e0`/PR #18.
+
+**Comment (why "with comments," not a plain `Approved`):** a non-blocking observation for future
+work — an end-to-end `TestClient`-level test exercising a real bearer token against a genuine
+protected route would strengthen coverage once such a route exists (Phase 3, `T58`+); no such route
+exists yet, so this is forward guidance, not a gap in what `T56` itself was scoped to deliver. See
+Future Considerations above, where this is carried forward for whoever picks up `T57`/Phase 3.
+
+`T57` was not started, authorized, or touched by this review. `T56` is now marked `Done` — code, QA
+decision, and documentation are all reconciled; the authorization-recording discipline held for the
+first time in five Stage 3 Phase 2 batches.
 
 ## Reviewer Checklist — T52 batch
 
