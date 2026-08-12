@@ -1648,3 +1648,48 @@ by this session.
 **Next Session Goals:** `T56` (`CurrentUserDep` update for the new provider signature) is the next
 unfinished task — depends on `T55` (done). Not authorized this session. Standing item:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-12 — T56 final closeout
+
+**Objectives:** As Documentation Manager, close out `T56` (bearer-token extraction in
+`get_current_user()`) once its QA gate cleared. Unlike every prior Stage 3 Phase 2 batch, this
+session's own repository inspection found the authorization-recording discipline had actually held:
+a dedicated authorization commit (`91e0785`, PR #17) existed and was merged (`89a3a5e`) *before* the
+implementation commit (`fcc68e0`, PR #18) — confirmed by direct commit-timestamp comparison, not
+assumed from the task description. No `T56` implementation code was touched, `T57` was not started,
+and the QA decision (`Approved with comments`) was transcribed as reported, not re-rendered.
+
+**What happened:** Reconstructed state fresh — `git rev-parse HEAD origin/main` confirmed both at
+`d69c4eb`; `git log --oneline --decorate -8` showed the exact commit sequence (`91e0785`/PR #17 →
+`fcc68e0`/PR #18 → merge `d69c4eb`); `git show --stat` on `fcc68e0` and `91e0785` confirmed their
+respective file lists (implementation: `presentation/api/deps.py` + `tests/unit/test_auth.py`;
+authorization: `IMPLEMENTATION_QUEUE.md` + `PROJECT_STATE.json` only, no code); `gh pr view 17`/
+`gh pr view 18` independently confirmed both merged, with PR #18's own description matching the
+verification claims (383/383, ruff/black clean, boot passing, Postgres-backed verification, QA:
+Approved with comments). Independently re-ran the full suite (383/383), `ruff`/`black` (clean), and
+the boot smoke test rather than trusting the PR description alone. Read `fcc68e0`'s actual diff to
+document `get_bearer_token()`'s design (`HTTPBearer(auto_error=False)`, so a missing/malformed header
+resolves to `None` rather than a self-raised 401) rather than paraphrasing from the commit message.
+Wrote a full `T56` batch into `docs/ImplementationLog/Stage3/Phase2.md` (Objective through QA
+Decision, following the dedicated-header structure `T55`'s batch already established), recording QA's
+non-blocking comment about an eventual `TestClient`-level end-to-end test once a real route exists.
+Corrected `IMPLEMENTATION_QUEUE.md` (`T56`'s row and two narrative paragraphs — one of which was
+stale despite the authorization commit itself being correct, since that commit only touched the task
+row, not the surrounding prose), `PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/
+`tests.backend`/`git` updated, a new `backendSubsystems` entry added), `docs/AI_HANDOVER.md` (two
+sections), and `docs/Roadmap.md` — all now state `T56` is `Done` and `T57` is next, unauthorized.
+`PROJECT_CHECKPOINT.md` rewritten in place per its own maintenance rule, not appended to.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase2.md`, `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file),
+`PROJECT_CHECKPOINT.md`.
+
+**Confirmed:** no `T56` (or any) implementation/test file was modified; `T57` was not started or
+authorized; the QA Decision (`Approved with comments`) was transcribed exactly as reported, not
+invented or re-judged; no branch, commit, or push was performed by this session.
+
+**Next Session Goals:** `T57` (integration tests: valid token → correct `CurrentUser`;
+missing/expired/malformed/tampered token → 401; authenticated-but-unpermitted → 403;
+`configure_container()` resolves the real implementations) is the next unfinished task — depends on
+`T55`+`T56` (both done). Not authorized this session. Standing item:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
