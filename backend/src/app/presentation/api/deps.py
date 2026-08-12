@@ -29,6 +29,7 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.interfaces.auth import (
@@ -76,14 +77,24 @@ async def get_authorization_service(session: DBSessionDep) -> AuthorizationServi
     return RbacAuthorizationService(permission_codes_by_role_name)
 
 
+_bearer_scheme = HTTPBearer(auto_error=False)
+
+
+async def get_bearer_token(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)],
+) -> str | None:
+    """`auto_error=False` so a missing/malformed `Authorization` header
+    resolves to `None` instead of HTTPBearer raising 401 itself -- whether
+    an anonymous caller is acceptable is `AuthorizationService`'s decision
+    (T53/T54), not this dependency's."""
+    return credentials.credentials if credentials is not None else None
+
+
 async def get_current_user(
     auth_provider: Annotated[AuthenticationProvider, Depends(get_authentication_provider)],
+    token: Annotated[str | None, Depends(get_bearer_token)],
 ) -> CurrentUser:
-    # token=None is a Stage 3 Phase 0 placeholder: real bearer-token
-    # extraction from the request (HTTPBearer/OAuth2PasswordBearer) is
-    # T56 (Phase 2), not yet built. AnonymousAuthenticationProvider ignores
-    # the value either way, so behavior is unchanged until T56 lands.
-    return await auth_provider.get_current_user(token=None)
+    return await auth_provider.get_current_user(token=token)
 
 
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]
