@@ -2,19 +2,19 @@
 
 # Stage 3 – Phase 2
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-08
 
-Completed:
+Completed: 2026-08-13
 
-Related Tasks: T52, T53, T54, T55, T56
+Related Tasks: T52, T53, T54, T55, T56, T57
 
 Related ADRs: ADR-0019
 
-Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — b094436 (merge; feature commit 86a3d5d; governance-reconciliation commit f070e28). T56 — d69c4eb (merge; feature commit fcc68e0; authorization commit 91e0785).
+Git Commit: T52 — baed936 (merge; feature commit 003ab15). T53 — a103dca (merge; feature commit dd754f5). T54 — 6396f6b (merge; feature commit dbd6724). T55 — b094436 (merge; feature commit 86a3d5d; governance-reconciliation commit f070e28). T56 — d69c4eb (merge; feature commit fcc68e0; authorization commit 91e0785). T57 — 472f7cb (merge; feature commit 7c9fc3a; authorization commit 65dd563).
 
-Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — #15. T56 — #18 (authorization: #17).
+Pull Request: T52 — #9. T53 — #10. T54 — #12. T55 — #15. T56 — #18 (authorization: #17). T57 — #20 (authorization recorded in the same PR).
 
 Release:
 
@@ -917,6 +917,205 @@ Future Considerations above, where this is carried forward for whoever picks up 
 `T57` was not started, authorized, or touched by this review. `T56` is now marked `Done` — code, QA
 decision, and documentation are all reconciled; the authorization-recording discipline held for the
 first time in five Stage 3 Phase 2 batches.
+
+## Objective — T57 batch, pre-implementation architecture clarification
+
+`T57`'s original wording ("Tests: valid token → correct `CurrentUser`; missing/expired/malformed/
+tampered token → 401; authenticated-but-unpermitted → 403; `configure_container()` resolves the real
+implementations") went stale the moment `T55` landed: `T55` deliberately *removed*
+`AuthenticationProvider`/`AuthorizationService` from `configure_container()` in favor of
+request-scoped construction in `deps.py` — `tests/unit/test_auth.py`'s `TestConfigureContainer`
+already asserts the *opposite* of what that criterion demanded. Satisfying it literally would mean
+undoing already-approved `T55` architecture, which is out of scope for `T57`.
+
+**A second, more substantive gap surfaced on inspection:** `RequirePermission`'s `_require_permission`
+(`T54`) delegates every caller — anonymous or authenticated-but-unpermitted — straight to
+`AuthorizationService.require_permission()`, which raises `ForbiddenError`/403 for both cases
+indistinguishably. An unauthenticated caller (no token, expired, malformed, or tampered — all four
+collapse to `CurrentUser.is_authenticated is False`, per `T52`'s `JwtAuthenticationProvider`) should
+receive `UnauthorizedError`/401, not `ForbiddenError`/403. This became `T57`'s real, corrected
+objective.
+
+**Authorization / Scope (recorded before implementation, commit `65dd563`, 2026-08-13 15:13:48 —
+implementation commit `7c9fc3a` followed at 15:48:36 the same day, confirmed by direct
+commit-timestamp comparison, not assumed):** the project owner approved Option 1 — `RequirePermission`'s
+inner function checks `user.is_authenticated` **before** calling
+`authorization_service.require_permission()`, raising `UnauthorizedError` directly if not
+authenticated; otherwise delegates to `AuthorizationService` exactly as before. Acceptance criteria
+recorded in that same commit: (1) unauthenticated → `UnauthorizedError`/401; (2) authenticated-but-
+unpermitted → `ForbiddenError`/403, unchanged; (3) "valid token → `CurrentUser`" already proven by
+`T55`'s integration tests — regression coverage only under `T57`; (4) "authenticated-but-unpermitted
+→ 403" already covered by `T54`/`T55` — regression coverage only; (5) true `TestClient`-level HTTP
+verification against a real protected route is **explicitly deferred to `T58`+** — no route exists
+yet to test against. **Explicitly not authorized:** `AuthorizationService`'s port contract,
+`RbacAuthorizationService`, `PermissiveAuthorizationService` — none modified; every `T52`–`T56` file
+otherwise untouched; no route created; `T58`+ out of scope. **This is the second consecutive Stage 3
+Phase 2 batch (after `T56`) where authorization was actually recorded before implementation began** —
+the pattern `T52`–`T55` each failed at is now two-for-two broken, not a one-off.
+
+## Tasks Implemented — T57 batch
+
+- **T57 — distinguish unauthorized from forbidden in `RequirePermission`.** `presentation/api/deps.py`'s
+  `_require_permission` now raises `UnauthorizedError` directly when `user.is_authenticated` is
+  `False`, before `AuthorizationService` is even consulted — closing the 401/403 gap Option 1
+  authorized. An authenticated caller lacking the permission is unaffected: `AuthorizationService`
+  still raises `ForbiddenError`/403 exactly as `T53`/`T54` established.
+
+## Files Modified — T57 batch
+
+- `backend/src/app/presentation/api/deps.py` — modified: `_require_permission` gains an
+  `is_authenticated` short-circuit raising `UnauthorizedError`; new `UnauthorizedError` import.
+- `backend/tests/unit/test_auth.py` — modified: 3 new tests in `TestRequirePermission`, one existing
+  test updated (`test_denies_anonymous_via_a_real_authorization_service` now expects
+  `UnauthorizedError`, not `ForbiddenError`); new `RbacAuthorizationService` import.
+- `IMPLEMENTATION_QUEUE.md` — the `T57` row corrected (authorization commit `65dd563`, before this
+  closeout).
+- `docs/ImplementationLog/Stage3/Phase2.md` — this file.
+
+No new dependency; no route, no other `T52`–`T56` file touched.
+
+## Tests Added — T57 batch
+
+3 in `backend/tests/unit/test_auth.py`'s `TestRequirePermission`, plus 1 existing test updated:
+
+- `test_raises_unauthorized_for_an_anonymous_user` — an anonymous `CurrentUser()` raises
+  `UnauthorizedError`, not `ForbiddenError`, regardless of *why* it's anonymous.
+- `test_does_not_call_the_authorization_service_for_an_anonymous_user` — the short-circuit happens in
+  `RequirePermission` itself; `AuthorizationService.require_permission()` is never invoked for an
+  anonymous caller (asserted via the existing recording fake's `.calls == []`).
+- `test_still_raises_forbidden_for_an_authenticated_unpermitted_user_via_a_real_service` — regression
+  coverage (already proven by `T54`/`T55`, per the authorization commit): an authenticated caller
+  lacking the permission still gets `ForbiddenError`/403, against a real `RbacAuthorizationService`,
+  unchanged by `T57`.
+- `test_denies_anonymous_via_a_real_authorization_service` (existing, updated) — now asserts
+  `UnauthorizedError` instead of the old `ForbiddenError, match="Authentication is required"`.
+
+## Test Results — T57 batch
+
+- New/updated tests: part of the full suite run below, not isolated separately in this pass.
+- Full backend suite: `uv run pytest -q` (Postgres reachable) — **386 passed** (383 prior + 3 new),
+  0 failed, 0 skipped. Independently re-run by the Documentation Manager role during this closeout.
+  PR #20's own description additionally cites `tests/unit/test_auth.py`: 24/24 and integration tests:
+  127/127 against live Postgres — consistent with, not contradicted by, this total.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (192 files unchanged), re-verified
+  directly.
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly.
+- **Scope check:** `git show --stat 7c9fc3a` confirms exactly two files changed
+  (`presentation/api/deps.py`, `tests/unit/test_auth.py`) — no route, no other `T52`–`T56` file.
+
+## Design Decisions — T57 batch
+
+- **The `is_authenticated` check lives inside `RequirePermission`'s own inner function (Option 1),
+  not inside `AuthorizationService`.** Keeps the `AuthorizationService` port contract, and every one
+  of its implementations (`RbacAuthorizationService`, `PermissiveAuthorizationService`), completely
+  unchanged — `RequirePermission` is the one place that already knows both "is this caller
+  authenticated at all" and "does authentication even matter for this specific check," so it's the
+  natural owner of the distinction, not a reason to touch the port.
+- **Order matters: the `is_authenticated` check runs strictly before
+  `authorization_service.require_permission()` is called at all**, not merely before its result is
+  used — verified explicitly by
+  `test_does_not_call_the_authorization_service_for_an_anonymous_user`'s `.calls == []` assertion, so
+  an anonymous caller can never trigger a real authorization lookup it has no chance of passing.
+
+## Problems Encountered — T57 batch
+
+**None on the technical side.** First-run tests, no lint/format fixes, no mid-implementation design
+question deferred.
+
+**Governance side — continuing, not restarting, the streak `T56` began:** authorization commit
+`65dd563` (2026-08-13 15:13:48) precedes implementation commit `7c9fc3a` (15:48:36) the same day,
+confirmed by direct commit inspection, not assumed. This is the **second** consecutive Stage 3 Phase
+2 batch to get this right, after `T52`–`T55`'s four consecutive misses. Those four findings remain on
+record in their own sections above, unerased — two clean batches don't retroactively fix them, but
+they do show the discipline holding, not a one-off.
+
+## Deferred Work — T57 batch
+
+- **`T58`+** (Phase 3 routes) — not started, per `T57`'s own scope. `T58` is also where the
+  authorization commit's deferred item — true `TestClient`-level HTTP-status verification against a
+  real protected route — becomes possible for the first time; see Future Considerations.
+- **A feature branch, commit, and PR for `T57`'s changes** — already resolved by the time this
+  section is written: `feature/stage3-t57-401-403` → `65dd563`/`7c9fc3a` → PR #20 → merged `472f7cb`.
+  Recorded here for consistency with every prior batch's Deferred Work section, not because it was
+  ever actually open.
+
+## Future Considerations — T57 batch
+
+- **The deferred `TestClient`-level HTTP-status verification, carried forward from `T56`'s own QA
+  comment and `T57`'s own authorization commit, now doubly on record:** once a real protected route
+  exists (`T58`+), add an end-to-end test that sends a real HTTP request with a missing/invalid
+  bearer token and asserts an actual `401` response, and a separate request with a valid-but-
+  unpermitted token asserting an actual `403` — exercising the full FastAPI request pipeline, not just
+  `RequirePermission`'s inner function called directly (which is everything `T54`/`T56`/`T57`'s own
+  tests can prove in isolation). Not a defect in `T57` — no route exists yet for such a test to run
+  against.
+- `T58`'s login route is the first real, end-to-end exercise of the entire chain this phase built:
+  `get_bearer_token()` (`T56`) → `JwtAuthenticationProvider`/`get_authentication_provider()` (`T52`/
+  `T55`) → `RequirePermission` with its now-correct 401/403 split (`T57`) → `RbacAuthorizationService`/
+  `get_authorization_service()` (`T53`/`T55`).
+
+## Reviewer Checklist — T57 batch
+
+Self-assessed by the Documentation Manager role against the repository's actual current state, since
+no separate Backend Developer self-assessment exists in the repository for this batch (the same
+situation `T52`'s, `T55`'s, and `T56`'s own Reviewer Checklists note).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+☑ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **ADR updated (if required):** `□` — correctly not required per the authorization commit's own
+  determination: a single-file, non-port-breaking addition.
+- **No scope creep:** `☑` — the code stayed exactly within `T57`'s corrected scope (verified above),
+  and — for the second consecutive batch — so did the authorization-recording process.
+- **Ready for QA:** `☑` — this log states every fact a reviewer would need: the corrected objective,
+  the authorized architecture, test evidence, and the authorization-provenance record, all in one
+  place.
+
+## QA Decision — T57 batch
+
+```
+QA Decision (T57 batch)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role (reported for this closeout, transcribed into the repository, not
+invented here — this Documentation Manager pass renders no new technical QA decision). **Technical
+review: no defects found.** `T57`'s implementation is correct — 386/386 full suite (PR #20 also cites
+127/127 integration tests against live Postgres), `ruff`/`black` clean, boot succeeds, no
+`T52`–`T56`/route scope creep. Authorization provenance independently confirmed: `65dd563` (PR #20)
+precedes implementation commit `7c9fc3a` (same PR) by commit timestamp.
+
+**Comment (why "with comments," not a plain `Approved`) — preserved here as a non-blocking,
+forward-looking observation, not a defect:** true end-to-end `TestClient`-level HTTP verification
+(a real request, a real bearer token, an actual `401`/`403` response) remains deferred to `T58`+,
+since no protected route exists yet for such a test to exercise. This was already named explicitly in
+`65dd563`'s own authorization text and repeated in PR #20's description — QA is confirming it as the
+correct call, not introducing a new finding. See Future Considerations above, where this is carried
+forward for whoever picks up `T58`.
+
+`T58`+ was not started, authorized, or touched by this review. `T57` is now marked `Done` — code, QA
+decision, and documentation are all reconciled. **With `T57` closed, Stage 3 Phase 2 (`T52`–`T57`,
+wiring auth into the request pipeline) is complete in full** — see this file's own metadata block
+(`Status: Done`). Phase 3 (`T58`+, routes) has not been started or authorized.
 
 ## Reviewer Checklist — T52 batch
 

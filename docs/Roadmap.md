@@ -180,8 +180,21 @@ implementation commit `fcc68e0` (PR #18, merged `d69c4eb`), confirmed by timesta
 the pattern `T52`/`T53`/`T54`/`T55` each demonstrated. 3 new tests, full suite 383/383 passing,
 ruff/black clean, boot smoke test passed, Postgres-backed verification completed. **QA Decision:
 Approved with comments** — no technical defects; a non-blocking comment recommends an end-to-end
-`TestClient`-level bearer-token test once a real protected route exists (`T58`+). `T57` remains not
-started, not authorized.
+`TestClient`-level bearer-token test once a real protected route exists (`T58`+).
+
+**`T57` (distinguish unauthorized from forbidden) is Done — Stage 3 Phase 2 (`T52`–`T57`) is now
+complete in full.** `RequirePermission`'s `_require_permission` now raises `UnauthorizedError`/401
+directly for an unauthenticated caller, before `AuthorizationService` is consulted at all — closing
+the gap where anonymous and authenticated-but-unpermitted callers both surfaced as `ForbiddenError`/
+403. `AuthorizationService`'s port, `RbacAuthorizationService`, and `PermissiveAuthorizationService`
+were not modified. Authorization commit `65dd563` predates implementation commit `7c9fc3a` (PR #20,
+merged `472f7cb`), confirmed by timestamp order — the second consecutive batch to get this right. 3
+new tests + 1 updated, full suite 386/386 passing, ruff/black clean, boot smoke test passed, 127/127
+integration tests against live Postgres. **QA Decision: Approved with comments** — no technical
+defects; the comment preserves, as a non-blocking historical observation, the deferral of true
+`TestClient`-level HTTP verification to `T58`+ (no protected route exists yet — already flagged in
+the authorization commit itself, not a new finding). `T58`+ (Phase 3, routes) remains not started,
+not authorized.
 
 | Feature | Status |
 |---|---|
