@@ -212,8 +212,25 @@ pattern `T52`/`T53`/`T54`/`T55` each demonstrated. 3 new tests, full suite 383/3
 `ruff`/`black` clean, boot smoke test passed, Postgres-backed verification completed. **QA Decision:
 Approved with comments** — no technical defects; the comment is a non-blocking future observation
 about an end-to-end `TestClient`-level bearer-token test once a real protected route exists
-(`T58`+), not a gap in `T56` itself. `T57` remains not started, not authorized. Backend test count
-is 383, still 9 frontend.
+(`T58`+), not a gap in `T56` itself.
+
+**`T57` closeout (2026-08-13): Done — the second consecutive batch to get the authorization-recording
+discipline right, and Stage 3 Phase 2 (`T52`–`T57`) is now complete in full.** `T57`'s original
+"Tests: ..." wording (including a `configure_container()` criterion `T55` had already made obsolete)
+was corrected before implementation: the real objective is closing the 401/403 gap —
+`RequirePermission` previously surfaced an anonymous caller and an authenticated-but-unpermitted
+caller identically as `ForbiddenError`/403. `_require_permission` now checks `user.is_authenticated`
+**before** calling `AuthorizationService`, raising `UnauthorizedError`/401 directly if not
+authenticated (Option 1 — `AuthorizationService`'s port, `RbacAuthorizationService`, and
+`PermissiveAuthorizationService` were **not** modified). Authorization was recorded as its own commit
+(`65dd563`) **before** the implementation commit (`7c9fc3a`, PR #20, merged `472f7cb`) — confirmed
+directly by commit timestamp order, extending `T56`'s streak. 3 new tests + 1 updated, full suite
+386/386 passing, `ruff`/`black` clean, boot smoke test passed, 127/127 integration tests against live
+Postgres per PR #20. **QA Decision: Approved with comments** — no technical defects; the comment
+preserves, as a non-blocking historical/forward-looking observation (not a new finding — already
+named in `65dd563`'s own authorization text), the deferral of true `TestClient`-level HTTP
+verification to `T58`+, since no protected route exists yet. `T58`+ (Phase 3, routes) remains not
+started, not authorized. Backend test count is 386, still 9 frontend.
 
 ## Pending Work
 
@@ -437,13 +454,29 @@ gained `get_bearer_token()` (FastAPI `HTTPBearer(auto_error=False)`), 3 new test
 383/383 passing, `ruff`/`black` clean, boot succeeds, Postgres-backed verification completed — merged
 `fcc68e0` → PR #18 → `d69c4eb`. **QA Decision: Approved with comments** — no technical defects; a
 non-blocking comment recommends an end-to-end `TestClient`-level bearer-token test once a real
-protected route exists (`T58`+). `T57` is now the next unfinished task, not yet started, not
+protected route exists (`T58`+).
+
+**`T57` followed, and the authorization-recording discipline held a second consecutive time.**
+`T57`'s original test-only wording (including a `configure_container()` criterion `T55` had already
+made obsolete) was corrected before implementation: the real objective was closing the 401/403 gap —
+`RequirePermission` previously returned `ForbiddenError`/403 for both an anonymous caller and an
+authenticated-but-unpermitted one, indistinguishably. The authorized fix (Option 1, recorded in
+`65dd563` **before** implementation commit `7c9fc3a`, confirmed by timestamp order) has
+`_require_permission` check `user.is_authenticated` first, raising `UnauthorizedError`/401 directly
+if not authenticated — `AuthorizationService`'s port, `RbacAuthorizationService`, and
+`PermissiveAuthorizationService` were **not** touched. `T57` is now **Done**: 3 new tests + 1
+updated, full suite 386/386 passing, `ruff`/`black` clean, boot succeeds, 127/127 integration tests
+against live Postgres — merged `7c9fc3a` → PR #20 → `472f7cb`. **QA Decision: Approved with
+comments** — no technical defects; the comment preserves, as a non-blocking historical observation,
+the already-flagged deferral of true `TestClient`-level HTTP verification to `T58`+ (no protected
+route exists yet). **With `T57` closed, Stage 3 Phase 2 (`T52`–`T57`) is complete in full.** `T58`+
+(Phase 3, routes) is now the next unfinished work, not yet started, not
 authorized. See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
 full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
-`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56` broke that streak, but a single
-success doesn't retire the lesson; `T57`+ should hold the same standard `T56` just set. Outside of
+`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56` and `T57` both held it, two
+consecutive successes now; `T58`+ should keep holding the same standard. Outside of
 Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.

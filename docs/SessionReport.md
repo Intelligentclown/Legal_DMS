@@ -1693,3 +1693,53 @@ missing/expired/malformed/tampered token → 401; authenticated-but-unpermitted 
 `configure_container()` resolves the real implementations) is the next unfinished task — depends on
 `T55`+`T56` (both done). Not authorized this session. Standing item:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-13 — T57 final closeout (Stage 3 Phase 2 complete)
+
+**Objectives:** As Documentation Manager, close out `T57` once its QA gate cleared. Independently
+verify, before touching anything, that `T57`'s original "Tests: ..." wording had already been
+corrected by a pre-implementation architecture-clarification commit, that authorization was recorded
+before implementation (continuing `T56`'s newly-established discipline), and that the reported test
+counts/QA decision matched the live repository — not transcribe any of it on faith. No implementation
+code was touched, `T58`+ was not started, and the QA Decision (`Approved with comments`) was recorded
+exactly as reported, preserving its non-blocking comment about deferred `TestClient`-level HTTP
+verification rather than silently dropping it.
+
+**What happened:** `git log --oneline --decorate -10`/`git show --stat` confirmed the full commit
+sequence: `65dd563` ("docs(project): T57 architecture clarification and authorization" — governance
+only, `IMPLEMENTATION_QUEUE.md` alone, no code) at 15:13:48, then `7c9fc3a` ("feat(auth): distinguish
+unauthorized and forbidden requests" — `presentation/api/deps.py` + `tests/unit/test_auth.py` only)
+at 15:48:36 the same day, both on `feature/stage3-t57-401-403`, merged as `472f7cb` (PR #20).
+`gh pr view 20` independently confirmed `MERGED` and cross-checked its own description (386/386
+backend, 24/24 `test_auth.py`, 127/127 integration tests, ruff/black/boot clean, "QA independently
+approved with comments," "End-to-end `TestClient` verification remains deferred to T58+") against
+directly re-run results — `uv run pytest -q` (386/386), `ruff check`/`black --check` (clean), the
+boot smoke test, all matching. Read `65dd563`'s full commit message (the actual authorization/
+acceptance-criteria record, not a summary of it) and `7c9fc3a`'s actual diff to document the
+`is_authenticated` short-circuit accurately, including that it deliberately corrected `T57`'s
+originally-stale `configure_container()` criterion (obsoleted by `T55`) rather than trying to satisfy
+it. Wrote the full `T57` pre-implementation-clarification note plus batch (Objective through QA
+Decision) into `docs/ImplementationLog/Stage3/Phase2.md`, filling in the "T57 pre-implementation
+section" `IMPLEMENTATION_QUEUE.md`'s own row had referenced but that didn't yet exist. Set the phase
+log's own metadata to `Status: Done`, `Completed: 2026-08-13` — `T57` is Phase 2's last task
+(`T58`+ is Phase 3, routes), so this closeout completes Phase 2 in full, not just one more batch.
+Corrected `IMPLEMENTATION_QUEUE.md` (`T57`'s row and the Stage 3 narrative's trailing summary),
+`PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/`tests.backend`/`git` updated, a new
+`backendSubsystems` entry added), `docs/AI_HANDOVER.md` (two sections), and `docs/Roadmap.md` — all
+now state `T57` is `Done`, Phase 2 is complete, and `T58`+ is next, unauthorized.
+`PROJECT_CHECKPOINT.md` rewritten in place per its own maintenance rule.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase2.md`, `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file),
+`PROJECT_CHECKPOINT.md`.
+
+**Confirmed:** no `T57` (or any) implementation/test file was modified; `T58`+ was not started or
+authorized; the QA Decision (`Approved with comments`) was recorded exactly as reported, its
+non-blocking comment about deferred `TestClient`-level verification preserved verbatim rather than
+dropped; no branch, commit, or push was performed by this session.
+
+**Next Session Goals:** `T58` (`POST /api/v1/auth/login`) is the next unfinished task — the first
+Phase 3 (routes) task, depending on `T57` (done). Not authorized this session. This is also the
+first point at which the deferred `TestClient`-level HTTP verification (`T56`'s and `T57`'s shared
+QA comment) becomes possible to actually build. Standing item:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
