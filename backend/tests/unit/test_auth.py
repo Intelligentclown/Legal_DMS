@@ -12,7 +12,7 @@ import pytest
 from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import ValidationError
 
-from app.application.errors.exceptions import ForbiddenError
+from app.application.errors.exceptions import ForbiddenError, UnauthorizedError
 from app.application.interfaces import auth as auth_port_module
 from app.application.interfaces.auth import (
     AuthenticationProvider,
@@ -21,6 +21,7 @@ from app.application.interfaces.auth import (
 )
 from app.infrastructure.auth.anonymous_auth_provider import AnonymousAuthenticationProvider
 from app.infrastructure.auth.permissive_authorization_service import PermissiveAuthorizationService
+from app.infrastructure.auth.rbac_authorization_service import RbacAuthorizationService
 from app.infrastructure.config.settings import Settings
 from app.infrastructure.di.container import configure_container, container
 from app.presentation.api.deps import RequirePermission, get_bearer_token, get_current_user
@@ -173,6 +174,12 @@ class TestRequirePermission:
     `TestGetCurrentUserDependency`'s pattern above), bypassing FastAPI's own
     `Depends()` wiring, since that wiring itself is FastAPI's job to prove
     correct, not this project's.
+
+    T57 adds the `is_authenticated` short-circuit: an anonymous caller now
+    gets `UnauthorizedError`/401 straight from `RequirePermission`, before
+    `AuthorizationService` is even consulted -- closing the previous gap
+    where an anonymous caller and an authenticated-but-unpermitted caller
+    were indistinguishable (`ForbiddenError`/403 either way).
     """
 
     async def test_allows_when_the_authorization_service_permits(self) -> None:
@@ -197,10 +204,34 @@ class TestRequirePermission:
 
         assert service.calls == [(user, "clients:write")]
 
+    async def test_raises_unauthorized_for_an_anonymous_user(self) -> None:
+        """T57: `CurrentUser()` (anonymous) must raise `UnauthorizedError`
+        (401), not `ForbiddenError` (403) -- regardless of whether the
+        anonymity came from no token, an expired token, a malformed token,
+        or a tampered token, since all four resolve to the same
+        `is_authenticated=False` (`JwtAuthenticationProvider`, T52)."""
+        check = RequirePermission("matters:read")
+        service = _RecordingAuthorizationService(allow=True)
+
+        with pytest.raises(UnauthorizedError):
+            await check(CurrentUser(), service)
+
+    async def test_does_not_call_the_authorization_service_for_an_anonymous_user(self) -> None:
+        """The short-circuit happens in `RequirePermission` itself (Option
+        1) -- `AuthorizationService.require_permission()` must never even
+        be invoked for an anonymous caller."""
+        check = RequirePermission("matters:read")
+        service = _RecordingAuthorizationService(allow=True)
+
+        with pytest.raises(UnauthorizedError):
+            await check(CurrentUser(), service)
+
+        assert service.calls == []
+
     async def test_denies_anonymous_via_a_real_authorization_service(self) -> None:
         check = RequirePermission("matters:read")
 
-        with pytest.raises(ForbiddenError, match="Authentication is required"):
+        with pytest.raises(UnauthorizedError):
             await check(CurrentUser(), PermissiveAuthorizationService())
 
     async def test_allows_authenticated_via_a_real_authorization_service(self) -> None:
@@ -208,6 +239,18 @@ class TestRequirePermission:
         user = CurrentUser(id="u1", is_authenticated=True)
 
         await check(user, PermissiveAuthorizationService())  # does not raise
+
+    async def test_still_raises_forbidden_for_an_authenticated_unpermitted_user_via_a_real_service(
+        self,
+    ) -> None:
+        """Regression coverage (already proven by T54/T55, per the T57
+        authorization commit): an authenticated caller lacking the
+        permission still gets `ForbiddenError`/403, unchanged by T57."""
+        check = RequirePermission("matters:read")
+        user = CurrentUser(id="u1", is_authenticated=True, roles=frozenset({"no-permissions-role"}))
+
+        with pytest.raises(ForbiddenError):
+            await check(user, RbacAuthorizationService({}))
 
 
 class TestConfigureContainer:

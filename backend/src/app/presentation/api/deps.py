@@ -32,6 +32,7 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.errors.exceptions import UnauthorizedError
 from app.application.interfaces.auth import (
     AuthenticationProvider,
     AuthorizationService,
@@ -104,16 +105,25 @@ def RequirePermission(permission: str) -> Callable[..., Awaitable[None]]:
     """Dependency factory (T54, closes Stage 2.5's F11): use as
     `Depends(RequirePermission("matters:read"))`, either as a route
     parameter or in a router's `dependencies=[...]` list. Raises
-    `ForbiddenError` (via `AuthorizationService.require_permission()`) if
-    the resolved `CurrentUser` may not perform `permission` — the existing
-    error handler turns that into the standard 403 response shape, no
-    route needs to catch it itself.
+    `UnauthorizedError` (401) if the resolved `CurrentUser` isn't
+    authenticated at all (T57 -- closes the 401/403 gap: no token,
+    expired/malformed/tampered token all resolve to the same
+    `is_authenticated=False`, and previously fell through to
+    `AuthorizationService`'s anonymous-caller branch, which raises
+    `ForbiddenError`/403 indistinguishably from an authenticated-but-
+    unpermitted caller). Otherwise delegates to
+    `AuthorizationService.require_permission()` exactly as before, which
+    still raises `ForbiddenError` (403) if `permission` isn't granted — the
+    existing error handler turns either into the standard error response
+    shape, no route needs to catch it itself.
     """
 
     async def _require_permission(
         user: CurrentUserDep,
         authorization_service: Annotated[AuthorizationService, Depends(get_authorization_service)],
     ) -> None:
+        if not user.is_authenticated:
+            raise UnauthorizedError("Authentication is required")
         authorization_service.require_permission(user, permission)
 
     return _require_permission
