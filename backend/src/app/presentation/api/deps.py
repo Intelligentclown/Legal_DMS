@@ -32,6 +32,7 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.auth_service import AuthService
 from app.application.errors.exceptions import UnauthorizedError
 from app.application.interfaces.auth import (
     AuthenticationProvider,
@@ -43,6 +44,9 @@ from app.infrastructure.auth.rbac_authorization_service import RbacAuthorization
 from app.infrastructure.config import Settings
 from app.infrastructure.database.session import get_db
 from app.infrastructure.di.container import container
+from app.infrastructure.persistence.sqlalchemy_refresh_token_repository import (
+    SqlAlchemyRefreshTokenRepository,
+)
 from app.infrastructure.persistence.sqlalchemy_role_permission_repository import (
     SqlAlchemyRolePermissionRepository,
 )
@@ -76,6 +80,20 @@ async def get_authorization_service(session: DBSessionDep) -> AuthorizationServi
         await role_permission_repository.get_permission_codes_by_role_name()
     )
     return RbacAuthorizationService(permission_codes_by_role_name)
+
+
+async def get_auth_service(session: DBSessionDep, settings: SettingsDep) -> AuthService:
+    """Built fresh per request (T58, mirrors `get_authentication_provider()`/
+    `get_authorization_service()`, T55) — `AuthService`'s two repositories
+    both need *this* request's session, not a cached/shared one."""
+    return AuthService(
+        SqlAlchemyUserRepository(session),
+        SqlAlchemyRefreshTokenRepository(session),
+        settings,
+    )
+
+
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 
 
 _bearer_scheme = HTTPBearer(auto_error=False)
