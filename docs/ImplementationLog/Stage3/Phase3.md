@@ -8,13 +8,13 @@ Started: 2026-08-15
 
 Completed:
 
-Related Tasks: T58
+Related Tasks: T58, T59
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40).
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d).
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13).
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15).
 
 Release:
 
@@ -238,3 +238,189 @@ independently confirmed: `58c8e40` (2026-08-13) precedes implementation commit `
 decision, and documentation are all reconciled. **`T58` is Stage 3 Phase 3's first task and the first
 route in this project** — see this file's own metadata block (`Status: In Progress` — Phase 3 as a
 whole continues with `T59`–`T65`, not yet started or authorized).
+
+## Objective — T59 batch
+
+Continue Stage 3 Phase 3 (routes) with `T59`: `POST /api/v1/auth/refresh` — refresh token in, rotated
+access + refresh tokens out, or a structured 401. Reuses `T58`'s established route/schema/DI-wiring
+conventions directly rather than inventing new ones.
+
+**Authorization / Scope (recorded before implementation, commit `163085d`, 2026-08-15 11:06:35 IST —
+implementation commit `56eb7c2` followed at 11:17:32 IST the same day, ~11 minutes later, confirmed by
+commit order, not assumed):** the project owner explicitly authorized `T59`. Approved scope: the
+refresh route itself, its request/response schemas, reuse of the existing per-request `AuthServiceDep`
+(`T58`) — no new wiring — and tests covering successful refresh/rotation and invalid, expired,
+revoked, or unknown refresh tokens. `T60`–`T67` remain explicitly out of scope and unauthorized. **This
+is the fourth consecutive Stage 3 batch (after `T56`, `T57`, `T58`) where authorization was actually
+recorded before implementation began.**
+
+## Tasks Implemented — T59 batch
+
+- **T59 — `POST /api/v1/auth/refresh`.** `presentation/api/v1/auth.py` extended (not `deps.py` or
+  `router.py` — `T58`'s `AuthServiceDep` and router mount are reused unchanged): `RefreshRequest`
+  (`refresh_token`) and `RefreshResponse` (`access_token`/`refresh_token`/`token_type`), co-located
+  and bare, matching `login`'s convention exactly. `refresh()` calls `AuthService.refresh()`
+  (`T50`/`T51`, unmodified), which already collapses an invalid, expired, revoked, or unknown token
+  into one identical `UnauthorizedError` — the route raises `result.error` directly on failure, the
+  same pattern `login` established, no route-level `try`/`except`.
+
+## Files Modified — T59 batch
+
+- `backend/src/app/presentation/api/v1/auth.py` — modified: `RefreshRequest`/`RefreshResponse`,
+  `refresh()` appended after `login()`; module docstring updated to describe both routes.
+- `backend/tests/integration/test_auth_refresh.py` — **new**: `TestRefresh` class, 7 tests (see
+  below), reusing `test_auth_login.py`'s `client` fixture/`_make_user()` helper pattern verbatim plus
+  a local `_login()` helper.
+- `IMPLEMENTATION_QUEUE.md` — the `T59` row corrected (authorization commit `163085d`, before this
+  closeout).
+- `docs/ImplementationLog/Stage3/Phase3.md` — this file (T59 batch appended).
+
+No new dependency; no other route; `deps.py`, `router.py`, `AuthService`, repository implementations,
+JWT/security code, `main.py`, `container.py`, and every `T52`–`T58` file otherwise untouched.
+
+## Tests Added — T59 batch
+
+7 in `backend/tests/integration/test_auth_refresh.py`'s `TestRefresh`, against a real mounted `app`
+and real Postgres via `httpx.AsyncClient`/`ASGITransport` (reusing `T58`'s `get_db`-override pattern):
+
+- `test_valid_refresh_token_returns_a_new_token_pair` — a real login's refresh token exchanged for a
+  new, *different* access/refresh pair.
+- `test_rotated_token_cannot_be_reused` — the token consumed by one successful refresh fails a second
+  attempt with it.
+- `test_invalid_token_returns_401` — a syntactically bogus string.
+- `test_expired_token_returns_401` — a syntactically valid, correctly-signed token whose *stored row*
+  has already expired (defense in depth, independent of the JWT's own `exp` claim) — mirrors
+  `test_auth_service.py`'s `test_jwt_valid_but_db_row_expired_fails`.
+- `test_revoked_token_returns_401` — a token already consumed by a prior refresh (rotation revokes it).
+- `test_unknown_token_returns_401` — a syntactically valid, correctly-signed token that was never
+  actually issued (no matching stored row).
+- `test_malformed_request_body_returns_422` — an empty body.
+
+## Test Results — T59 batch
+
+- New tests in isolation: `tests/integration/test_auth_refresh.py` — **7/7 passed**, per PR #24's own
+  test plan.
+- Full backend suite: **398 passed** (391 prior + 7 new), 0 failed, 0 skipped. **Personally re-run
+  this session** — `uv run pytest -q` against live Postgres (`docker ps` confirmed `legal_dms_postgres`
+  healthy this session, unlike `T58`'s closeout where it was unreachable) — matching PR #24's own
+  reported count exactly, not merely transcribed from it.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (195 files unchanged), re-verified
+  directly.
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly;
+  `app.openapi()["paths"]` independently confirmed to contain exactly `/api/v1/auth/login`,
+  `/api/v1/auth/refresh`, `/api/v1/health`, `/api/v1/version` — no `T60`+ route present.
+- **Scope check:** `git show --stat 56eb7c2` confirms exactly two files changed
+  (`presentation/api/v1/auth.py`, `tests/integration/test_auth_refresh.py` (new)) — no `deps.py`,
+  `router.py`, or other `T52`–`T58` file touched.
+
+## Design Decisions — T59 batch
+
+- **No new DI wiring.** `T58`'s `AuthServiceDep` already builds a request-scoped `AuthService` with
+  both repositories `refresh()` needs (`SqlAlchemyUserRepository`, `SqlAlchemyRefreshTokenRepository`)
+  — `refresh()` is just a second consumer of the same dependency, not a reason to add a second one.
+- **Single generic failure message reused, not re-derived.** `AuthService.refresh()` already collapses
+  invalid/expired/revoked/unknown tokens into one `UnauthorizedError` (same no-enumeration reasoning
+  as `login`'s identical wrong-password/unknown-email message) — the route doesn't attempt to
+  distinguish those cases in its response, and structurally can't without reopening that design.
+- **Test file reuses `T58`'s `client` fixture pattern verbatim** rather than factoring out a shared
+  fixture module — no such shared test-fixture convention exists elsewhere in this codebase to extend
+  instead, and the duplication is small (a fixture plus a user-creation helper).
+
+## Problems Encountered — T59 batch
+
+**None on the technical side.** First-run tests, no lint/format fixes, no mid-implementation design
+question deferred — a smaller, lower-risk batch than `T58`, reusing rather than inventing.
+
+**Governance side — continuing, not restarting, the streak `T56`/`T57`/`T58` began:** authorization
+commit `163085d` (11:06:35 IST) precedes implementation commit `56eb7c2` (11:17:32 IST) the same day,
+confirmed by commit order and timestamp, not assumed. This is the **fourth** consecutive Stage 3 batch
+to get this right, after `T52`–`T55`'s four consecutive misses. Those four findings remain on record
+in `Phase2.md`, unerased.
+
+**Documentation-verification side — one gap worth naming plainly:** PR #24's own body states `QA
+independently reviewed: Approved with comments, no technical defects` but, unlike `T58`'s PR #22
+(which itemized two specific non-blocking comments), does not itemize what the comment(s) actually
+are anywhere in the repository — checked the PR body, both commit messages, and `gh api
+.../pulls/24/reviews` (empty). This closeout records the QA Decision and the phrase "no technical
+defects" exactly as given, and does not invent comment text to fill the gap.
+
+## Deferred Work — T59 batch
+
+- **`T60`–`T67`** — not started, per `T59`'s own scope: `T60` (logout), `T61` (`/me`), `T62`/`T63`
+  (user management, role assignment), `T64` (cross-route integration tests), `T65` (audit-log wiring).
+- **A feature branch, commit, and PR for `T59`'s changes** — already resolved by the time this section
+  is written: `feature/stage3-t59-refresh-token` → `56eb7c2` → PR #24 → merged `721cec5`. Recorded
+  here for consistency with every prior batch's Deferred Work section, not because it was ever
+  actually open.
+
+## Future Considerations — T59 batch
+
+- **The QA-comment-text gap named above** — if a future session or the project owner can supply the
+  actual non-blocking comment text QA rendered for `T59` (beyond "no technical defects"), it should be
+  added here as a correction, not silently assumed to match `T58`'s comments just because the same
+  Starlette deprecation warning was independently observed firing in this session's own test run for
+  `test_malformed_request_body_returns_422` (both `login`'s and `refresh`'s copies) — that observation
+  is this session's own, not a transcription of a QA finding.
+- `T60` (logout) is the next natural consumer of the refresh-token infrastructure this batch didn't
+  touch — `AuthService.revoke()` (`T50`/`T51`) already exists and is unused by any route yet.
+
+## Reviewer Checklist — T59 batch
+
+Self-assessed by the Documentation Manager role against the repository's actual current state, since
+no separate Backend Developer self-assessment exists in the repository for this batch (the same
+situation every prior Phase 2/3 batch's own Reviewer Checklist notes).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+☑ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **ADR updated (if required):** `□` — not required: a second route reusing already-approved (`T50`/
+  `T51`/`T58`) infrastructure, no new architectural decision.
+- **No scope creep:** `☑` — the code stayed exactly within `T59`'s authorized scope (verified above:
+  two files, no `deps.py`/`router.py`/other-route touch), and — for the fourth consecutive batch — so
+  did the authorization-recording process.
+- **Ready for QA:** `☑` — this log states every fact a reviewer would need: the authorized scope, the
+  implementation, test evidence, and the authorization-provenance record, all in one place.
+
+## QA Decision — T59 batch
+
+```
+QA Decision (T59 batch)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role (reported for this closeout, transcribed into the repository, not
+invented here — this Documentation Manager pass renders no new technical QA decision). **Technical
+review: no defects found**, per PR #24's own report. `T59`'s implementation is correct — 398/398 full
+suite (391 prior + 7 new, personally re-run against live Postgres this session), `ruff`/`black` clean,
+boot smoke test passed (`/api/v1/auth/refresh` confirmed in `app.openapi()["paths"]`), no
+`T52`–`T58`/other-route scope creep (`git show --stat 56eb7c2` independently confirms the file list).
+Authorization provenance independently confirmed: `163085d` (2026-08-15, 11:06:35 IST) precedes
+implementation commit `56eb7c2` (2026-08-15, 11:17:32 IST, PR #24) by commit order and timestamp.
+
+**Comment (why "with comments," not a plain `Approved`):** PR #24's body states "no technical defects"
+but, unlike `T58`'s PR, does not itemize the non-blocking comment text anywhere in the repository —
+preserved here exactly as given, not invented. Recorded transparently as a documentation-provenance
+gap rather than silently filled in.
+
+`T60`+ was not started, authorized, or touched by this review. `T59` is now marked `Done` — code, QA
+decision, and documentation are all reconciled. See this file's own metadata block (`Status: In
+Progress` — Phase 3 continues with `T60`–`T65`, not yet started or authorized).
