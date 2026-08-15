@@ -8,13 +8,13 @@ Started: 2026-08-15
 
 Completed:
 
-Related Tasks: T58, T59, T60
+Related Tasks: T58, T59, T60, T61
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf).
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — authorization commit `520026f` (merged as `cca1077`); implementation not yet committed, branched, or pushed as of this entry — per this batch's own instructions, the Backend Developer stops after implementation/tests/log for QA review, and does not commit/push/PR/merge.
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15).
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — not yet opened; authorization recorded beforehand, commit `520026f`, 2026-08-15.
 
 Release:
 
@@ -625,3 +625,256 @@ states: a plain `Approved`.
 `T61`+ was not started, authorized, or touched by this review. `T60` is now marked `Done` — code, QA
 decision, and documentation are all reconciled. See this file's own metadata block (`Status: In
 Progress` — Phase 3 continues with `T61`–`T65`, not yet started or authorized).
+
+## Objective — T61 batch
+
+Continue Stage 3 Phase 3 (routes) with `T61`: `GET /api/v1/auth/me` — return the current
+authenticated caller's own profile (`id`/`display_name`/`roles`), or a `401` if unauthenticated.
+Unlike `T58`–`T60`, this route needs `CurrentUserDep` (`T52`–`T57`), not `AuthServiceDep` — the first
+point where a `T56`/`T57`-style 401 (missing/invalid/expired/malformed bearer token, or an inactive/
+unknown user) becomes reachable via a real HTTP request rather than only `RequirePermission`'s
+unit-level coverage.
+
+**Authorization / Scope (recorded before implementation, commit `520026f`, 2026-08-15 — merged as
+`cca1077` via PR #29, confirmed by `git rev-parse HEAD origin/main` both resolving to `cca1077` before
+this batch's implementation began, not assumed):** the project owner explicitly authorized `T61`.
+Approved scope, recorded in full in `docs/HANDOFF/T61_HANDOFF.md`: the `/me` route itself, reusing the
+existing `CurrentUserDep` unchanged (no `RequirePermission`/permission code — any authenticated user
+may view their own profile), returning exactly `id`/`display_name`/`roles` taken from the resolved
+`CurrentUser` with no transformation, wrapped in `ApiResponse[MeResponse]` (a deliberate departure
+from `login`/`refresh`/`logout`'s bare-response convention, since `/me` fetches a resource and those
+three don't), plus tests. `T62`–`T67` remain explicitly out of scope and unauthorized. **This is the
+sixth consecutive Stage 3 batch (after `T56`–`T60`) where authorization was actually recorded before
+implementation began.**
+
+## Tasks Implemented — T61 batch
+
+- **T61 — `GET /api/v1/auth/me`.** `presentation/api/v1/auth.py` extended (not `deps.py`, `router.py`,
+  `AuthService`, `CurrentUser`, or `JwtAuthenticationProvider` — all reused exactly as they exist
+  today, per the handoff's explicit forbidden-files list): `MeResponse` (`id`/`display_name`/`roles`),
+  co-located, and a `me()` route handler taking `CurrentUserDep` directly. `CurrentUserDep` never
+  raises — an unauthenticated caller (no token, or a malformed/expired/tampered token, or an unknown/
+  inactive user) resolves to the anonymous `CurrentUser` default (`is_authenticated=False`, per `T52`)
+  — so `me()` raises `UnauthorizedError` itself when `is_authenticated` is `False`, the same check
+  `RequirePermission` (`T54`) already makes, rather than requiring a specific permission code. On
+  success, the response is `ApiResponse(data=MeResponse(...))`, with `roles` sorted for deterministic
+  output (`CurrentUser.roles` is an unordered `frozenset`).
+
+## Files Modified — T61 batch
+
+- `backend/src/app/presentation/api/v1/auth.py` — modified: `MeResponse`, `me()` appended after
+  `logout()`; module docstring updated to describe all four routes and the `ApiResponse` departure.
+- `backend/tests/integration/test_auth_me.py` — **new**: `TestMe` class, 7 tests (see below), reusing
+  `test_auth_login.py`/`test_auth_refresh.py`/`test_auth_logout.py`'s `client` fixture/`_make_user()`/
+  `_login()` helper pattern verbatim (`_login()` adapted to return the access token, not the refresh
+  token), plus a local `_assign_role()` helper.
+- `docs/ImplementationLog/Stage3/Phase3.md` — this file (T61 batch appended; header's `Related Tasks`/
+  `Git Commit`/`Pull Request` lines updated to record `T61`'s authorization commit and note that
+  implementation has not yet been committed/pushed/PR'd, per this batch's stop condition).
+
+No new dependency; no other route; `deps.py`, `router.py`, `AuthService`, `CurrentUser`,
+`JwtAuthenticationProvider`, `RbacAuthorizationService`, repository implementations, `main.py`,
+`container.py`, any `alembic/` migration, any frontend file, and every `T52`–`T60` file otherwise
+untouched — verified against the handoff's explicit forbidden-files list, not just the usual
+"no scope creep" check. No governance file (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+`PROJECT_CHECKPOINT.md`) touched, per the same list and per this role's own instructions.
+
+## Tests Added — T61 batch
+
+7 in `backend/tests/integration/test_auth_me.py`'s `TestMe`, against a real mounted `app` and real
+Postgres via `httpx.AsyncClient`/`ASGITransport` (reusing `T58`–`T60`'s `get_db`-override pattern):
+
+- `test_valid_token_returns_profile_and_roles` — a real login's access token → `200`, `data.id`/
+  `data.display_name`/`data.roles` match the specific user (one assigned role).
+- `test_missing_token_returns_401` — no `Authorization` header at all.
+- `test_malformed_token_returns_401` — a syntactically bogus bearer token string.
+- `test_expired_token_returns_401` — a syntactically valid, correctly-signed access token whose own
+  `exp` claim has already passed (`settings.model_copy(update={"access_token_ttl_minutes": -1})`,
+  preserving the running app's real `jwt_secret_key` rather than constructing an unrelated `Settings`
+  instance, so the signature still verifies and only the expiry fails).
+- `test_inactive_user_token_returns_401` — a real login's access token, then the user is deactivated
+  (`is_active = False`, flushed on the same `db_session` the request's `get_db` override yields) before
+  the `/me` call — proves `JwtAuthenticationProvider`'s live re-check, not just the token's own claims.
+- `test_unknown_user_token_returns_401` — a syntactically valid, correctly-signed access token for a
+  `sub` with no matching user row.
+- `test_multiple_roles_all_returned` — a user with two assigned roles gets both back in `roles`, sorted.
+
+No "revoked token" case, per the handoff's explicit instruction — access tokens aren't DB-revocable by
+design (`D1`); that concern belongs to `/refresh`, not `/me`.
+
+## Test Results — T61 batch
+
+- New tests in isolation: `tests/integration/test_auth_me.py` — **7/7 passed**, personally run this
+  session (`uv run pytest tests/integration/test_auth_me.py -v` against live Postgres —
+  `legal_dms_postgres` confirmed healthy via `docker ps`). One first-run failure surfaced and fixed
+  before this count: the first version of `test_valid_token_returns_profile_and_roles`/
+  `test_multiple_roles_all_returned` assigned the literal role names `"Advocate"`/`"Administrator"`,
+  which collided with this project's already-seeded roles of the same name (`uq_roles_name` unique
+  violation) — fixed by switching to unique `f"Role-{uuid4()}"`-style names, the same pattern
+  `test_auth_dependency_wiring.py` already uses for the identical reason.
+- Full backend suite: **410 passed** (403 prior + 7 new), 0 failed, 0 skipped. Personally re-run this
+  session — `uv run pytest -q` against the same live Postgres instance.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (197 files unchanged; one reformat
+  applied to `test_auth_me.py` itself before this final check, both re-verified directly).
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly;
+  `app.openapi()["paths"]` independently confirmed to contain exactly `/api/v1/auth/login`,
+  `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me`, `/api/v1/health`, `/api/v1/version`
+  — nothing else.
+- **Scope check:** `git status --short` / `git diff --stat` confirm exactly one file modified
+  (`presentation/api/v1/auth.py`) and one new file (`tests/integration/test_auth_me.py`) — no
+  `deps.py`, `router.py`, `AuthService`, `CurrentUser`, migration, frontend, or governance file
+  touched. (No commit exists yet for this batch — see this file's header — so `git show --stat` against
+  a specific commit isn't yet available; the working-tree diff serves the same verification purpose.)
+
+## Design Decisions — T61 batch
+
+- **`ApiResponse[MeResponse]`, not a bare schema.** A deliberate departure from `login`/`refresh`/
+  `logout`'s convention, per the handoff's explicit instruction: those three don't return a fetchable
+  resource (a token pair, or nothing), while `/me` returns the caller's own resource — exactly the case
+  `presentation/common/response.py`'s own docstring says `ApiResponse` exists for, matching
+  `crud_router_factory.py`'s `GET /{item_id}` → `ApiResponse[ReadSchema]` precedent instead.
+- **`CurrentUserDep`, not `AuthServiceDep`, and no `RequirePermission`.** Resolving "who is the caller"
+  from the bearer token is exactly what `CurrentUserDep` (`T52`–`T57`) already does; `/me` needs no
+  service-layer call beyond that. No permission code represents "view own profile" — inventing one was
+  explicitly out of scope — so the route checks `user.is_authenticated` directly and raises
+  `UnauthorizedError` itself, the same check `RequirePermission`'s inner function already makes,
+  without requiring a specific permission.
+- **Roles returned sorted.** `CurrentUser.roles` is a `frozenset[str]` (unordered by construction);
+  sorting before emitting `MeResponse.roles` gives deterministic API output without changing
+  `CurrentUser`'s own type — no change to `application/interfaces/auth.py`, per the forbidden-files
+  list.
+- **No route-level `try`/`except`.** `UnauthorizedError` is raised directly and handled by the
+  project's existing global `AppError` exception handler, the same pattern every other Phase 3 route
+  already follows — no new error-handling code introduced.
+
+## Problems Encountered — T61 batch
+
+**One test-data collision, resolved during implementation, not deferred:** the first draft of two
+tests used the seeded role names `"Advocate"`/`"Administrator"` directly, which collided with this
+project's actual seed data (`uq_roles_name` unique constraint) — discovered by running the tests, not
+assumed in advance, then fixed by switching to unique generated role names
+(`test_auth_dependency_wiring.py`'s established pattern for the same reason). No production code was
+affected; no lint/format fixes needed.
+
+**Governance side — continuing, not restarting, the streak `T56`–`T60` began:** authorization commit
+`520026f` was independently re-verified this session (`git rev-parse HEAD origin/main`, both
+`cca1077`, confirmed to already carry `520026f` in its ancestry via PR #29's merge) as preceding any
+implementation — no implementation, test, or migration file for `T61` existed anywhere in the tree
+before this batch's own changes. This is the **sixth** consecutive Stage 3 batch to get this right,
+after `T52`–`T55`'s four consecutive misses. Those four findings remain on record in `Phase2.md`,
+unerased.
+
+## Deferred Work — T61 batch
+
+- **`T62`–`T67`** — not started, per `T61`'s own scope: `T62`/`T63` (user management, role
+  assignment), `T64` (cross-route integration tests beyond `/me`'s own), `T65` (audit-log wiring), `T66`
+  (`role_permissions` matrix sign-off), `T67` (bootstrap CLI).
+- **A feature branch, commit, and PR for `T61`'s changes** — deliberately not created as part of this
+  batch, per this role's own stop conditions (Backend Developer implements and stops; commit/push/PR/
+  merge are separate, explicitly out of scope here). Recorded as genuinely open, unlike the equivalent
+  line in `T58`/`T59`/`T60`'s own Deferred Work sections, which were already resolved by the time those
+  entries were written.
+- **QA review** — not performed by this batch; the QA Reviewer role must independently re-verify per
+  `T61_HANDOFF.md` §9 before any documentation sync or merge proceeds.
+
+## Reviewer Checklist — T61 batch
+
+Self-assessed by the Backend Developer role against this session's own verified work (unlike `T58`–
+`T60`'s checklists, each self-assessed retrospectively by the Documentation Manager role in the absence
+of a contemporaneous Backend Developer record).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+□ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **ADR updated (if required):** `□` — not required: a fourth route reusing already-approved
+  (`T52`–`T57`) infrastructure, no new architectural decision.
+- **PROJECT_STATE updated (if required):** `□` — deliberately not updated by this batch: per the
+  handoff's explicit forbidden-files list and this role's own instructions, `IMPLEMENTATION_QUEUE.md`/
+  `PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md` are Project Manager/Documentation Manager owned and are
+  synchronized only after a QA Decision exists — not a gap, a boundary honored.
+- **No scope creep:** `☑` — the code stayed exactly within `T61`'s authorized scope (verified above:
+  one file modified, one new test file, every forbidden file confirmed untouched), and — for the sixth
+  consecutive batch — so did the authorization-recording process.
+- **Ready for QA:** `☑` in the sense that implementation, tests, and this log entry are complete and
+  the full suite is green; **T61 is explicitly not being claimed as done here** — no QA Decision exists
+  yet, and this batch does not render one (that is the QA Reviewer role's own next step, per
+  `T61_HANDOFF.md` §9).
+
+`T61`'s QA Decision, `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md`
+synchronization, commit, branch, PR, and merge are all **not yet done** and intentionally outside this
+batch's scope — see Deferred Work above. See this file's own metadata block (`Status: In Progress` —
+Phase 3 continues with `T62`–`T65`, not yet started or authorized).
+
+## QA Decision — T61 batch
+
+```
+QA Decision (T61 batch)
+
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role, independently, against the repository state as it actually stood
+(uncommitted, on `main`, per this batch's own Deferred Work note above) — not transcribed from the
+Backend Developer's Reviewer Checklist. Verified directly, not assumed:
+
+- **Scope:** `git diff --stat` confirmed exactly two tracked files changed
+  (`presentation/api/v1/auth.py`, `docs/ImplementationLog/Stage3/Phase3.md`) plus one new file
+  (`tests/integration/test_auth_me.py`). `git diff` against every file `T61_HANDOFF.md` §4 forbids
+  (`deps.py`, `application/auth_service.py`, `router.py`, `application/interfaces/auth.py`
+  (`CurrentUser`), `jwt_authentication_provider.py`, `rbac_authorization_service.py`,
+  `permissive_authorization_service.py`) returned zero lines — none were touched. No `alembic/`,
+  frontend, or governance file (`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/
+  `PROJECT_CHECKPOINT.md`) was touched.
+- **Tests:** `uv run pytest tests/integration/test_auth_me.py -v` — **7/7 passed**, re-run personally
+  against live Postgres (`legal_dms_postgres` container, confirmed healthy via `docker ps`). Full
+  suite: `uv run pytest -q` — **410 passed**, 0 failed, 0 skipped. Tests are non-vacuous: each 401 case
+  (missing/malformed/expired/inactive-user/unknown-user) exercises a distinct branch of
+  `JwtAuthenticationProvider`, and `test_multiple_roles_all_returned` asserts alphabetically-ordered
+  output, not merely presence.
+- **Lint/format:** `uv run ruff check src tests alembic` — clean. `uv run black --check src tests
+  alembic` — clean (197 files unchanged).
+- **Boot smoke test:** `python -c "from app.main import app"` succeeded; `app.openapi()["paths"]`
+  independently confirmed to contain exactly `/api/v1/auth/login`, `/api/v1/auth/refresh`,
+  `/api/v1/auth/logout`, `/api/v1/auth/me`, `/api/v1/health`, `/api/v1/version` — no scope creep.
+- **Behavior:** `me()` uses `CurrentUserDep` (not `AuthServiceDep`), raises `UnauthorizedError` (401,
+  via the existing global `AppError` handler) when `is_authenticated` is `False`, requires no
+  `RequirePermission(...)`/permission code, returns `ApiResponse(data=MeResponse(...))` with `meta`
+  defaulting to `null`, and sorts `roles` before emission (`CurrentUser.roles` is an unordered
+  `frozenset`, itself unmodified) — satisfying the deterministic-sorted-roles requirement without
+  changing the port.
+- **Documentation:** this file's T61 batch section (Objective through Reviewer Checklist) was checked
+  against the actual diff and test run and found accurate — no discrepancy between the log's claims and
+  the repository.
+
+**No technical defects found.** No implementation changes required. This is a plain `Approved`, not
+`Approved with comments` — nothing surfaced in this review that rises to a recorded comment; the
+absence of a branch/commit/PR at review time is expected process for this batch (per this batch's own
+Deferred Work note and this review's own instructions), not a defect.
+
+This entry itself is the correction of a prior gap: an earlier QA review of `T61` was performed and
+independently reached the same `Approved` disposition and the same verification results recorded
+above, but that decision was never written into this file's canonical `QA Decision — T61 batch`
+section — the Documentation Manager role correctly halted rather than synchronizing project-wide
+documentation against a QA Decision that did not yet exist in the repository. This section is that
+missing record, not a new or repeated review. Per this review's own scope: `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `PROJECT_CHECKPOINT.md`, commit, branch, PR, and merge remain **not done** —
+documentation synchronization and closeout are the Documentation Manager's next step, not performed
+here.

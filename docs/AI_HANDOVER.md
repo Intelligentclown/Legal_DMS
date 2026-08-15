@@ -290,8 +290,29 @@ re-verified directly; `app.openapi()["paths"]` independently confirmed to contai
 deliberate distinction from `T58`/`T59`'s "with comments," not an oversight: PR #26's body states "no
 defects" without the "with comments" qualifier the two prior batches both carried, and itemizes no
 comment text anywhere in the repository — recorded here as the disposition its own source material
-actually states, not inherited from the immediately preceding pattern. `T61`–`T67` remain not started,
-not authorized. Backend test count is 403, still 9 frontend.
+actually states, not inherited from the immediately preceding pattern.
+
+**`T61` (`GET /api/v1/auth/me`) followed — the sixth consecutive batch to hold the
+authorization-recording discipline, and the first Phase 3 route needing `CurrentUserDep` rather than
+just `AuthServiceDep`.** `presentation/api/v1/auth.py` was extended (`deps.py`, `router.py`,
+`AuthService`, `CurrentUser`, `JwtAuthenticationProvider`, and `RbacAuthorizationService` all
+untouched) with a co-located `MeResponse` and a `me()` handler taking `CurrentUserDep` directly.
+`CurrentUserDep` never raises — an anonymous caller just resolves to `is_authenticated=False` — so
+`me()` itself raises `UnauthorizedError` when unauthenticated, the same check `RequirePermission`
+already makes, with no permission code required (none of the 18 seeded permissions represents "view
+own profile," and none was invented). Unlike `login`/`refresh`/`logout`, the response is wrapped in
+`ApiResponse[MeResponse]` — a deliberate, authorized departure, since `/me` fetches a resource and
+those three don't — with `roles` sorted before emission (`CurrentUser.roles` is an unordered
+`frozenset`). 7 new integration tests in `tests/integration/test_auth_me.py` (valid token, missing
+token, malformed token, expired token, inactive-user token, unknown-user token, multiple roles). Full
+suite **410/410 passing (403 prior + 7 new)**, `ruff`/`black` clean, boot smoke test passed,
+`app.openapi()["paths"]` confirmed to contain exactly the six expected routes — no scope creep, no
+forbidden file touched. **QA Decision: Approved** (plain, no comments) — recorded in
+`docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section, rendered by the QA
+Reviewer role independently against the repository's actual working-tree state. **`T61` is NOT yet
+committed, branched, or merged** — QA reviewed the uncommitted working tree directly, before any
+feature branch/PR existed for this batch; commit/branch/PR/merge remain outstanding. Backend test
+count is 410, still 9 frontend.
 
 ## Pending Work
 
@@ -604,6 +625,25 @@ full file-by-file map. Two smaller open items: (1) the `role_permissions` exact 
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
 `T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56`, `T57`, `T58`, `T59`, and now
 `T60` have all held it, five consecutive successes now; `T61`+ should keep holding the same standard.
+
+**`T61` followed — the sixth consecutive batch to hold the authorization-recording discipline, and the
+first Phase 3 route needing `CurrentUserDep`/`RequirePermission`'s `is_authenticated` check rather than
+just `AuthServiceDep`.** `presentation/api/v1/auth.py` was extended with a co-located `MeResponse` and
+a `me()` handler taking `CurrentUserDep` directly — `deps.py`, `router.py`, `AuthService`, `CurrentUser`,
+`JwtAuthenticationProvider`, and `RbacAuthorizationService` all untouched. `CurrentUserDep` never
+raises, so `me()` itself raises `UnauthorizedError` when `is_authenticated` is `False`, requiring no
+permission code. Unlike `login`/`refresh`/`logout`, the response is wrapped in `ApiResponse[MeResponse]`
+— an authorized departure, since `/me` fetches a resource — with `roles` sorted before emission. 7 new
+integration tests in `tests/integration/test_auth_me.py`. Full suite **410/410 passing (403 prior + 7
+new)**, `ruff`/`black` clean, boot smoke test passed, `app.openapi()["paths"]` confirmed to contain
+exactly the six expected routes — no scope creep. **QA Decision: Approved** (plain, no comments) —
+recorded in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section, rendered by
+the QA Reviewer role independently against the repository's actual working-tree state. **`T61` is NOT
+yet committed, branched, or merged** — QA reviewed the uncommitted working tree directly, before any
+feature branch/PR existed for this batch; commit, branch, PR, and merge remain outstanding, and this
+documentation-synchronization pass does not perform them either. `T62`–`T67` remain not started, not
+authorized.
+
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
