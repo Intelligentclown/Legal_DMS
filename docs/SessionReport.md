@@ -1855,3 +1855,68 @@ closeout is prepared on its own branch/PR per the established process, not commi
 task order — depends on `T57` (done); `AuthService.revoke()` (`T50`/`T51`) already exists and is
 unused by any route, its natural implementation target; not authorized this session. Standing item:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-15 — T60 documentation closeout
+
+**Objectives:** Independently verify `T60`'s repository state and PR #26 before writing any
+documentation, then close it out following the `T56`–`T59` closeout pattern: no backend source or
+test file touched, `T60` not reimplemented, QA's decision preserved exactly as given (not
+pattern-matched onto the prior two batches), authorization-before-implementation provenance recorded,
+and full-provenance PR opened rather than a direct push to `main`.
+
+**What happened:** `git log`/`git status` confirmed `main`/`origin/main` both at `941ed42`
+(`docs/t59-closeout`'s PR #25 had already merged as `1121e20` before `T60`'s own authorization/
+implementation commits landed on top of it). `gh pr view 26` independently confirmed `MERGED`,
+`mergedAt: 2026-08-15T06:37:04Z`, base `main`, two commits: `726e8cf` ("docs(project): record T60
+authorization before implementation," authored 2026-08-15T06:27:59Z/11:57:59 IST — governance-only,
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`, no code) and `5b9bf57` ("feat(auth): add POST
+/api/v1/auth/logout," authored 2026-08-15T06:35:34Z/12:05:34 IST — two files,
+`presentation/api/v1/auth.py` and the new `tests/integration/test_auth_logout.py`), authorization
+preceding implementation by commit order and ~8 minutes, the **fifth** consecutive Stage 3 batch to
+hold that discipline. `statusCheckRollup` showed **6/6 CI checks green**. Read `726e8cf`'s full commit
+message and `5b9bf57`'s actual diff directly (not summarized): the implementation reuses `T58`'s
+`AuthServiceDep` unchanged and touches neither `deps.py`, `router.py`, nor `AuthService` itself,
+honoring the authorization's explicit "must not modify" constraint exactly — a stricter check than
+`T59`'s general scope verification, since this authorization named specific files as off-limits, not
+just an expected reuse convention. 5 new tests (valid-token revocation verified directly against the
+stored `RefreshToken` row, already-revoked/unknown/malformed-token-string all succeed idempotently,
+malformed body → 422) match the authorized test list exactly.
+
+**A notable finding, flagged rather than smoothed over:** PR #26's body states only "QA independently
+reviewed: no defects" — omitting the "with comments" qualifier both `T58`'s and `T59`'s PR bodies
+carried, and (like `T59`) itemizing no specific comment text anywhere (`gh api
+repos/.../pulls/26/reviews` returned empty, as did a check of both commit messages). Rather than
+defaulting to `Approved with comments` by pattern-matching on the two immediately preceding batches,
+this closeout records the disposition PR #26's own wording actually states: a plain `Approved`. This
+distinction is called out explicitly in every file this session touched, not silently normalized to
+match `T58`/`T59`.
+
+Docker was reachable this session (`legal_dms_postgres` healthy), so the full backend suite was
+**personally re-run**: `uv run pytest -q` → **403 passed** (398 prior + 5 new), matching PR #26's own
+claim exactly. `ruff check`/`black --check` also re-verified clean, and a direct boot smoke test
+confirmed `app.openapi()["paths"]` contains exactly `login`/`refresh`/`logout`/`health`/`version` — no
+`T61`+ route present. Appended the `T60` batch to `docs/ImplementationLog/Stage3/Phase3.md` (Phase 3's
+existing, still-`In Progress` phase log — `T60` is its third entry). Corrected
+`IMPLEMENTATION_QUEUE.md` (`T60`'s row and the Stage 3 narrative's trailing summary),
+`PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/`tests.backend`/`git` updated, a new
+`backendSubsystems` entry added — validated as well-formed JSON after editing), `docs/AI_HANDOVER.md`
+(two sections), and `docs/Roadmap.md` — all now state `T60` is `Done`, and `T61`+ is next,
+unauthorized. `PROJECT_CHECKPOINT.md` rewritten in place per its own maintenance rule.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase3.md`, `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file),
+`PROJECT_CHECKPOINT.md`.
+
+**Confirmed:** no `T60` (or any) implementation/test file was modified — `T60` was not reimplemented;
+`T61`+ was not started or authorized; the QA Decision was recorded as the plain `Approved` its own
+source material states, not inherited from `T58`/`T59`'s "with comments" pattern; historical `T52`–`T55`
+governance findings and `T56`–`T59` records were left untouched; no push to `main` was performed by
+this session — this closeout is prepared on its own branch/PR per the established process, not
+committed directly.
+
+**Next Session Goals:** `T61` (`GET /api/v1/auth/me`) is the next unfinished task in Phase 3's task
+order — depends on `T57` (done); unlike `T58`/`T59`/`T60`, it will need
+`CurrentUserDep`/`RequirePermission` (`T52`–`T57`), not just `AuthServiceDep`, since it requires an
+authenticated caller — this is also the first point where a `T56`/`T57`-style 401 (missing/invalid
+bearer token) becomes reachable via a real HTTP request. Not authorized this session. Standing item:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.

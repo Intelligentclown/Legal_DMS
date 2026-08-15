@@ -268,8 +268,30 @@ unlike `T58`'s closeout); `ruff`/`black` clean and the boot smoke test passing r
 — no `T60`+ scope creep. **QA Decision: Approved with comments** — "no technical defects" per PR #24's
 own report; unlike `T58`'s PR, PR #24 does not itemize specific non-blocking comment text anywhere in
 the repository (PR body, both commit messages, and `gh api .../pulls/24/reviews` all checked) —
-recorded here exactly as given, not invented. `T60`–`T67` remain not started, not authorized. Backend
-test count is 398, still 9 frontend.
+recorded here exactly as given, not invented.
+
+**`T60` closeout (2026-08-15): Done — the fifth consecutive batch to get the authorization-recording
+discipline right.** `presentation/api/v1/auth.py` extended (`deps.py`, `router.py`, and `AuthService`
+itself **not modified** — the authorization's explicit "must not modify" constraint, honored exactly)
+with `POST /api/v1/auth/logout`: `LogoutRequest` co-located; `logout()` calls `AuthService.revoke()`
+(`T50`/`T51`, unmodified — returns `None`, never a `Result`, since an unknown or already-revoked
+token is a silent no-op, not a failure) and returns `204 No Content` with no body, mirroring
+`presentation/common/crud_router_factory.py`'s `delete_item`. 5 new integration tests in
+`tests/integration/test_auth_logout.py` (a valid token is actually revoked, verified against the
+stored `RefreshToken` row's `revoked_at`; an already-revoked token, an unknown token, and a malformed
+token string all still succeed; a malformed body → 422), reusing `T58`/`T59`'s
+`httpx.AsyncClient`/`ASGITransport`/`get_db`-override pattern verbatim. Authorization was recorded as
+its own commit (`726e8cf`, 2026-08-15 11:57:59 IST) **before** the implementation commit (`5b9bf57`,
+12:05:34 IST, ~8 minutes later same day, PR #26, merged `941ed42`) — confirmed by commit order,
+extending `T56`–`T59`'s streak to five. Full suite **403/403 passing (398 prior + 5 new) — personally
+re-run against live Postgres this session**; `ruff`/`black` clean and the boot smoke test passing
+re-verified directly; `app.openapi()["paths"]` independently confirmed to contain only
+`login`/`refresh`/`logout`/`health`/`version` — no `T61`+ scope creep. **QA Decision: Approved** — a
+deliberate distinction from `T58`/`T59`'s "with comments," not an oversight: PR #26's body states "no
+defects" without the "with comments" qualifier the two prior batches both carried, and itemizes no
+comment text anywhere in the repository — recorded here as the disposition its own source material
+actually states, not inherited from the immediately preceding pattern. `T61`–`T67` remain not started,
+not authorized. Backend test count is 403, still 9 frontend.
 
 ## Pending Work
 
@@ -549,16 +571,40 @@ PR #24 → `721cec5`. `app.openapi()["paths"]` independently confirmed to contai
 `login`/`refresh`/`health`/`version` — no `T60`+ scope creep. **QA Decision: Approved with comments**
 — "no technical defects" per PR #24's own report; unlike `T58`'s PR, PR #24 does not itemize specific
 non-blocking comment text anywhere in the repository (PR body, both commit messages, and
-`gh api .../pulls/24/reviews` all checked) — recorded here exactly as given, not invented. `T60`+
-(logout, `/me`, user management, role assignment, cross-route tests, audit wiring) is now the next
-unfinished work, not yet started, not
+`gh api .../pulls/24/reviews` all checked) — recorded here exactly as given, not invented.
+
+**`T60` followed — the third route in this project, and the fifth consecutive batch to hold the
+authorization-recording discipline.** `presentation/api/v1/auth.py` was extended (`deps.py`,
+`router.py`, and `AuthService` itself **not modified** — an explicit "must not modify" constraint the
+authorization stated outright, not merely an expected reuse convention like `T59`'s) with
+`POST /api/v1/auth/logout`: `LogoutRequest` co-located; `logout()` calls `AuthService.revoke()`
+(`T50`/`T51`, unmodified — returns `None`, never a `Result`, since an unknown or already-revoked
+token is a silent no-op, not a failure) and returns `204 No Content` with no body, mirroring
+`presentation/common/crud_router_factory.py`'s `delete_item`. The authorized scope (recorded in
+`726e8cf`, 2026-08-15 11:57:59 IST, **before** implementation commit `5b9bf57`, 12:05:34 IST, ~8
+minutes later same day, confirmed by commit order) was: the logout route, request/response handling,
+reuse of the existing `AuthServiceDep`, and tests explicitly proving idempotent behavior — `T61`–`T67`
+explicitly out of scope. `T60` is now **Done**: 5 new integration tests in
+`tests/integration/test_auth_logout.py` (a valid token actually revoked, verified against the stored
+`RefreshToken` row; an already-revoked token, an unknown token, and a malformed token string all still
+succeed; a malformed body → 422), reusing `T58`/`T59`'s
+`httpx.AsyncClient`/`ASGITransport`/`get_db`-override pattern verbatim. Full suite **403/403 passing
+(398 prior + 5 new) — personally re-run against live Postgres this session**, `ruff`/`black` clean,
+boot smoke test passed — merged `5b9bf57` → PR #26 → `941ed42`. `app.openapi()["paths"]` independently
+confirmed to contain only `login`/`refresh`/`logout`/`health`/`version` — no `T61`+ scope creep.
+**QA Decision: Approved** — a deliberate distinction from `T58`/`T59`'s "with comments," not an
+oversight: PR #26's body states "no defects" without the "with comments" qualifier the two prior
+batches both carried, and itemizes no comment text anywhere in the repository — recorded as the
+disposition its own source material actually states, not inherited from the immediately preceding
+pattern. `T61`+ (`/me`, user management, role assignment, cross-route tests, audit wiring) is now the
+next unfinished work, not yet started, not
 authorized. See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
 full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
-`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56`, `T57`, `T58`, and now `T59` have
-all held it, four consecutive successes now; `T60`+ should keep holding the same standard. Outside of
-Stage 3, do not add business entities, new major dependencies, or
+`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56`, `T57`, `T58`, `T59`, and now
+`T60` have all held it, five consecutive successes now; `T61`+ should keep holding the same standard.
+Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
 
