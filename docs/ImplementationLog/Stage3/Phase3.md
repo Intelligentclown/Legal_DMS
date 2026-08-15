@@ -12,9 +12,9 @@ Related Tasks: T58, T59, T60, T61
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — authorization commit `520026f` (merged as `cca1077`); implementation not yet committed, branched, or pushed as of this entry — per this batch's own instructions, the Backend Developer stops after implementation/tests/log for QA review, and does not commit/push/PR/merge.
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f).
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — not yet opened; authorization recorded beforehand, commit `520026f`, 2026-08-15.
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15).
 
 Release:
 
@@ -878,3 +878,48 @@ missing record, not a new or repeated review. Per this review's own scope: `IMPL
 `PROJECT_STATE.json`, `PROJECT_CHECKPOINT.md`, commit, branch, PR, and merge remain **not done** —
 documentation synchronization and closeout are the Documentation Manager's next step, not performed
 here.
+
+## Post-Merge Verification — T61 batch (2026-08-16)
+
+Recorded as an append, not a rewrite of the QA Decision above — that section's own account of what
+was true at review time (uncommitted working tree, no PR yet) remains accurate history and is left
+untouched.
+
+**`T61`'s working tree was subsequently committed, branched, opened as a PR, and merged**, closing the
+gap the QA Decision and Reviewer Checklist above both named as outstanding: feature branch
+`feature/stage3-t61-me`, feature commit `fa57e28` ("feat(auth): add GET /api/v1/auth/me"), PR #30
+("feat(auth): add GET /api/v1/auth/me (T61)"), merged into `main` as `bdffb5e` on 2026-08-15 (commit
+authored 2026-08-15T19:33:59Z, merged 2026-08-15T19:39:55Z per `gh pr view 30`).
+
+Independently re-verified this session, directly against the merged repository state (`main` at
+`bdffb5e`, `origin/main` confirmed identical via `git rev-parse`), not transcribed from the PR body:
+
+- **Scope:** `git show bdffb5e --stat` / `git diff cca1077..fa57e28 --name-only` both confirm exactly
+  the nine files this PR's own description claims (`IMPLEMENTATION_QUEUE.md`, `PROJECT_CHECKPOINT.md`,
+  `PROJECT_STATE.json`, `presentation/api/v1/auth.py`, `tests/integration/test_auth_me.py`,
+  `docs/AI_HANDOVER.md`, this file, `docs/Roadmap.md`, `docs/SessionReport.md`) — no forbidden file
+  (`deps.py`, `router.py`, `AuthService`, `CurrentUser`, `JwtAuthenticationProvider`,
+  `RbacAuthorizationService`, `PermissiveAuthorizationService`, any `alembic/` migration, any frontend
+  file) appears in either diff.
+- **Implementation vs. authorization:** the merged `presentation/api/v1/auth.py` contains exactly
+  `MeResponse` and `me()`, reusing `CurrentUserDep` directly, wrapped in `ApiResponse[MeResponse]`,
+  raising `UnauthorizedError` when unauthenticated, `roles` sorted — matching
+  `docs/HANDOFF/T61_HANDOFF.md` §3/§5's approved scope exactly, with no addition beyond it.
+- **CI:** `gh pr view 30 --json statusCheckRollup` — 6/6 checks `SUCCESS` (Backend Lint/format/test
+  ×2, Frontend Lint/format/test ×2, Release build verification ×2 — the expected double-trigger per
+  [ADR/0017](../../../ADR/0017-github-actions-ci.md), not a re-run or a flake).
+- **Local re-verification against merged `main` (`bdffb5e`), live Postgres (`legal_dms_postgres`
+  confirmed healthy via `docker ps`):** `uv run pytest -q` → **410 passed, 0 failed, 0 skipped**;
+  `uv run ruff check src tests alembic` → clean; `uv run black --check src tests alembic` → clean
+  (197 files unchanged); `python -c "from app.main import app"` boot smoke → succeeds;
+  `app.openapi()["paths"]` → exactly `/api/v1/auth/login`, `/api/v1/auth/refresh`,
+  `/api/v1/auth/logout`, `/api/v1/auth/me`, `/api/v1/health`, `/api/v1/version`.
+- **Documentation:** this file's own T61 batch (Objective through QA Decision) read in full against
+  the merged diff — internally consistent, no discrepancy found between what it claims and what
+  actually merged.
+
+**`T61` is now `Done`** — code, tests, QA Decision, and documentation are all merged into `main`.
+`T62`–`T67` remain not started, not authorized by this verification pass. `docs/HANDOFF/`,
+`docs/prompts/GitCI_PR_Manager.md`, and `docs/prompts/README.md` are separate, unrelated,
+still-uncommitted changes — correctly excluded from PR #30, per its own stated scope — and are not
+addressed by this verification pass.

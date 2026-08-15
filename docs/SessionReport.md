@@ -1977,3 +1977,80 @@ already-authorized, already-implemented, already-QA-approved work, not new devel
 fresh authorization. `T62` (user management routes) remains not started, not authorized, and must not
 begin until `T61` reaches a clean merged checkpoint. Standing item, still unaddressed:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
+
+## Session: 2026-08-16 — T61 post-merge closeout verification
+
+**Independently reconstructed Git state before touching anything**, not from this session's own prior
+turn. `git fetch origin`, `git rev-parse HEAD origin/main` confirmed: local `main` was still at
+`cca1077` (stale, one merge behind), `origin/main` was at `bdffb5e`. Fast-forwarded local `main`
+(`git checkout main && git pull`) — a documented, non-destructive lifecycle step
+(`PROJECT_WORKFLOW.md` §3's "Update Local `main`"), not unrelated cleanup — bringing local `main` to
+`bdffb5e` and confirming both refs synchronized.
+
+**Verified PR #30 is actually merged**, not assumed from a task description: `gh pr view 30` —
+`state: MERGED`, `mergeCommit: bdffb5e`, `mergedAt: 2026-08-15T19:39:55Z`, one commit `fa57e28`
+("feat(auth): add GET /api/v1/auth/me"). `git show bdffb5e --stat` and `git diff cca1077..fa57e28
+--name-only` both independently confirm the same nine files the PR's own description claims
+(`IMPLEMENTATION_QUEUE.md`, `PROJECT_CHECKPOINT.md`, `PROJECT_STATE.json`,
+`presentation/api/v1/auth.py`, `tests/integration/test_auth_me.py`, `docs/AI_HANDOVER.md`,
+`docs/ImplementationLog/Stage3/Phase3.md`, `docs/Roadmap.md`, `docs/SessionReport.md`) — no forbidden
+file (`deps.py`, `router.py`, `AuthService`, `CurrentUser`, `JwtAuthenticationProvider`,
+`RbacAuthorizationService`, `PermissiveAuthorizationService`, any migration, any frontend file)
+present in either diff.
+
+**Compared the merged implementation against `docs/HANDOFF/T61_HANDOFF.md`'s authorized scope**
+directly (read the actual merged `presentation/api/v1/auth.py`, not just the diff summary): exactly
+`MeResponse`/`me()` added, `CurrentUserDep` reused unchanged, `ApiResponse[MeResponse]` wrapper,
+`UnauthorizedError` raised on `is_authenticated is False`, `roles` sorted — matches the authorized
+scope exactly, nothing beyond it.
+
+**Verified `docs/ImplementationLog/Stage3/Phase3.md`'s T61 documentation is internally consistent** —
+read the full T61 batch (Objective through QA Decision) against the merged diff; no discrepancy found.
+Its QA Decision section's own account ("QA reviewed the uncommitted working tree... commit, branch,
+PR, and merge remain not done") was true when written and was **not** altered — rewriting a completed
+phase-log entry to reflect later knowledge is against this project's own rule
+(`docs/prompts/DocumentationManager.md` §8). Instead, a new, explicitly dated
+**"Post-Merge Verification — T61 batch (2026-08-16)"** section was appended after it, recording the
+merge and this session's independent re-verification without touching the historical record.
+
+**Ran/verified the required repository checks directly on merged `main` (`bdffb5e`):** CI —
+`gh pr view 30 --json statusCheckRollup` — **6/6 checks `SUCCESS`** (the expected double-trigger per
+[ADR/0017](../ADR/0017-github-actions-ci.md), not a flake). Local, with live Postgres reachable
+(`docker ps` confirmed `legal_dms_postgres` healthy): `uv run pytest -q` → **410 passed, 0 failed, 0
+skipped**; `ruff check`/`black --check` → clean; boot smoke test → succeeds; `app.openapi()["paths"]`
+→ exactly the six expected routes.
+
+**Synchronized project records to reflect the merge — correcting only what the existing governance
+model permits correcting in place, not rewriting historical entries:**
+`docs/ImplementationLog/Stage3/Phase3.md`'s header (`Git Commit`/`Pull Request` lines for `T61` —
+mutable summary metadata, updated for `T58`/`T59`/`T60` the same way) plus the appended Post-Merge
+Verification section; `IMPLEMENTATION_QUEUE.md`'s `T61` row (`Implemented, QA Decision: Approved, NOT
+yet merged` → `Done`, merged `PR #30`/`bdffb5e`); `PROJECT_STATE.json` (`currentStage`/`stages`/
+`completion`/`tests.backend`/`git` updated, `currentStageScopePercent` 47 → 49, a new
+`backendSubsystems` entry added — validated as well-formed JSON after every edit); `docs/AI_HANDOVER.md`
+(both sections); `docs/Roadmap.md`; `PROJECT_CHECKPOINT.md` (rewritten in place per its own
+maintenance rule — `HEAD`/`Safe Breakpoint`/every section reflecting the merge, not the pre-merge
+snapshot the prior session left).
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md`
+(a separate, unrelated governance-documentation change already sitting uncommitted from earlier work —
+not part of `T61`, not touched); `docs/HANDOFF/` (untracked, unrelated, likewise untouched);
+`docs/ImplementationLog/Stage3/Phase3.md`'s pre-merge QA Decision text (historical record, appended to
+rather than edited, per above); `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md` (pre-existing,
+repeatedly-flagged staleness, not caused by `T61`, out of scope for this pass).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — only
+documentation, and only the `git checkout main && git pull` fast-forward (a documented, lossless
+lifecycle step, not a destructive operation). No commit, push, or PR was created for this session's
+own documentation corrections — `T62` was not started, scoped, or authorized. `feature/stage3-t61-me`
+was not deleted (routine post-merge branch cleanup, not requested, not performed).
+
+**Documentation Updated (uncommitted as of this entry):** `docs/ImplementationLog/Stage3/Phase3.md`,
+`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
+`docs/SessionReport.md` (this file), `PROJECT_CHECKPOINT.md`.
+
+**Next Session Goals:** commit and push this session's post-merge documentation corrections (not
+performed here, since committing wasn't part of what this pass was asked to do). Then: `T62` (user
+management routes) is the next unstarted task in Phase 3's order, depending on `T54`/`T46` (both
+done) — **not authorized**. Standing item, still unaddressed:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
