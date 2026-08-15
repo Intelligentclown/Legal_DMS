@@ -5,8 +5,9 @@ included here as they're added, keeping `main.py` version-agnostic.
 
 from fastapi import APIRouter
 
-from app.presentation.api.v1 import health, version
+from app.presentation.api.v1 import auth, health, version
 
 router = APIRouter()
+router.include_router(auth.router, tags=["auth"])
 router.include_router(health.router, tags=["health"])
 router.include_router(version.router, tags=["version"])

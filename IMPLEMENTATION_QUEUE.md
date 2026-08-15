@@ -791,7 +791,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
-| T58 | `POST /api/v1/auth/login` — email + password in, access + refresh tokens out (or a structured 401). | S | T57 |
+| T58 | `POST /api/v1/auth/login` — email + password in, access + refresh tokens out (or a structured 401). **Authorized by the project owner, 2026-08-13, recorded here — as its own documentation-only commit — before any implementation exists.** Approved scope: the login route itself, its request/response schemas, per-request `AuthService` wiring (constructed from `DBSessionDep`, the same pattern already established for `AuthenticationProvider`/`AuthorizationService`), and router registration in `router.py`, plus tests. Tests may create users directly against the test database — this task does not depend on `T67`'s bootstrap CLI existing. `T59`–`T67` remain explicitly out of scope and unauthorized. Not yet implemented. | S | T57 |
 | T59 | `POST /api/v1/auth/refresh` — refresh token in, new access (+ rotated refresh) token out. | S | T57 |
 | T60 | `POST /api/v1/auth/logout` — revokes the presented refresh token. | XS–S | T57 |
 | T61 | `GET /api/v1/auth/me` — current user's profile + roles, from `CurrentUserDep`. | XS | T57 |
