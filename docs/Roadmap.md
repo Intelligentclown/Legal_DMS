@@ -261,9 +261,11 @@ unauthenticated caller — no permission code required. `deps.py`, `router.py`, 
 integration tests. Full suite **410/410 passing (403 prior + 7 new)**, ruff/black clean, boot smoke
 test passed, `app.openapi()["paths"]` confirmed to contain exactly the six expected routes — no scope
 creep. **QA Decision: Approved** (plain, no comments), recorded in
-`docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section. **`T61` is NOT yet
-committed, branched, or merged** — QA reviewed the uncommitted working tree directly; commit, branch,
-PR, and merge remain outstanding. `T62`–`T67` remain not started, not authorized.
+`docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section, rendered against the
+working tree before it was committed. **`T61` is now Done — merged.** Feature commit `fa57e28`, PR
+#30, merged `bdffb5e` (2026-08-15); independently re-verified post-merge this session (`main`/
+`origin/main` both at `bdffb5e`, exactly the nine expected files, 6/6 CI checks green, full suite
+410/410 re-run against merged `main`). `T62`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

@@ -309,9 +309,10 @@ suite **410/410 passing (403 prior + 7 new)**, `ruff`/`black` clean, boot smoke 
 `app.openapi()["paths"]` confirmed to contain exactly the six expected routes — no scope creep, no
 forbidden file touched. **QA Decision: Approved** (plain, no comments) — recorded in
 `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section, rendered by the QA
-Reviewer role independently against the repository's actual working-tree state. **`T61` is NOT yet
-committed, branched, or merged** — QA reviewed the uncommitted working tree directly, before any
-feature branch/PR existed for this batch; commit/branch/PR/merge remain outstanding. Backend test
+Reviewer role independently against the working tree before it was committed. **`T61` is now Done —
+merged.** Feature commit `fa57e28`, PR #30, merged `bdffb5e` (2026-08-15); `main`/`origin/main` both
+independently re-verified at `bdffb5e` this session, `git show bdffb5e --stat` confirms exactly the
+nine files this batch's scope covers, and `gh pr view 30` confirms 6/6 CI checks green. Backend test
 count is 410, still 9 frontend.
 
 ## Pending Work
@@ -638,11 +639,12 @@ integration tests in `tests/integration/test_auth_me.py`. Full suite **410/410 p
 new)**, `ruff`/`black` clean, boot smoke test passed, `app.openapi()["paths"]` confirmed to contain
 exactly the six expected routes — no scope creep. **QA Decision: Approved** (plain, no comments) —
 recorded in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section, rendered by
-the QA Reviewer role independently against the repository's actual working-tree state. **`T61` is NOT
-yet committed, branched, or merged** — QA reviewed the uncommitted working tree directly, before any
-feature branch/PR existed for this batch; commit, branch, PR, and merge remain outstanding, and this
-documentation-synchronization pass does not perform them either. `T62`–`T67` remain not started, not
-authorized.
+the QA Reviewer role independently against the working tree before it was committed. **`T61` is now
+Done — merged.** Feature commit `fa57e28`, PR #30, merged `bdffb5e` (2026-08-15); independently
+re-verified post-merge this session: `main`/`origin/main` both at `bdffb5e`, `git show bdffb5e --stat`
+confirms exactly the nine files this batch's scope covers (no forbidden file touched), 6/6 CI checks
+green, and the full suite (410/410) re-run against merged `main` with live Postgres. `T62`–`T67`
+remain not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
