@@ -791,7 +791,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
-| T58 | `POST /api/v1/auth/login` — email + password in, access + refresh tokens out (or a structured 401). **Authorized by the project owner, 2026-08-13, recorded here — as its own documentation-only commit — before any implementation exists.** Approved scope: the login route itself, its request/response schemas, per-request `AuthService` wiring (constructed from `DBSessionDep`, the same pattern already established for `AuthenticationProvider`/`AuthorizationService`), and router registration in `router.py`, plus tests. Tests may create users directly against the test database — this task does not depend on `T67`'s bootstrap CLI existing. `T59`–`T67` remain explicitly out of scope and unauthorized. Not yet implemented. | S | T57 |
+| T58 | `POST /api/v1/auth/login` — email + password in, access + refresh tokens out (or a structured 401). **Authorized by the project owner, 2026-08-13, recorded here — as its own documentation-only commit (`58c8e40`) — before any implementation exists.** Approved scope: the login route itself, its request/response schemas, per-request `AuthService` wiring (constructed from `DBSessionDep`, the same pattern already established for `AuthenticationProvider`/`AuthorizationService`), and router registration in `router.py`, plus tests. Tests may create users directly against the test database — this task does not depend on `T67`'s bootstrap CLI existing. `T59`–`T67` remain explicitly out of scope and unauthorized. **Done** (2026-08-15 — `presentation/api/v1/auth.py` (new): `LoginRequest`/`LoginResponse` co-located, no `ApiResponse[T]` wrapper since a token pair isn't a fetchable resource; `login()` calls `AuthService.authenticate()`, raising `result.error` directly on failure so the existing global `AppError` handler renders the structured 401. `presentation/api/deps.py` gains `get_auth_service()`/`AuthServiceDep`, building `AuthService` fresh per request from `DBSessionDep`, mirroring `T55`'s construction pattern exactly. Router mounted in `router.py`. 5 new integration tests in `tests/integration/test_auth_login.py` (valid credentials, wrong password, unknown email — same generic message as wrong password, inactive user, malformed body → 422), against a real mounted app and real Postgres via `httpx.AsyncClient`/`ASGITransport` with a `get_db` dependency-override, needed because `fastapi.testclient.TestClient` runs the app on a separate event-loop thread that breaks this exact override. Full suite 391/391 passing (386 prior + 5 new), ruff/black clean, boot smoke test passed (`/api/v1/auth/login` confirmed in `app.openapi()["paths"]`). QA Decision: **Approved with comments** — no technical defects; two non-blocking comments: (1) Starlette's `HTTP_422_UNPROCESSABLE_ENTITY` deprecation warning surfaced in test output is framework-internal, not a `T58` defect; (2) the test-local `app.dependency_overrides[get_db]` pattern is safe under the current sequential test execution and should only be reconsidered if parallel test execution is introduced. Authorization commit `58c8e40` (2026-08-13) precedes implementation commit `76cd28f` (2026-08-15) — confirmed by commit order, the third consecutive Stage 3 batch to record authorization before implementation, extending the streak `T56`/`T57` started. Merged: PR #22, feature commit `76cd28f`, authorization commit `58c8e40`, merge `e67da02`. See `docs/ImplementationLog/Stage3/Phase3.md`'s T58 batch.) | S | T57 |
 | T59 | `POST /api/v1/auth/refresh` — refresh token in, new access (+ rotated refresh) token out. | S | T57 |
 | T60 | `POST /api/v1/auth/logout` — revokes the presented refresh token. | XS–S | T57 |
 | T61 | `GET /api/v1/auth/me` — current user's profile + roles, from `CurrentUserDep`. | XS | T57 |
@@ -1023,8 +1023,29 @@ request, a real bearer token, an actual `401`/`403` response) to `T58`+, since n
 exists yet. **`T57` is the second consecutive Stage 3 Phase 2 batch where authorization was actually
 recorded in the repository (`65dd563`) before implementation began (`7c9fc3a`)** — confirmed by
 commit timestamp order, extending the streak `T56` started; `T52`–`T55`'s four findings remain on
-record above, unerased. **With `T57` closed, Stage 3 Phase 2 (`T52`–`T57`) is complete in full.**
-`T58`+ (Phase 3, routes) remains not started, not authorized. See
+record above, unerased. **With `T57` closed, Stage 3 Phase 2 (`T52`–`T57`) is complete in full**, and
+Phase 3 (routes) begins.
+
+**`T58` is Done** (closed out 2026-08-15 — see `docs/ImplementationLog/Stage3/Phase3.md`'s T58 batch,
+the first entry under Phase 3: `POST /api/v1/auth/login` — `presentation/api/v1/auth.py` (new) adds
+the route plus co-located `LoginRequest`/`LoginResponse` schemas, no `ApiResponse[T]` wrapper; on
+failure `AuthService.authenticate()`'s `Result.error` is raised directly, handled by the existing
+global `AppError` handler; `presentation/api/deps.py` gains `get_auth_service()`/`AuthServiceDep`,
+request-scoped construction mirroring `T55`'s pattern; router mounted in `router.py`. 5 new
+integration tests in `tests/integration/test_auth_login.py` against a real mounted app and live
+Postgres via `httpx.AsyncClient`/`ASGITransport` with a `get_db` override — `TestClient` was tried
+first and rejected, since its separate event-loop thread breaks that exact override. Full suite
+391/391 passing (386 prior + 5 new), ruff/black clean, boot smoke test passed; merged PR #22, feature
+commit `76cd28f`, merge `e67da02`). **QA Decision: Approved with comments** — no technical defects;
+two non-blocking comments preserved verbatim: (1) Starlette's `HTTP_422_UNPROCESSABLE_ENTITY`
+deprecation warning is framework-internal, not a `T58` defect; (2) the test-local
+`app.dependency_overrides[get_db]` pattern is safe under current sequential test execution, to be
+reconsidered only if parallel test execution is introduced. **`T58` is the third consecutive Stage 3
+batch where authorization was recorded in the repository (`58c8e40`, 2026-08-13) before implementation
+began (`76cd28f`, 2026-08-15)** — confirmed by commit order, extending the streak `T56`/`T57` started;
+`T52`–`T55`'s four findings remain on record above, unerased. `T58` is also the first route in the
+project and the first task to exercise the full auth chain (`T52`–`T57`) end-to-end via a real HTTP
+request. `T59`–`T67` remain not started, not authorized. See
 `docs/Stage3_Backend_Handoff.md` for the backend-scoped implementation brief (T41–T68). T1–T18
 (Stage 2.5, minus T1–T3 now folded into T41–T43 above) remain separately pending. T38–T40
 (Dependabot, PR template, issue templates) and T81 (stray README content) remain backlog-only.*
