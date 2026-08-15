@@ -249,8 +249,21 @@ re-run against live Postgres this session**, ruff/black clean, boot smoke test p
 `login`/`refresh`/`logout`/`health`/`version` — no `T61`+ scope creep. **QA Decision: Approved** — a
 deliberate distinction from `T58`/`T59`'s "with comments," not an oversight: PR #26's body states "no
 defects" without the "with comments" qualifier the two prior batches both carried, and itemizes no
-comment text anywhere — recorded as the disposition its own source material actually states. `T61`–`T67`
-remain not started, not authorized.
+comment text anywhere — recorded as the disposition its own source material actually states.
+
+**`T61` (`GET /api/v1/auth/me`) followed — the fourth route in this project, the first needing
+`CurrentUserDep` rather than just `AuthServiceDep`, and the sixth consecutive batch to hold the
+authorization-recording discipline.** Returns the caller's own `id`/`display_name`/`roles`, wrapped in
+`ApiResponse[MeResponse]` (a departure from `login`/`refresh`/`logout`'s bare convention, since `/me`
+fetches a resource). `me()` raises `UnauthorizedError` directly when `CurrentUserDep` resolves to an
+unauthenticated caller — no permission code required. `deps.py`, `router.py`, `AuthService`,
+`CurrentUser`, `JwtAuthenticationProvider`, and `RbacAuthorizationService` all untouched. 7 new
+integration tests. Full suite **410/410 passing (403 prior + 7 new)**, ruff/black clean, boot smoke
+test passed, `app.openapi()["paths"]` confirmed to contain exactly the six expected routes — no scope
+creep. **QA Decision: Approved** (plain, no comments), recorded in
+`docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T61 batch` section. **`T61` is NOT yet
+committed, branched, or merged** — QA reviewed the uncommitted working tree directly; commit, branch,
+PR, and merge remain outstanding. `T62`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

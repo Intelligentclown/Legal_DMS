@@ -1920,3 +1920,60 @@ order — depends on `T57` (done); unlike `T58`/`T59`/`T60`, it will need
 authenticated caller — this is also the first point where a `T56`/`T57`-style 401 (missing/invalid
 bearer token) becomes reachable via a real HTTP request. Not authorized this session. Standing item:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-16 — T61 documentation synchronization (QA Approved, not yet merged)
+
+**Independently reconstructed repository state before touching anything**, per this role's own
+Repository-First Rule — not from prior conversation. `git status`/`git log` confirmed: `main` and
+`origin/main` both at `cca1077` (PR #29, `docs/t61-authorization` — governance-only, authorization
+commit `520026f`, no code); working tree **not clean**, carrying `T61`'s implementation
+(`presentation/api/v1/auth.py`), its tests (`tests/integration/test_auth_me.py`, untracked), and its
+documentation (`docs/ImplementationLog/Stage3/Phase3.md`, T61 batch appended) — none of it committed.
+
+**A prior pass in this same session had correctly halted** because `docs/ImplementationLog/Stage3/Phase3.md` carried no `QA Decision — T61 batch` section — the repository's own canonical location for
+that decision, per `docs/ImplementationLog/README.md`'s Documentation Ownership rules and
+`docs/HANDOFF/T61_HANDOFF.md` §9. That gap has since been closed: `Phase3.md` now carries a
+`QA Decision — T61 batch` section with **`Approved`** checked (plain, no comments), rendered by the
+QA Reviewer role directly against the uncommitted working tree (no PR existed yet to review instead)
+— scope verified via `git diff --stat` against every file `T61_HANDOFF.md` §4 forbids (all clean),
+7/7 new tests + 410/410 full suite passing against live Postgres, `ruff`/`black` clean, boot smoke
+test passed, `app.openapi()["paths"]` confirmed to contain exactly the six expected routes. This
+session independently re-read that section in full before treating it as authoritative, rather than
+trusting the task description's own claim of QA approval on its own.
+
+**Synchronized documentation to reflect this QA-approved-but-unmerged state** — deliberately not
+treating `T61` as `Done`, per this project's own standing rule that a task is `Done` only once its
+code and QA Decision are actually merged into `main` (`PROJECT_CHECKPOINT.md` §14). Updated:
+`IMPLEMENTATION_QUEUE.md` (`T61`'s row), `PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/
+`tests.backend` — test count 403 → 410; `git`/`completion.currentStageScopePercent` deliberately
+**not** bumped, since those track merged work only), `docs/AI_HANDOVER.md` (two sections — "Current
+Stage" and "What Should Be Implemented Next", each gaining a `T61` paragraph after `T60`'s, matching
+the established per-task pattern), `docs/Roadmap.md` (a `T61` paragraph after `T60`'s), this file, and
+`PROJECT_CHECKPOINT.md` (rewritten in place — `Safe Breakpoint` now reports **NO**, since uncommitted
+work exists, rather than rounding up to "clean" the way every prior version could).
+
+**Left deliberately unchanged, and why:** `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`
+(pre-Stage-3 staleness, repeatedly flagged across `T58`–`T60`'s own closeouts, never fixed — not
+introduced by `T61`, out of scope for a single-task synchronization pass); `docs/AI_HANDOVER.md`'s
+"Current Branch"/"Files Recently Modified"/"API Status" sections (stale since before Stage 3, same
+reasoning); `CHANGELOG.md` (no individual Stage 3 auth route has ever been changelogged pre-release —
+`T58`/`T59`/`T60` weren't either, consistent with not changing that now); no ADR (`T61` reuses
+already-approved infrastructure, no new architectural decision, matching `T58`–`T60`).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — only
+documentation. No commit, push, branch, or PR was created — this pass is documentation-synchronization
+only, per its own stop conditions. `T61` was not closed, merged, or declared `Done`; `T62` was not
+authorized or started. `docs/ImplementationLog/Stage3/Phase3.md`'s `T61` batch content (Objective
+through QA Decision) was read and cross-checked against the actual working-tree diff, not
+independently re-verified by re-running tests — that verification is the QA Reviewer role's own,
+already recorded, and is cited here rather than duplicated.
+
+**Documentation Updated:** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md` (this file), `PROJECT_CHECKPOINT.md`.
+
+**Next Session Goals:** `T61`'s own commit → feature branch → PR → merge (plus a follow-up
+documentation-closeout pass), mirroring `T58`–`T60`'s own pattern — this is process work on
+already-authorized, already-implemented, already-QA-approved work, not new development requiring
+fresh authorization. `T62` (user management routes) remains not started, not authorized, and must not
+begin until `T61` reaches a clean merged checkpoint. Standing item, still unaddressed:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
