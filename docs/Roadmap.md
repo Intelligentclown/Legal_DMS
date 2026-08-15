@@ -211,8 +211,25 @@ Authorization commit `58c8e40` (2026-08-13) predates implementation commit `76cd
 6/6 green run, ruff/black clean, boot smoke test passed. **QA Decision: Approved with comments** — no
 technical defects; two non-blocking comments preserved verbatim: Starlette's
 `HTTP_422_UNPROCESSABLE_ENTITY` deprecation warning is framework-internal, and the test-local
-`app.dependency_overrides[get_db]` pattern is safe only under sequential test execution. `T59`–`T67`
-remain not started, not authorized.
+`app.dependency_overrides[get_db]` pattern is safe only under sequential test execution.
+
+**`T59` (`POST /api/v1/auth/refresh`) is Done — the second route in this project, reusing `T58`'s
+infrastructure directly.** Refresh token in, rotated access + refresh tokens out, or a structured 401.
+`presentation/api/v1/auth.py` was extended, not `deps.py`/`router.py` — `T58`'s `AuthServiceDep` and
+router mount are reused unchanged. `RefreshRequest`/`RefreshResponse` are co-located, bare, matching
+`login`'s convention; `AuthService.refresh()` (`T50`/`T51`, unmodified) already collapses
+invalid/expired/revoked/unknown tokens into one generic `UnauthorizedError`, raised directly on
+failure. Authorization commit `163085d` (2026-08-15, 11:06:35 IST) predates implementation commit
+`56eb7c2` (11:17:32 IST, ~11 minutes later same day, PR #24, merged `721cec5`), confirmed by commit
+order — the **fourth** consecutive batch to get this right. 7 new integration tests against a real
+mounted app and live Postgres, reusing `T58`'s `httpx.AsyncClient`/`ASGITransport`/`get_db`-override
+test pattern verbatim. Full suite **398/398 passing (391 prior + 7 new) — personally re-run against
+live Postgres this session** (unlike `T58`'s closeout, where Docker was unreachable locally),
+ruff/black clean, boot smoke test passed; `app.openapi()["paths"]` independently confirmed to contain
+only `login`/`refresh`/`health`/`version` — no `T60`+ scope creep. **QA Decision: Approved with
+comments** — "no technical defects" per PR #24's own report; unlike `T58`'s PR, PR #24 does not
+itemize specific non-blocking comment text anywhere in the repository — recorded here exactly as
+given, not invented. `T60`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

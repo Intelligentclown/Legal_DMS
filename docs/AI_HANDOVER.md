@@ -250,7 +250,26 @@ Docker/Postgres was reachable locally. **QA Decision: Approved with comments** �
 two non-blocking comments preserved verbatim: (1) Starlette's `HTTP_422_UNPROCESSABLE_ENTITY`
 deprecation warning is framework-internal, not a `T58` defect; (2) the test-local
 `app.dependency_overrides[get_db]` pattern is safe under current sequential test execution only.
-`T59`–`T67` remain not started, not authorized. Backend test count is 391, still 9 frontend.
+**`T59` closeout (2026-08-15): Done — the fourth consecutive batch to get the authorization-recording
+discipline right.** `presentation/api/v1/auth.py` extended (not `deps.py`/`router.py` — `T58`'s
+`AuthServiceDep` reused unchanged) with `POST /api/v1/auth/refresh`: `RefreshRequest`/`RefreshResponse`
+co-located, bare, matching `login`'s convention; `refresh()` calls `AuthService.refresh()`
+(`T50`/`T51`, unmodified), which already collapses invalid/expired/revoked/unknown tokens into one
+generic `UnauthorizedError`, raised directly on failure, same pattern as `login`. 7 new integration
+tests in `tests/integration/test_auth_refresh.py` (valid refresh returns a new/different token pair,
+rotation prevents reuse, invalid/expired/revoked/unknown token each → 401, malformed body → 422),
+reusing `T58`'s `httpx.AsyncClient`/`ASGITransport`/`get_db`-override pattern verbatim. Authorization
+was recorded as its own commit (`163085d`, 2026-08-15 11:06:35 IST) **before** the implementation
+commit (`56eb7c2`, 11:17:32 IST, ~11 minutes later same day, PR #24, merged `721cec5`) — confirmed by
+commit order, extending `T56`/`T57`/`T58`'s streak to four. Full suite **398/398 passing (391 prior +
+7 new) — personally re-run against live Postgres this session** (Docker was reachable this time,
+unlike `T58`'s closeout); `ruff`/`black` clean and the boot smoke test passing re-verified directly;
+`app.openapi()["paths"]` independently confirmed to contain only `login`/`refresh`/`health`/`version`
+— no `T60`+ scope creep. **QA Decision: Approved with comments** — "no technical defects" per PR #24's
+own report; unlike `T58`'s PR, PR #24 does not itemize specific non-blocking comment text anywhere in
+the repository (PR body, both commit messages, and `gh api .../pulls/24/reviews` all checked) —
+recorded here exactly as given, not invented. `T60`–`T67` remain not started, not authorized. Backend
+test count is 398, still 9 frontend.
 
 ## Pending Work
 
@@ -510,15 +529,35 @@ app on a separate event-loop thread. Full suite 391/391 passing (386 prior + 5 n
 clean, boot smoke test passed — merged `76cd28f` → PR #22 → `e67da02`. **QA Decision: Approved with
 comments** — no technical defects; two non-blocking comments preserved verbatim: Starlette's
 `HTTP_422_UNPROCESSABLE_ENTITY` deprecation warning is framework-internal, and the test-local
-`app.dependency_overrides[get_db]` pattern is safe only under sequential test execution. `T59`+
-(refresh, logout, `/me`, user management, role assignment, cross-route tests, audit wiring) is now the
-next unfinished work, not yet started, not
+`app.dependency_overrides[get_db]` pattern is safe only under sequential test execution.
+
+**`T59` followed — the second route in this project, reusing `T58`'s infrastructure directly, and the
+fourth consecutive batch to hold the authorization-recording discipline.** `presentation/api/v1/auth.py`
+was extended (not `deps.py`/`router.py` — `T58`'s `AuthServiceDep` and router mount reused unchanged)
+with `POST /api/v1/auth/refresh`: refresh token in, rotated access + refresh tokens out, or a
+structured 401 via the same `result.error`-raised-directly pattern `login` established.
+`RefreshRequest`/`RefreshResponse` are co-located, bare, matching `login`'s convention. The authorized
+scope (recorded in `163085d`, 2026-08-15 11:06:35 IST, **before** implementation commit `56eb7c2`,
+11:17:32 IST, ~11 minutes later same day, confirmed by commit order) was: the route, its schemas,
+reuse of the existing `AuthServiceDep`, and tests covering successful refresh/rotation and
+invalid/expired/revoked/unknown tokens — `T60`–`T67` explicitly out of scope. `T59` is now **Done**:
+7 new integration tests in `tests/integration/test_auth_refresh.py`, reusing `T58`'s
+`httpx.AsyncClient`/`ASGITransport`/`get_db`-override pattern verbatim. Full suite **398/398 passing
+(391 prior + 7 new) — personally re-run against live Postgres this session** (Docker was reachable
+this time, unlike `T58`'s closeout), `ruff`/`black` clean, boot smoke test passed — merged `56eb7c2` →
+PR #24 → `721cec5`. `app.openapi()["paths"]` independently confirmed to contain only
+`login`/`refresh`/`health`/`version` — no `T60`+ scope creep. **QA Decision: Approved with comments**
+— "no technical defects" per PR #24's own report; unlike `T58`'s PR, PR #24 does not itemize specific
+non-blocking comment text anywhere in the repository (PR body, both commit messages, and
+`gh api .../pulls/24/reviews` all checked) — recorded here exactly as given, not invented. `T60`+
+(logout, `/me`, user management, role assignment, cross-route tests, audit wiring) is now the next
+unfinished work, not yet started, not
 authorized. See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
 full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
-`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56`, `T57`, and now `T58` have all
-held it, three consecutive successes now; `T59`+ should keep holding the same standard. Outside of
+`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56`, `T57`, `T58`, and now `T59` have
+all held it, four consecutive successes now; `T60`+ should keep holding the same standard. Outside of
 Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
