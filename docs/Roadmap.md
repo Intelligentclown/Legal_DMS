@@ -229,7 +229,28 @@ ruff/black clean, boot smoke test passed; `app.openapi()["paths"]` independently
 only `login`/`refresh`/`health`/`version` — no `T60`+ scope creep. **QA Decision: Approved with
 comments** — "no technical defects" per PR #24's own report; unlike `T58`'s PR, PR #24 does not
 itemize specific non-blocking comment text anywhere in the repository — recorded here exactly as
-given, not invented. `T60`–`T67` remain not started, not authorized.
+given, not invented.
+
+**`T60` (`POST /api/v1/auth/logout`) is Done — the third route in this project, reusing `T58`'s
+infrastructure directly, and the fifth consecutive batch to hold the authorization-recording
+discipline.** Refresh token in, `204 No Content` out. `presentation/api/v1/auth.py` was extended;
+`deps.py`, `router.py`, and `AuthService` itself were **not modified** — an explicit "must not modify"
+constraint the authorization stated outright. `LogoutRequest` is co-located; `AuthService.revoke()`
+(`T50`/`T51`, unmodified) returns `None`, never a `Result` — an unknown or already-revoked token is a
+silent no-op, not a failure — so the route mirrors `presentation/common/crud_router_factory.py`'s
+`delete_item`, the only existing "action succeeded, nothing to return" precedent. Authorization commit
+`726e8cf` (2026-08-15, 11:57:59 IST) predates implementation commit `5b9bf57` (12:05:34 IST, ~8
+minutes later same day, PR #26, merged `941ed42`), confirmed by commit order — the **fifth**
+consecutive batch to get this right. 5 new integration tests against a real mounted app and live
+Postgres, reusing `T58`/`T59`'s test pattern verbatim, including one that verifies revocation directly
+against the stored `RefreshToken` row. Full suite **403/403 passing (398 prior + 5 new) — personally
+re-run against live Postgres this session**, ruff/black clean, boot smoke test passed;
+`app.openapi()["paths"]` independently confirmed to contain only
+`login`/`refresh`/`logout`/`health`/`version` — no `T61`+ scope creep. **QA Decision: Approved** — a
+deliberate distinction from `T58`/`T59`'s "with comments," not an oversight: PR #26's body states "no
+defects" without the "with comments" qualifier the two prior batches both carried, and itemizes no
+comment text anywhere — recorded as the disposition its own source material actually states. `T61`–`T67`
+remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

@@ -8,13 +8,13 @@ Started: 2026-08-15
 
 Completed:
 
-Related Tasks: T58, T59
+Related Tasks: T58, T59, T60
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d).
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf).
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15).
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15).
 
 Release:
 
@@ -424,3 +424,204 @@ gap rather than silently filled in.
 `T60`+ was not started, authorized, or touched by this review. `T59` is now marked `Done` — code, QA
 decision, and documentation are all reconciled. See this file's own metadata block (`Status: In
 Progress` — Phase 3 continues with `T60`–`T65`, not yet started or authorized).
+
+## Objective — T60 batch
+
+Continue Stage 3 Phase 3 (routes) with `T60`: `POST /api/v1/auth/logout` — refresh token in, `204 No
+Content` out. Reuses `T58`'s established route/schema/DI-wiring conventions directly, as `T59` did.
+
+**Authorization / Scope (recorded before implementation, commit `726e8cf`, 2026-08-15 11:57:59 IST —
+implementation commit `5b9bf57` followed at 12:05:34 IST the same day, ~8 minutes later, confirmed by
+commit order, not assumed):** the project owner explicitly authorized `T60`. Approved scope: the
+logout route in the existing `presentation/api/v1/auth.py`, using the existing `AuthServiceDep` and
+`AuthService.revoke()`, with appropriate request/response handling and tests explicitly verifying
+idempotent behavior — a valid refresh token is revoked, an already-revoked token succeeds without
+error, and an unknown token also succeeds without error. **Must not modify** `AuthService`,
+`deps.py`, `router.py`, or the existing login/refresh behavior — an explicit constraint, not merely an
+expected reuse pattern like `T59`'s. `T61`–`T67` remain explicitly out of scope and unauthorized.
+**This is the fifth consecutive Stage 3 batch (after `T56`, `T57`, `T58`, `T59`) where authorization
+was actually recorded before implementation began.**
+
+## Tasks Implemented — T60 batch
+
+- **T60 — `POST /api/v1/auth/logout`.** `presentation/api/v1/auth.py` extended (not `deps.py`,
+  `router.py`, or `AuthService` — the authorization's explicit "must not modify" constraint honored
+  exactly): `LogoutRequest` (`refresh_token`), co-located. `logout()` calls `AuthService.revoke()`
+  (`T50`/`T51`, unmodified) — which returns `None`, never a `Result`, since an unknown or
+  already-revoked token is a silent no-op, not a failure — so the route has no error branch, unlike
+  `login`/`refresh`. Returns `204 No Content` with no body, mirroring
+  `presentation/common/crud_router_factory.py`'s `delete_item`, the only existing precedent in this
+  codebase for "the action succeeded, there's nothing to return."
+
+## Files Modified — T60 batch
+
+- `backend/src/app/presentation/api/v1/auth.py` — modified: `LogoutRequest`, `logout()` appended
+  after `refresh()`; module docstring updated to describe all three routes.
+- `backend/tests/integration/test_auth_logout.py` — **new**: `TestLogout` class, 5 tests (see below),
+  reusing `test_auth_login.py`/`test_auth_refresh.py`'s `client` fixture/`_make_user()`/`_login()`
+  helper pattern verbatim, plus a local `_get_stored_token()` helper.
+- `IMPLEMENTATION_QUEUE.md` — the `T60` row corrected (authorization commit `726e8cf`, before this
+  closeout).
+- `docs/ImplementationLog/Stage3/Phase3.md` — this file (T60 batch appended).
+
+No new dependency; no other route; `deps.py`, `router.py`, `AuthService`, repository implementations,
+JWT/security code, `main.py`, `container.py`, and every `T52`–`T59` file otherwise untouched — verified
+against the authorization's explicit constraint, not just the usual "no scope creep" check.
+
+## Tests Added — T60 batch
+
+5 in `backend/tests/integration/test_auth_logout.py`'s `TestLogout`, against a real mounted `app` and
+real Postgres via `httpx.AsyncClient`/`ASGITransport` (reusing `T58`/`T59`'s `get_db`-override
+pattern):
+
+- `test_valid_refresh_token_is_revoked` — a real login's refresh token, logged out → `204`, empty
+  body, and the stored `RefreshToken` row's `revoked_at` is independently verified non-`null`.
+- `test_already_revoked_token_succeeds` — logging out twice with the same token: both calls return
+  `204`, proving the idempotent no-op behavior the authorization explicitly required.
+- `test_unknown_token_succeeds` — a syntactically valid, correctly-signed token that was never
+  actually issued (no matching stored row) → `204`.
+- `test_malformed_token_string_succeeds` — a syntactically bogus string → `204` (no JWT-decode error
+  surfaces as a failure, since `revoke()` never raises).
+- `test_malformed_request_body_returns_422` — an empty body.
+
+## Test Results — T60 batch
+
+- New tests in isolation: `tests/integration/test_auth_logout.py` — **5/5 passed**, per PR #26's own
+  test plan.
+- Full backend suite: **403 passed** (398 prior + 5 new), 0 failed, 0 skipped. **Personally re-run
+  this session** — `uv run pytest -q` against live Postgres (`docker ps` confirmed
+  `legal_dms_postgres` healthy) — matching PR #26's own reported count exactly.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (196 files unchanged), re-verified
+  directly.
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly;
+  `app.openapi()["paths"]` independently confirmed to contain exactly `/api/v1/auth/login`,
+  `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/health`, `/api/v1/version` — no `T61`+
+  route present.
+- **Scope check:** `git show --stat 5b9bf57` confirms exactly two files changed
+  (`presentation/api/v1/auth.py`, `tests/integration/test_auth_logout.py` (new)) — no `deps.py`,
+  `router.py`, `AuthService`, or other `T52`–`T59` file touched, honoring the authorization's explicit
+  "must not modify" constraint, not just the general scope boundary.
+
+## Design Decisions — T60 batch
+
+- **`204 No Content`, not a token pair or a wrapped response.** `AuthService.revoke()` has nothing to
+  return — mirrors `delete_item`'s existing "action succeeded, nothing to return" precedent rather
+  than inventing a new response shape for the one route in this codebase with genuinely nothing to
+  report back.
+- **No error branch, by design, not by omission.** `AuthService.revoke()`'s `None`-returning,
+  never-raising contract (established at `T50`/`T51`) makes logout structurally different from
+  `login`/`refresh` — there is no `Result.error` to raise, so `logout()` doesn't have (and shouldn't
+  invent) a failure path. `test_malformed_token_string_succeeds` and `test_unknown_token_succeeds`
+  exist specifically to prove this holds through the real route, not just at the service layer.
+- **Test file reuses `T58`/`T59`'s fixture pattern verbatim**, plus one new helper
+  (`_get_stored_token()`) to assert directly against the database row rather than trusting the HTTP
+  response alone — necessary here since a `204` alone can't distinguish "actually revoked" from "silently
+  ignored," the same ambiguity the idempotent-no-op design intentionally creates.
+
+## Problems Encountered — T60 batch
+
+**None on the technical side.** First-run tests, no lint/format fixes, no mid-implementation design
+question deferred — the smallest, lowest-risk Phase 3 batch so far, reusing rather than inventing, and
+touching fewer files than either `T58` or `T59`.
+
+**Governance side — continuing, not restarting, the streak `T56`/`T57`/`T58`/`T59` began:**
+authorization commit `726e8cf` (11:57:59 IST) precedes implementation commit `5b9bf57` (12:05:34 IST)
+the same day, confirmed by commit order and timestamp, not assumed. This is the **fifth** consecutive
+Stage 3 batch to get this right, after `T52`–`T55`'s four consecutive misses. Those four findings
+remain on record in `Phase2.md`, unerased.
+
+**Documentation-verification side — a different gap than `T59`'s, named plainly rather than
+conflated with it:** PR #26's own body states `QA independently reviewed: no defects` — this phrasing
+**omits** the "with comments" qualifier `T58`'s and `T59`'s PR bodies both carried, and (like `T59`)
+itemizes no specific comment text anywhere (checked the PR body, both commit messages, and `gh api
+.../pulls/26/reviews`, empty). Read literally, "no defects" without "with comments" is most
+consistent with a plain `Approved` disposition, not `Approved with comments` — this closeout records
+`Approved`, not inheriting `T58`/`T59`'s "with comments" label by pattern-matching on the two prior
+batches rather than on this batch's own actual wording.
+
+## Deferred Work — T60 batch
+
+- **`T61`–`T67`** — not started, per `T60`'s own scope: `T61` (`/me`), `T62`/`T63` (user management,
+  role assignment), `T64` (cross-route integration tests), `T65` (audit-log wiring).
+- **A feature branch, commit, and PR for `T60`'s changes** — already resolved by the time this section
+  is written: `feature/stage3-t60-logout` → `5b9bf57` → PR #26 → merged `941ed42`. Recorded here for
+  consistency with every prior batch's Deferred Work section, not because it was ever actually open.
+
+## Future Considerations — T60 batch
+
+- **The QA-decision-wording distinction named above** — if a future session or the project owner can
+  confirm whether `T60`'s QA review genuinely differed in outcome from `T58`/`T59` (plain `Approved`
+  vs. `Approved with comments`) or whether "no defects" was simply shorthand for the same disposition,
+  correct this record accordingly rather than leaving two closeouts silently disagreeing on what the
+  wording difference means.
+- `T61` (`GET /api/v1/auth/me`) is the next natural route — unlike `T58`/`T59`/`T60`, it will need
+  `CurrentUserDep`/`RequirePermission` (`T52`–`T57`), not just `AuthServiceDep`, since it requires an
+  authenticated caller rather than accepting arbitrary credentials/tokens in the body. This is also
+  the first point where a `T56`/`T57`-style 401 (missing/invalid bearer token) becomes reachable via a
+  real HTTP request, not just `T58`'s login-failure 401 or `T59`'s refresh-failure 401.
+
+## Reviewer Checklist — T60 batch
+
+Self-assessed by the Documentation Manager role against the repository's actual current state, since
+no separate Backend Developer self-assessment exists in the repository for this batch (the same
+situation every prior Phase 2/3 batch's own Reviewer Checklist notes).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+☑ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **ADR updated (if required):** `□` — not required: a third route reusing already-approved (`T50`/
+  `T51`/`T58`) infrastructure, no new architectural decision.
+- **No scope creep:** `☑` — the code stayed exactly within `T60`'s authorized scope, including the
+  explicit "must not modify `AuthService`/`deps.py`/`router.py`" constraint (verified above: two
+  files, no other touch), and — for the fifth consecutive batch — so did the authorization-recording
+  process.
+- **Ready for QA:** `☑` — this log states every fact a reviewer would need: the authorized scope, the
+  implementation, test evidence, and the authorization-provenance record, all in one place.
+
+## QA Decision — T60 batch
+
+```
+QA Decision (T60 batch)
+
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role (reported for this closeout, transcribed into the repository, not
+invented here — this Documentation Manager pass renders no new technical QA decision). **Technical
+review: no defects found**, per PR #26's own report. `T60`'s implementation is correct — 403/403 full
+suite (398 prior + 5 new, personally re-run against live Postgres this session), `ruff`/`black` clean,
+boot smoke test passed (`/api/v1/auth/logout` confirmed in `app.openapi()["paths"]`), no
+`T52`–`T59`/other-route scope creep (`git show --stat 5b9bf57` independently confirms the file list),
+and the authorization's explicit "must not modify `AuthService`/`deps.py`/`router.py`" constraint was
+honored exactly. Authorization provenance independently confirmed: `726e8cf` (2026-08-15, 11:57:59
+IST) precedes implementation commit `5b9bf57` (2026-08-15, 12:05:34 IST, PR #26) by commit order and
+timestamp.
+
+**Why `Approved`, not `Approved with comments` (a deliberate distinction from `T58`/`T59`, not an
+oversight):** PR #26's body states "no defects" without the "with comments" qualifier `T58`'s and
+`T59`'s PR bodies both carried, and — like `T59` — itemizes no comment text anywhere in the
+repository. Rather than defaulting to `Approved with comments` by pattern-matching on the two
+immediately preceding batches, this closeout records the disposition its own source material actually
+states: a plain `Approved`.
+
+`T61`+ was not started, authorized, or touched by this review. `T60` is now marked `Done` — code, QA
+decision, and documentation are all reconciled. See this file's own metadata block (`Status: In
+Progress` — Phase 3 continues with `T61`–`T65`, not yet started or authorized).
