@@ -1743,3 +1743,59 @@ Phase 3 (routes) task, depending on `T57` (done). Not authorized this session. T
 first point at which the deferred `TestClient`-level HTTP verification (`T56`'s and `T57`'s shared
 QA comment) becomes possible to actually build. Standing item:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed.
+
+## Session: 2026-08-15 — T58 final closeout (Stage 3 Phase 3 begins)
+
+**Objectives:** As Documentation Manager, close out `T58` once its QA gate cleared. Independently
+verify, before touching anything, the repository state and PR #22 directly — not transcribe the
+task instructions on faith — then update project-management documentation to mark `T58` `Done`
+following the `T56`/`T57` closeout pattern exactly: no backend source or test files touched, `T58`
+not reimplemented, QA's decision and both of its comments preserved verbatim, and full provenance
+(authorization before implementation, PR, merge) recorded.
+
+**What happened:** `git log --oneline -10` and `git status` confirmed `main`/`origin/main` both at
+`e67da02`, working tree clean. `gh pr view 22` independently confirmed `MERGED`, base `main`, two
+commits (`58c8e40` "docs(project): record T58 authorization before implementation", authored
+2026-08-13T11:47:39Z — governance-only, `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`, no code; and
+`76cd28f` "feat(auth): add POST /api/v1/auth/login", authored 2026-08-15T05:00:40Z — four files,
+`presentation/api/deps.py`, the new `presentation/api/v1/auth.py`, `presentation/api/v1/router.py`,
+the new `tests/integration/test_auth_login.py`), authorization preceding implementation by commit
+order and by nearly two full days — the **third** consecutive Stage 3 batch to hold this discipline,
+after `T56`/`T57`. `statusCheckRollup` showed **6/6 CI checks green** (two "Lint, format, and test"
+runs each for Backend/Frontend, two "Build verification" runs). PR #22's own description was read in
+full and cross-checked: 391/391 backend tests (386 prior + 5 new), ruff/black clean, boot smoke test
+passed with `/api/v1/auth/login` confirmed in `app.openapi()["paths"]`, and both QA comments
+transcribed verbatim rather than paraphrased. Read `58c8e40`'s full commit message and `76cd28f`'s
+actual diff directly (not summarized) to document the route/schema/wiring/test design accurately.
+Locally re-verified `ruff check`, `black --check` (both clean, no DB required) and the boot smoke
+test (succeeds, no DB required); the Postgres-backed integration suite itself could **not** be
+personally re-run this session — this environment's Docker daemon is unreachable (`docker ps` fails
+to connect) — disclosed explicitly in `Phase3.md`/`PROJECT_STATE.json` rather than silently claiming
+a local re-run that didn't happen; the 391/391 figure rests on PR #22's own report plus the
+independently-queried CI green run, not on this session's own execution. Since `T58` is Phase 3's
+first task, created `docs/ImplementationLog/Stage3/Phase3.md` (new file, per the ImplementationLog
+convention: a phase log is created the moment that phase's implementation actually begins) rather
+than appending to `Phase2.md` (`Status: Done`, closed with `T57`) — full Objective through QA
+Decision sections for the `T58` batch. Corrected `IMPLEMENTATION_QUEUE.md` (`T58`'s row and the
+Stage 3 narrative's trailing summary), `PROJECT_STATE.json` (`currentStage`/`stages`/`completion`/
+`tests.backend`/`git` updated, a new `backendSubsystems` entry added — validated as well-formed JSON
+after editing), `docs/AI_HANDOVER.md` (two sections), and `docs/Roadmap.md` — all now state `T58` is
+`Done`, Phase 3 has begun, and `T59`+ is next, unauthorized. `PROJECT_CHECKPOINT.md` rewritten in
+place per its own maintenance rule.
+
+**Documentation Updated:** `docs/ImplementationLog/Stage3/Phase3.md` (new), `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file),
+`PROJECT_CHECKPOINT.md`.
+
+**Confirmed:** no `T58` (or any) implementation/test file was modified — `T58` was not reimplemented;
+`T59`+ was not started or authorized; the QA Decision (`Approved with comments`) and both of its
+non-blocking comments were recorded exactly as reported, not altered; historical `T52`–`T55`
+governance findings and `T56`/`T57` records were left untouched; no push to `main` was performed by
+this session — this closeout is prepared on its own branch/PR per the established process, not
+committed directly.
+
+**Next Session Goals:** `T59` (`POST /api/v1/auth/refresh`) is the next unfinished task in Phase 3's
+task order — depends on `T57` (done); not authorized this session. Standing items:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed;
+this session's local environment has no reachable Docker/Postgres, so any future session needing to
+independently re-run the DB-backed integration suite will need that resolved first.

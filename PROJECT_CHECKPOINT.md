@@ -8,36 +8,32 @@ fix this file.*
 
 ## 1. Last Verified State
 
-- **Verified:** 2026-08-13, this session — directly against `git`/`gh`, not from prior conversation.
+- **Verified:** 2026-08-15, this session — directly against `git`/`gh`, not from prior conversation.
 - **Current branch:** `main`
-- **HEAD commit:** `472f7cb`
-- **`origin/main`:** `472f7cb` — synchronized with local `main`.
-- **Working tree:** **not clean as of this update** — see the note immediately below.
-- **Latest relevant merge/PR:** PR #20, `feature/stage3-t57-401-403` → `472f7cb` ("Merge pull
-  request #20 from Intelligentclown/feature/stage3-t57-401-403") — carries two commits:
-  `65dd563` ("docs(project): T57 architecture clarification and authorization" — governance/
-  analysis only, no code) and `7c9fc3a` ("feat(auth): distinguish unauthorized and forbidden
-  requests" — `T57`'s implementation). `gh pr view 20` independently confirms `MERGED`, its own
-  description cross-checked against directly re-run test/lint/boot results — all matching.
-
-**Important note on working-tree state:** this checkpoint is itself part of `T57`'s documentation
-closeout pass, currently **uncommitted** in the working tree, along with `IMPLEMENTATION_QUEUE.md`,
-`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/ImplementationLog/Stage3/Phase2.md`,
-`docs/Roadmap.md`, and `docs/SessionReport.md`. `T57`'s **code** is fully merged (`472f7cb`); `T57`'s
-**documentation record** of that fact is drafted but not yet committed or pushed, per explicit
-instruction not to commit/push/PR as part of this pass. See §11.
+- **HEAD commit:** `e67da02`
+- **`origin/main`:** `e67da02` — synchronized with local `main`.
+- **Working tree:** clean at the start of this session's documentation pass; this pass's own edits
+  are being committed to their own `docs/t58-closeout` branch, not directly to `main` — see §11.
+- **Latest relevant merge/PR:** PR #22, `feature/stage3-t58-auth-login` → `e67da02` ("Merge pull
+  request #22 from Intelligentclown/feature/stage3-t58-auth-login") — carries two commits: `58c8e40`
+  ("docs(project): record T58 authorization before implementation" — governance-only, no code,
+  authored 2026-08-13T11:47:39Z) and `76cd28f` ("feat(auth): add POST /api/v1/auth/login" — `T58`'s
+  implementation, authored 2026-08-15T05:00:40Z). `gh pr view 22` independently confirms `MERGED`,
+  its own description cross-checked against directly re-run lint/boot results — all matching. CI
+  (`statusCheckRollup`) confirmed 6/6 green.
 
 ## 2. Current Stage
 
 - **Stage:** 3 — Authentication & Authorization (`docs/Roadmap.md`, `IMPLEMENTATION_QUEUE.md`).
-- **Phase:** 2 — wiring auth into the request pipeline (`T52`–`T57`) is **complete in full**
-  (code-wise; documentation closeout pending, see §11). Phase 3 (routes, `T58`+) has not started.
+- **Phase:** 3 — routes. Begun with `T58` (`POST /api/v1/auth/login`), the first route in this
+  project — **Done in code, merged.** `T59`–`T65` not started, not authorized.
 - **Overall project progress:** Stages 0–2 complete (infrastructure/framework/schema only, 0
-  business features by design). Stage 3 is the first business-adjacent feature; Phase 0–2 all done.
-- **Completed task range (code merged into `main`):** `T41`–`T57`.
-- **Documentation closeout status:** `T41`–`T56` fully reconciled and merged. `T57`'s closeout is
-  drafted (this pass) but not yet committed/merged — see §11.
-- **Next unfinished task:** `T58` — **not authorized**.
+  business features by design). Stage 3 is the first business-adjacent feature; Phase 0–2 complete,
+  Phase 3 underway.
+- **Completed task range (code merged into `main`):** `T41`–`T58`.
+- **Documentation closeout status:** `T41`–`T57` fully reconciled and merged. `T58`'s closeout is
+  drafted this session and being committed to its own branch/PR (not directly to `main`) — see §11.
+- **Next unfinished task:** `T59` (`POST /api/v1/auth/refresh`) — **not authorized**.
 
 ## 3. Completed Tasks
 
@@ -49,130 +45,144 @@ instruction not to commit/push/PR as part of this pass. See §11.
 | T54 | Done | `RequirePermission(...)` FastAPI dependency factory | code+reconciliation PR #12 (`6396f6b`); doc closeout PR #13 (`512c91e`) |
 | T55 | Done | Request-scoped `Depends()` wiring of real providers in `deps.py` | code+governance PR #15 (`b094436`); doc closeout PR #16 (`4e03e79`) |
 | T56 | Done | Real bearer-token extraction (`get_bearer_token()`) in `get_current_user()` | authorization PR #17 (`89a3a5e`); implementation PR #18 (`d69c4eb`); doc closeout PR #19 (`47c854f`) |
-| **T57** | **Code Done; doc closeout drafted, uncommitted** | Distinguish `UnauthorizedError`/401 (unauthenticated) from `ForbiddenError`/403 (authenticated-but-unpermitted) in `RequirePermission` | authorization commit `65dd563` + implementation `7c9fc3a`, both PR #20 (`472f7cb`) |
+| T57 | Done | Distinguish `UnauthorizedError`/401 from `ForbiddenError`/403 in `RequirePermission` — Phase 2 complete | authorization+implementation PR #20 (`472f7cb`); doc closeout PR #21 (`b2606ed`) |
+| **T58** | **Code Done; doc closeout drafted, being committed to its own branch/PR this session** | `POST /api/v1/auth/login` — the first route in this project | authorization commit `58c8e40` + implementation `76cd28f`, both PR #22 (`e67da02`) |
 
-Full technical detail for `T52`–`T57` lives in `docs/ImplementationLog/Stage3/Phase2.md` — not
+Full technical detail for `T52`–`T57` lives in `docs/ImplementationLog/Stage3/Phase2.md`; `T58` lives
+in `docs/ImplementationLog/Stage3/Phase3.md` (new this session, Phase 3's first entry) — not
 duplicated here.
 
 ## 4. Current Task
 
-**Task:** `T57` — distinguish unauthorized (401) from forbidden (403) in `RequirePermission`.
+**Task:** `T58` — `POST /api/v1/auth/login` (email + password in, access + refresh tokens out, or a
+structured 401).
 
-- **Authorization status:** `T57`'s original test-only wording (including a `configure_container()`
-  criterion `T55` had already made obsolete) was corrected by a pre-implementation architecture
-  clarification, then authorized (Option 1: `_require_permission` checks `is_authenticated` before
-  calling `AuthorizationService`) as its own dedicated commit (`65dd563`) **before** the
-  implementation commit (`7c9fc3a`) existed — the **second** consecutive Stage 3 Phase 2 batch to
-  satisfy this discipline, after `T56`. Confirmed by direct commit-timestamp comparison
-  (`65dd563`: 15:13:48; `7c9fc3a`: 15:48:36, same day), not assumed.
-- **Implementation status:** complete, merged into `main` (`presentation/api/deps.py`'s
-  `_require_permission` gains an `is_authenticated` short-circuit; 3 new tests + 1 updated in
-  `tests/unit/test_auth.py`). `AuthorizationService`'s port, `RbacAuthorizationService`, and
-  `PermissiveAuthorizationService` were **not** modified.
-- **QA status:** **Approved with comments** — no technical defects found. The comment preserves, as
-  a non-blocking historical/forward-looking observation (already named in `65dd563`'s own
-  authorization text, not a new QA finding), the deferral of true `TestClient`-level HTTP
-  verification (a real request, a real bearer token, an actual `401`/`403` response) to `T58`+ —
-  no protected route exists yet for such a test to exercise.
-- **Documentation status:** drafted this session (`docs/ImplementationLog/Stage3/Phase2.md`'s T57
-  batch, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
-  `docs/SessionReport.md`, this file) but **not yet committed or pushed** — see §11.
-- **Dependencies:** `T55`, `T56` (both done).
-- **Is `T57` finished?** **Code: yes, fully merged.** **Phase 2 as a whole: complete in code.**
-  **Documentation: drafted, pending its own commit/PR** — not yet a closed loop the way `T52`–`T56`
-  each eventually became.
+- **Authorization status:** recorded as its own dedicated, documentation-only commit (`58c8e40`,
+  2026-08-13) **before** the implementation commit (`76cd28f`, 2026-08-15) existed — the **third**
+  consecutive Stage 3 batch to satisfy this discipline, after `T56`/`T57`. Confirmed by commit order
+  and by nearly two full days' separation, not assumed.
+- **Implementation status:** complete, merged into `main` (`presentation/api/v1/auth.py` new;
+  `presentation/api/deps.py` gains `get_auth_service()`/`AuthServiceDep`; `router.py` mounts the new
+  router; 5 new integration tests in `tests/integration/test_auth_login.py`).
+- **QA status:** **Approved with comments** — no technical defects found. Two non-blocking comments,
+  preserved verbatim: (1) Starlette's `HTTP_422_UNPROCESSABLE_ENTITY` deprecation warning surfaced in
+  test output is framework-internal, not a `T58` defect; (2) the test-local
+  `app.dependency_overrides[get_db]` pattern is safe under the current sequential test execution and
+  should only be reconsidered if parallel test execution is introduced.
+- **Documentation status:** drafted this session (`docs/ImplementationLog/Stage3/Phase3.md` — new
+  file, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
+  `docs/SessionReport.md`, this file), being committed to `docs/t58-closeout` and opened as its own
+  PR against `main` this session, per explicit instruction to follow the established branch → commit
+  → PR process rather than push to `main` directly — see §11.
+- **Dependencies:** `T57` (done).
+- **Is `T58` finished?** **Code: yes, fully merged.** **Documentation: drafted, being committed to
+  its own branch/PR this session** — following the same eventual pattern `T52`–`T57` each reached.
 
 ## 5. Next Cycle
 
-- **Next task:** `T58` — `POST /api/v1/auth/login` (email + password in, access + refresh tokens
-  out, or a structured 401) — the first Phase 3 (routes) task.
-- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T58`'s dependency as `T57` — now
-  `Done` (code) on `main`, and the last task of Phase 2.
-- **Dependencies:** `T57` (done, code; doc closeout pending).
-- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T58` row
-  on `main` carries no `Done`/authorization marker. No project-owner authorization for `T58` exists
+- **Next task:** `T59` — `POST /api/v1/auth/refresh` (refresh token in, new access + rotated refresh
+  token out).
+- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T59`'s dependency as `T57` — done;
+  it is the next unstarted row in Phase 3's task order after `T58`.
+- **Dependencies:** `T57` (done). `T58` is not a hard code dependency for `T59` (both depend on `T57`
+  directly), but this project's "don't start the next task before the previous one reaches a clean
+  merged checkpoint" rule still applies to `T58`'s documentation closeout — see §10.
+- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T59` row on
+  `main` carries no `Done`/authorization marker. No project-owner authorization for `T59` exists
   anywhere in the repository as of this checkpoint.
 - **What must happen before implementation begins:**
-  1. `T57`'s own documentation closeout (this pass) needs its own commit and PR, merged into `main`
-     — mirroring exactly how `T52`–`T56` each eventually closed. See §11 for the exact file list.
-  2. The project owner authorizes `T58` — and, since `T56`/`T57` have now **both** demonstrated this
-     can be done correctly (authorization committed *before* implementation, two batches running),
-     whoever authorizes `T58` should follow that pattern.
+  1. `T58`'s own documentation closeout (this pass) needs its own commit and PR, merged into `main` —
+     mirroring exactly how `T52`–`T57` each eventually closed. This session commits it to
+     `docs/t58-closeout` and opens the PR, but does not merge it — see §11.
+  2. The project owner authorizes `T59` — and, since `T56`/`T57`/`T58` have now **all three**
+     demonstrated authorization-before-implementation can be done correctly, whoever authorizes `T59`
+     should follow that same pattern.
   3. The Backend Developer role performs the `docs/prompts/BackendDeveloper.md` §5 checkpoint before
      writing any code.
-  4. `T58` is also the first point where the `TestClient`-level HTTP verification `T56`'s and `T57`'s
-     shared QA comment named becomes buildable — worth planning for as part of `T58`'s own test
-     coverage, not a separate task.
 
-**`T57`'s code being merged and `T58` being unauthorized are two separate facts — do not conflate
-them.** Nor does `T57`'s code merge, on its own, mean `T57` is fully closed — its documentation
-record still needs its own commit/PR (§11).
+**`T58`'s code being merged and `T59` being unauthorized are two separate facts — do not conflate
+them.** Nor does `T58`'s code merge, on its own, mean `T58` is fully closed — its documentation record
+still needs its own PR merged into `main` (§11).
 
 ## 6. Repository State
 
-- **`main`:** `472f7cb`
-- **`origin/main`:** `472f7cb` (synchronized)
-- **Latest merge commit:** `472f7cb` (PR #20, `feature/stage3-t57-401-403`)
-- **Latest feature branch relevant to the completed task:** `feature/stage3-t57-401-403`
-  (`65dd563`, `7c9fc3a`) — merged, safe to delete if not already.
-- **Working-tree status:** **not clean** — seven documentation/project-management files modified in
-  place by this session's `T57` closeout pass, none committed (`IMPLEMENTATION_QUEUE.md`,
-  `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/ImplementationLog/Stage3/Phase2.md`,
-  `docs/Roadmap.md`, `docs/SessionReport.md`, `PROJECT_CHECKPOINT.md` — this file).
-- **Any task implementation sitting uncommitted?** No — `T57`'s code is fully committed and merged.
-- **Any task documentation sitting uncommitted?** **Yes — this session's own `T57` closeout**, per
-  explicit instruction not to commit/push/PR as part of this pass.
-- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -10` shows `472f7cb
-  (HEAD -> main, origin/main, origin/HEAD) Merge pull request #20 …`, and `gh pr view 20` confirms
+- **`main`:** `e67da02`
+- **`origin/main`:** `e67da02` (synchronized, at session start)
+- **Latest merge commit:** `e67da02` (PR #22, `feature/stage3-t58-auth-login`)
+- **Latest feature branch relevant to the completed task:** `feature/stage3-t58-auth-login`
+  (`58c8e40`, `76cd28f`) — merged, safe to delete if not already.
+- **This session's own branch:** `docs/t58-closeout` — carries this session's seven documentation
+  file changes, to be committed and opened as its own PR against `main`, not merged by this session.
+- **Any task implementation sitting uncommitted?** No — `T58`'s code is fully committed and merged.
+- **Any task documentation sitting uncommitted (pre-this-session's-commit)?** Yes — this session's own
+  `T58` closeout, being moved onto `docs/t58-closeout` and opened as a PR, per explicit instruction to
+  follow the established process rather than push to `main` directly.
+- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -10` shows `e67da02
+  (HEAD -> main, origin/main, origin/HEAD) Merge pull request #22 …`, and `gh pr view 22` confirms
   `MERGED` with a description matching the technical claims recorded here.
 
 ## 7. Test / Quality Status
 
-All figures **re-verified this session, directly on `main` at `472f7cb`**:
+Figures **re-verified this session where locally reproducible; DB-backed suite corroborated via `gh`,
+not personally re-run — see the note below.**
 
-- **Backend tests:** `uv run pytest -q` — **386 passed, 0 failed, 0 skipped** (includes
-  Postgres-backed integration tests). PR #20's own description additionally cites 127/127
-  integration tests specifically — consistent with, not contradicted by, this total.
-- **Frontend tests:** carried from the prior verification pass (9 passed) — unaffected by `T57`
+- **Backend tests:** **391 passed, 0 failed, 0 skipped** (386 prior + 5 new) — per PR #22's own
+  report and `gh pr view 22`'s independently-queried `statusCheckRollup` (6/6 CI checks green: two
+  "Lint, format, and test" runs each for Backend/Frontend, two "Build verification" runs). **Not
+  personally re-run against Postgres this session** — this environment's Docker daemon is unreachable
+  (`docker ps` fails to connect), so the DB-backed integration suite could not be executed locally;
+  disclosed here rather than silently assumed.
+- **Frontend tests:** carried from the prior verification pass (9 passed) — unaffected by `T58`
   (backend-only change).
-- **Lint:** `uv run ruff check src tests alembic` — clean.
-- **Format:** `uv run black --check src tests alembic` — clean.
-- **Boot smoke test:** `python -c "from app.main import app"` — succeeds.
-- **Database/integration status:** live Postgres reachable and healthy.
-- **Environmental issues:** none.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly this session (no DB
+  required).
+- **Format:** `uv run black --check src tests alembic` — clean (194 files unchanged), re-verified
+  directly this session (no DB required).
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly this
+  session (no DB required); PR #22 additionally confirms `/api/v1/auth/login` present in
+  `app.openapi()["paths"]`.
+- **Database/integration status:** live Postgres reachable and healthy per CI; not reachable in this
+  session's local environment (see above).
+- **Environmental issues:** local Docker/Postgres unreachable this session — a local-environment gap,
+  not a code or CI issue; CI's own Postgres-backed run is green.
 
 ## 8. Current Architecture Snapshot
 
 - **`AuthenticationProvider` (Stage 1 port):** real implementation `JwtAuthenticationProvider`
   (`T52`), constructed request-scoped in `deps.py` (`T55`), fed a real bearer token (`T56`).
 - **`AuthorizationService` (Stage 1 port):** real implementation `RbacAuthorizationService` (`T53`),
-  also request-scoped (`T55`) — **untouched by `T57`**.
-- **`AuthService` (`T50`):** `authenticate`/`issue_tokens`/`refresh`/`revoke`.
-- **`RequirePermission(...)` (`T54`, extended by `T57`):** the dependency factory now distinguishes
-  **`UnauthorizedError`/401** (caller not authenticated at all — checked first, before
-  `AuthorizationService` is even invoked) from **`ForbiddenError`/403** (authenticated but lacking
-  the specific permission — still `AuthorizationService`'s call, unchanged). **No route calls it
-  yet** — no route exists anywhere in the app (Phase 3, `T58`+).
-- **The full identity/permission chain is now real and correctly differentiated end-to-end at the
-  dependency level:** header → `get_bearer_token()` (`T56`) → `AuthenticationProvider` → `CurrentUser`
-  → `RequirePermission`'s `is_authenticated` check (`T57`, 401) → `AuthorizationService.require_permission()`
-  (`T53`, 403) → allow. **Stage 3 Phase 2 is complete.** The only missing piece for a working,
-  request-driven login/permission flow is **routes** — none exist yet. That's Phase 3.
+  also request-scoped (`T55`).
+- **`AuthService` (`T50`):** `authenticate`/`issue_tokens`/`refresh`/`revoke` — as of `T58`, also
+  constructed request-scoped in `deps.py` via `get_auth_service()`/`AuthServiceDep`, mirroring `T55`'s
+  pattern exactly (`SqlAlchemyUserRepository`/`SqlAlchemyRefreshTokenRepository` built fresh per
+  request from `DBSessionDep`).
+- **`RequirePermission(...)` (`T54`, extended by `T57`):** distinguishes `UnauthorizedError`/401 from
+  `ForbiddenError`/403. Not called by `T58`'s login route (login itself requires no prior
+  authentication) — still called by nothing else, since `T58` is the only route besides
+  `health`/`version`.
+- **`POST /api/v1/auth/login` (`T58`, NEW):** the first route in this project besides `health`/
+  `version`. Calls `AuthService.authenticate()`; on failure raises `result.error` (an `AppError`
+  instance) directly, handled by the existing global `AppError` exception handler; on success calls
+  `AuthService.issue_tokens()`. `LoginRequest`/`LoginResponse` co-located in
+  `presentation/api/v1/auth.py`, no `ApiResponse[T]` wrapper.
+- **The full identity/permission chain built across `T52`–`T57` is now exercised end-to-end for the
+  first time by a real HTTP request** (`T58`'s own integration tests, via `httpx.AsyncClient`/
+  `ASGITransport`) — the exact `TestClient`-level verification `T56`'s and `T57`'s QA comments had
+  deferred, though scoped to login only so far; broader route coverage is `T64`.
 
 ## 9. Active Risks / Open Questions
 
-| Issue | Impact | Blocks `T58`? | Owner |
+| Issue | Impact | Blocks `T59`? | Owner |
 |---|---|---|---|
-| `T57`'s own documentation closeout (this session's edits) is drafted but uncommitted | The repository's committed state doesn't yet reflect `T57` as fully closed, even though its code is merged | Not a hard blocker for `T58`'s code dependency (`T57` is merged), but this project's own rule against starting the next task before the previous one reaches a clean merged checkpoint applies | Whoever has commit/push authorization — needs to commit and PR the seven files listed in §6 |
-| Deferred `TestClient`-level end-to-end HTTP verification (401/403 against a real route) — named by both `T56` and `T57`'s QA decisions | Not yet buildable (no route exists); becomes buildable at `T58` | No — explicitly deferred, not blocking | Whoever implements `T58`, as part of its own test coverage |
+| `T58`'s own documentation closeout (this session's edits) is being committed to `docs/t58-closeout` but not yet merged | The repository's committed state on `main` doesn't yet reflect `T58` as fully closed, even though its code is merged | Not a hard blocker for `T59`'s code dependency (`T57` is merged), but this project's own rule against starting the next task before the previous one reaches a clean merged checkpoint applies | Whoever has merge authorization — needs to review and merge the PR this session opens |
+| This session's local environment has no reachable Docker/Postgres | The DB-backed integration suite can't be personally re-run locally; verification instead relies on PR #22's own report and CI's independently-queried green run | No — CI's own run is green and independently confirmed | Whoever picks up local development next; not a `T59` blocker |
 | `role_permissions` exact matrix (`T66`) needs project-owner sign-off before that migration is written | Blocks `T66` only | No | Project owner |
 | `docs/ProjectStatus.md` / `docs/ArchitectureScorecard.md` stuck at pre-Stage-3 status | Documentation debt, repeatedly flagged, never fixed | No | Documentation Manager (whenever a dedicated pass is authorized) |
 
-**Resolved since the previous version of this file, removed from this table:** `T56`'s own
-documentation-closeout gap — PR #19 merged (`47c854f`); no longer active. The four-batch
-authorization-recording gap (`T52`–`T55`) — `T56` and `T57` have now both broken the pattern; not
-removed from history (still recorded in `Phase2.md`), but no longer listed here as an *active* risk
-in the same way, since two consecutive successes is a real trend, not a fluke.
+**Resolved since the previous version of this file, removed from this table:** `T57`'s own
+documentation-closeout gap — PR #21 merged (`b2606ed`); no longer active. The authorization-recording
+discipline is now a three-batch streak (`T56`, `T57`, `T58`), not removed from history (still recorded
+in `Phase2.md`), but no longer listed here as an *active* risk.
 
 ## 10. Governance Rules
 
@@ -184,8 +194,8 @@ full:
 - **Every implementation cycle begins with the Project Manager**, who identifies the next unfinished
   task, verifies prerequisites, and waits for explicit project-owner approval — authorization must be
   **written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation begins**.
-  Violated four times running (`T52`–`T55`); `T56` and `T57` are now two consecutive batches that got
-  this right — real, repeated proof this discipline is achievable.
+  Violated four times running (`T52`–`T55`); `T56`, `T57`, and now `T58` are three consecutive batches
+  that got this right — real, repeated proof this discipline is achievable.
 - **Backend Developer** must reconstruct state, **summarize understanding, and wait for explicit
   approval of that summary** (`docs/prompts/BackendDeveloper.md` §5) before writing any code.
 - **One task (or an explicitly-scoped batch) per implementation batch** — minimal scope.
@@ -194,39 +204,38 @@ full:
 - **Documentation Manager** performs closeout **only after** a QA Decision of `Approved`/`Approved
   with comments` exists — never before.
 - **`main` is protected.** Branch strategy: `feature/<name>` (or `docs/<topic>`) off `main` → commit
-  → PR → merge → delete branch → update local `main`.
-- **Do not start the next task before the previous task reaches a clean merged checkpoint** — `T57`'s
-  code satisfies this; its documentation record does not yet (see §11); `T58` must not start until
+  → PR → merge → delete branch → update local `main`. This closeout follows that exact strategy:
+  `docs/t58-closeout` → commit → PR — not a direct push to `main`.
+- **Do not start the next task before the previous task reaches a clean merged checkpoint** — `T58`'s
+  code satisfies this; its documentation record does not yet (see §11); `T59` must not start until
   both do.
 - **Preserve historical governance deviations rather than rewriting history** — corrections are
-  appended with a date, originals never silently edited or deleted. `T57`'s own record additionally
-  shows the *positive* case: a genuinely correct architecture-clarification-then-authorization
-  sequence, recorded plainly, not needing any correction at all.
+  appended with a date, originals never silently edited or deleted.
 - **Task IDs are immutable.**
 
 ## 11. Safe Breakpoint
 
 **SAFE TO STOP: NO.**
 
-`T57`'s **code** is genuinely complete and merged (`472f7cb`), technically approved by QA, and
-completes Stage 3 Phase 2 in full. But `T57`'s **documentation closeout — this exact session's
-work** — is drafted and sitting uncommitted in the working tree. Per explicit instruction, this
-session did not commit, push, or open a PR for it. Until that happens, the repository's own
-committed state (what `git log` on `main` actually shows) does not yet reflect `T57` — or Phase 2—
-as closed, even though this checkpoint file (once committed) will say so.
+`T58`'s **code** is genuinely complete and merged (`e67da02`), technically approved by QA. `T58`'s
+**documentation closeout — this exact session's work** — is drafted, and this session commits it to
+`docs/t58-closeout` and opens a PR against `main`, per explicit instruction to follow the established
+process (not push to `main` directly) and to stop once that PR is ready. Until that PR is reviewed and
+merged, the repository's own committed state on `main` does not yet reflect `T58` as closed, even
+though this checkpoint file (once its PR merges) will say so.
 
-**Exact files requiring their own documentation-closeout commit/PR:**
+**Exact files carried on `docs/t58-closeout`, requiring their own PR review/merge:**
 - `IMPLEMENTATION_QUEUE.md`
 - `PROJECT_STATE.json`
 - `docs/AI_HANDOVER.md`
-- `docs/ImplementationLog/Stage3/Phase2.md`
+- `docs/ImplementationLog/Stage3/Phase3.md` (new)
 - `docs/Roadmap.md`
 - `docs/SessionReport.md`
 - `PROJECT_CHECKPOINT.md` (this file)
 
-**Next cycle begins with: T58** — **not authorized**, and should not start even after `T57`'s
-documentation closeout lands without its own recorded go-ahead, following the pattern `T56`/`T57`
-themselves just demonstrated twice (authorization committed before implementation).
+**Next cycle begins with: T59** — **not authorized**, and should not start even after `T58`'s
+documentation closeout PR merges without its own recorded go-ahead, following the pattern `T56`/`T57`/
+`T58` themselves just demonstrated three times (authorization committed before implementation).
 
 ## 12. AI Continuation Instructions
 
@@ -235,20 +244,21 @@ Before doing anything:
 1. Read this file (`PROJECT_CHECKPOINT.md`).
 2. Verify the live Git state yourself (`git status`, `git log`, `git rev-parse HEAD origin/main`) —
    do not trust this file's numbers without re-checking.
-3. **Check whether the seven files listed in §11 are still uncommitted.** If they are, the priority
-   before any new task is getting `T57`'s documentation closeout committed and merged (a
-   Documentation Manager action, not a new implementation task) — not starting `T58`.
-4. Read `T58`'s row in `IMPLEMENTATION_QUEUE.md` directly.
+3. **Check whether `docs/t58-closeout`'s PR has merged.** If not, the priority before any new task is
+   getting it reviewed and merged (a Documentation Manager / project-owner action, not a new
+   implementation task) — not starting `T59`.
+4. Read `T59`'s row in `IMPLEMENTATION_QUEUE.md` directly.
 5. Read the relevant `PROJECT_STATE.json` state directly.
-6. Verify authorization for `T58` — in the repository, not from this file's summary.
-7. Do not assume `T58` is authorized just because `T57`'s code is merged, or because Phase 2 as a
-   whole just completed — a phase finishing is not the same thing as the next phase being approved.
-8. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
+6. Verify authorization for `T59` — in the repository, not from this file's summary.
+7. Do not assume `T59` is authorized just because `T58`'s code is merged.
+8. If local development needs the Postgres-backed integration suite, confirm Docker/Postgres is
+   actually reachable first (`docker ps`) — this session's environment could not reach it locally.
+9. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
 
-**Which role should act next: Documentation Manager first** (commit/PR the seven files in §11, if
-authorized to do so), **then Project Manager** for `T58` — the first Phase 3 task, a genuine
-transition point (routes, not just wiring) worth treating with the same care Phase 2's own start
-received (an architecture proposal per `PROJECT_WORKFLOW.md` §11, not just a task-row authorization).
+**Which role should act next: whoever has merge authorization, to review and merge
+`docs/t58-closeout`'s PR**, **then Project Manager** for `T59` — identifying it, verifying `T57` is
+genuinely satisfied, and recording explicit project-owner authorization **before** any Backend
+Developer work begins, following `T56`/`T57`/`T58`'s own pattern.
 
 ## 13. Authoritative Files
 
@@ -262,6 +272,7 @@ received (an architecture proposal per `PROJECT_WORKFLOW.md` §11, not just a ta
 | `docs/Roadmap.md` | Stage-by-stage roadmap pointer (defers to `IMPLEMENTATION_QUEUE.md` for detail) |
 | `docs/SessionReport.md` | Chronological session-by-session summary |
 | `docs/ImplementationLog/Stage3/Phase2.md` | Full technical execution record for `T52`–`T57` (Phase 2, complete) |
+| `docs/ImplementationLog/Stage3/Phase3.md` | Full technical execution record for `T58`+ (Phase 3, in progress) |
 | `docs/ImplementationLog/README.md` | The ImplementationLog standard itself — Canonical Document Roles, Documentation Ownership, QA Decision meaning |
 | `docs/prompts/*.md` | Canonical per-role AI prompts (Project Manager, Backend Developer, QA Reviewer, Documentation Manager) |
 | `docs/Stage3_Backend_Handoff.md` | File-by-file implementation brief for Stage 3's remaining phases |
@@ -274,30 +285,33 @@ received (an architecture proposal per `PROJECT_WORKFLOW.md` §11, not just a ta
   merged, closed out).
 - Update it after every merge/closeout.
 - **Never** claim a task is `Done` merely because code exists — a task is fully `Done` only when its
-  QA Decision(s) *and* documentation closeout are both actually merged into `main`. `T57` is the
-  worked example this session: code `Done`, Phase 2 complete in code, documentation closeout drafted
-  but explicitly not yet merged — this file says so plainly rather than rounding up.
+  QA Decision(s) *and* documentation closeout are both actually merged into `main`. `T58` is the
+  worked example this session: code `Done`, documentation closeout drafted and its PR opened but not
+  yet merged — this file says so plainly rather than rounding up.
 - **Never** claim QA approval unless the QA Decision is recorded in the repository, not merely
   asserted.
 - **Never** claim a clean breakpoint while uncommitted or unmerged work remains — see §11's exact
   standard, which this update itself is bound by.
 - **Never** claim an authorization was "recorded before implementation began" without a commit to
-  point to — `T55`'s history in this repository is the cautionary example; `T56`'s and `T57`'s are
-  the corrected practice, now repeated twice.
+  point to — `T55`'s history in this repository is the cautionary example; `T56`'s, `T57`'s, and now
+  `T58`'s are the corrected practice, repeated a third time.
+- **Never** claim a test suite was personally re-run when it wasn't** — this session could not reach
+  Postgres locally and says so explicitly (§7) rather than implying a local rerun that didn't happen.
 - Preserve historical detail in `docs/ImplementationLog/`/`docs/SessionReport.md` rather than
   bloating this file.
 - **Always** verify Git state directly before declaring this checkpoint current.
 
 ## 15. Checkpoint Integrity
 
-- **Last verified commit:** `472f7cb` (`main`, synchronized with `origin/main`)
-- **Last verified branch:** `main`
-- **Working tree status:** **not clean** — this file and six other documentation/project-management
-  files are modified, uncommitted, as part of `T57`'s (not-yet-finalized) documentation closeout.
+- **Last verified commit:** `e67da02` (`main`, synchronized with `origin/main`, at session start)
+- **Last verified branch:** `main` (this session's own edits committed to `docs/t58-closeout`)
+- **Working tree status:** clean at session start; this session's seven documentation/
+  project-management file changes are being committed to `docs/t58-closeout`, not `main`.
 - **Verification performed:** `git status`; `git log --oneline --decorate -10`; `git show --stat` on
-  `7c9fc3a` and `65dd563`; `gh pr view 20` (confirmed `MERGED`, body cross-checked against directly
-  re-run verification results); direct read of `65dd563`'s full commit message and `7c9fc3a`'s
-  actual diff (not paraphrased); full backend suite re-run (`uv run pytest -q`, 386/386, live
-  Postgres); `ruff`/`black`/boot smoke test re-run, all clean.
+  `76cd28f` and `58c8e40`; `gh pr view 22` (confirmed `MERGED`, `statusCheckRollup` 6/6 green, body
+  cross-checked against directly re-run verification results); direct read of `58c8e40`'s full commit
+  message and `76cd28f`'s actual diff (not paraphrased); `ruff`/`black`/boot smoke test re-run
+  locally, all clean — the Postgres-backed suite itself was **not** re-run locally (no reachable
+  Docker/Postgres this session), corroborated instead via PR #22's report and CI's own green run.
 - **Generated/updated by:** Documentation Manager
-- **Date:** 2026-08-13
+- **Date:** 2026-08-15

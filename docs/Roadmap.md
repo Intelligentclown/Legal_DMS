@@ -193,8 +193,26 @@ new tests + 1 updated, full suite 386/386 passing, ruff/black clean, boot smoke 
 integration tests against live Postgres. **QA Decision: Approved with comments** — no technical
 defects; the comment preserves, as a non-blocking historical observation, the deferral of true
 `TestClient`-level HTTP verification to `T58`+ (no protected route exists yet — already flagged in
-the authorization commit itself, not a new finding). `T58`+ (Phase 3, routes) remains not started,
-not authorized.
+the authorization commit itself, not a new finding).
+
+**Phase 3 (routes) begins with `T58` (`POST /api/v1/auth/login`) — Done, and the first route anywhere
+in this project.** Email + password in, access + refresh tokens out, or a structured 401 via the
+existing global `AppError` handler. `presentation/api/v1/auth.py` (new) co-locates
+`LoginRequest`/`LoginResponse` (no `ApiResponse[T]` wrapper — a token pair isn't a fetchable
+resource); `deps.py` gains `get_auth_service()`/`AuthServiceDep`, request-scoped construction
+mirroring `T55`'s pattern. This is also the first task to exercise Phase 2's entire dependency chain
+(`T52`–`T57`) via a real HTTP request, not just a direct call into `RequirePermission`'s inner
+function — the very `TestClient`-level verification `T56`'s and `T57`'s QA comments had deferred.
+Authorization commit `58c8e40` (2026-08-13) predates implementation commit `76cd28f` (PR #22, merged
+`e67da02`, 2026-08-15), confirmed by commit order — the **third** consecutive batch to get this right.
+5 new integration tests against a real mounted app and live Postgres via `httpx.AsyncClient`/
+`ASGITransport` (`TestClient`'s separate event-loop thread proved incompatible with the required
+`get_db` override). Full suite 391/391 passing (386 prior + 5 new) per PR #22's own report and CI's
+6/6 green run, ruff/black clean, boot smoke test passed. **QA Decision: Approved with comments** — no
+technical defects; two non-blocking comments preserved verbatim: Starlette's
+`HTTP_422_UNPROCESSABLE_ENTITY` deprecation warning is framework-internal, and the test-local
+`app.dependency_overrides[get_db]` pattern is safe only under sequential test execution. `T59`–`T67`
+remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

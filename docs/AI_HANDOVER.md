@@ -229,8 +229,28 @@ directly by commit timestamp order, extending `T56`'s streak. 3 new tests + 1 up
 Postgres per PR #20. **QA Decision: Approved with comments** — no technical defects; the comment
 preserves, as a non-blocking historical/forward-looking observation (not a new finding — already
 named in `65dd563`'s own authorization text), the deferral of true `TestClient`-level HTTP
-verification to `T58`+, since no protected route exists yet. `T58`+ (Phase 3, routes) remains not
-started, not authorized. Backend test count is 386, still 9 frontend.
+verification to `T58`+, since no protected route exists yet. Backend test count is 386, still 9
+frontend.
+
+**`T58` closeout (2026-08-15): Done — the third consecutive batch to get the authorization-recording
+discipline right, and the first route anywhere in this project.** `presentation/api/v1/auth.py` (new)
+adds `POST /api/v1/auth/login`: `LoginRequest`/`LoginResponse` co-located, no `ApiResponse[T]`
+wrapper since a token pair isn't a fetchable resource; on failure, `AuthService.authenticate()`'s
+`Result.error` is raised directly, handled by the existing global `AppError` handler. `deps.py` gains
+`get_auth_service()`/`AuthServiceDep`, request-scoped construction mirroring `T55`'s pattern exactly.
+5 new integration tests in `tests/integration/test_auth_login.py`, run against a real mounted app and
+live Postgres via `httpx.AsyncClient`/`ASGITransport` with a `get_db` override — `TestClient`'s
+separate event-loop thread was tried first and confirmed incompatible with that override. Authorization
+was recorded as its own commit (`58c8e40`, 2026-08-13) **before** the implementation commit (`76cd28f`,
+PR #22, merged `e67da02`, 2026-08-15) — confirmed by commit order, extending `T56`/`T57`'s streak. Full
+suite 391/391 passing (386 prior + 5 new) per PR #22's own report and CI's 6/6 green run
+(independently queried via `gh pr view 22`); `ruff`/`black` clean and the boot smoke test passing were
+re-verified directly this session — the DB-backed suite itself was not personally re-run, since no
+Docker/Postgres was reachable locally. **QA Decision: Approved with comments** — no technical defects;
+two non-blocking comments preserved verbatim: (1) Starlette's `HTTP_422_UNPROCESSABLE_ENTITY`
+deprecation warning is framework-internal, not a `T58` defect; (2) the test-local
+`app.dependency_overrides[get_db]` pattern is safe under current sequential test execution only.
+`T59`–`T67` remain not started, not authorized. Backend test count is 391, still 9 frontend.
 
 ## Pending Work
 
@@ -469,14 +489,36 @@ updated, full suite 386/386 passing, `ruff`/`black` clean, boot succeeds, 127/12
 against live Postgres — merged `7c9fc3a` → PR #20 → `472f7cb`. **QA Decision: Approved with
 comments** — no technical defects; the comment preserves, as a non-blocking historical observation,
 the already-flagged deferral of true `TestClient`-level HTTP verification to `T58`+ (no protected
-route exists yet). **With `T57` closed, Stage 3 Phase 2 (`T52`–`T57`) is complete in full.** `T58`+
-(Phase 3, routes) is now the next unfinished work, not yet started, not
+route exists yet). **With `T57` closed, Stage 3 Phase 2 (`T52`–`T57`) is complete in full**, and
+Phase 3 (routes) begins.
+
+**`T58` followed — the first route in this project, and the third consecutive batch to hold the
+authorization-recording discipline.** `presentation/api/v1/auth.py` (new) adds
+`POST /api/v1/auth/login`: email + password in, access + refresh tokens out, or a structured 401 via
+the existing global `AppError` handler (`AuthService.authenticate()`'s `Result.error` raised
+directly, no route-level exception handling). `LoginRequest`/`LoginResponse` are co-located, no
+`ApiResponse[T]` wrapper — a token pair isn't a fetchable resource. `deps.py` gains
+`get_auth_service()`/`AuthServiceDep`, request-scoped construction from `DBSessionDep` mirroring
+`T55`'s pattern exactly. The authorized scope (recorded in `58c8e40` **before** implementation commit
+`76cd28f`, confirmed by commit order) was: the route, its schemas, per-request `AuthService` wiring,
+router registration, and tests — `T59`–`T67` explicitly out of scope. `T58` is now **Done**: 5 new
+integration tests in `tests/integration/test_auth_login.py` (valid credentials, wrong password,
+unknown email — same generic message, inactive user, malformed body → 422) against a real mounted app
+and live Postgres via `httpx.AsyncClient`/`ASGITransport` — `fastapi.testclient.TestClient` was tried
+first and found incompatible with the `get_db` dependency-override this required, since it runs the
+app on a separate event-loop thread. Full suite 391/391 passing (386 prior + 5 new), `ruff`/`black`
+clean, boot smoke test passed — merged `76cd28f` → PR #22 → `e67da02`. **QA Decision: Approved with
+comments** — no technical defects; two non-blocking comments preserved verbatim: Starlette's
+`HTTP_422_UNPROCESSABLE_ENTITY` deprecation warning is framework-internal, and the test-local
+`app.dependency_overrides[get_db]` pattern is safe only under sequential test execution. `T59`+
+(refresh, logout, `/me`, user management, role assignment, cross-route tests, audit wiring) is now the
+next unfinished work, not yet started, not
 authorized. See
 [docs/Stage3_Backend_Handoff.md](Stage3_Backend_Handoff.md) for Phase 2–4's
 full file-by-file map. Two smaller open items: (1) the `role_permissions` exact matrix (`T66`) still
 needs its own sign-off before that migration is written; (2) the authorization-recording discipline
-`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56` and `T57` both held it, two
-consecutive successes now; `T58`+ should keep holding the same standard. Outside of
+`T52`/`T53`/`T54`/`T55` each failed at, four batches running — `T56`, `T57`, and now `T58` have all
+held it, three consecutive successes now; `T59`+ should keep holding the same standard. Outside of
 Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
 Financial) without separate explicit direction.
