@@ -294,7 +294,7 @@ merge, not after.** Full suite **459/459 passing**, `ruff`/`black` clean, boot s
 personally re-run against merged `main`. **`T63` is now Done — merged.** Feature commit `3cea676`,
 QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16); `main`/`origin/main` both
 independently re-verified at `ef419c3`, exactly the seven expected files, no forbidden file touched.
-`T64`–`T67` remain not started, not authorized.
+`T64` is now Done — merged. Feature commit `f321065`, QA-approval commit `fc9fb0b`, PR #38, merged `fab2933` (2026-08-16); `main`/`origin/main` both independently re-verified at `fab2933`. `T65`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

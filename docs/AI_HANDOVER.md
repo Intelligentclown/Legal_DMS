@@ -735,7 +735,7 @@ personally re-run against merged `main`, not just the PR branch. **`T63` is now 
 Feature commit `3cea676`, QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16);
 `main`/`origin/main` both independently re-verified at `ef419c3`, `git diff 97ab953..ef419c3
 --name-only` confirms exactly the seven files this batch's scope covers, no forbidden file touched.
-`T64`–`T67` remain not started, not authorized.
+`T64` is now Done — merged. Feature commit `f321065`, QA-approval commit `fc9fb0b`, PR #38, merged `fab2933` (2026-08-16); `main`/`origin/main` both independently re-verified at `fab2933`. `T65`–`T67` remain not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
