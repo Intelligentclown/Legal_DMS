@@ -88,6 +88,8 @@ class TestLogin:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_unknown_email_returns_401_with_the_same_generic_message(
         self, client: AsyncClient, db_session: AsyncSession
@@ -106,6 +108,8 @@ class TestLogin:
         )
 
         assert unknown_email_response.status_code == 401
+        assert unknown_email_response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(unknown_email_response.json()["error"]["message"], str)
         assert (
             unknown_email_response.json()["error"]["message"]
             == wrong_password_response.json()["error"]["message"]
@@ -121,6 +125,8 @@ class TestLogin:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_malformed_request_body_returns_422(self, client: AsyncClient) -> None:
         response = await client.post(
@@ -128,3 +134,5 @@ class TestLogin:
         )
 
         assert response.status_code == 422
+        assert response.json()["error"]["code"] == "validation_error"
+        assert isinstance(response.json()["error"]["message"], str)

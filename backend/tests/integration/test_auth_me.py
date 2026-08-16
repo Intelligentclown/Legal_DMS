@@ -99,6 +99,8 @@ class TestMe:
         response = await client.get("/api/v1/auth/me")
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_malformed_token_returns_401(self, client: AsyncClient) -> None:
         response = await client.get(
@@ -106,6 +108,8 @@ class TestMe:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_expired_token_returns_401(
         self, client: AsyncClient, db_session: AsyncSession
@@ -118,6 +122,8 @@ class TestMe:
         response = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_inactive_user_token_returns_401(
         self, client: AsyncClient, db_session: AsyncSession
@@ -132,6 +138,8 @@ class TestMe:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_unknown_user_token_returns_401(self, client: AsyncClient) -> None:
         settings = get_settings()
@@ -140,6 +148,8 @@ class TestMe:
         response = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_multiple_roles_all_returned(
         self, client: AsyncClient, db_session: AsyncSession

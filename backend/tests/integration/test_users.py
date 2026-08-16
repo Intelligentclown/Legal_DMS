@@ -148,6 +148,17 @@ class TestAuthorization:
         response = await client.get("/api/v1/users")
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_list_invalid_token_returns_401(self, client: AsyncClient) -> None:
+        response = await client.get(
+            "/api/v1/users", headers={"Authorization": "Bearer not-a-real-token"}
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_list_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -157,6 +168,8 @@ class TestAuthorization:
         response = await client.get("/api/v1/users", headers=headers)
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_get_requires_authentication(
         self, client: AsyncClient, db_session: AsyncSession
@@ -166,6 +179,21 @@ class TestAuthorization:
         response = await client.get(f"/api/v1/users/{user.id}")
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_get_invalid_token_returns_401(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+
+        response = await client.get(
+            f"/api/v1/users/{user.id}", headers={"Authorization": "Bearer not-a-real-token"}
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_get_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -176,6 +204,8 @@ class TestAuthorization:
         response = await client.get(f"/api/v1/users/{user.id}", headers=headers)
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_create_requires_authentication(self, client: AsyncClient) -> None:
         response = await client.post(
@@ -184,6 +214,19 @@ class TestAuthorization:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_create_invalid_token_returns_401(self, client: AsyncClient) -> None:
+        response = await client.post(
+            "/api/v1/users",
+            json={"email": f"{uuid4()}@example.com", "full_name": "Nobody", "password": "x"},
+            headers={"Authorization": "Bearer not-a-real-token"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_create_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -197,6 +240,8 @@ class TestAuthorization:
         )
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_update_requires_authentication(
         self, client: AsyncClient, db_session: AsyncSession
@@ -209,6 +254,23 @@ class TestAuthorization:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_update_invalid_token_returns_401(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+
+        response = await client.put(
+            f"/api/v1/users/{user.id}",
+            json={"email": user.email, "full_name": user.full_name, "phone": None},
+            headers={"Authorization": "Bearer not-a-real-token"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_update_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -223,6 +285,8 @@ class TestAuthorization:
         )
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_deactivate_requires_authentication(
         self, client: AsyncClient, db_session: AsyncSession
@@ -232,6 +296,22 @@ class TestAuthorization:
         response = await client.post(f"/api/v1/users/{user.id}/deactivate")
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_deactivate_invalid_token_returns_401(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/deactivate",
+            headers={"Authorization": "Bearer not-a-real-token"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_deactivate_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -242,6 +322,8 @@ class TestAuthorization:
         response = await client.post(f"/api/v1/users/{user.id}/deactivate", headers=headers)
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
 
 class TestListUsers:
@@ -311,6 +393,8 @@ class TestGetUser:
         response = await client.get(f"/api/v1/users/{uuid4()}", headers=headers)
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
 
 class TestCreateUser:
@@ -372,6 +456,8 @@ class TestCreateUser:
         )
 
         assert response.status_code == 409
+        assert response.json()["error"]["code"] == "conflict"
+        assert isinstance(response.json()["error"]["message"], str)
 
 
 class TestUpdateUser:
@@ -422,6 +508,8 @@ class TestUpdateUser:
         )
 
         assert response.status_code == 422
+        assert response.json()["error"]["code"] == "validation_error"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_password_cannot_be_updated_through_this_route(
         self, client: AsyncClient, db_session: AsyncSession
@@ -477,6 +565,8 @@ class TestUpdateUser:
         )
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_duplicate_email_returns_409(
         self, client: AsyncClient, db_session: AsyncSession
@@ -492,6 +582,8 @@ class TestUpdateUser:
         )
 
         assert response.status_code == 409
+        assert response.json()["error"]["code"] == "conflict"
+        assert isinstance(response.json()["error"]["message"], str)
 
 
 class TestDeactivateUser:
@@ -548,6 +640,8 @@ class TestDeactivateUser:
         response = await client.post(f"/api/v1/users/{uuid4()}/deactivate", headers=headers)
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
 
 class TestRoleAssignmentAuthorization:
@@ -566,6 +660,24 @@ class TestRoleAssignmentAuthorization:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_assign_invalid_token_returns_401(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles",
+            json={"role_id": str(role.id)},
+            headers={"Authorization": "Bearer not-a-real-token"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_remove_requires_authentication(
         self, client: AsyncClient, db_session: AsyncSession
@@ -576,6 +688,23 @@ class TestRoleAssignmentAuthorization:
         response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}")
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
+
+    async def test_remove_invalid_token_returns_401(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+
+        response = await client.delete(
+            f"/api/v1/users/{user.id}/roles/{role.id}",
+            headers={"Authorization": "Bearer not-a-real-token"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_assign_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -589,6 +718,8 @@ class TestRoleAssignmentAuthorization:
         )
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_remove_requires_permission(
         self, client: AsyncClient, db_session: AsyncSession
@@ -600,6 +731,8 @@ class TestRoleAssignmentAuthorization:
         response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
 
         assert response.status_code == 403
+        assert response.json()["error"]["code"] == "forbidden"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_users_manage_alone_allows_assign(
         self, client: AsyncClient, db_session: AsyncSession
@@ -684,6 +817,8 @@ class TestRoleAssignmentAuthorization:
 
         assert allowed.status_code == 200
         assert denied.status_code == 403
+        assert denied.json()["error"]["code"] == "forbidden"
+        assert isinstance(denied.json()["error"]["message"], str)
 
 
 class TestAssignRole:
@@ -719,6 +854,8 @@ class TestAssignRole:
         )
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_unknown_role_returns_404(
         self, client: AsyncClient, db_session: AsyncSession
@@ -731,6 +868,8 @@ class TestAssignRole:
         )
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_duplicate_assignment_returns_409_and_creates_no_second_row(
         self, client: AsyncClient, db_session: AsyncSession
@@ -748,6 +887,8 @@ class TestAssignRole:
 
         assert first.status_code == 201
         assert second.status_code == 409
+        assert second.json()["error"]["code"] == "conflict"
+        assert isinstance(second.json()["error"]["message"], str)
         result = await db_session.execute(
             select(UserRole).where(UserRole.user_id == user.id, UserRole.role_id == role.id)
         )
@@ -828,6 +969,8 @@ class TestRemoveRole:
         response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_unknown_user_returns_404(
         self, client: AsyncClient, db_session: AsyncSession
@@ -838,6 +981,8 @@ class TestRemoveRole:
         response = await client.delete(f"/api/v1/users/{uuid4()}/roles/{role.id}", headers=headers)
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_unknown_role_returns_404(
         self, client: AsyncClient, db_session: AsyncSession
@@ -848,6 +993,8 @@ class TestRemoveRole:
         response = await client.delete(f"/api/v1/users/{user.id}/roles/{uuid4()}", headers=headers)
 
         assert response.status_code == 404
+        assert response.json()["error"]["code"] == "not_found"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_removal_creates_no_role_or_role_permission_row(
         self, client: AsyncClient, db_session: AsyncSession
