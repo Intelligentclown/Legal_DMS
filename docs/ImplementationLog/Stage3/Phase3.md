@@ -1487,3 +1487,92 @@ Notes on the less-obvious ones:
 synchronization, and merge are all **not yet done** and intentionally outside this batch's scope — see
 Deferred Work above. See this file's own metadata block (`Status: In Progress` — Phase 3 continues with
 `T64`–`T65`, not yet started or authorized).
+
+## QA Decision — T63 batch
+
+```
+QA Decision (T63 batch)
+
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role, independently, against PR #36 (`feature/stage3-t63-role-assignment`
+at `3cea676`, base `main` at `97ab953`) — **PR #36 is not merged; this decision is recorded pre-merge**,
+unlike `T61`/`T62`'s post-hoc corrections. Verified directly, not transcribed from the Backend
+Developer's Reviewer Checklist:
+
+- **Authorization:** `93cda84` (merged `97ab953`, PR #35) independently confirmed as an ancestor of
+  `origin/main` and as preceding the implementation commit `3cea676`. `IMPLEMENTATION_QUEUE.md`'s `T63`
+  row and `PROJECT_STATE.json`'s `currentStage.note` both read and confirmed to match the implementation
+  exactly.
+- **Scope:** `git diff 97ab953...3cea676 --stat` confirms exactly seven files: the six originally
+  authorized plus `tests/support/in_memory_user_repository.py`. Zero diff independently confirmed
+  against `AuthorizationService`, `RbacAuthorizationService`, `PermissiveAuthorizationService`,
+  `CurrentUser`, `crud_router_factory.py`, `alembic/`, and `frontend/` across the full
+  authorization-to-implementation range. `UserRead`/`UserCreate`/`UserUpdate` confirmed byte-identical
+  in the diff (only new classes appended after `deactivate_user()`). No `Role`/`RolePermission` model
+  change; no migration.
+- **Deviation assessment (`tests/support/in_memory_user_repository.py`):** confirmed genuinely necessary,
+  not a scope-creep convenience. `InMemoryUserRepository` is directly instantiated by two pre-existing,
+  T63-unrelated unit-test fixtures (`test_auth_service.py:43`, `test_jwt_authentication_provider.py:24`);
+  extending the `UserRepository` ABC with two new `@abstractmethod`s makes any concrete subclass missing
+  them fail to instantiate (`TypeError`) — a mechanical Python ABC consequence, not a design choice.
+  The added implementation (12 lines) is minimal and mirrors the real repository's exact contract
+  (dict-keyed "already exists → `None`" / "popped → `bool`"), adding no capability beyond satisfying the
+  interface. Correctly flagged and reported before editing, per the log's own account.
+- **Tests (independently re-run, live Postgres):** `tests/integration/test_users.py` — **49/49 passed**
+  (28 T62 + 21 T63). Full suite — **459/459 passed**, 0 failed, 0 skipped, matching the batch's own
+  reported count exactly (one transient failure surfaced on this reviewer's first full-suite run,
+  traced to four stray `Role`/`User` rows left in the live database by this reviewer's own ad hoc
+  diagnostic scripts used to test the `IntegrityError` race path below — not a `T63` defect; the rows
+  were identified by name/timestamp, deleted, and the suite re-run clean before this decision was
+  recorded). `tests/unit/test_auth.py::TestRequirePermission` — **8/8 passed** in isolation, confirming
+  the single-permission call sites are unaffected. `ruff check`/`black --check` — both clean.
+- **Boot/route/schema surface:** `python -c "from app.main import app"` succeeds; `app.openapi()["paths"]`
+  contains exactly the nine prior routes plus `POST /api/v1/users/{user_id}/roles` and
+  `DELETE /api/v1/users/{user_id}/roles/{role_id}` — no role-creation/list/update route, no reactivation
+  route, no user `DELETE` route. `RoleAssignmentCreate` (`role_id` only) and `RoleAssignmentRead`
+  (`user_id`/`role_id`/`assigned_at`/`assigned_by`) independently inspected via the live OpenAPI schema
+  and confirmed to carry exactly those fields, nothing more.
+- **`RequirePermission` OR-logic:** read directly — `permissions[:-1]` tried under `try/except
+  ForbiddenError: continue`, `permissions[-1]` called unguarded so its failure propagates if every
+  candidate was denied; for one supplied argument the loop body never executes, so the single-permission
+  call is the identical call it was before `T63`. Confirmed both by source reading and by the full
+  `TestRoleAssignmentAuthorization` matrix (401 unauthenticated, 403 neither permission, 201 with
+  `users:manage` alone, 201 with `roles:manage` alone, 201 with both, and a regression proving `T62`'s
+  own `GET /api/v1/users` is unaffected) plus `TestRequirePermission`'s unchanged 8/8.
+- **`assign_role()`/`remove_role()` concurrency handling — independently verified empirically, not just
+  read:** wrote and ran a standalone script against live Postgres reproducing the genuine race
+  `assign_role()`'s `IntegrityError` catch is meant to handle (a second session committing the identical
+  `(user_id, role_id)` row between the first session's pre-check and its own `INSERT`). Confirmed the
+  caught `IntegrityError` leaves the session in SQLAlchemy's "pending rollback" state, and that this is
+  safe in context: the route always turns a `None` result into a raised `ConflictError`, which propagates
+  through `get_db()`'s `except Exception: await session.rollback(); raise` — `rollback()`, not `commit()`,
+  is what actually runs on that path, and `rollback()` is confirmed (empirically, not just by
+  documentation) to fully clear the pending-rollback state. The `409` response is not at risk of becoming
+  an unhandled `500` under a genuine race. This required going beyond the code-reading level of review to
+  settle, and the result confirms the batch's own "handled safely" claim rather than the initial concern
+  it could raise.
+- **POST/DELETE route behavior:** every required case independently confirmed passing —
+  unknown-user-404, unknown-role-404, duplicate-409 (with a direct row-count proving no second `UserRole`
+  row), `assigned_by` equal to the authenticated caller's own id (not the target user's), no `Role`/
+  `RolePermission` row created by either route, existing/removed-204, missing-assignment-404 (not a
+  silent idempotent success, correctly matching the DELETE-verb precedent rather than `deactivate`'s
+  idempotent-POST one), and unrelated `UserRole`/`User`/`Role` rows surviving a removal.
+- **Security/regression:** `UserRead` unchanged from `T62` (still excludes `password_hash`); no plaintext
+  password touched by this batch at all; no authorization bypass found in either 401/403 ordering or the
+  OR-logic; no unintended role-management route surface; no accidental `Role`/`RolePermission` mutation on
+  either route, independently confirmed via direct row counts in both directions (assign and remove).
+
+**No technical defects found. No unresolved scope issue.** This is a plain `Approved` — the one
+candidate process concern (the file-scope deviation) was correctly flagged and disclosed by the
+implementer before editing, verified independently here as genuinely necessary and minimal, and does
+not rise to a comment; nothing else surfaced worth recording as a caveat.
+
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md` synchronization is the
+Documentation Manager's next step. This QA review did not merge PR #36, did not authorize or start
+`T64`, did not modify source/tests/migrations/governance files, and did not touch the pre-existing
+unrelated working-tree items (`docs/prompts/README.md`, `docs/prompts/GitCI_PR_Manager.md`,
+`docs/HANDOFF/`).
