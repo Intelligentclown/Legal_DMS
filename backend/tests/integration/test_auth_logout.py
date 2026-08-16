@@ -124,3 +124,5 @@ class TestLogout:
         response = await client.post("/api/v1/auth/logout", json={})
 
         assert response.status_code == 422
+        assert response.json()["error"]["code"] == "validation_error"
+        assert isinstance(response.json()["error"]["message"], str)

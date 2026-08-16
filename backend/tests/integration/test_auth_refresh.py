@@ -101,6 +101,8 @@ class TestRefresh:
 
         assert first_use.status_code == 200
         assert second_use.status_code == 401
+        assert second_use.json()["error"]["code"] == "unauthorized"
+        assert isinstance(second_use.json()["error"]["message"], str)
 
     async def test_invalid_token_returns_401(self, client: AsyncClient) -> None:
         response = await client.post(
@@ -108,6 +110,8 @@ class TestRefresh:
         )
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_expired_token_returns_401(
         self, client: AsyncClient, db_session: AsyncSession
@@ -133,6 +137,8 @@ class TestRefresh:
         response = await client.post("/api/v1/auth/refresh", json={"refresh_token": token})
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_revoked_token_returns_401(
         self, client: AsyncClient, db_session: AsyncSession
@@ -144,6 +150,8 @@ class TestRefresh:
         response = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_unknown_token_returns_401(
         self, client: AsyncClient, db_session: AsyncSession
@@ -156,8 +164,12 @@ class TestRefresh:
         response = await client.post("/api/v1/auth/refresh", json={"refresh_token": never_issued})
 
         assert response.status_code == 401
+        assert response.json()["error"]["code"] == "unauthorized"
+        assert isinstance(response.json()["error"]["message"], str)
 
     async def test_malformed_request_body_returns_422(self, client: AsyncClient) -> None:
         response = await client.post("/api/v1/auth/refresh", json={})
 
         assert response.status_code == 422
+        assert response.json()["error"]["code"] == "validation_error"
+        assert isinstance(response.json()["error"]["message"], str)
