@@ -333,7 +333,20 @@ proceed unblocked. A Documentation Manager closeout attempt correctly halted on 
 the QA Decision was recorded; it has since been recorded in
 `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch` section and independently
 re-verified this session (`main`/`origin/main` both at `3a4a21c`, exactly four files across the full
-authorization-to-merge range, 6/6 CI checks green). Backend test count is 438, still 9 frontend.
+authorization-to-merge range, 6/6 CI checks green).
+
+**`T63` followed — role-assignment routes, extending `RequirePermission(*permissions: str)` to grant on
+any one of multiple permissions.** New `POST`/`DELETE /api/v1/users/{id}/roles[/{role_id}]`, gated by
+`RequirePermission("users:manage", "roles:manage")`; every existing single-permission call site
+unaffected (`TestRequirePermission` 8/8 unchanged). New `assign_role()`/`remove_role()` on
+`UserRepository`/`SqlAlchemyUserRepository`; no new `Role`/`RolePermission` row, no migration. One
+flagged, independently-confirmed-necessary file outside the original scope:
+`tests/support/in_memory_user_repository.py` (a mechanical ABC consequence). 21 new integration tests.
+**QA Decision: Approved** (plain), rendered pre-merge directly against PR #36 (`3cea676`, base
+`97ab953`) — PR-branch suite **459/459 passing**, `ruff`/`black` clean, boot smoke test passed. **`T63`
+is NOT merged** — PR #36 remains open; `main`/`origin/main` are at `97ab953` (authorization only).
+Backend test count on `main` is still 438, still 9 frontend — `T63`'s 21 new tests are not yet part of
+that count.
 
 ## Pending Work
 
@@ -692,7 +705,29 @@ halted on discovering no QA Decision existed for `T62` despite the code already 
 Decision was subsequently recorded directly in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision
 — T62 batch` section and independently re-verified this session before this record was written. This
 finding is preserved as permanent governance history, the same discipline this project applied to
-`T52`–`T55`'s authorization-recording gaps — not a reason to reopen or rework the code. `T63`–`T67`
+`T52`–`T55`'s authorization-recording gaps — not a reason to reopen or rework the code.
+
+**`T63` followed — role-assignment routes, the eighth consecutive batch to hold the
+authorization-recording discipline, and the first to extend `RequirePermission` itself.** New
+`POST /api/v1/users/{id}/roles` (assign) and `DELETE /api/v1/users/{id}/roles/{role_id}` (remove),
+gated by a router-level `RequirePermission("users:manage", "roles:manage")`.
+`RequirePermission(permission: str)` was extended to `RequirePermission(*permissions: str)` — grants
+access on any one supplied permission; every existing single-argument call site is unaffected (the new
+"try all but the last" loop never runs for one argument, confirmed by the unchanged
+`TestRequirePermission` suite, 8/8 still passing). New narrow `assign_role()`/`remove_role()` on
+`UserRepository`/`SqlAlchemyUserRepository` (no new repository class), role existence checked via the
+existing generic `AbstractRepository[Role]`. `UserRead`/`UserCreate`/`UserUpdate` (`T62`) untouched; no
+`Role`/`RolePermission` creation; no migration. One file outside the originally-listed scope, flagged
+before editing: `tests/support/in_memory_user_repository.py` needed the same two new methods to keep
+satisfying the now-larger `UserRepository` ABC — a mechanical consequence of the interface extension,
+independently confirmed genuinely necessary and minimal, not a scope expansion. 21 new integration
+tests. **QA Decision: Approved** (plain) — rendered pre-merge, directly against PR #36
+(`feature/stage3-t63-role-assignment` at `3cea676`, base `main` at `97ab953`) — no technical defects,
+no unresolved scope issue. Full PR-branch suite **459/459 passing** (438 prior + 21 new), `ruff`/`black`
+clean, boot smoke test passed, `app.openapi()["paths"]` confirmed to contain exactly the eleven expected
+route/method combinations. **`T63`'s implementation is *not* merged** — PR #36 remains open;
+`main`/`origin/main` are at `97ab953` (the authorization merge only). Do not treat `T63` as `Done` or as
+contributing to `main`'s current test count (still 438) until PR #36 actually merges. `T64`–`T67`
 remain not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or

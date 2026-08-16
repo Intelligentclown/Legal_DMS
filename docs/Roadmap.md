@@ -281,8 +281,18 @@ recorded in the repository, violating `PROJECT_WORKFLOW.md`'s standard lifecycle
 had already reached the same disposition on the merits, only its recording was skipped. Recorded as
 permanent governance history in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch`
 section, independently re-verified this session (`main`/`origin/main` both at `3a4a21c`, exactly four
-files across the full authorization-to-merge range, 6/6 CI checks green). `T63`–`T67` remain not
-started, not authorized.
+files across the full authorization-to-merge range, 6/6 CI checks green).
+
+**`T63` (role-assignment routes) followed — extends `RequirePermission` to accept multiple permission
+codes, granting access on any one of them; every existing single-permission call site unaffected.**
+New `POST`/`DELETE /api/v1/users/{id}/roles[/{role_id}]`, gated by
+`RequirePermission("users:manage", "roles:manage")`. New `assign_role()`/`remove_role()` on
+`UserRepository`/`SqlAlchemyUserRepository`; no new `Role`/`RolePermission` row, no migration. 21 new
+integration tests. **QA Decision: Approved** (plain), rendered pre-merge directly against PR #36 —
+**learning from `T62`'s finding, this time the QA Decision was recorded before any merge, not after.**
+PR-branch suite **459/459 passing**, `ruff`/`black` clean, boot smoke test passed. **`T63`'s
+implementation is NOT merged** — PR #36 remains open; `main`/`origin/main` are at `97ab953`
+(authorization merge only). `T64`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

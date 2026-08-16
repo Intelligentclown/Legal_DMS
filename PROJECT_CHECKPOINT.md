@@ -9,38 +9,44 @@ fix this file.*
 ## 1. Last Verified State
 
 - **Verified:** 2026-08-16, this session — directly against `git`/`gh`, not from prior conversation.
-- **Current branch:** `main`
-- **HEAD commit:** `3a4a21c` — "Merge pull request #33 from Intelligentclown/feature/stage3-t62-users"
-  (feature commit `a3e8810`, "feat(users): add T62 user management routes").
-- **`origin/main`:** `3a4a21c` — synchronized with local `main`.
-- **Working tree:** clean of anything T62-related. Two separate, unrelated, still-uncommitted items
-  remain from earlier work and are explicitly **not** part of T62 or this checkpoint's scope:
-  a modified `docs/prompts/README.md` and a new, untracked `docs/prompts/GitCI_PR_Manager.md`
-  (a governance/role-prompt addition), plus an untracked `docs/HANDOFF/` directory. None of these were
+- **Current branch (main, this checkpoint's own basis):** `main`
+- **`main` HEAD commit:** `97ab953` — "Merge pull request #35 from Intelligentclown/docs/t63-authorization"
+  (authorization commit `93cda84`). **This is an authorization-only merge — it does not contain `T63`'s
+  implementation.**
+- **`origin/main`:** `97ab953` — synchronized with local `main`.
+- **`T63`'s implementation is NOT on `main`.** It exists on `feature/stage3-t63-role-assignment`
+  (local and `origin`), HEAD `3cea676` ("feat(users): add T63 role assignment routes"), via **PR #36,
+  currently OPEN, not merged.**
+- **Working tree (on `main`):** clean of anything T63-related. Two separate, unrelated,
+  still-uncommitted items remain from earlier work and are explicitly **not** part of T63 or this
+  checkpoint's scope: a modified `docs/prompts/README.md` and a new, untracked
+  `docs/prompts/GitCI_PR_Manager.md`, plus an untracked `docs/HANDOFF/` directory. None of these were
   touched by this synchronization pass.
-- **Latest relevant merge/PR:** PR #33, `feature/stage3-t62-users` → `3a4a21c`, merged
-  2026-08-16T08:58:20Z. Carries one commit, `a3e8810` (authored 2026-08-16T08:50:00Z). Prior to this,
-  PR #32, `docs/t62-authorization` → `ea80b74` — governance-only (authorization commit `e10bdc8`), no
-  code.
-- **Named governance finding (not erased, recorded here and in `docs/ImplementationLog/Stage3/Phase3.md`):**
-  `T62`'s implementation was merged (PR #33 → `3a4a21c`) **before** any QA Decision existed anywhere in
-  the repository — a genuine violation of `PROJECT_WORKFLOW.md`'s standard lifecycle. A Documentation
-  Manager closeout attempt correctly halted on discovering this. A QA Decision (`Approved with
-  comments`, the comment being this exact finding) was subsequently recorded in
-  `docs/ImplementationLog/Stage3/Phase3.md`, independently re-verified this session before this
-  checkpoint was updated to reflect `T62` as closed.
+- **On the feature branch (`feature/stage3-t63-role-assignment`):** a `QA Decision — T63 batch`
+  section exists, appended to `docs/ImplementationLog/Stage3/Phase3.md`, **uncommitted** as of this
+  writing (preserved via `git stash` while this session worked on `main`, then restored exactly —
+  never staged, committed, or modified by this pass). It is not yet part of PR #36's own diff on
+  GitHub until someone commits and pushes it to that branch.
+- **Latest relevant merges:** PR #35, `docs/t63-authorization` → `97ab953` (authorization only, no
+  code) — merged after PR #34, `docs/t62-post-merge-closeout` → `8687dc5` (T62's documentation
+  closeout). PR #36 (`feature/stage3-t63-role-assignment` → `main`, implementation) remains **open**.
 
 ## 2. Current Stage
 
 - **Stage:** 3 — Authentication & Authorization (`docs/Roadmap.md`, `IMPLEMENTATION_QUEUE.md`).
-- **Phase:** 3 — routes. `T58` (login), `T59` (refresh), `T60` (logout), `T61` (`/me`), and `T62`
-  (user management) all **Done in code, merged.** `T63`–`T65` not started, not authorized.
+- **Phase:** 3 — routes. `T58`–`T62` all **Done in code, merged.** `T63` (role assignment) is
+  **implemented and QA-Approved, but its implementation PR (#36) is not yet merged.** `T64`–`T65` not
+  started, not authorized.
 - **Overall project progress:** Stages 0–2 complete (infrastructure/framework/schema only, 0
   business features by design). Stage 3 is the first business-adjacent feature; Phase 0–2 complete,
-  Phase 3 underway (5 of 8 routes/route-groups done and merged).
-- **Completed task range (code merged into `main`):** `T41`–`T62`.
-- **Documentation closeout status:** `T41`–`T62` fully reconciled and merged as of this checkpoint.
-- **Next unfinished task:** `T63` (role-assignment routes) — **not authorized**.
+  Phase 3 underway (5 of 8 route-groups merged; a sixth — `T63` — implemented and QA-Approved,
+  awaiting merge).
+- **Completed task range (code merged into `main`):** `T41`–`T62`. **`T63` is not in this range** —
+  its code exists only on `feature/stage3-t63-role-assignment`.
+- **Documentation closeout status:** `T41`–`T62` fully reconciled and merged. `T63`'s governance
+  records (this checkpoint and its siblings) are synchronized to its current QA-Approved,
+  pending-merge state as of this session — not to a merged state, because it isn't one.
+- **Next unfinished task:** `T63`'s own merge (PR #36) — not `T64`.
 
 ## 3. Completed Tasks
 
@@ -57,152 +63,145 @@ fix this file.*
 | T59 | Done | `POST /api/v1/auth/refresh` — reuses `T58`'s `AuthServiceDep` unchanged | authorization+implementation PR #24 (`721cec5`); doc closeout PR #25 (`1121e20`) |
 | T60 | Done | `POST /api/v1/auth/logout` — reuses `T58`'s `AuthServiceDep`; `deps.py`/`router.py`/`AuthService` untouched | code PR #26 (`941ed42`); doc closeout PR #27 (`e6b227c`); checkpoint sync PR #28 (`81fd548`) |
 | T61 | Done | `GET /api/v1/auth/me` — reuses `CurrentUserDep`; the first route wrapped in `ApiResponse[T]` | authorization PR #29 (`cca1077`); implementation+docs PR #30 (`bdffb5e`); post-merge doc closeout PR #31 (`627726a`) |
-| **T62** | **Done** — `Approved with comments` (named governance finding, no code defect) | Five user-management routes (`list`/`get`/`create`/`update`/`deactivate`), the first Phase 3 batch to exercise `RequirePermission`'s 403 half via real HTTP requests | authorization PR #32 (`ea80b74`); implementation PR #33 (`3a4a21c`) |
+| T62 | Done — `Approved with comments` (named governance finding, no code defect) | Five user-management routes, the first Phase 3 batch to exercise `RequirePermission`'s 403 half via real HTTP requests | authorization PR #32 (`ea80b74`); implementation PR #33 (`3a4a21c`); post-merge doc closeout PR #34 (`8687dc5`) |
+| **T63** | **QA Approved (`Approved`, plain) — implementation PR pending merge, NOT Done** | Role-assignment routes; extends `RequirePermission(*permissions: str)` | authorization PR #35 (`97ab953`); implementation **PR #36 (OPEN)** |
 
 Full technical detail for `T52`–`T57` lives in `docs/ImplementationLog/Stage3/Phase2.md`; `T58`–`T62`
-live in `docs/ImplementationLog/Stage3/Phase3.md` — not duplicated here.
+(merged) live in `docs/ImplementationLog/Stage3/Phase3.md` on `main`; `T63`'s batch (including its QA
+Decision) currently lives only on `feature/stage3-t63-role-assignment` — not duplicated here.
 
 ## 4. Current Task
 
-**Task:** `T62` — user management routes (admin-only, `users:manage`): list, get, create, update,
-deactivate.
+**Task:** `T63` — role-assignment routes: `POST /api/v1/users/{id}/roles` (assign),
+`DELETE /api/v1/users/{id}/roles/{role_id}` (remove).
 
-- **Authorization status:** recorded as its own dedicated, documentation-only commit (`e10bdc8`,
-  2026-08-16), merged via PR #32 (`ea80b74`) — the seventh consecutive Stage 3 batch to record
-  authorization before implementation, after `T56`–`T61`.
-- **Implementation status:** complete and merged — new `presentation/api/v1/users.py` with five
-  routes gated by one router-level `RequirePermission("users:manage")`; `router.py` changed only to
-  mount it; `deps.py`, `AuthService`, `CurrentUser`, `crud_router_factory.py` all untouched. 28 new
-  integration tests in `tests/integration/test_users.py`.
-- **QA status:** **Approved with comments** — recorded in
-  `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch` section. No technical defect;
-  the comment is a **named governance finding**: `T62` was merged (PR #33 → `3a4a21c`) **before** any
-  QA Decision existed anywhere in the repository, violating `PROJECT_WORKFLOW.md`'s standard lifecycle
-  and this batch's own explicitly stated intent that merge wait for it. A pre-merge QA pass had
-  already reached the same disposition on the merits (28/28 + 438/438 tests, exact 4-file scope
-  across the full authorization-to-merge range, `ruff`/`black` clean, boot smoke passed, `app.openapi()["paths"]` exactly the nine expected routes) — only its repository-visible recording was
-  skipped, which is what let the merge proceed unblocked. This finding is preserved as permanent
-  governance history, the same discipline this project applied to `T52`–`T55`'s
-  authorization-recording gaps — **not** a reason to reopen or rework the code.
-- **Documentation status:** the implementation PR (#33) itself carried
-  `docs/ImplementationLog/Stage3/Phase3.md`'s T62 batch (Objective through Reviewer Checklist, without
-  a QA Decision at merge time). The QA Decision was recorded afterward, directly in the repository.
-  This checkpoint, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
-  `docs/Roadmap.md`, and `docs/SessionReport.md` are synchronized to the merged, QA-Approved state in
-  this same session.
-- **Dependencies:** `T54`, `T46` (both done).
-- **Post-merge/QA verification (this session, 2026-08-16):** independently re-verified, not
-  transcribed — `main`/`origin/main` both confirmed at `3a4a21c`; `git diff ea80b74 3a4a21c
-  --name-only` confirms exactly four files (`router.py`, `users.py`, `test_users.py`, `Phase3.md`), no
-  forbidden file touched; `gh pr checks 33` confirms 6/6 green; full suite **438/438 passing**,
-  `ruff`/`black` clean — all personally re-run against merged `main` with live Postgres.
-- **Is `T62` finished? Yes.** Code merged (PR #33, `3a4a21c`); QA Decision `Approved with comments`
-  now recorded in the repository; documentation synchronized in this session. The one open item is
-  process, not product: the governance finding above is recorded, not resolved — it can't be undone,
-  only learned from.
+- **Authorization status:** recorded as its own dedicated, documentation-only commit (`93cda84`,
+  2026-08-16), merged via PR #35 (`97ab953`) — the eighth consecutive Stage 3 batch to record
+  authorization before implementation, after `T56`–`T62`.
+- **Implementation status:** complete on `feature/stage3-t63-role-assignment` (feature commit
+  `3cea676`), via **PR #36 — open, not merged.** Extends `RequirePermission(permission: str)` to
+  `RequirePermission(*permissions: str)` (grants on any one supplied permission; every existing
+  single-argument call site unaffected); new `assign_role()`/`remove_role()` on
+  `UserRepository`/`SqlAlchemyUserRepository`; `crud_router_factory.py`, `AuthService`, `CurrentUser`,
+  `UserRead`/`UserCreate`/`UserUpdate` (`T62`) all untouched. One file outside the originally
+  authorized list, flagged before editing and independently confirmed necessary/minimal by QA:
+  `tests/support/in_memory_user_repository.py` (a mechanical consequence of the `UserRepository` ABC
+  gaining two new abstract methods). 21 new integration tests.
+- **QA status:** **Approved** (plain, no comments) — rendered **pre-merge**, directly against PR #36
+  (`3cea676`, base `97ab953`), recorded in `docs/ImplementationLog/Stage3/Phase3.md`'s
+  `QA Decision — T63 batch` section (currently on the feature branch, uncommitted there as of this
+  session — see §1). No technical defects, no unresolved scope issue. **This is a deliberate
+  improvement on `T62`'s own history** — that batch's QA Decision was only recorded after merge; this
+  one exists before it.
+- **Documentation status:** this checkpoint, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+  `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` are synchronized to the current
+  QA-Approved/pending-merge state in this session. `docs/ImplementationLog/Stage3/Phase3.md` was
+  **deliberately not touched** on `main` — `T63`'s batch narrative doesn't exist there yet (it's only
+  on the feature branch, not merged); adding it prematurely to `main`'s copy would duplicate content
+  that PR #36 will bring in on its own and risk a conflict with that PR. See §14 for the reasoning in
+  full.
+- **Dependencies:** `T54` (done).
+- **Independent verification performed this session:** `git diff 97ab953..3cea676 --name-only`
+  confirms exactly seven files (the six originally authorized plus
+  `tests/support/in_memory_user_repository.py`); `gh pr view 36` confirms `OPEN`, base `main`, head
+  `feature/stage3-t63-role-assignment`; the QA Decision section itself was read in full and found
+  internally consistent with the diff. **Test suites were not personally re-run this session** — the
+  QA Decision's own figures (49/49 T62+T63 user tests, 459/459 full suite, `TestRequirePermission`
+  8/8) are cited as QA's independently-recorded verification, not re-derived, since this session is
+  documentation-only and re-running tests would require checking out the feature branch, which this
+  pass was not asked to do.
+- **Is `T63` finished? No — and this is the point to get right.** Authorization and implementation
+  are both real and merged/committed on their own terms (authorization on `main`; implementation on
+  its feature branch). QA has genuinely approved it. **But `T63` is not `Done`, not merged, and not
+  part of `main`** — per `docs/DefinitionOfDone.md` and this file's own standing rule (§14), a task is
+  `Done` only once code and QA Decision are both actually merged into `main`. `T63` currently satisfies
+  "QA Approved," not "Done."
 
 ## 5. Next Cycle
 
-- **Next task:** `T63` — role-assignment routes: assign/remove a role for a user (`users:manage` or
-  `roles:manage`).
-- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T63`'s dependency as `T54` — done;
-  it is the next unstarted row in Phase 3's task order after `T62`.
-- **Dependencies:** `T54` (done).
-- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T63` row on
-  `main` carries no `Done`/authorization marker. No project-owner authorization for `T63` exists
-  anywhere in the repository as of this checkpoint. **This synchronization pass does not authorize,
-  start, or scope `T63`.**
-- **What must happen before implementation begins:**
-  1. The project owner authorizes `T63` — and, given the governance finding named in `T62`, whoever
-     authorizes and implements `T63` should take particular care that the QA Decision is recorded in
-     `docs/ImplementationLog/Stage3/Phase3.md` **before** any merge, not just before implementation.
-  2. The Backend Developer role performs the `docs/prompts/BackendDeveloper.md` §5 checkpoint before
-     writing any code.
+- **What must happen next:** PR #36 needs the QA Decision committed and pushed to
+  `feature/stage3-t63-role-assignment` (it currently exists only as an uncommitted local addition,
+  stashed and restored by this session — see §1), then PR #36 itself needs to actually merge, followed
+  by a post-merge documentation-closeout pass (mirroring `T61`/`T62`'s own pattern) to bring
+  `docs/ImplementationLog/Stage3/Phase3.md`'s `T63` content onto `main` and mark `T63` truly `Done`.
+  **None of this was performed by this session** — committing to the feature branch, merging, and
+  post-merge closeout were all outside this pass's own scope (documentation/governance
+  synchronization only).
+- **After `T63` actually merges, the next task is `T64`** (cross-route integration tests) —
+  **not authorized**. No project-owner authorization for `T64` exists anywhere in the repository.
 
-**`T62` being fully closed and `T63` being unauthorized are two separate facts — do not conflate
-them.** `T63` must not be started merely because `T62` is closed.
+**`T63` being QA-Approved and `T63` being merged are two separate facts — do not conflate them.** `T64`
+must not be started merely because `T63` has a QA Decision; `T63` itself hasn't reached `main` yet.
 
 ## 6. Repository State
 
-- **`main`:** `3a4a21c`
-- **`origin/main`:** `3a4a21c` (synchronized)
-- **Latest merge commit:** `3a4a21c` (PR #33, `feature/stage3-t62-users`)
-- **Latest feature branch relevant to the completed task:** `feature/stage3-t62-users` — merged, safe
-  to delete if not already (not performed by this pass — routine branch cleanup wasn't part of what
-  was asked here).
-- **This session's own branch:** N/A — this session performed verification and documentation
-  synchronization only, directly on `main`, no new branch created yet (a documentation branch/PR is
-  the next step for this session's own edits, per this role's standard workflow).
-- **Any task implementation sitting uncommitted?** No — `T62`'s code is fully committed and merged.
-- **Any task documentation sitting uncommitted (pre-this-session's-commit)?** This checkpoint's own
-  edits, and the `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`docs/AI_HANDOVER.md`/
-  `docs/Roadmap.md`/`docs/SessionReport.md`/`docs/ImplementationLog/Stage3/Phase3.md` (header only —
-  its QA Decision section was already committed as part of a prior working-tree state) corrections
-  made in this session are uncommitted as of this writing. Separately, `docs/prompts/README.md`
-  (modified) and `docs/prompts/GitCI_PR_Manager.md`/`docs/HANDOFF/` (untracked) remain uncommitted from
-  earlier, unrelated work.
-- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -5` shows `3a4a21c (HEAD
-  -> main, origin/main, origin/HEAD) Merge pull request #33 …`, and `gh pr view 33` confirms `MERGED`.
+- **`main`:** `97ab953`
+- **`origin/main`:** `97ab953` (synchronized)
+- **Latest merge commit on `main`:** `97ab953` (PR #35, `docs/t63-authorization` — authorization only)
+- **`T63`'s implementation branch:** `feature/stage3-t63-role-assignment`, HEAD `3cea676`, pushed to
+  `origin`, open as PR #36 — **not merged into `main`.**
+- **This session's own branch:** N/A while producing this checkpoint (worked directly on `main`); a
+  dedicated documentation branch is created separately to carry this session's own edits into a PR,
+  per this role's standard workflow.
+- **Any task implementation sitting uncommitted?** No uncommitted *implementation* — `T63`'s code is
+  fully committed on its feature branch (just not merged). The QA Decision text sitting on that same
+  branch's working tree, uncommitted, is documentation, not implementation (see §1).
+- **Any task documentation sitting uncommitted?** This checkpoint's own edits, and the
+  `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`docs/AI_HANDOVER.md`/`docs/Roadmap.md`/
+  `docs/SessionReport.md` corrections made in this session, are uncommitted on `main` as of this
+  writing — routed through a documentation branch/PR next, not a direct commit. Separately,
+  `docs/prompts/README.md` (modified) and `docs/prompts/GitCI_PR_Manager.md`/`docs/HANDOFF/`
+  (untracked) remain uncommitted from earlier, unrelated work.
+- **PR verifiable locally and via `gh`?** Yes — `gh pr view 35` confirms `MERGED` at `97ab953`;
+  `gh pr view 36` confirms `OPEN`, not merged.
 
 ## 7. Test / Quality Status
 
-Figures **personally re-verified this session, directly on `main` at `3a4a21c`** — Docker was
-reachable (`legal_dms_postgres` confirmed healthy via `docker ps`), so the DB-backed suite itself was
-re-run locally, not merely corroborated via CI.
-
-- **Backend tests:** `uv run pytest -q` — **438 passed, 0 failed, 0 skipped** (410 prior + 28 new),
-  against live Postgres.
-- **Frontend tests:** carried from the prior verification pass (9 passed) — unaffected by `T62`
-  (backend-only change).
-- **Lint:** `uv run ruff check src tests alembic` — clean.
-- **Format:** `uv run black --check src tests alembic` — clean (199 files unchanged).
-- **Boot smoke test:** `python -c "from app.main import app"` — succeeds;
-  `app.openapi()["paths"]` independently confirmed to contain exactly `/api/v1/auth/login`,
-  `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me`, `/api/v1/health`,
-  `/api/v1/users` (`GET`, `POST`), `/api/v1/users/{user_id}` (`GET`, `PUT`),
-  `/api/v1/users/{user_id}/deactivate` (`POST`), `/api/v1/version` — no `T63`+ route, no stray
-  `DELETE`/reactivation route present.
-- **CI (PR #33):** `gh pr checks 33` — **6/6 checks pass** (Build verification ×2, Lint/format/test
-  ×4 — the expected double-trigger per [ADR/0017](ADR/0017-github-actions-ci.md), not a flake).
-- **Database/integration status:** live Postgres reachable and healthy, confirmed locally this
-  session.
-- **Environmental issues:** none this session.
+- **`main`'s own actual test count (not personally re-run this session, carried from the prior
+  checkpoint's own verified figure, since nothing on `main` has changed since):** **438 backend
+  tests**, 9 frontend. `T63`'s 21 new tests are **not** part of this count — they exist only on the
+  unmerged feature branch.
+- **`T63`'s PR-branch figures, per the QA Decision — T63 batch section (QA's own independently-run
+  verification, not re-run by this session):** `tests/integration/test_users.py` 49/49 (28 T62 + 21
+  T63); full suite 459/459, 0 failed, 0 skipped; `tests/unit/test_auth.py::TestRequirePermission` 8/8;
+  `ruff check`/`black --check` both clean; boot smoke test passed; `app.openapi()["paths"]` contains
+  exactly the eleven expected route/method combinations.
+- **CI (PR #36):** not independently re-checked by this session — see `gh pr checks 36` for current
+  status if needed; not cited here since this pass didn't verify it directly.
+- **Environmental issues:** none this session (no test suite was run, so none to report).
 
 ## 8. Current Architecture Snapshot
 
-- **`AuthenticationProvider` (Stage 1 port):** real implementation `JwtAuthenticationProvider`
-  (`T52`), constructed request-scoped in `deps.py` (`T55`), fed a real bearer token (`T56`).
-- **`AuthorizationService` (Stage 1 port):** real implementation `RbacAuthorizationService` (`T53`),
-  also request-scoped (`T55`).
-- **`RequirePermission(...)` (`T54`, extended by `T57`):** now genuinely exercised end-to-end — `T62`
-  is the first Phase 3 batch to reach a real `403` (authenticated-but-unpermitted) via a real HTTP
-  request, not just the `401` half `T61` first exercised.
-- **`POST /api/v1/auth/login` (`T58`), `POST /api/v1/auth/refresh` (`T59`),
-  `POST /api/v1/auth/logout` (`T60`), `GET /api/v1/auth/me` (`T61`):** merged, unchanged by `T62`.
-- **`GET/POST /api/v1/users`, `GET/PUT /api/v1/users/{id}`, `POST /api/v1/users/{id}/deactivate`
-  (`T62`, NEW):** new `presentation/api/v1/users.py` — five hand-written routes, **not** built on
-  `crud_router_factory.py` (deliberately, per authorized scope), gated by one router-level
-  `RequirePermission("users:manage")`. Reuses `BaseService[User]` (`T55`'s framework layer) and
-  `SqlAlchemyUserRepository` (`T50`) directly; a local, module-only `get_user_repository()`/
-  `get_user_service()` pair, not added to `deps.py`. `create_user()` hashes via `hash_password()`
-  (`T46`); `deactivate_user()` calls `service.update()`, never `delete()` — row and
-  `UserRole`/`RefreshToken` relationships preserved, idempotent. `T63` (role assignment) explicitly
-  out of scope — created users have zero roles.
+- **`AuthenticationProvider`/`AuthorizationService` (Stage 1 ports):** unchanged — real
+  implementations `JwtAuthenticationProvider` (`T52`)/`RbacAuthorizationService` (`T53`), request-scoped
+  (`T55`).
+- **`RequirePermission(...)` (`T54`, extended by `T57`, and — on the unmerged feature branch only —
+  by `T63`):** on `main` today, still `RequirePermission(permission: str)`, single-argument, as it has
+  been since `T57`. `T63`'s `*permissions: str` extension (OR-semantics across multiple codes) exists
+  only on `feature/stage3-t63-role-assignment` until PR #36 merges.
+- **`POST/GET /api/v1/auth/*` (`T58`–`T61`), `GET/POST/PUT/deactivate /api/v1/users*` (`T62`):**
+  merged, unchanged by `T63`'s pending work.
+- **`POST/DELETE /api/v1/users/{id}/roles[/{role_id}]` (`T63`, NOT YET on `main`):** exists only on
+  the feature branch. Gated by the extended `RequirePermission("users:manage", "roles:manage")`. New
+  `assign_role()`/`remove_role()` on `UserRepository`/`SqlAlchemyUserRepository`; role existence
+  checked via the existing generic `AbstractRepository[Role]`; `UserRole`'s existing
+  `UniqueConstraint(user_id, role_id)` backs the `409` on duplicate assignment. No `Role`/
+  `RolePermission` creation, no migration.
 
 ## 9. Active Risks / Open Questions
 
-| Issue | Impact | Blocks `T63`? | Owner |
+| Issue | Impact | Blocks `T64`? | Owner |
 |---|---|---|---|
-| `T62`'s merge-before-QA-Decision governance finding | Process defect, permanently recorded, not undoable — worth deliberate attention on `T63` so the same gap doesn't recur (record the QA Decision before merge, not implementation) | No (recorded, not blocking) | Whoever runs `T63`'s QA/merge sequence |
+| **`T63`'s QA Decision exists only as an uncommitted addition on `feature/stage3-t63-role-assignment`'s working tree — not yet committed, not yet part of PR #36's diff on GitHub.** | If PR #36 merges before this is committed, `T63` would repeat `T62`'s exact governance deviation (merged before QA Decision was durably recorded). Flagged explicitly, not resolved by this session — committing to the feature branch was outside this pass's scope. | Yes (should be resolved before merge) | Whoever next touches `feature/stage3-t63-role-assignment` / PR #36 |
+| `T63`'s implementation PR (#36) is open, QA-Approved, but not merged | `T63` cannot be called `Done` until it merges | Yes | Whoever has merge authority for this PR |
 | `role_permissions` exact matrix (`T66`) needs project-owner sign-off before that migration is written | Blocks `T66` only | No | Project owner |
-| `docs/ProjectStatus.md` / `docs/ArchitectureScorecard.md` stuck at pre-Stage-3 status | Documentation debt, repeatedly flagged across `T58`–`T62`'s closeouts, still not fixed | No | Documentation Manager (whenever a dedicated pass is authorized) |
-| `docs/AI_HANDOVER.md`'s "Current Branch"/"Files Recently Modified"/"API Status" sections are stale (pre-Stage-3, in one case pre-Stage-2) | Documentation debt, not fixed by any Phase 3 closeout so far | No | Documentation Manager (dedicated pass) |
-| `feature/stage3-t61-me` and `feature/stage3-t62-users` branches not yet deleted post-merge | Minor housekeeping, no functional impact | No | Whoever performs routine branch cleanup |
-| A separate, unrelated governance-documentation change (`docs/prompts/GitCI_PR_Manager.md`/`README.md`) and an untracked `docs/HANDOFF/` directory remain uncommitted in the working tree | Not part of `T61`/`T62`; left untouched across multiple sessions so as not to conflate scopes | No | Whoever owns that separate change |
+| `docs/ProjectStatus.md` / `docs/ArchitectureScorecard.md` stuck at pre-Stage-3 status | Documentation debt, repeatedly flagged, still not fixed | No | Documentation Manager (dedicated pass) |
+| `feature/stage3-t61-me` and `feature/stage3-t62-users` branches not yet deleted post-merge | Minor housekeeping | No | Whoever performs routine branch cleanup |
+| A separate, unrelated governance-documentation change (`docs/prompts/GitCI_PR_Manager.md`/`README.md`) and an untracked `docs/HANDOFF/` directory remain uncommitted | Not part of `T61`/`T62`/`T63`; left untouched across multiple sessions | No | Whoever owns that separate change |
 
-**Resolved since the previous version of this file, removed from this table:** `T61`'s
-implementation/QA Decision sitting uncommitted — merged as PR #30 (`bdffb5e`), documentation closeout
-merged as PR #31 (`627726a`); no longer a risk.
+**Resolved since the previous version of this file, removed from this table:** `T62`'s
+merge-before-QA-Decision finding is fully recorded and closed (PR #34 merged); no longer an open risk
+for `T62` itself — though it directly motivates the new `T63` risk row above.
 
 ## 10. Governance Rules
 
@@ -210,72 +209,62 @@ From `AI_BOOTSTRAP.md`, `PROJECT_WORKFLOW.md`, and `docs/prompts/*.md` — summa
 full:
 
 - **Repository-First Rule:** the repository is always the source of truth; never rely on previous
-  chat history; rebuild context from the repository before doing anything. This checkpoint's own
-  update is a worked example: a task description's claim of "QA Decision: APPROVED" was **not** taken
-  on faith — the repository was checked directly, found the claim unsubstantiated, and a prior
-  synchronization attempt correctly halted until the QA Decision was actually recorded in the
-  repository.
-- **Every implementation cycle begins with the Project Manager**, who identifies the next unfinished
-  task, verifies prerequisites, and waits for explicit project-owner approval — authorization must be
-  **written into `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation begins**.
-  `T56`–`T62` are seven consecutive batches that got this right.
-- **Backend Developer** must reconstruct state, **summarize understanding, and wait for explicit
-  approval of that summary** (`docs/prompts/BackendDeveloper.md` §5) before writing any code.
-- **One task (or an explicitly-scoped batch) per implementation batch** — minimal scope.
-- **QA Reviewer** independently reviews and renders a **QA Decision** — `Approved` /
-  `Approved with comments` / `Rework required` — never pre-filled by the implementer, and **recorded
-  in the repository before merge**, not after. `T62` is this project's first documented failure of the
-  "before merge" half of that rule — named, not erased.
+  chat history.
+- **Every implementation cycle begins with the Project Manager**, authorization written into
+  `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation begins. `T56`–`T63` are eight
+  consecutive batches that got this right.
+- **QA Reviewer** renders a QA Decision — **recorded in the repository before merge.** `T63` is this
+  project's first deliberate correction of `T62`'s exact failure on this point — though, as §9 notes,
+  that correction isn't durably safe until the QA Decision is actually committed and pushed, not just
+  sitting in a local working tree.
 - **Documentation Manager** performs closeout **only after** a QA Decision of `Approved`/`Approved
-  with comments` exists in the repository — never before, and never on the strength of a task
-  description's own claim alone.
+  with comments` exists **in the repository** — this session verified the QA Decision's actual text
+  directly (on the feature branch) before writing anything, not on the strength of a task
+  description's claim alone.
+- **A task is `Done` only when code and QA Decision are both merged into `main`** — `T63` is the
+  sharpest recent example of holding this line: QA-Approved is real and recorded, but `T63` is
+  explicitly *not* called `Done` anywhere in this update.
 - **`main` is protected.** Branch strategy: `feature/<name>` (or `docs/<topic>`) off `main` → commit
   → PR → merge → delete branch → update local `main`.
-- **Do not start the next task before the previous task reaches a clean merged checkpoint** — `T62`'s
-  code and (as of this session) documentation records both satisfy this; `T62` is fully closed. `T63`
-  remains unauthorized and must not start until explicitly authorized.
-- **Preserve historical governance deviations rather than rewriting history** — corrections are
-  appended with a date, originals never silently edited or deleted. `T62`'s governance finding follows
-  this discipline exactly, the same as `T52`–`T55`'s authorization-recording gaps before it.
+- **Preserve historical governance deviations rather than rewriting history.**
 - **Task IDs are immutable.**
 
 ## 11. Safe Breakpoint
 
-**SAFE TO STOP: YES**, with one caveat: the documentation corrections this synchronization session
-made (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
-`docs/SessionReport.md`, `docs/ImplementationLog/Stage3/Phase3.md`'s header, this file) are
-**uncommitted** as of this writing — this session's own workflow routes them through a documentation
-branch and PR next, not a direct commit to `main`. `T62` itself — code, tests, QA Decision — is fully
-merged and safe.
+**SAFE TO STOP: YES**, with two caveats, both explicitly disclosed rather than smoothed over:
 
-**Next cycle begins with: `T63`** — **not authorized**. `T63` must not be started merely because `T62`
-is closed. It must not start without its own recorded go-ahead, following the pattern `T56`–`T62`
-themselves demonstrated (authorization committed before implementation) — and, given `T62`'s named
-finding, with the QA Decision recorded before merge this time too.
+1. This session's own documentation corrections (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+   `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md`, this file) are **uncommitted** on
+   `main` as of this writing — routed through a documentation branch/PR next.
+2. `T63`'s QA Decision is **uncommitted** on `feature/stage3-t63-role-assignment` — preserved exactly
+   (stashed, then restored) by this session, not committed, since committing to that branch was
+   outside this pass's own scope. This is a real, live risk (§9) that whoever next works on PR #36
+   should resolve before that PR merges.
+
+**Next cycle begins with: resolving `T63`'s uncommitted QA Decision, then merging PR #36** — not
+`T64`. `T64` remains unauthorized regardless of how quickly `T63` closes out.
 
 ## 12. AI Continuation Instructions
 
 Before doing anything:
 
 1. Read this file (`PROJECT_CHECKPOINT.md`).
-2. Verify the live Git state yourself (`git status`, `git log`, `git rev-parse HEAD origin/main`) —
-   do not trust this file's numbers without re-checking. **Check whether this session's own
-   documentation-branch PR has since merged** — as of this writing it had not yet been opened.
-3. Read `T63`'s row in `IMPLEMENTATION_QUEUE.md` directly.
-4. Read the relevant `PROJECT_STATE.json` state directly.
-5. Verify authorization for `T63` — in the repository, not from this file's summary.
-6. Do not assume `T63` is authorized just because `T62`'s code is merged.
-7. Confirm Docker/Postgres is actually reachable (`docker ps`) before claiming any DB-backed test
-   result was personally re-run.
-8. **Do not assume a QA Decision exists, or its precise wording, without checking the actual source
-   in the repository** — `T62`'s own history is the cautionary example.
-9. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
+2. Verify the live Git state yourself — `git status`, `git log`, `git rev-parse HEAD origin/main`,
+   `gh pr view 36`. **Check whether PR #36 has since merged** — as of this writing it had not.
+3. If PR #36 has merged, this file is stale on that point specifically — trust `git`/`gh`, not this
+   file's own claim that `T63` isn't merged, and then update this file.
+4. **Check whether `T63`'s QA Decision has been committed to `feature/stage3-t63-role-assignment`** —
+   `git log feature/stage3-t63-role-assignment` / `git diff origin/feature/stage3-t63-role-assignment
+   -- docs/ImplementationLog/Stage3/Phase3.md`. If it's still only a local, uncommitted addition
+   somewhere, that's the single most important loose end from this session.
+5. Do not assume `T64` is authorized just because `T63` has a QA Decision.
+6. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
 
-**Which role should act next: Project Manager** for `T63` — identifying it, verifying `T54` is
-genuinely satisfied, and recording explicit project-owner authorization **before** any Backend
-Developer work begins, following `T56`–`T62`'s own pattern. Separately, whoever owns the
-`docs/prompts/GitCI_PR_Manager.md`/`README.md` governance-documentation change and the `docs/HANDOFF/`
-directory should decide whether and how to commit that unrelated work — not addressed here.
+**Which role should act next:** whoever can commit and push `T63`'s QA Decision to
+`feature/stage3-t63-role-assignment` (completing PR #36's own documentation, the correct place for
+it — not this checkpoint's branch), and then whoever has merge authority for PR #36. Only after that
+does a post-merge documentation-closeout pass (Documentation Manager) bring `T63`'s Phase3.md content
+onto `main` and mark it `Done`, mirroring `T61`/`T62`'s own pattern.
 
 ## 13. Authoritative Files
 
@@ -289,51 +278,42 @@ directory should decide whether and how to commit that unrelated work — not ad
 | `docs/Roadmap.md` | Stage-by-stage roadmap pointer (defers to `IMPLEMENTATION_QUEUE.md` for detail) |
 | `docs/SessionReport.md` | Chronological session-by-session summary |
 | `docs/ImplementationLog/Stage3/Phase2.md` | Full technical execution record for `T52`–`T57` (Phase 2, complete) |
-| `docs/ImplementationLog/Stage3/Phase3.md` | Full technical execution record for `T58`–`T62` (Phase 3, in progress) |
-| `docs/ImplementationLog/README.md` | The ImplementationLog standard itself — Canonical Document Roles, Documentation Ownership, QA Decision meaning |
-| `docs/prompts/*.md` | Canonical per-role AI prompts (Project Manager, Backend Developer, QA Reviewer, Documentation Manager) |
+| `docs/ImplementationLog/Stage3/Phase3.md` | Full technical execution record for `T58`–`T62` on `main`; `T63`'s own batch (including its QA Decision) currently lives only on `feature/stage3-t63-role-assignment` |
+| `docs/ImplementationLog/README.md` | The ImplementationLog standard itself |
+| `docs/prompts/*.md` | Canonical per-role AI prompts |
 | `docs/Stage3_Backend_Handoff.md` | File-by-file implementation brief for Stage 3's remaining phases |
 
 ## 14. Checkpoint Maintenance Rules
 
-- This file represents **current state**, not historical narrative — it is rewritten in place, not
-  appended to.
-- Update it whenever a task reaches a meaningful lifecycle boundary (implemented, QA-decided,
-  merged, closed out).
-- Update it after every merge/closeout.
-- **Never** claim a task is `Done` merely because code exists — a task is fully `Done` only when its
-  QA Decision(s) *and* documentation closeout are both actually merged into `main`/recorded in the
-  repository. `T62` is this session's sharpest worked example yet: code was merged, but this file did
-  **not** call it `Done` until an actual QA Decision was independently found and verified in the
-  repository — not assumed from a task description's own claim.
-- **Never** claim QA approval unless the QA Decision is recorded in the repository, not merely
-  asserted.
-- **Never** claim a clean breakpoint while uncommitted or unmerged *task* work remains — `T62` itself
-  has none; this file's own edits (and unrelated prior work) remain uncommitted, disclosed in §11
-  rather than glossed over.
-- **Never** claim an authorization was "recorded before implementation began" without a commit to
-  point to — `T62`'s (`e10bdc8`, PR #32, `ea80b74`) is independently re-verified this way.
-- **Never** claim a test suite was personally re-run when it wasn't, or fail to note when it *was*
-  after previously being unable to. This session's 438/438 figure was personally re-run against
-  merged `main` with live Postgres.
-- Preserve historical detail in `docs/ImplementationLog/`/`docs/SessionReport.md` rather than
-  bloating this file.
-- **Always** verify Git state directly before declaring this checkpoint current.
+- This file represents **current state**, not historical narrative — rewritten in place.
+- **Never** claim a task is `Done` merely because code exists, or merely because QA approved it — a
+  task is `Done` only when code and QA Decision are both merged into `main`. `T63` is this session's
+  own worked example: genuinely QA-Approved, explicitly still not `Done`.
+- **Never** claim `docs/ImplementationLog/Stage3/Phase3.md` was updated with `T63` content on `main`
+  when it wasn't — this update deliberately left that file untouched on `main`, because `T63`'s batch
+  narrative doesn't exist there; adding it here would pre-empt and likely conflict with PR #36's own
+  merge. This is a documented, reasoned exclusion, not an oversight.
+- **Never** claim a clean breakpoint while a real, live risk sits unaddressed — §9/§11's disclosure of
+  `T63`'s uncommitted QA Decision is the standard this update is itself held to.
+- **Never** bump `tests.backend`/`currentStageScopePercent` in `PROJECT_STATE.json` for work that
+  exists only on an unmerged branch — `T63`'s 21 tests and its scope-percent contribution are
+  deliberately excluded until PR #36 actually merges.
+- **Always** verify Git state directly, including PR state via `gh`, before declaring anything current.
 
 ## 15. Checkpoint Integrity
 
-- **Last verified commit:** `3a4a21c` (`main`, synchronized with `origin/main`, at session start)
-- **Last verified branch:** `main`
-- **Working tree status:** clean of `T62`-related changes; this checkpoint's own edits (and separate,
-  unrelated, pre-existing uncommitted work) are the only non-clean elements — see §1/§6.
+- **Last verified commit (`main`):** `97ab953`, synchronized with `origin/main`.
+- **Last verified branch:** `main` (this checkpoint's own basis); `T63`'s work verified separately on
+  `feature/stage3-t63-role-assignment` at `3cea676`.
+- **Working tree status (`main`):** clean of `T63`-related changes; this checkpoint's own edits (and
+  separate, unrelated, pre-existing uncommitted work) are the only non-clean elements.
 - **Verification performed:** `git fetch origin`; `git status --short`; `git rev-parse HEAD
-  origin/main`; `git log --oneline -10`; `gh pr view 32`/`gh pr view 33` (both `MERGED`); `git diff
-  ea80b74 3a4a21c --name-only`; `gh pr checks 33` (6/6 pass); `gh api pulls/33/reviews` and
-  `issues/33/comments` (both empty — no QA record there); `docs/reviews/` directory check (no `T62`
-  file); direct read of `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch` section
-  (confirmed present, `Approved with comments` checked, its named governance finding read in full);
-  `ruff`/`black`/boot smoke test re-run locally against merged `main`, all clean; **the full backend
-  suite personally re-run against live Postgres this session** (`docker ps` confirmed
-  `legal_dms_postgres` healthy) — 438/438, matching every prior claim exactly.
+  origin/main`; `git log --oneline --decorate -12`; `gh pr view 35` (`MERGED`, `97ab953`); `gh pr view
+  36` (`OPEN`, base `main`, head `feature/stage3-t63-role-assignment`); `git diff 97ab953..3cea676
+  --name-only` (exactly seven files); direct read of the `QA Decision — T63 batch` section on the
+  feature branch (confirmed present, `Approved` checked, no other box); `git stash` used to safely
+  preserve that uncommitted section across a branch switch to `main`, then restored exactly, verified
+  unchanged afterward. Test suites were **not** personally re-run this session — see §7's explicit
+  disclosure of what was and wasn't independently verified.
 - **Generated/updated by:** Documentation Manager
 - **Date:** 2026-08-16

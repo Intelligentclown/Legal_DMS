@@ -2122,3 +2122,74 @@ whoever runs `T63` should take particular care that its QA Decision is recorded 
 `docs/ImplementationLog/Stage3/Phase3.md` **before** any merge, not just before implementation.
 Standing item, still unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s
 pre-Stage-3 staleness.
+
+## Session: 2026-08-16 — T63 post-QA documentation synchronization (pre-merge)
+
+**Independently verified repository state before touching anything.** `git fetch`/`git log`/`gh pr
+view 35`/`gh pr view 36` confirmed: PR #35 (authorization, `93cda84` → `97ab953`) `MERGED`; PR #36
+(implementation, `3cea676`, branch `feature/stage3-t63-role-assignment`) **`OPEN`, not merged.**
+`main`/`origin/main` both at `97ab953`. `git diff 97ab953..3cea676 --name-only` confirmed exactly
+seven files changed on the feature branch — the six originally authorized plus
+`tests/support/in_memory_user_repository.py`, matching the task description's own account exactly.
+
+**Found the QA Decision recorded, read it in full, and independently confirmed it was genuine before
+treating it as authoritative** — not merely accepted on the task description's word. A
+`QA Decision — T63 batch` section exists in `docs/ImplementationLog/Stage3/Phase3.md`, but as an
+**uncommitted addition sitting on the working tree of `feature/stage3-t63-role-assignment`** (the
+branch checked out at session start) — not yet part of PR #36's own diff on GitHub. Disposition:
+plain `Approved`, rendered pre-merge directly against PR #36, explicitly noting this is unlike
+`T61`/`T62`'s post-hoc corrections. Its own closing line hands off exactly this session's task:
+"`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md` synchronization is the
+Documentation Manager's next step."
+
+**Preserved that uncommitted QA Decision exactly, without committing it, by design.** Committing it
+would mean pushing to `feature/stage3-t63-role-assignment` / updating PR #36 — outside this task's own
+scope, which was framed strictly as documentation/governance synchronization via a dedicated branch
+targeting `main`. Used `git stash push -- docs/ImplementationLog/Stage3/Phase3.md` to safely detach it
+before switching to `main`, then restored it via `git stash pop` after this session's own work
+finished, verified byte-identical to how it was found. This is flagged prominently as an **active
+risk**, not silently left implicit: if PR #36 merges before that QA Decision is actually committed and
+pushed, `T63` would repeat `T62`'s exact governance deviation (merge before a durably-recorded QA
+Decision) — recorded in `PROJECT_CHECKPOINT.md` §9/§11 rather than assumed resolved.
+
+**Synchronized governance records to the current QA-Approved/pre-merge state, careful never to imply
+`T63` is merged:** `IMPLEMENTATION_QUEUE.md`'s `T63` row ("Not yet implemented" →
+"Implemented, QA Decision: Approved — PR #36 pending merge", explicitly not `Done`); `PROJECT_STATE.json`
+(`currentStage`/`stages`/`completion` narrative updated; `tests.backend.total`/`passing` **left at
+438** — `main`'s own real count — with `T63`'s PR-branch 459/459 cited only in the note, not in the
+authoritative figure; `currentStageScopePercent` **left at 52**, not bumped, since `T63` isn't merged;
+`git.latestCommitAtThisUpdate` corrected from a stale `3a4a21c` to the actual current `97ab953`, with
+an explicit note that this reflects the authorization merge only, not `T63`'s implementation); no new
+`backendSubsystems` "completed" entry added, unlike `T61`/`T62`'s own closeouts, since `T63` isn't
+merged); `docs/AI_HANDOVER.md` (both sections); `docs/Roadmap.md`; `PROJECT_CHECKPOINT.md` (rewritten
+in place, `T63` explicitly marked "QA Approved — implementation PR pending merge, NOT Done"
+throughout, its own uncommitted-QA-Decision risk stated in §9).
+
+**Deliberately did not touch `docs/ImplementationLog/Stage3/Phase3.md` on `main`.** `T63`'s batch
+narrative doesn't exist on `main` at all — only on the unmerged feature branch — so there is nothing
+on `main` to correct or append to; adding it prematurely would duplicate content PR #36 will bring in
+on its own and risk a conflict with that PR's eventual merge. Recorded this reasoning explicitly in
+`PROJECT_CHECKPOINT.md` rather than silently skipping the file.
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md`
+and `docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier sessions); the QA
+Decision's own text (preserved via stash, not edited); `docs/ProjectStatus.md`/
+`docs/ArchitectureScorecard.md` (pre-existing, repeatedly-flagged staleness, not caused by `T63`).
+
+**Confirmed:** no application source, test, or migration file was modified — only documentation, and
+only on `main`. No test suite was personally re-run this session (documentation-only pass; the QA
+Decision's own figures are cited, not re-derived). `T64` was not started, scoped, or authorized
+anywhere in this session's edits — every reference reads "not started, not authorized." PR #36 was
+**not** merged.
+
+**Documentation Updated (uncommitted as of this entry):** `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file),
+`PROJECT_CHECKPOINT.md`. `docs/ImplementationLog/Stage3/Phase3.md` deliberately not touched (see
+above).
+
+**Next Session Goals:** (1) commit and push `T63`'s QA Decision to
+`feature/stage3-t63-role-assignment`, completing PR #36's own record before it merges — the single
+most important loose end this session identified; (2) merge PR #36 once that's done; (3) a post-merge
+documentation-closeout pass, mirroring `T61`/`T62`'s own pattern, to bring `T63`'s Phase3.md content
+onto `main` and mark it `Done`. `T64` remains not started, not authorized. Standing item, still
+unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
