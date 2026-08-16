@@ -8,13 +8,13 @@ Started: 2026-08-15
 
 Completed:
 
-Related Tasks: T58, T59, T60, T61
+Related Tasks: T58, T59, T60, T61, T62
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f).
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — authorization commit `e10bdc8` (merged as `ea80b74`, PR #32); feature branch `feature/stage3-t62-users`, not yet merged as of this entry.
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15).
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — authorization recorded beforehand, commit `e10bdc8`, 2026-08-16; implementation PR opened as part of this batch, not yet merged.
 
 Release:
 
@@ -923,3 +923,230 @@ Independently re-verified this session, directly against the merged repository s
 `docs/prompts/GitCI_PR_Manager.md`, and `docs/prompts/README.md` are separate, unrelated,
 still-uncommitted changes — correctly excluded from PR #30, per its own stated scope — and are not
 addressed by this verification pass.
+
+## Objective — T62 batch
+
+Continue Stage 3 Phase 3 (routes) with `T62`: admin-only user management — `GET /api/v1/users`
+(paginated list), `GET /api/v1/users/{id}`, `POST /api/v1/users` (hashes the incoming password),
+`PUT /api/v1/users/{id}` (full-replacement `email`/`full_name`/`phone`), and
+`POST /api/v1/users/{id}/deactivate` (soft-disable, never a hard delete). Unlike `T58`–`T61`, all five
+routes are gated by `RequirePermission("users:manage")` (`T54`) rather than any degree of
+self-service — the first Phase 3 batch to exercise the permission-checking half of `RequirePermission`
+(403), not just its authentication half (401), via real HTTP requests.
+
+**Authorization / Scope (recorded before implementation, commit `e10bdc8`, 2026-08-16 — merged as
+`ea80b74` via PR #32, confirmed by `git rev-parse HEAD origin/main` both resolving to `ea80b74` before
+this batch's implementation began, not assumed):** the project owner explicitly authorized `T62`.
+Approved scope, recorded in full in `IMPLEMENTATION_QUEUE.md`'s `T62` row: five hand-written routes in
+a **new** `presentation/api/v1/users.py` — `crud_router_factory.py` remains unmodified and unused —
+co-located `UserRead`/`UserCreate`/`UserUpdate` schemas (`UserRead` excludes `password_hash`; `UserUpdate`
+excludes `password`/`is_active`, all three of its own fields required, no defaults), duplicate email on
+create/update → `409` via the existing, previously-unused `ConflictError`, unknown id → `404` via
+existing `NotFoundError`. `T63` (role assignment) explicitly out of scope — created users have zero
+roles; no password reset/change, no reactivation, no search/filter/sort. No change to `deps.py`,
+`AuthService`, `CurrentUser`, or any `T52`–`T61` file; `router.py` changes only to mount the new
+router. **This is the seventh consecutive Stage 3 batch (after `T56`–`T61`) where authorization was
+actually recorded before implementation began.**
+
+## Tasks Implemented — T62 batch
+
+- **T62 — user management routes.** New `presentation/api/v1/users.py`: `router = APIRouter(prefix=
+  "/users", dependencies=[Depends(RequirePermission("users:manage"))])` — one router-level dependency
+  covers all five routes (approved explicitly, rather than repeating it per-route), since none of the
+  five needs a different permission. Two local, per-request dependencies declared in this module only
+  (not added to `deps.py`, per the authorized scope): `get_user_repository()` builds a fresh
+  `SqlAlchemyUserRepository` (`T50`, reused as-is) from `DBSessionDep`; `get_user_service()` wraps it in
+  the existing, generic `BaseService[User]` (`T55`'s framework layer) — no `UserService` subclass
+  needed, since `get_by_id_or_raise()`/`list_page()`/`update()` already do exactly what `list_users()`/
+  `get_user()`/`deactivate_user()` need. `create_user()`/`update_user()` reach for the repository
+  directly instead, since only `UserRepository.get_by_email()` (not anything `BaseService` exposes) can
+  answer "does this email already belong to someone else." `create_user()` hashes the incoming
+  plaintext password via the existing `hash_password()` (`T46`) and stores only the resulting
+  `password_hash` — the plaintext value is never persisted, returned, or logged. `deactivate_user()`
+  sets `is_active = False` and calls `service.update()`, never `service.delete()` — the database row and
+  its `user_roles`/`refresh_tokens` relationships are untouched, and calling it twice succeeds both
+  times (unconditional assignment, not a state-transition check).
+
+## Files Modified — T62 batch
+
+- `backend/src/app/presentation/api/v1/users.py` — **new**: `UserRead`/`UserCreate`/`UserUpdate`,
+  `get_user_repository()`/`get_user_service()` (+ their `Annotated` `Dep` aliases), `_to_read()`, and
+  the five route handlers.
+- `backend/src/app/presentation/api/v1/router.py` — modified: `users` module imported, `users.router`
+  included with `tags=["users"]` — the one explicitly authorized change to this file.
+- `backend/tests/integration/test_users.py` — **new**: `TestAuthorization`/`TestListUsers`/
+  `TestGetUser`/`TestCreateUser`/`TestUpdateUser`/`TestDeactivateUser`, 28 tests (see below), reusing
+  `T58`–`T61`'s `client` fixture/`_make_user()`/`_login()` pattern verbatim, plus local
+  `_grant_users_manage()`/`_authorized_headers()`/`_unauthorized_headers()` helpers.
+- `docs/ImplementationLog/Stage3/Phase3.md` — this file (T62 batch appended; header's `Related Tasks`/
+  `Git Commit`/`Pull Request` lines updated).
+
+No new dependency; `deps.py`, `AuthService`, `CurrentUser`, `JwtAuthenticationProvider`,
+`RbacAuthorizationService`, `crud_router_factory.py`, repository implementations (beyond reusing
+`SqlAlchemyUserRepository` unmodified), any `alembic/` migration, any frontend file, and every
+`T52`–`T61` file otherwise untouched — verified against the authorized scope's explicit constraints,
+not just the usual "no scope creep" check. No governance file (`IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `PROJECT_CHECKPOINT.md`) touched, per this role's own instructions. The
+pre-existing, unrelated uncommitted changes present in the working tree before this batch began
+(`docs/prompts/README.md`, `docs/prompts/GitCI_PR_Manager.md`, `docs/HANDOFF/`) were left exactly as
+found — not staged, not committed, not cleaned — per this role's explicit instruction not to touch
+unrelated working-tree state.
+
+## Tests Added — T62 batch
+
+28 in `backend/tests/integration/test_users.py`, against a real mounted `app` and real Postgres via
+`httpx.AsyncClient`/`ASGITransport` (reusing `T58`–`T61`'s `get_db`-override pattern):
+
+- **`TestAuthorization` (10)** — one `test_<route>_requires_authentication` (401, no token) and one
+  `test_<route>_requires_permission` (403, a real authenticated caller never granted `users:manage`)
+  for each of the five routes — the first real-HTTP-request proof in this project that
+  `RequirePermission`'s 401/403 split (`T54`/`T57`) is reachable end-to-end, not just at the unit level.
+- **`TestListUsers` (2)** — `test_list_returns_paginated_users` (created users appear in the response,
+  wrapped in `ApiResponse`'s `{"data": ..., "meta": {"pagination": {...}}}` shape, no password field on
+  any item); `test_pagination_limit_and_offset` (`page_size=1` returns exactly one item per page, and
+  page 1 vs. page 2 return different rows — proves `offset` actually advances, not just that `limit`
+  caps).
+- **`TestGetUser` (2)** — existing user → `200` with every `UserRead` field correct; unknown id → `404`.
+- **`TestCreateUser` (3)** — valid create → `201`, full profile in the response, no `password`/
+  `password_hash` key and no plaintext-password substring anywhere in the response body;
+  `test_password_is_hashed_in_database` — the stored `password_hash` differs from the plaintext and
+  independently `verify_password()`s correctly; duplicate email → `409`.
+- **`TestUpdateUser` (7)** — valid full `PUT` updates all three fields; updating to the user's own
+  *unchanged* email succeeds (not a false `409`, proving the duplicate check excludes the record being
+  updated); a `PUT` body missing a required key (`phone` omitted entirely) → `422` (full-replacement
+  semantics enforced, not `PATCH`-style optionality); a `password` key smuggled into the body is
+  silently ignored — the stored hash still verifies against the *original* password afterward; an
+  `is_active` key smuggled into the body is silently ignored — the response still reflects the
+  pre-existing value; unknown id → `404`; a `PUT` setting one user's email to *another* user's existing
+  email → `409`.
+- **`TestDeactivateUser` (4)** — active user → `is_active` becomes `False` in the response;
+  `test_database_row_and_relationships_are_preserved` — after deactivation, the `User` row is still
+  fetchable directly, and both a `UserRole` row (granted via `_grant_users_manage()`) and a
+  `RefreshToken` row (created via a real `_login()`) for that user are still present, proving no
+  cascade/hard-delete occurred; a second deactivate call on an already-inactive user still returns
+  `200` with `is_active: False` (idempotent); unknown id → `404`.
+
+`_grant_users_manage()` attaches a uniquely-named `Role` to the **existing, already-seeded**
+`Permission(code="users:manage")` row (fetched, not duplicated — the seed migration deliberately does
+not seed `role_permissions` itself; `T66`'s exact matrix is still pending sign-off) via `RolePermission`,
+then assigns that role to a user via `UserRole` — the same grant pattern
+`test_auth_dependency_wiring.py` already established, reused rather than reinvented.
+
+## Test Results — T62 batch
+
+- New tests in isolation: `tests/integration/test_users.py` — **28/28 passed** on first run, personally
+  run this session (`uv run pytest tests/integration/test_users.py -v` against live Postgres —
+  `legal_dms_postgres` confirmed healthy via `docker ps`).
+- Full backend suite: **438 passed** (410 prior + 28 new), 0 failed, 0 skipped. Personally re-run this
+  session — `uv run pytest -q` against the same live Postgres instance.
+- **Lint:** `uv run ruff check src tests alembic` — clean, re-verified directly.
+- **Format:** `uv run black --check src tests alembic` — clean (199 files unchanged; `users.py` and
+  `test_users.py` were both reformatted once by `black` itself before this final check, both
+  re-verified directly afterward).
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds, re-verified directly;
+  `app.openapi()["paths"]` independently confirmed to contain exactly `/api/v1/auth/login`,
+  `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me`, `/api/v1/health`,
+  `/api/v1/users` (`GET`, `POST`), `/api/v1/users/{user_id}` (`GET`, `PUT`),
+  `/api/v1/users/{user_id}/deactivate` (`POST`), `/api/v1/version` — no stray `DELETE
+  /api/v1/users/{id}`, no reactivation route, nothing else.
+- **Scope check:** `git status --short` / `git diff --stat` on the feature branch confirm exactly one
+  file modified (`presentation/api/v1/router.py`, mount-only) and two new files
+  (`presentation/api/v1/users.py`, `tests/integration/test_users.py`) — no `deps.py`, `AuthService`,
+  `CurrentUser`, `crud_router_factory.py`, migration, frontend, or governance file touched; the
+  pre-existing unrelated working-tree changes (`docs/prompts/README.md`,
+  `docs/prompts/GitCI_PR_Manager.md`, `docs/HANDOFF/`) remain untouched and unstaged.
+
+## Design Decisions — T62 batch
+
+- **One router-level `RequirePermission("users:manage")`, not five per-route copies.** All five routes
+  require the exact identical permission — `deps.py`'s own docstring already documents both a
+  per-route and a router-level `dependencies=[...]` usage as equally valid; router-level is the
+  non-repetitive choice here, and was explicitly approved before implementation.
+- **`BaseService[User]` reused directly, no `UserService` subclass.** `list_page()`/
+  `get_by_id_or_raise()`/`update()` already do exactly what three of the five routes need; adding a
+  subclass with no overridden behavior would be a pure indirection with no behavioral payoff.
+- **`UserRepositoryDep` alongside `UserServiceDep`, not instead of it.** `get_by_email()` — needed by
+  `create_user()`/`update_user()` for the duplicate-email check — isn't part of `BaseService`'s generic
+  surface; both dependencies resolve from the same per-request `DBSessionDep`-backed session (FastAPI's
+  own dependency caching within one request), so using both where a route needs both capabilities adds
+  no extra session/connection, just two thin wrappers around it.
+- **`_to_read()` mirrors `crud_router_factory._to_read()` exactly** (`UserRead.model_validate(user,
+  from_attributes=True)`) — `password_hash` is absent from every response not because it's filtered
+  out, but because `UserRead` never declares the field for `model_validate` to pick up in the first
+  place, the same structural guarantee the factory's own read schemas rely on.
+- **Update's duplicate-email check excludes the record being updated.** A full-replacement `PUT` that
+  resubmits a user's own unchanged email must not 409 against itself — `existing.id != user.id` is the
+  one piece of update-specific logic beyond "reuse the create-path check," covered explicitly by
+  `test_updating_to_its_own_unchanged_email_succeeds`.
+- **`password`/`is_active` are structurally, not defensively, excluded from `UserUpdate`.** Neither
+  field is declared on the schema, so extra keys in the request body are silently ignored by Pydantic
+  rather than rejected — proven, not assumed, by
+  `test_password_cannot_be_updated_through_this_route`/`test_is_active_cannot_be_changed_through_this_route`
+  asserting the stored/returned values are unchanged after submitting a body that tries to smuggle them
+  in.
+
+## Problems Encountered — T62 batch
+
+**None on the technical side.** All 28 new tests passed on their first run against live Postgres; no
+lint/format fixes beyond `black`'s own two auto-reformats (whitespace/line-length only, no logic
+change); no mid-implementation design question deferred.
+
+**Governance side — continuing, not restarting, the streak `T56`–`T61` began:** authorization commit
+`e10bdc8` was independently re-verified this session (`git rev-parse HEAD origin/main`, both `ea80b74`,
+confirmed to already carry `e10bdc8` in its ancestry via PR #32's merge) as preceding any
+implementation — no implementation or test file for `T62` existed anywhere in the tree before this
+batch's own changes. This is the **seventh** consecutive Stage 3 batch to get this right, after
+`T52`–`T55`'s four consecutive misses. Those four findings remain on record in `Phase2.md`, unerased.
+
+## Deferred Work — T62 batch
+
+- **`T63`–`T67`** — not started, per `T62`'s own scope: `T63` (role assignment), `T64` (cross-route
+  integration tests beyond each route's own), `T65` (audit-log wiring), `T66` (`role_permissions`
+  matrix sign-off), `T67` (bootstrap CLI — notably depends on `T62`, per `IMPLEMENTATION_QUEUE.md`'s
+  own dependency table).
+- **QA review** — not performed by this batch; the QA Reviewer role must independently re-verify before
+  any documentation sync or merge proceeds.
+- **Merge, branch cleanup, local `main` sync** — deliberately not performed by this batch, per this
+  role's own stop conditions (Backend Developer implements, tests, opens the PR, and stops; merging is
+  explicitly reserved for a later step in the established workflow, not this role).
+
+## Reviewer Checklist — T62 batch
+
+Self-assessed by the Backend Developer role against this session's own verified work.
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+□ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **ADR updated (if required):** `□` — not required: five routes reusing already-approved
+  (`T46`/`T50`/`T54`/`T55`) infrastructure, no new architectural decision.
+- **PROJECT_STATE updated (if required):** `□` — deliberately not updated by this batch, for the same
+  reason `T61`'s own checklist gave: `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/
+  `PROJECT_CHECKPOINT.md` are Project Manager/Documentation Manager owned, synchronized only after a QA
+  Decision exists — a boundary honored, not a gap.
+- **No scope creep:** `☑` — the code stayed exactly within `T62`'s authorized scope (verified above:
+  one file modified — mount-only — two new files, every forbidden file/behavior confirmed untouched:
+  no `DELETE` route, no reactivation, no role assignment, no password reset, no search/filter/sort),
+  and — for the seventh consecutive batch — so did the authorization-recording process.
+- **Ready for QA:** `☑` in the sense that implementation, tests, and this log entry are complete, the
+  full suite is green, and a PR exists for review; **`T62` is explicitly not being claimed as done
+  here** — no QA Decision exists yet, and this batch does not render one.
+
+`T62`'s QA Decision, `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md`
+synchronization, and merge are all **not yet done** and intentionally outside this batch's scope — see
+Deferred Work above. See this file's own metadata block (`Status: In Progress` — Phase 3 continues with
+`T63`–`T65`, not yet started or authorized).
