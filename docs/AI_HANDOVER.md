@@ -333,7 +333,24 @@ proceed unblocked. A Documentation Manager closeout attempt correctly halted on 
 the QA Decision was recorded; it has since been recorded in
 `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch` section and independently
 re-verified this session (`main`/`origin/main` both at `3a4a21c`, exactly four files across the full
-authorization-to-merge range, 6/6 CI checks green). Backend test count is 438, still 9 frontend.
+authorization-to-merge range, 6/6 CI checks green).
+
+**`T63` followed — role-assignment routes, extending `RequirePermission(*permissions: str)` to grant on
+any one of multiple permissions.** New `POST`/`DELETE /api/v1/users/{id}/roles[/{role_id}]`, gated by
+`RequirePermission("users:manage", "roles:manage")`; every existing single-permission call site
+unaffected (`TestRequirePermission` 8/8 unchanged). New `assign_role()`/`remove_role()` on
+`UserRepository`/`SqlAlchemyUserRepository`; no new `Role`/`RolePermission` row, no migration. One
+flagged, independently-confirmed-necessary file outside the original scope:
+`tests/support/in_memory_user_repository.py` (a mechanical ABC consequence). 21 new integration tests.
+**QA Decision: Approved** (plain), committed (`6a8608f`) and pushed to
+`feature/stage3-t63-role-assignment` **before** PR #36 merged — the deliberate correction of `T62`'s
+own named governance finding. **`T63` is now Done — merged.** Feature commit `3cea676`, QA-approval
+commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16); `main`/`origin/main` both independently
+re-verified at `ef419c3` this session, `git diff 97ab953..ef419c3 --name-only` confirms exactly the
+seven files this batch's scope covers, no forbidden file touched. Full suite **459/459 passing**
+personally re-run against live Postgres on merged `main`, `ruff`/`black` clean, boot smoke test
+passed, `app.openapi()["paths"]` confirmed to contain exactly the eleven expected route/method
+combinations. Backend test count is 459, still 9 frontend.
 
 ## Pending Work
 
@@ -692,8 +709,33 @@ halted on discovering no QA Decision existed for `T62` despite the code already 
 Decision was subsequently recorded directly in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision
 — T62 batch` section and independently re-verified this session before this record was written. This
 finding is preserved as permanent governance history, the same discipline this project applied to
-`T52`–`T55`'s authorization-recording gaps — not a reason to reopen or rework the code. `T63`–`T67`
-remain not started, not authorized.
+`T52`–`T55`'s authorization-recording gaps — not a reason to reopen or rework the code.
+
+**`T63` followed — role-assignment routes, the eighth consecutive batch to hold the
+authorization-recording discipline, and the first to extend `RequirePermission` itself.** New
+`POST /api/v1/users/{id}/roles` (assign) and `DELETE /api/v1/users/{id}/roles/{role_id}` (remove),
+gated by a router-level `RequirePermission("users:manage", "roles:manage")`.
+`RequirePermission(permission: str)` was extended to `RequirePermission(*permissions: str)` — grants
+access on any one supplied permission; every existing single-argument call site is unaffected (the new
+"try all but the last" loop never runs for one argument, confirmed by the unchanged
+`TestRequirePermission` suite, 8/8 still passing). New narrow `assign_role()`/`remove_role()` on
+`UserRepository`/`SqlAlchemyUserRepository` (no new repository class), role existence checked via the
+existing generic `AbstractRepository[Role]`. `UserRead`/`UserCreate`/`UserUpdate` (`T62`) untouched; no
+`Role`/`RolePermission` creation; no migration. One file outside the originally-listed scope, flagged
+before editing: `tests/support/in_memory_user_repository.py` needed the same two new methods to keep
+satisfying the now-larger `UserRepository` ABC — a mechanical consequence of the interface extension,
+independently confirmed genuinely necessary and minimal, not a scope expansion. 21 new integration
+tests. **QA Decision: Approved** (plain) — rendered pre-merge, directly against PR #36
+(`feature/stage3-t63-role-assignment` at `3cea676`, base `main` at `97ab953`) — no technical defects,
+no unresolved scope issue — its QA-approval commit (`6a8608f`) was committed and pushed to the feature
+branch **before** PR #36 merged, the deliberate correction of `T62`'s own named governance finding.
+Full suite **459/459 passing** (438 prior + 21 new), `ruff`/`black` clean, boot smoke test passed,
+`app.openapi()["paths"]` confirmed to contain exactly the eleven expected route/method combinations —
+personally re-run against merged `main`, not just the PR branch. **`T63` is now Done — merged.**
+Feature commit `3cea676`, QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16);
+`main`/`origin/main` both independently re-verified at `ef419c3`, `git diff 97ab953..ef419c3
+--name-only` confirms exactly the seven files this batch's scope covers, no forbidden file touched.
+`T64`–`T67` remain not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/

@@ -12,9 +12,9 @@ Related Tasks: T58, T59, T60, T61, T62, T63
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — authorization commit `93cda84` (merged as `97ab953`, PR #35); feature branch `feature/stage3-t63-role-assignment`, not yet merged as of this entry.
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — ef419c3 (merge; feature commit 3cea676; QA-approval commit 6a8608f; authorization commit 93cda84).
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — authorization recorded beforehand, commit `93cda84`, 2026-08-16; implementation PR opened as part of this batch, not yet merged, no QA Decision recorded yet.
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it.
 
 Release:
 
@@ -1576,3 +1576,42 @@ Documentation Manager's next step. This QA review did not merge PR #36, did not 
 `T64`, did not modify source/tests/migrations/governance files, and did not touch the pre-existing
 unrelated working-tree items (`docs/prompts/README.md`, `docs/prompts/GitCI_PR_Manager.md`,
 `docs/HANDOFF/`).
+
+## Post-Merge Verification — T63 batch (2026-08-16)
+
+Recorded as an append, not a rewrite of the QA Decision above — that section's own account of what
+was true at review time (QA Decision committed to the feature branch, PR #36 still open) remains
+accurate history and is left untouched.
+
+**`T63`'s QA Decision (commit `6a8608f`, "docs(qa): record T63 approval") was committed and pushed to
+`feature/stage3-t63-role-assignment` *before* PR #36 merged** — the deliberate correction of `T62`'s
+own named governance finding (merge before a durably-recorded QA Decision). PR #36 subsequently merged
+into `main` as `ef419c3` on 2026-08-16, carrying both the implementation commit (`3cea676`) and the
+QA-approval commit (`6a8608f`) together, in that order — confirmed directly via `git log --oneline
+--decorate`, not assumed.
+
+Independently re-verified this session, directly against the merged repository state (`main` at
+`ef419c3`, `origin/main` confirmed identical via `git rev-parse`), not transcribed from the PR body:
+
+- **Scope:** `git diff 97ab953..ef419c3 --name-only` confirms exactly seven files changed in the
+  merge — the six originally authorized plus `tests/support/in_memory_user_repository.py` — matching
+  the pre-merge QA Decision's own account exactly. No forbidden file (`AuthorizationService`,
+  `RbacAuthorizationService`, `PermissiveAuthorizationService`, `CurrentUser`,
+  `crud_router_factory.py`, any `alembic/` migration, any frontend file) present in the diff.
+- **Lint/format:** `uv run ruff check src tests alembic` — clean. `uv run black --check src tests
+  alembic` — clean (199 files unchanged).
+- **Boot/route surface:** `python -c "from app.main import app"` succeeds on merged `main`;
+  `app.openapi()["paths"]` independently re-confirmed to contain exactly eleven paths:
+  `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me`,
+  `/api/v1/health`, `/api/v1/users`, `/api/v1/users/{user_id}`,
+  `/api/v1/users/{user_id}/deactivate`, `/api/v1/users/{user_id}/roles`,
+  `/api/v1/users/{user_id}/roles/{role_id}`, `/api/v1/version` — nothing else.
+- **Tests:** `uv run pytest -q` — **459 passed, 0 failed, 0 skipped**, personally re-run against live
+  Postgres (`legal_dms_postgres` confirmed healthy via `docker ps`) directly on merged `main`, matching
+  the pre-merge QA Decision's own figure exactly.
+
+**`T63` is now `Done`** — authorization, implementation, QA Decision, and documentation are all merged
+into `main`. Unlike `T62`, this batch's QA Decision was recorded *before* merge, not after — the named
+governance finding from `T62`'s own closeout did not recur. `T64`–`T67` remain not started, not
+authorized by this verification pass. `docs/prompts/README.md`, `docs/prompts/GitCI_PR_Manager.md`,
+and `docs/HANDOFF/` are separate, unrelated, still-uncommitted changes, untouched by this pass.
