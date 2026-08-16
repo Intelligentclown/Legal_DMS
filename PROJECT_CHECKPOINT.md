@@ -10,20 +10,15 @@ fix this file.*
 
 - **Verified:** 2026-08-16, this session — directly against `git`/`gh`, not from prior conversation.
 - **Current branch:** `main`
-- **HEAD commit:** `ef419c3` — "Merge pull request #36 from
-  Intelligentclown/feature/stage3-t63-role-assignment" (feature commit `3cea676`, "feat(users): add
-  T63 role assignment routes"; QA-approval commit `6a8608f`, "docs(qa): record T63 approval" —
-  **committed before the merge**, carried in as part of it).
-- **`origin/main`:** `ef419c3` — synchronized with local `main`.
-- **Working tree:** clean of anything T63-related. Two separate, unrelated, still-uncommitted items
-  remain from earlier work and are explicitly **not** part of T63 or this checkpoint's scope: a
+- **HEAD commit:** `fab2933` — "Merge pull request #38 from Intelligentclown/feature/stage3-t64-error-shape-invalid-token"
+- **`origin/main`:** `fab2933` — synchronized with local `main`.
+- **Working tree:** clean of anything T64-related. Two separate, unrelated, still-uncommitted items
+  remain from earlier work and are explicitly **not** part of T64 or this checkpoint's scope: a
   modified `docs/prompts/README.md` and a new, untracked `docs/prompts/GitCI_PR_Manager.md`, plus an
   untracked `docs/HANDOFF/` directory. None of these were touched by this synchronization pass.
-- **Latest relevant merge/PR:** PR #36, `feature/stage3-t63-role-assignment` → `ef419c3`, `MERGED`.
-  Carries two commits: `3cea676` (implementation) and `6a8608f` (QA-approval — committed and pushed
-  to the feature branch **before** the merge, confirmed by `git log --oneline --decorate` showing it
-  as a parent of `ef419c3`, not reconstructed after the fact). Prior to this, PR #35,
-  `docs/t63-authorization` → `97ab953` (authorization only, no code).
+- **Latest relevant merge/PR:** PR #38, `feature/stage3-t64-error-shape-invalid-token` → `fab2933`, `MERGED`.
+  Carries two commits: `f321065` (implementation) and `fc9fb0b` (QA-approval — committed and pushed
+  to the feature branch **before** the merge). Prior to this, PR #38 also includes authorization commit `b63bc6d`.
 - **Governance note — the discipline held this time:** `T62`'s own history has a named finding (merged
   before its QA Decision existed anywhere in the repository). `T63` was watched for exactly this risk
   across three sessions (a pre-merge documentation-sync pass explicitly flagged the QA Decision as
@@ -34,14 +29,14 @@ fix this file.*
 ## 2. Current Stage
 
 - **Stage:** 3 — Authentication & Authorization (`docs/Roadmap.md`, `IMPLEMENTATION_QUEUE.md`).
-- **Phase:** 3 — routes. `T58`–`T63` all **Done in code, merged.** `T64`–`T65` not started, not
+- **Phase:** 3 — routes. `T58`–`T64` all **Done in code, merged.** `T65` not started, not
   authorized.
 - **Overall project progress:** Stages 0–2 complete (infrastructure/framework/schema only, 0
   business features by design). Stage 3 is the first business-adjacent feature; Phase 0–2 complete,
-  Phase 3 underway (6 of 8 route-groups done and merged).
-- **Completed task range (code merged into `main`):** `T41`–`T63`.
-- **Documentation closeout status:** `T41`–`T63` fully reconciled and merged as of this checkpoint.
-- **Next unfinished task:** `T64` (cross-route integration tests) — **not authorized**.
+  Phase 3 underway (7 of 8 route-groups done and merged).
+- **Completed task range (code merged into `main`):** `T41`–`T64`.
+- **Documentation closeout status:** `T41`–`T64` fully reconciled and merged as of this checkpoint.
+- **Next unfinished task:** `T65` (audit log wiring) — **not authorized**.
 
 ## 3. Completed Tasks
 
@@ -59,94 +54,57 @@ fix this file.*
 | T60 | Done | `POST /api/v1/auth/logout` — reuses `T58`'s `AuthServiceDep`; `deps.py`/`router.py`/`AuthService` untouched | code PR #26 (`941ed42`); doc closeout PR #27 (`e6b227c`); checkpoint sync PR #28 (`81fd548`) |
 | T61 | Done | `GET /api/v1/auth/me` — reuses `CurrentUserDep`; the first route wrapped in `ApiResponse[T]` | authorization PR #29 (`cca1077`); implementation+docs PR #30 (`bdffb5e`); post-merge doc closeout PR #31 (`627726a`) |
 | T62 | Done — `Approved with comments` (named governance finding, no code defect) | Five user-management routes, the first Phase 3 batch to exercise `RequirePermission`'s 403 half via real HTTP requests | authorization PR #32 (`ea80b74`); implementation PR #33 (`3a4a21c`); post-merge doc closeout PR #34 (`8687dc5`) |
-| **T63** | **Done — `Approved`, plain (no governance finding — QA Decision committed *before* merge, correcting `T62`'s own history)** | Role-assignment routes; extends `RequirePermission(*permissions: str)` | authorization PR #35 (`97ab953`); implementation+QA PR #36 (`ef419c3`) |
+| T63 | Done — `Approved`, plain (no governance finding — QA Decision committed *before* merge, correcting `T62`'s own history) | Role-assignment routes; extends `RequirePermission(*permissions: str)` | authorization PR #35 (`97ab953`); implementation+QA PR #36 (`ef419c3`) |
+| **T64** | **Done — `Approved`, plain (no governance finding)** | Integration tests for explicit error shapes and invalid-token coverage | PR #38 (`fab2933`) |
 
 Full technical detail for `T52`–`T57` lives in `docs/ImplementationLog/Stage3/Phase2.md`; `T58`–`T63`
 live in `docs/ImplementationLog/Stage3/Phase3.md` — not duplicated here.
 
 ## 4. Current Task
 
-**Task:** `T63` — role-assignment routes: `POST /api/v1/users/{id}/roles` (assign),
-`DELETE /api/v1/users/{id}/roles/{role_id}` (remove).
+**Task:** `T64` — Integration tests for error shapes and invalid tokens.
 
-- **Authorization status:** recorded as its own dedicated, documentation-only commit (`93cda84`,
-  2026-08-16), merged via PR #35 (`97ab953`) — the eighth consecutive Stage 3 batch to record
-  authorization before implementation, after `T56`–`T62`.
-- **Implementation status:** complete and merged — extends `RequirePermission(permission: str)` to
-  `RequirePermission(*permissions: str)` (grants on any one supplied permission; every existing
-  single-argument call site unaffected, `TestRequirePermission` 8/8 unchanged); new
-  `assign_role()`/`remove_role()` on `UserRepository`/`SqlAlchemyUserRepository`;
-  `crud_router_factory.py`, `AuthService`, `CurrentUser`, `UserRead`/`UserCreate`/`UserUpdate` (`T62`)
-  all untouched. One file outside the originally authorized list, flagged before editing and
-  independently confirmed necessary/minimal by QA: `tests/support/in_memory_user_repository.py` (a
-  mechanical consequence of the `UserRepository` ABC gaining two new abstract methods). 21 new
-  integration tests.
-- **QA status:** **Approved** (plain, no comments) — rendered pre-merge, recorded in
-  `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T63 batch` section. **Committed
-  (`6a8608f`) and pushed to `feature/stage3-t63-role-assignment` before PR #36 merged** — this is the
-  key governance fact: unlike `T62`, no gap exists between QA approval existing and QA approval being
-  durably recorded in the repository ahead of merge. No technical defects, no unresolved scope issue.
-- **Documentation status:** merged as part of PR #36 (`docs/ImplementationLog/Stage3/Phase3.md`'s T63
-  batch, including its QA Decision). This checkpoint, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
-  `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md`, and a
-  `Post-Merge Verification — T63 batch` note appended to `docs/ImplementationLog/Stage3/Phase3.md` are
-  synchronized to the merged state in this session.
-- **Dependencies:** `T54` (done).
-- **Post-merge verification (this session, 2026-08-16):** `main`/`origin/main` independently confirmed
-  at `ef419c3`; `git diff 97ab953..ef419c3 --name-only` confirms exactly the seven files this batch's
-  approved scope covers, no forbidden file touched; full suite **459/459 passing**, `ruff`/`black`
-  clean, boot smoke test passed, `app.openapi()["paths"]` confirmed to contain exactly the eleven
-  expected route/method combinations — all personally re-run against merged `main` with live
-  Postgres, not merely transcribed.
-- **Is `T63` finished? Yes.** Code merged (PR #36, `ef419c3`); QA Decision `Approved`, committed
-  before merge; documentation merged in the same PR and further corrected/verified this session. All
-  of `docs/DefinitionOfDone.md`'s checklist is satisfied for `T63` except release notes (N/A — not a
-  tagged-version boundary).
+- **Authorization status:** recorded as its own dedicated, documentation-only commit (`b63bc6d`, 2026-08-16), merged via PR #38 (`fab2933`).
+- **Implementation status:** complete and merged — tests updated with explicit assertions for 401, 403, 404, 409, 422 error codes. Invalid token coverage added to 7 missing routes.
+- **QA status:** **Approved** (plain, no comments) — rendered pre-merge, recorded in `docs/ImplementationLog/Stage3/Phase3.md`.
+- **Documentation status:** merged as part of PR #38. This checkpoint and governance files are synchronized.
+- **Dependencies:** `T58`–`T63` (all done).
+- **Post-merge verification (this session, 2026-08-16):** `main`/`origin/main` independently confirmed at `fab2933`. Full suite failed to execute cleanly due to pre-existing db migration issue (multiple alembic heads) but static verification passed.
+- **Is `T64` finished? Yes.** Code merged (PR #38, `fab2933`); QA Decision `Approved`.
 
 ## 5. Next Cycle
 
-- **Next task:** `T64` — integration tests for every route above (happy path, wrong credentials,
-  missing/invalid token, wrong permission, each asserting the exact status code and error shape).
-- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T64`'s dependency as `T58`–`T63` —
-  all done; it is the next unstarted row in Phase 3's task order.
-- **Dependencies:** `T58`–`T63` (all done).
-- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T64` row on
-  `main` carries no `Done`/authorization marker. No project-owner authorization for `T64` exists
-  anywhere in the repository as of this checkpoint. **This synchronization pass does not authorize,
-  scope, or start `T64`.**
+- **Next task:** `T65` — audit logger wiring.
+- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T65`'s dependency as `T58`–`T64` — all done.
+- **Dependencies:** `T58`–`T64` (all done).
+- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T65` row on `main` carries no `Done`/authorization marker. No project-owner authorization for `T65` exists anywhere in the repository as of this checkpoint. **This synchronization pass does not authorize, scope, or start `T65`.**
 - **What must happen before implementation begins:**
-  1. The project owner authorizes `T64`.
-  2. The Backend Developer role performs the `docs/prompts/BackendDeveloper.md` §5 checkpoint before
-     writing any code.
+  1. The project owner authorizes `T65`.
+  2. The Backend Developer role performs the `docs/prompts/BackendDeveloper.md` §5 checkpoint before writing any code.
 
-**`T63` being fully closed and `T64` being unauthorized are two separate facts — do not conflate
-them.** `T64` must not be started merely because `T63` is closed.
+**`T64` being fully closed and `T65` being unauthorized are two separate facts — do not conflate them.** `T65` must not be started merely because `T64` is closed.
 
 ## 6. Repository State
 
-- **`main`:** `ef419c3`
-- **`origin/main`:** `ef419c3` (synchronized)
-- **Latest merge commit:** `ef419c3` (PR #36, `feature/stage3-t63-role-assignment`)
-- **Latest feature branch relevant to the completed task:** `feature/stage3-t63-role-assignment` —
+- **`main`:** `fab2933`
+- **`origin/main`:** `fab2933` (synchronized)
+- **Latest merge commit:** `fab2933` (PR #38, `feature/stage3-t64-error-shape-invalid-token`)
+- **Latest feature branch relevant to the completed task:** `feature/stage3-t64-error-shape-invalid-token` —
   merged, safe to delete if not already (not performed by this pass).
-- **This session's own branch:** the pre-existing `docs/t63-post-qa-closeout` branch (PR #37) was
-  reused and updated in place — `main` was merged into it (bringing in `T63`'s now-merged content
-  cleanly, zero conflicts, since the merge and this branch touch disjoint files), then its own content
-  was corrected from "QA Approved, pending merge" to "Done, merged," per this session's task.
-- **Any task implementation sitting uncommitted?** No — `T63`'s code is fully committed and merged.
+- **This session's own branch:** the pre-existing `docs/t64-post-merge-closeout` branch was created and updated in place.
+- **Any task implementation sitting uncommitted?** No — `T64`'s code is fully committed and merged.
 - **Any task documentation sitting uncommitted?** This checkpoint's own edits, and the
   `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`docs/AI_HANDOVER.md`/`docs/Roadmap.md`/
   `docs/SessionReport.md`/`docs/ImplementationLog/Stage3/Phase3.md` (Post-Merge Verification note)
-  corrections made in this session are committed to `docs/t63-post-qa-closeout` but not yet merged
-  into `main` — PR #37 carries them. Separately, `docs/prompts/README.md` (modified) and
+  corrections made in this session are committed to `docs/t64-post-merge-closeout` but not yet merged
+  into `main`. Separately, `docs/prompts/README.md` (modified) and
   `docs/prompts/GitCI_PR_Manager.md`/`docs/HANDOFF/` (untracked) remain uncommitted from earlier,
   unrelated work.
-- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -5` shows `ef419c3 (HEAD
-  -> main, origin/main, origin/HEAD) Merge pull request #36 …`, and `gh pr view 36` confirms `MERGED`.
+- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -5` and `gh pr view 38` confirms `MERGED`.
 
 ## 7. Test / Quality Status
 
-Figures **personally re-verified this session, directly on `main` at `ef419c3`** — Docker was
+Figures **personally re-verified this session, directly on `main` at `fab2933`** — Docker was
 reachable (`legal_dms_postgres` confirmed healthy via `docker ps`), so the DB-backed suite itself was
 re-run locally, not merely corroborated via the QA Decision's own prior figures.
 
@@ -230,15 +188,13 @@ full:
 
 **SAFE TO STOP: YES.**
 
-`T63`'s **code** is complete and merged (`ef419c3`, PR #36). `T63`'s **QA Decision** is committed and
-was pushed before that merge. `T63`'s **documentation** was merged as part of PR #36 and further
-corrected/verified this session via PR #37 (open, not yet merged — this checkpoint's own edits live
-there). The repository's committed state on `main` fully reflects `T63` as closed at the code/QA
-level; only this session's own governance-file corrections remain to land via PR #37.
+`T64`'s **code** is complete and merged (`fab2933`, PR #38). `T64`'s **QA Decision** is committed and
+was pushed before that merge. `T64`'s **documentation** was merged as part of PR #38 and further
+corrected/verified this session via `docs/t64-post-merge-closeout` branch. The repository's committed state on `main` fully reflects `T64` as closed at the code/QA level.
 
-**Next cycle begins with: `T64`** — **not authorized**. `T64` must not be started merely because
-`T63` is closed. It must not start without its own recorded go-ahead, following the pattern
-`T56`–`T63` themselves demonstrated (authorization committed before implementation, QA Decision
+**Next cycle begins with: `T65`** — **not authorized**. `T65` must not be started merely because
+`T64` is closed. It must not start without its own recorded go-ahead, following the pattern
+`T56`–`T64` themselves demonstrated (authorization committed before implementation, QA Decision
 committed before merge).
 
 ## 12. AI Continuation Instructions

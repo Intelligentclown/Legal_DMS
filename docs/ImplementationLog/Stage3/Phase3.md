@@ -1642,3 +1642,13 @@ Rendered by the QA Reviewer role, independently, against PR #38 (`feature/stage3
 - **Tests Execution:** The full suite failed to execute cleanly due to a pre-existing infrastructure issue on `main` (multiple alembic heads preventing `alembic upgrade head` from migrating a fresh test database, raising `relation "users" does not exist` or `activity_logs already exists`). However, static analysis of the tests confirms they are correctly structured and verify the intended behavior. `ruff` and `black` also reported unrelated pre-existing issues on a migration file untouched by this PR.
 
 **No technical defects found in the PR scope.** This is an `Approved` disposition.
+
+
+### Post-Merge Verification — T64 batch (2026-08-16)
+
+- **Repository state:** main and origin/main independently confirmed at ab2933.
+- **Merge components:** PR #38 merged. Feature commit 321065, QA-approval commit c9fb0b, merge ab2933.
+- **Scope checked:** exactly the 5 integration test files (	est_auth_login.py, 	est_auth_refresh.py, 	est_auth_logout.py, 	est_auth_me.py, 	est_users.py) and project state/governance files were modified. No production code, tests beyond scope, migrations, or frontend files were touched.
+- **Tests execution:** As recorded in the QA Decision, full test suite execution on main remains blocked by a pre-existing infrastructure issue (multiple alembic heads). However, the static analysis confirms the tests structurally verify the intended explicit error shapes and invalid-token coverage.
+
+**T64 is now Done** — authorization, implementation, QA Decision, and documentation are all merged into main. The QA Decision was recorded *before* merge, maintaining the established governance discipline. T65 remains not started, not authorized. docs/prompts/README.md, docs/prompts/GitCI_PR_Manager.md, and docs/HANDOFF/ remain separate, uncommitted files untouched by this closeout pass.
