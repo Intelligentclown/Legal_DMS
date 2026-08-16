@@ -24,7 +24,7 @@ from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database.session import get_db
@@ -107,6 +107,40 @@ async def _unauthorized_headers(client: AsyncClient, db_session: AsyncSession) -
 def _assert_no_password_fields(payload: dict[str, object]) -> None:
     assert "password" not in payload
     assert "password_hash" not in payload
+
+
+async def _grant_permissions(db_session: AsyncSession, user: User, *permission_codes: str) -> None:
+    """T63's own, more general sibling of `_grant_users_manage()` above --
+    attaches one uniquely-named `Role` carrying every given (already-seeded)
+    permission code to `user`. Left standalone rather than rewriting
+    `_grant_users_manage()` to delegate to this, so T62's existing tests
+    stay untouched."""
+    role = Role(name=f"Role-{uuid4()}")
+    db_session.add(role)
+    await db_session.flush()
+    for code in permission_codes:
+        result = await db_session.execute(select(Permission).where(Permission.code == code))
+        permission = result.scalar_one()
+        db_session.add(RolePermission(role_id=role.id, permission_id=permission.id))
+    db_session.add(UserRole(user_id=user.id, role_id=role.id))
+    await db_session.flush()
+
+
+async def _headers_with_permissions(
+    client: AsyncClient, db_session: AsyncSession, *permission_codes: str
+) -> dict[str, str]:
+    caller = await _make_user(db_session)
+    await _grant_permissions(db_session, caller, *permission_codes)
+    access_token = await _login(client, caller)
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+async def _make_role(db_session: AsyncSession, **overrides: object) -> Role:
+    defaults: dict[str, object] = {"name": f"Role-{uuid4()}"}
+    role = Role(**{**defaults, **overrides})
+    db_session.add(role)
+    await db_session.flush()
+    return role
 
 
 class TestAuthorization:
@@ -514,3 +548,330 @@ class TestDeactivateUser:
         response = await client.post(f"/api/v1/users/{uuid4()}/deactivate", headers=headers)
 
         assert response.status_code == 404
+
+
+class TestRoleAssignmentAuthorization:
+    """T63: both role-assignment routes share T62's router-level dependency,
+    now `RequirePermission("users:manage", "roles:manage")` -- allowed on
+    *either* permission alone, not just `users:manage`."""
+
+    async def test_assign_requires_authentication(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}
+        )
+
+        assert response.status_code == 401
+
+    async def test_remove_requires_authentication(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}")
+
+        assert response.status_code == 401
+
+    async def test_assign_requires_permission(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        headers = await _unauthorized_headers(client, db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 403
+
+    async def test_remove_requires_permission(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        headers = await _unauthorized_headers(client, db_session)
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 403
+
+    async def test_users_manage_alone_allows_assign(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        headers = await _headers_with_permissions(client, db_session, "users:manage")
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 201
+
+    async def test_roles_manage_alone_allows_assign(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        headers = await _headers_with_permissions(client, db_session, "roles:manage")
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 201
+
+    async def test_users_manage_alone_allows_remove(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        db_session.add(UserRole(user_id=user.id, role_id=role.id))
+        await db_session.flush()
+        headers = await _headers_with_permissions(client, db_session, "users:manage")
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 204
+
+    async def test_roles_manage_alone_allows_remove(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        db_session.add(UserRole(user_id=user.id, role_id=role.id))
+        await db_session.flush()
+        headers = await _headers_with_permissions(client, db_session, "roles:manage")
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 204
+
+    async def test_both_permissions_together_still_allowed(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        headers = await _headers_with_permissions(
+            client, db_session, "users:manage", "roles:manage"
+        )
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 201
+
+    async def test_existing_single_permission_behavior_is_unchanged(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        """Regression (also covers items 10/31): T62's own `list_users`
+        route -- still gated by the same router-level dependency, now
+        carrying two permission codes instead of one -- continues denying
+        an unpermitted caller and allowing a `users:manage` one exactly as
+        before T63."""
+        headers = await _authorized_headers(client, db_session)
+        denied_headers = await _unauthorized_headers(client, db_session)
+
+        allowed = await client.get("/api/v1/users", headers=headers)
+        denied = await client.get("/api/v1/users", headers=denied_headers)
+
+        assert allowed.status_code == 200
+        assert denied.status_code == 403
+
+
+class TestAssignRole:
+    async def test_valid_assignment_returns_201_with_correct_fields(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        caller = await _make_user(db_session)
+        await _grant_permissions(db_session, caller, "users:manage")
+        access_token = await _login(client, caller)
+        headers = {"Authorization": f"Bearer {access_token}"}
+        target = await _make_user(db_session)
+        role = await _make_role(db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{target.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 201
+        data = response.json()["data"]
+        assert data["user_id"] == str(target.id)
+        assert data["role_id"] == str(role.id)
+        assert data["assigned_at"] is not None
+        assert data["assigned_by"] == str(caller.id)
+
+    async def test_unknown_user_returns_404(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        role = await _make_role(db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{uuid4()}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 404
+
+    async def test_unknown_role_returns_404(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(uuid4())}, headers=headers
+        )
+
+        assert response.status_code == 404
+
+    async def test_duplicate_assignment_returns_409_and_creates_no_second_row(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+
+        first = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+        second = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert first.status_code == 201
+        assert second.status_code == 409
+        result = await db_session.execute(
+            select(UserRole).where(UserRole.user_id == user.id, UserRole.role_id == role.id)
+        )
+        assert len(result.scalars().all()) == 1
+
+    async def test_assignment_creates_no_role_or_role_permission_row(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        roles_before = (
+            await db_session.execute(select(func.count()).select_from(Role))
+        ).scalar_one()
+        role_permissions_before = (
+            await db_session.execute(select(func.count()).select_from(RolePermission))
+        ).scalar_one()
+
+        response = await client.post(
+            f"/api/v1/users/{user.id}/roles", json={"role_id": str(role.id)}, headers=headers
+        )
+
+        assert response.status_code == 201
+        roles_after = (
+            await db_session.execute(select(func.count()).select_from(Role))
+        ).scalar_one()
+        role_permissions_after = (
+            await db_session.execute(select(func.count()).select_from(RolePermission))
+        ).scalar_one()
+        assert roles_after == roles_before
+        assert role_permissions_after == role_permissions_before
+
+
+class TestRemoveRole:
+    async def test_existing_assignment_returns_204(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        db_session.add(UserRole(user_id=user.id, role_id=role.id))
+        await db_session.flush()
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 204
+        assert response.content == b""
+
+    async def test_user_role_and_other_assignments_remain(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+        role_to_remove = await _make_role(db_session)
+        other_role = await _make_role(db_session)
+        db_session.add(UserRole(user_id=user.id, role_id=role_to_remove.id))
+        db_session.add(UserRole(user_id=user.id, role_id=other_role.id))
+        await db_session.flush()
+
+        response = await client.delete(
+            f"/api/v1/users/{user.id}/roles/{role_to_remove.id}", headers=headers
+        )
+
+        assert response.status_code == 204
+        assert await db_session.get(User, user.id) is not None
+        assert await db_session.get(Role, role_to_remove.id) is not None
+        remaining = await db_session.execute(select(UserRole).where(UserRole.user_id == user.id))
+        remaining_role_ids = {row.role_id for row in remaining.scalars().all()}
+        assert remaining_role_ids == {other_role.id}
+
+    async def test_missing_assignment_returns_404(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)  # never assigned to `user`
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 404
+
+    async def test_unknown_user_returns_404(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        role = await _make_role(db_session)
+
+        response = await client.delete(f"/api/v1/users/{uuid4()}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 404
+
+    async def test_unknown_role_returns_404(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{uuid4()}", headers=headers)
+
+        assert response.status_code == 404
+
+    async def test_removal_creates_no_role_or_role_permission_row(
+        self, client: AsyncClient, db_session: AsyncSession
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+        user = await _make_user(db_session)
+        role = await _make_role(db_session)
+        db_session.add(UserRole(user_id=user.id, role_id=role.id))
+        await db_session.flush()
+        roles_before = (
+            await db_session.execute(select(func.count()).select_from(Role))
+        ).scalar_one()
+        role_permissions_before = (
+            await db_session.execute(select(func.count()).select_from(RolePermission))
+        ).scalar_one()
+
+        response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
+
+        assert response.status_code == 204
+        roles_after = (
+            await db_session.execute(select(func.count()).select_from(Role))
+        ).scalar_one()
+        role_permissions_after = (
+            await db_session.execute(select(func.count()).select_from(RolePermission))
+        ).scalar_one()
+        assert roles_after == roles_before
+        assert role_permissions_after == role_permissions_before
