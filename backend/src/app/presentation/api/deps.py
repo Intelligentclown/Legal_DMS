@@ -33,7 +33,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.auth_service import AuthService
-from app.application.errors.exceptions import UnauthorizedError
+from app.application.errors.exceptions import ForbiddenError, UnauthorizedError
 from app.application.interfaces.auth import (
     AuthenticationProvider,
     AuthorizationService,
@@ -119,22 +119,32 @@ async def get_current_user(
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]
 
 
-def RequirePermission(permission: str) -> Callable[..., Awaitable[None]]:
-    """Dependency factory (T54, closes Stage 2.5's F11): use as
-    `Depends(RequirePermission("matters:read"))`, either as a route
-    parameter or in a router's `dependencies=[...]` list. Raises
-    `UnauthorizedError` (401) if the resolved `CurrentUser` isn't
+def RequirePermission(*permissions: str) -> Callable[..., Awaitable[None]]:
+    """Dependency factory (T54, closes Stage 2.5's F11; extended T63 to
+    accept more than one permission code): use as
+    `Depends(RequirePermission("matters:read"))` or, for an "any of these"
+    check, `Depends(RequirePermission("users:manage", "roles:manage"))`,
+    either as a route parameter or in a router's `dependencies=[...]` list.
+    Raises `UnauthorizedError` (401) if the resolved `CurrentUser` isn't
     authenticated at all (T57 -- closes the 401/403 gap: no token,
     expired/malformed/tampered token all resolve to the same
     `is_authenticated=False`, and previously fell through to
     `AuthorizationService`'s anonymous-caller branch, which raises
     `ForbiddenError`/403 indistinguishably from an authenticated-but-
-    unpermitted caller). Otherwise delegates to
-    `AuthorizationService.require_permission()` exactly as before, which
-    still raises `ForbiddenError` (403) if `permission` isn't granted — the
-    existing error handler turns either into the standard error response
-    shape, no route needs to catch it itself.
-    """
+    unpermitted caller), checked once regardless of how many permission
+    codes are supplied.
+
+    Otherwise delegates to `AuthorizationService.require_permission()`
+    (unmodified -- it still only ever checks one permission at a time) for
+    each supplied code in turn, returning on the first one that doesn't
+    raise. Every code except the last is tried inside a `try`/`except
+    ForbiddenError` so a denial just moves on to the next candidate; the
+    *last* code is called unguarded, so its own `ForbiddenError` propagates
+    naturally if every permission was denied. For the single-permission
+    case (every call site before T63), the loop body never runs and the one
+    supplied code is checked exactly as before -- byte-for-byte the same
+    call, same exception, same message, on the sole `AuthorizationService`
+    call this factory ever risked skipping."""
 
     async def _require_permission(
         user: CurrentUserDep,
@@ -142,6 +152,13 @@ def RequirePermission(permission: str) -> Callable[..., Awaitable[None]]:
     ) -> None:
         if not user.is_authenticated:
             raise UnauthorizedError("Authentication is required")
-        authorization_service.require_permission(user, permission)
+
+        for permission in permissions[:-1]:
+            try:
+                authorization_service.require_permission(user, permission)
+                return
+            except ForbiddenError:
+                continue
+        authorization_service.require_permission(user, permissions[-1])
 
     return _require_permission
