@@ -312,8 +312,28 @@ forbidden file touched. **QA Decision: Approved** (plain, no comments) — recor
 Reviewer role independently against the working tree before it was committed. **`T61` is now Done —
 merged.** Feature commit `fa57e28`, PR #30, merged `bdffb5e` (2026-08-15); `main`/`origin/main` both
 independently re-verified at `bdffb5e` this session, `git show bdffb5e --stat` confirms exactly the
-nine files this batch's scope covers, and `gh pr view 30` confirms 6/6 CI checks green. Backend test
-count is 410, still 9 frontend.
+nine files this batch's scope covers, and `gh pr view 30` confirms 6/6 CI checks green.
+
+**`T62` followed — five hand-written user-management routes, the seventh consecutive batch to hold the
+authorization-recording discipline, and the first Phase 3 batch to exercise `RequirePermission`'s 403
+half via a real HTTP request, not just its 401 half.** New `presentation/api/v1/users.py`:
+`GET`/`POST /api/v1/users`, `GET`/`PUT /api/v1/users/{id}`, `POST /api/v1/users/{id}/deactivate`, all
+gated by one router-level `RequirePermission("users:manage")`. `crud_router_factory.py`, `deps.py`,
+`AuthService`, `CurrentUser` all untouched; `router.py` changed only to mount the new router. Reuses
+`BaseService[User]`/`SqlAlchemyUserRepository` (`T50`)/`hash_password()` (`T46`) directly.
+`deactivate_user()` calls `service.update()`, never `delete()` — row and `UserRole`/`RefreshToken`
+relationships preserved, idempotent. 28 new integration tests in `tests/integration/test_users.py`.
+Full suite **438/438 passing (410 prior + 28 new)**, `ruff`/`black` clean, boot smoke test passed,
+`app.openapi()["paths"]` confirmed to contain exactly the nine expected routes. **QA Decision: Approved
+with comments** — no technical defect; the comment is a **named governance finding**: `T62` was merged
+(PR #33 → `3a4a21c`) **before** any QA Decision existed in the repository, violating
+`PROJECT_WORKFLOW.md`'s standard lifecycle. A pre-merge QA pass had already reached the same
+disposition on the merits — only its repository-visible recording was skipped, letting the merge
+proceed unblocked. A Documentation Manager closeout attempt correctly halted on discovering this before
+the QA Decision was recorded; it has since been recorded in
+`docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch` section and independently
+re-verified this session (`main`/`origin/main` both at `3a4a21c`, exactly four files across the full
+authorization-to-merge range, 6/6 CI checks green). Backend test count is 438, still 9 frontend.
 
 ## Pending Work
 
@@ -643,7 +663,36 @@ the QA Reviewer role independently against the working tree before it was commit
 Done — merged.** Feature commit `fa57e28`, PR #30, merged `bdffb5e` (2026-08-15); independently
 re-verified post-merge this session: `main`/`origin/main` both at `bdffb5e`, `git show bdffb5e --stat`
 confirms exactly the nine files this batch's scope covers (no forbidden file touched), 6/6 CI checks
-green, and the full suite (410/410) re-run against merged `main` with live Postgres. `T62`–`T67`
+green, and the full suite (410/410) re-run against merged `main` with live Postgres.
+
+**`T62` followed — five hand-written user-management routes, the seventh consecutive batch to hold the
+authorization-recording discipline, and the first Phase 3 batch to reach `RequirePermission`'s 403 half
+(authenticated-but-unpermitted) via a real HTTP request, not just `T61`'s 401 half.** New
+`presentation/api/v1/users.py`: `GET`/`POST /api/v1/users`, `GET`/`PUT /api/v1/users/{id}`,
+`POST /api/v1/users/{id}/deactivate`, all gated by one router-level
+`RequirePermission("users:manage")` — `crud_router_factory.py`, `deps.py`, `AuthService`, `CurrentUser`
+all untouched, `router.py` changed only to mount the new router. Reuses `BaseService[User]`
+(`T55`)/`SqlAlchemyUserRepository` (`T50`)/`hash_password()` (`T46`) directly; a local, module-only
+`get_user_repository()`/`get_user_service()` pair, not added to `deps.py`. `deactivate_user()` calls
+`service.update()`, never `delete()` — row and `UserRole`/`RefreshToken` relationships preserved,
+idempotent. `T63` (role assignment) explicitly out of scope — created users have zero roles. 28 new
+integration tests in `tests/integration/test_users.py`. The authorized scope (recorded in `e10bdc8`,
+2026-08-16, **before** implementation commit `a3e8810`, confirmed by commit order) matches exactly what
+merged — `git diff ea80b74 3a4a21c --name-only` confirms exactly four files across the full
+authorization-to-merge range, no forbidden file touched. Full suite **438/438 passing (410 prior + 28
+new)**, `ruff`/`black` clean, boot smoke test passed, `app.openapi()["paths"]` confirmed to contain
+exactly the nine expected routes. **`T62` is now Done — merged.** Feature commit `a3e8810`, PR #33,
+merged `3a4a21c` (2026-08-16). **QA Decision: Approved with comments** — no technical defect; the
+comment is a **named governance finding**: `T62`'s merge (PR #33 → `3a4a21c`) happened **before** any
+QA Decision existed anywhere in the repository, violating `PROJECT_WORKFLOW.md`'s standard lifecycle
+and this batch's own explicitly stated intent that merge wait for it. A pre-merge QA pass had already
+reached this identical disposition on the merits — only its repository-visible recording was skipped,
+which is what let the merge proceed unblocked. A Documentation Manager closeout attempt correctly
+halted on discovering no QA Decision existed for `T62` despite the code already being merged; the QA
+Decision was subsequently recorded directly in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision
+— T62 batch` section and independently re-verified this session before this record was written. This
+finding is preserved as permanent governance history, the same discipline this project applied to
+`T52`–`T55`'s authorization-recording gaps — not a reason to reopen or rework the code. `T63`–`T67`
 remain not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or

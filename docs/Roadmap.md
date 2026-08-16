@@ -265,7 +265,24 @@ creep. **QA Decision: Approved** (plain, no comments), recorded in
 working tree before it was committed. **`T61` is now Done — merged.** Feature commit `fa57e28`, PR
 #30, merged `bdffb5e` (2026-08-15); independently re-verified post-merge this session (`main`/
 `origin/main` both at `bdffb5e`, exactly the nine expected files, 6/6 CI checks green, full suite
-410/410 re-run against merged `main`). `T62`–`T67` remain not started, not authorized.
+410/410 re-run against merged `main`).
+
+**`T62` (five user-management routes) followed — the fifth Phase 3 route-group, the first to gate on
+`RequirePermission`'s 403 half via a real HTTP request, and the seventh consecutive batch to hold the
+authorization-recording discipline.** New `presentation/api/v1/users.py`, gated by one router-level
+`RequirePermission("users:manage")`; `crud_router_factory.py`/`deps.py`/`AuthService`/`CurrentUser` all
+untouched. Reuses `BaseService[User]`/`SqlAlchemyUserRepository`/`hash_password()` directly.
+`deactivate_user()` soft-disables via `service.update()`, never deletes. 28 new integration tests. Full
+suite **438/438 passing (410 prior + 28 new)**, ruff/black clean, boot smoke test passed,
+`app.openapi()["paths"]` confirmed to contain exactly the nine expected routes. **`T62` is now Done —
+merged.** Feature commit `a3e8810`, PR #33, merged `3a4a21c` (2026-08-16). **QA Decision: Approved with
+comments** — a named governance finding, not a code defect: `T62` merged before its QA Decision was
+recorded in the repository, violating `PROJECT_WORKFLOW.md`'s standard lifecycle; a pre-merge QA pass
+had already reached the same disposition on the merits, only its recording was skipped. Recorded as
+permanent governance history in `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T62 batch`
+section, independently re-verified this session (`main`/`origin/main` both at `3a4a21c`, exactly four
+files across the full authorization-to-merge range, 6/6 CI checks green). `T63`–`T67` remain not
+started, not authorized.
 
 | Feature | Status |
 |---|---|

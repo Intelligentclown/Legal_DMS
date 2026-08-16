@@ -2054,3 +2054,71 @@ performed here, since committing wasn't part of what this pass was asked to do).
 management routes) is the next unstarted task in Phase 3's order, depending on `T54`/`T46` (both
 done) — **not authorized**. Standing item, still unaddressed:
 `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
+
+## Session: 2026-08-16 — T62 post-merge documentation synchronization (merge-before-QA finding)
+
+**Instructed to synchronize project records with T62's "already-established" state, with a task
+description asserting `QA Decision: APPROVED`.** Independently reconstructed repository state first,
+per this role's own Repository-First Rule — not from the task description alone. `git log`/`gh pr
+view 32`/`gh pr view 33` confirmed: PR #32 (authorization, `e10bdc8` → `ea80b74`) and PR #33
+(implementation, `a3e8810` → `3a4a21c`) both `MERGED`; `main`/`origin/main` both at `3a4a21c`.
+
+**Found the asserted QA approval did not exist anywhere in the repository, and stopped.**
+`docs/ImplementationLog/Stage3/Phase3.md`'s T62 batch, as merged, stated explicitly in three places
+that QA review had **not** been performed and that "the QA Reviewer role must independently re-verify
+before any documentation sync **or merge** proceeds" — yet the merge had already happened.
+`gh api pulls/33/reviews`/`issues/33/comments` both empty; no `docs/reviews/` file for `T62`;
+`IMPLEMENTATION_QUEUE.md`'s `T62` row still read "Not yet implemented." Reported this as a blocking
+governance finding rather than writing an unverified "QA: APPROVED" claim into permanent project
+records, and performed no synchronization.
+
+**On being told to proceed, re-verified repository state fresh rather than assuming nothing had
+changed.** A `QA Decision — T62 batch` section had since been added directly to
+`docs/ImplementationLog/Stage3/Phase3.md`'s working tree: `Approved with comments`, rendered by the QA
+Reviewer role in two passes (pre-merge against PR #33, then re-verified against merged `main`), with
+one comment — a **named governance finding**, not a code finding: `T62` was merged before its QA
+Decision was recorded, a genuine `PROJECT_WORKFLOW.md` violation, preserved as permanent governance
+history rather than erased or smoothed over, matching this project's own treatment of `T52`–`T55`'s
+authorization-recording gaps.
+
+**Independently spot-verified that QA Decision before treating it as settled** — did not merely
+transcribe it: `uv run pytest -q` on merged `main` → **438 passed, 0 failed, 0 skipped**, matching
+exactly; `gh pr checks 33` → 6/6 pass; `git diff ea80b74 3a4a21c --name-only` → exactly the four files
+the QA Decision claims, no forbidden file present. All three independently confirmed the recorded
+decision before this session's own synchronization proceeded.
+
+**Synchronized project records to the now-verified merged/QA-Approved-with-comments state**, using the
+same pattern established for `T58`–`T61`: `docs/ImplementationLog/Stage3/Phase3.md`'s header
+(`Git Commit`/`Pull Request` lines for `T62` — mutable summary metadata, its QA Decision section itself
+left untouched, already an accurate, complete record); `IMPLEMENTATION_QUEUE.md`'s `T62` row ("Not yet
+implemented" → `Done`, with the governance finding stated); `PROJECT_STATE.json`
+(`currentStage`/`stages`/`completion`/`tests.backend`/`git` updated, `currentStageScopePercent` 49 →
+52, a new `backendSubsystems` entry added — validated as well-formed JSON after every edit);
+`docs/AI_HANDOVER.md` (both sections, each gaining a `T62` paragraph after `T61`'s);
+`docs/Roadmap.md`; `PROJECT_CHECKPOINT.md` (rewritten in place, its named governance finding stated in
+§1 and §9, not omitted).
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md`
+and `docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier sessions — not part of
+`T62`); `docs/ImplementationLog/Stage3/Phase3.md`'s `T62` batch narrative and its `QA Decision — T62
+batch` section (both historically accurate as written, not rewritten); `docs/ProjectStatus.md`/
+`docs/ArchitectureScorecard.md` (pre-existing, repeatedly-flagged staleness, not caused by `T62`).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — only
+documentation. `T63` was not started, scoped, or authorized anywhere in this session's edits — every
+reference reads "not started, not authorized." No commit, push, or PR was created for this session's
+own documentation corrections as of this entry.
+
+**Documentation Updated (uncommitted as of this entry):**
+`docs/ImplementationLog/Stage3/Phase3.md` (header only), `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file),
+`PROJECT_CHECKPOINT.md`.
+
+**Next Session Goals:** commit this session's T62 post-merge documentation corrections to a
+documentation branch and open a PR against `main` (per this project's protected-branch workflow), not
+performed as part of the synchronization itself. `T63` (role-assignment routes) is the next unstarted
+task in Phase 3's order, depending on `T54` (done) — **not authorized**. Given `T62`'s named finding,
+whoever runs `T63` should take particular care that its QA Decision is recorded in
+`docs/ImplementationLog/Stage3/Phase3.md` **before** any merge, not just before implementation.
+Standing item, still unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s
+pre-Stage-3 staleness.

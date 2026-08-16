@@ -12,9 +12,9 @@ Related Tasks: T58, T59, T60, T61, T62
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — authorization commit `e10bdc8` (merged as `ea80b74`, PR #32); feature branch `feature/stage3-t62-users`, not yet merged as of this entry.
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8).
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — authorization recorded beforehand, commit `e10bdc8`, 2026-08-16; implementation PR opened as part of this batch, not yet merged.
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding.
 
 Release:
 
@@ -1150,3 +1150,82 @@ Notes on the less-obvious ones:
 synchronization, and merge are all **not yet done** and intentionally outside this batch's scope — see
 Deferred Work above. See this file's own metadata block (`Status: In Progress` — Phase 3 continues with
 `T63`–`T65`, not yet started or authorized).
+
+## QA Decision — T62 batch
+
+```
+QA Decision (T62 batch)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role, independently, in two passes against two different repository
+states — first against PR #33 pre-merge (`feature/stage3-t62-users` at `a3e8810`, base `main` at
+`ea80b74`), then re-verified in full a second time against merged `main`/`origin/main` at `3a4a21c`
+(`Merge pull request #33 ... Merge: ea80b74 a3e8810`) — after a Documentation Manager closeout attempt
+correctly halted on discovering no QA Decision existed anywhere in the repository for `T62` despite the
+implementation already being merged. Both passes independently verified, not transcribed from the
+Backend Developer's Reviewer Checklist:
+
+- **Scope:** `git show 3a4a21c --stat` confirms exactly four files in the merge
+  (`presentation/api/v1/router.py`, new `presentation/api/v1/users.py`, new
+  `tests/integration/test_users.py`, this file). `git diff ea80b74 3a4a21c` against every file
+  `T62`'s authorization forbids (`deps.py`, `application/auth_service.py`,
+  `application/interfaces/auth.py` (`CurrentUser`), `presentation/common/crud_router_factory.py`,
+  `infrastructure/auth/*`, `infrastructure/persistence/models/*`, `alembic/`, `frontend/`) returned
+  zero lines across the entire authorization-to-merge range, not just the feature commit alone. No
+  `T63`/role-assignment code present.
+- **Tests:** `uv run pytest tests/integration/test_users.py -v` — **28/28 passed**, re-run against
+  merged `main` on live Postgres (`legal_dms_postgres`, confirmed healthy). Full suite:
+  `uv run pytest -q` — **438 passed**, 0 failed, 0 skipped — identical to the pre-merge count, as
+  expected for a merge that introduced no new commits beyond the feature branch itself.
+- **Lint/format:** `uv run ruff check src tests alembic` — clean. `uv run black --check src tests
+  alembic` — clean (199 files unchanged).
+- **Boot smoke test:** `python -c "from app.main import app"` succeeded on merged `main`;
+  `app.openapi()["paths"]` independently re-confirmed to contain exactly `/api/v1/auth/login`,
+  `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me`, `/api/v1/health`,
+  `/api/v1/users` (`GET`, `POST`), `/api/v1/users/{user_id}` (`GET`, `PUT`),
+  `/api/v1/users/{user_id}/deactivate` (`POST`), `/api/v1/version` — no stray `DELETE`, no
+  reactivation route. `UserRead`/`UserCreate`/`UserUpdate`'s OpenAPI schema fields independently
+  inspected: `UserRead` has no `password_hash`/`roles`; `UserUpdate` has no `password`/`is_active`.
+- **CI:** all six GitHub Actions checks on PR #33 (`Build verification` ×2, `Lint, format, and test`
+  ×4) passed, independently confirmed via `gh pr checks 33` before merge.
+- **Behavior:** router-level `RequirePermission("users:manage")` (`T54`, unmodified) correctly gates
+  all five routes (401 unauthenticated, 403 authenticated-without-permission, both independently
+  reasoned from `deps.py`'s unmodified source and confirmed by the 10 `TestAuthorization` tests);
+  `create_user()` persists only `hash_password()`'s output, never the plaintext, confirmed by
+  `test_password_is_hashed_in_database` reading the row directly; `deactivate_user()` calls
+  `service.update()` (traced through `BaseService`/`SqlAlchemyRepository` source — `flush()` only,
+  never `session.delete()`), row and `UserRole`/`RefreshToken` relationships confirmed still present
+  post-deactivation, and calling it twice remains idempotent; `UserUpdate`'s duplicate-email check
+  correctly excludes the record being updated (`existing.id != user.id`).
+
+**No technical defects found; the implementation is correct on the merits.** This is
+`Approved with comments`, not a plain `Approved`, for exactly one reason — a governance finding, not a
+code finding:
+
+**Named governance deviation: `T62` was merged into `main` (PR #33 → `3a4a21c`) before any QA Decision
+existed anywhere in the repository.** This is a genuine violation of `PROJECT_WORKFLOW.md`'s standard
+lifecycle (QA Reviewer → Documentation Manager → Git Commit/Push/PR/Merge) and of this file's own
+T62 batch record, which explicitly stated the opposite intent in three places (Deferred Work: "QA
+review — not performed by this batch; the QA Reviewer role must independently re-verify before any
+documentation sync **or merge** proceeds"; Reviewer Checklist: "no QA Decision exists yet, and this
+batch does not render one"; closing line: "`T62`'s QA Decision, ... and merge are all not yet done").
+Unlike `T61`'s equivalent gap (this file's own `QA Decision — T61 batch` section records that the QA
+review there ran against the *working tree before it was committed* — merge simply hadn't happened
+yet), `T62`'s merge already happened, irreversibly, before this gate cleared. A pre-merge QA pass by
+this same role did occur (against PR #33 at `a3e8810`) and reached this identical disposition on the
+merits — so the technical review itself was not skipped, only its recording in this canonical file,
+which is what let the merge proceed without a repository-visible gate. This is recorded here as
+permanent governance history, not erased or smoothed over, the same discipline this project applied to
+`T52`–`T55`'s authorization-recording gaps. No code change is required or requested — the finding is
+procedural: the QA Decision must be recorded in this file *before* a merge happens, not reconstructed
+after the fact.
+
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md` synchronization is the
+Documentation Manager's next step, now that a QA Decision exists in the repository — not performed by
+this entry. This QA review did not merge, branch, commit, push, modify source/tests/migrations, modify
+governance files, or touch the pre-existing unrelated working-tree items
+(`docs/prompts/README.md`, `docs/prompts/GitCI_PR_Manager.md`, `docs/HANDOFF/`).
