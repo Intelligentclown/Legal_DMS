@@ -288,11 +288,13 @@ codes, granting access on any one of them; every existing single-permission call
 New `POST`/`DELETE /api/v1/users/{id}/roles[/{role_id}]`, gated by
 `RequirePermission("users:manage", "roles:manage")`. New `assign_role()`/`remove_role()` on
 `UserRepository`/`SqlAlchemyUserRepository`; no new `Role`/`RolePermission` row, no migration. 21 new
-integration tests. **QA Decision: Approved** (plain), rendered pre-merge directly against PR #36 —
-**learning from `T62`'s finding, this time the QA Decision was recorded before any merge, not after.**
-PR-branch suite **459/459 passing**, `ruff`/`black` clean, boot smoke test passed. **`T63`'s
-implementation is NOT merged** — PR #36 remains open; `main`/`origin/main` are at `97ab953`
-(authorization merge only). `T64`–`T67` remain not started, not authorized.
+integration tests. **QA Decision: Approved** (plain), committed (`6a8608f`) and pushed **before** PR
+#36 merged — **learning from `T62`'s finding held: this time the QA Decision was recorded before any
+merge, not after.** Full suite **459/459 passing**, `ruff`/`black` clean, boot smoke test passed,
+personally re-run against merged `main`. **`T63` is now Done — merged.** Feature commit `3cea676`,
+QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16); `main`/`origin/main` both
+independently re-verified at `ef419c3`, exactly the seven expected files, no forbidden file touched.
+`T64`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

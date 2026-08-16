@@ -2193,3 +2193,75 @@ most important loose end this session identified; (2) merge PR #36 once that's d
 documentation-closeout pass, mirroring `T61`/`T62`'s own pattern, to bring `T63`'s Phase3.md content
 onto `main` and mark it `Done`. `T64` remains not started, not authorized. Standing item, still
 unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
+
+## Session: 2026-08-16 — T63 post-merge documentation closeout (final)
+
+**Independently verified repository state before touching anything.** `git fetch`/`git log`/`gh pr
+view 35`/`gh pr view 36` confirmed: PR #35 (authorization) and **PR #36 (implementation) both
+`MERGED`** — `main`/`origin/main` both at `ef419c3`. `git log --oneline --decorate` showed PR #36
+carrying two commits in order: `3cea676` (implementation) then `6a8608f` ("docs(qa): record T63
+approval") — confirming the exact governance fact this session needed to verify, not assume: `T63`'s
+QA Decision was committed and pushed to `feature/stage3-t63-role-assignment` **before** PR #36
+merged, resolving the active risk the prior session's own checkpoint had flagged. `T62`'s
+merge-before-QA-Decision finding did **not** recur for `T63`.
+
+**Inspected PR #37 (the pre-merge documentation-sync PR from the prior session) before assuming it
+was still correct**, per this session's own instruction. Its branch (`docs/t63-post-qa-closeout`) was
+based on the old pre-merge `main` (`97ab953`) and its content described `T63` as "QA Approved — PR #36
+pending merge," now stale. `gh pr view 37` reported `mergeable: MERGEABLE`, and a direct file-overlap
+check (`git diff 97ab953..ef419c3 --name-only` vs. the branch's own changed files) confirmed zero
+overlap — the merge touched only application/test files plus `Phase3.md`; this session's prior branch
+touched only governance files. Concluded PR #37 could be safely updated in place rather than
+recreated: merged `main` into `docs/t63-post-qa-closeout` (clean, zero conflicts, confirmed by `git
+status` immediately after), then corrected the branch's own content.
+
+**Independently re-verified the merged code before writing anything about it as fact:** `uv run ruff
+check`/`black --check` clean; `python -c "from app.main import app"` boot smoke succeeds;
+`app.openapi()["paths"]` — exactly eleven route/method combinations; `uv run pytest -q` — **459
+passed, 0 failed, 0 skipped**, personally run against live Postgres (`docker ps` confirmed
+`legal_dms_postgres` healthy) directly on merged `main`, not merely transcribed from the QA Decision's
+own prior figures.
+
+**Corrected every "pending merge"/"NOT merged" phrase to the true merged state, everywhere it
+appeared:** `IMPLEMENTATION_QUEUE.md`'s `T63` row ("Implemented, QA Decision: Approved — PR #36
+pending merge" → `Done`, with implementation/QA-approval/merge commit hashes);
+`docs/ImplementationLog/Stage3/Phase3.md`'s header (`Git Commit`/`Pull Request` lines for `T63`);
+`PROJECT_STATE.json` (`currentStage`/`stages`/`completion` narrative corrected; `tests.backend.total`/
+`passing` 438 → 459 — now accurate to `main`'s real state, not deliberately withheld as it correctly
+was pre-merge; `currentStageScopePercent` 52 → 55; `git.latestCommitAtThisUpdate` 97ab953 → ef419c3; a
+new `backendSubsystems` "completed" entry added, matching `T61`/`T62`'s own pattern once merged, not
+added before); `docs/AI_HANDOVER.md` (both sections); `docs/Roadmap.md`; `PROJECT_CHECKPOINT.md`
+(rewritten in place — `T63` now reads `Done` throughout, its own "governance held this time" note
+added to §1).
+
+**Preserved the QA Decision's own historical text untouched, per this project's rule against rewriting
+completed records.** `docs/ImplementationLog/Stage3/Phase3.md`'s `QA Decision — T63 batch` section
+(merged as part of PR #36 itself, via `6a8608f`) still reads exactly as it did when written — "PR #36
+is not merged; this decision is recorded pre-merge" remains, accurately describing what was true at
+review time. A new, explicitly dated **"Post-Merge Verification — T63 batch (2026-08-16)"** section
+was appended after it instead, recording the actual merge and this session's independent
+re-verification — mirroring `T61`'s own precedent exactly.
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md`
+and `docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier sessions); the QA
+Decision's own pre-merge text (historical, preserved not rewritten); `docs/ProjectStatus.md`/
+`docs/ArchitectureScorecard.md` (pre-existing, repeatedly-flagged staleness, not caused by `T63`).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — the merged
+backend/frontend code itself was only *read and independently exercised* (lint/format/boot/tests), not
+edited. `T64` was not started, scoped, or authorized anywhere in this session's edits — every
+reference reads "not started, not authorized." PR #37 was updated but **not merged** by this session.
+
+**Documentation Updated (committed to `docs/t63-post-qa-closeout`, PR #37 — not yet merged into
+`main`):** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
+`docs/SessionReport.md` (this file), `PROJECT_CHECKPOINT.md`, and
+`docs/ImplementationLog/Stage3/Phase3.md`'s new `Post-Merge Verification — T63 batch` note. Note the
+distinction: the `QA Decision — T63 batch` section itself is already on `main` (merged via `6a8608f`
+as part of PR #36); the Post-Merge Verification note added by *this* session sits alongside the other
+six files on PR #37, not yet on `main`.
+
+**Next Session Goals:** merge PR #37 to bring `T63`'s final governance-record corrections onto `main`
+(not performed by this session — merging PR #37 was explicitly out of scope). `T64` (cross-route
+integration tests) is the next unstarted task in Phase 3's order, depending on `T58`–`T63` (all
+done) — **not authorized**. Standing item, still unaddressed:
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.

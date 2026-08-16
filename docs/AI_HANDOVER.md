@@ -342,11 +342,15 @@ unaffected (`TestRequirePermission` 8/8 unchanged). New `assign_role()`/`remove_
 `UserRepository`/`SqlAlchemyUserRepository`; no new `Role`/`RolePermission` row, no migration. One
 flagged, independently-confirmed-necessary file outside the original scope:
 `tests/support/in_memory_user_repository.py` (a mechanical ABC consequence). 21 new integration tests.
-**QA Decision: Approved** (plain), rendered pre-merge directly against PR #36 (`3cea676`, base
-`97ab953`) — PR-branch suite **459/459 passing**, `ruff`/`black` clean, boot smoke test passed. **`T63`
-is NOT merged** — PR #36 remains open; `main`/`origin/main` are at `97ab953` (authorization only).
-Backend test count on `main` is still 438, still 9 frontend — `T63`'s 21 new tests are not yet part of
-that count.
+**QA Decision: Approved** (plain), committed (`6a8608f`) and pushed to
+`feature/stage3-t63-role-assignment` **before** PR #36 merged — the deliberate correction of `T62`'s
+own named governance finding. **`T63` is now Done — merged.** Feature commit `3cea676`, QA-approval
+commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16); `main`/`origin/main` both independently
+re-verified at `ef419c3` this session, `git diff 97ab953..ef419c3 --name-only` confirms exactly the
+seven files this batch's scope covers, no forbidden file touched. Full suite **459/459 passing**
+personally re-run against live Postgres on merged `main`, `ruff`/`black` clean, boot smoke test
+passed, `app.openapi()["paths"]` confirmed to contain exactly the eleven expected route/method
+combinations. Backend test count is 459, still 9 frontend.
 
 ## Pending Work
 
@@ -723,12 +727,15 @@ satisfying the now-larger `UserRepository` ABC — a mechanical consequence of t
 independently confirmed genuinely necessary and minimal, not a scope expansion. 21 new integration
 tests. **QA Decision: Approved** (plain) — rendered pre-merge, directly against PR #36
 (`feature/stage3-t63-role-assignment` at `3cea676`, base `main` at `97ab953`) — no technical defects,
-no unresolved scope issue. Full PR-branch suite **459/459 passing** (438 prior + 21 new), `ruff`/`black`
-clean, boot smoke test passed, `app.openapi()["paths"]` confirmed to contain exactly the eleven expected
-route/method combinations. **`T63`'s implementation is *not* merged** — PR #36 remains open;
-`main`/`origin/main` are at `97ab953` (the authorization merge only). Do not treat `T63` as `Done` or as
-contributing to `main`'s current test count (still 438) until PR #36 actually merges. `T64`–`T67`
-remain not started, not authorized.
+no unresolved scope issue — its QA-approval commit (`6a8608f`) was committed and pushed to the feature
+branch **before** PR #36 merged, the deliberate correction of `T62`'s own named governance finding.
+Full suite **459/459 passing** (438 prior + 21 new), `ruff`/`black` clean, boot smoke test passed,
+`app.openapi()["paths"]` confirmed to contain exactly the eleven expected route/method combinations —
+personally re-run against merged `main`, not just the PR branch. **`T63` is now Done — merged.**
+Feature commit `3cea676`, QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16);
+`main`/`origin/main` both independently re-verified at `ef419c3`, `git diff 97ab953..ef419c3
+--name-only` confirms exactly the seven files this batch's scope covers, no forbidden file touched.
+`T64`–`T67` remain not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
