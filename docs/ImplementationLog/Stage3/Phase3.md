@@ -8,13 +8,13 @@ Started: 2026-08-15
 
 Completed:
 
-Related Tasks: T58, T59, T60, T61, T62, T63
+Related Tasks: T58, T59, T60, T61, T62, T63, T65
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — ef419c3 (merge; feature commit 3cea676; QA-approval commit 6a8608f; authorization commit 93cda84).
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — ef419c3 (merge; feature commit 3cea676; QA-approval commit 6a8608f; authorization commit 93cda84). T65 — authorization commit `095ac91` (merged as `61e64d3`, PR #40); implementation commit `fab38e3`, PR #41, feature branch `feature/stage3-t65-audit-logging`, not yet merged as of this entry.
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it.
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it. T65 — #40 (authorization, commit `095ac91`, 2026-08-16, merged `61e64d3`); implementation #41 (`feature/stage3-t65-audit-logging` at `fab38e3`, base `main` at `61e64d3`), not yet merged, no QA Decision recorded yet.
 
 Release:
 
@@ -1652,3 +1652,277 @@ Rendered by the QA Reviewer role, independently, against PR #38 (`feature/stage3
 - **Tests execution:** As recorded in the QA Decision, full test suite execution on main remains blocked by a pre-existing infrastructure issue (multiple alembic heads). However, the static analysis confirms the tests structurally verify the intended explicit error shapes and invalid-token coverage.
 
 **T64 is now Done** — authorization, implementation, QA Decision, and documentation are all merged into main. The QA Decision was recorded *before* merge, maintaining the established governance discipline. T65 remains not started, not authorized. docs/prompts/README.md, docs/prompts/GitCI_PR_Manager.md, and docs/HANDOFF/ remain separate, uncommitted files untouched by this closeout pass.
+
+## Objective — T65 batch
+
+Continue Stage 3 Phase 3 with `T65`: wire the existing `AuditLogger` port into exactly two event
+categories — (1) login outcomes (`login_success`; `login_failure` for unknown email, wrong password,
+and inactive account) and (2) permission-denied events (an authenticated request rejected with `403`
+by `RequirePermission`). No new audit capability, storage, or schema — this batch is entirely about
+calling the `AuditLogger` interface that has existed, unused by any real business code, since Stage 1.
+
+**Authorization / Scope (recorded before implementation, commit `095ac91`, 2026-08-16 — merged as
+`61e64d3` via PR #40, confirmed by `git rev-parse HEAD origin/main` both resolving to `61e64d3` before
+this batch's implementation began, and by `gh pr view 40 --json commits` independently confirming
+`095ac91` as PR #40's own commit, not assumed):** the project owner explicitly authorized `T65`.
+Approved scope, recorded in full in `IMPLEMENTATION_QUEUE.md`'s `T65` row: authoritative action strings
+`login_success`/`login_failure`/`permission_denied` (not a generic `"login"` action with
+success/failure metadata); `resource_type="auth"` for login events, `resource_type="endpoint"` for
+permission-denied events; explicit exclusion of `401` unauthenticated requests, `422` validation
+errors, refresh outcomes, logout outcomes, and successful authorization; no plaintext password or
+authentication secret in any recorded event; `T63`'s OR-permission semantics preserved exactly, so a
+request authorized by *any* supplied permission must not generate a `permission_denied` event.
+Permitted implementation areas: `auth_service.py`, `deps.py`, `test_auth_login.py`,
+`test_auth_service.py`, `test_users.py`. Explicitly out of scope: `T66`/`T67`, any audit
+schema/storage/model/migration change, any frontend change, any new table or endpoint, password
+reset/logout/refresh/`401`/`422`/success auditing, and any role/permission-matrix change.
+
+## Tasks Implemented — T65 batch
+
+- **Login auditing (`application/auth_service.py`).** `AuthService.authenticate()` records exactly one
+  `AuditLogger.record()` call per invocation: `login_success` on success (actor = the newly
+  authenticated `CurrentUser`, built from the just-updated `user.id`/`user.full_name`,
+  `is_authenticated=True`; `resource_type="auth"`; `metadata={"email": user.email}`), or
+  `login_failure` on any of the three existing rejection branches (anonymous actor `CurrentUser()`;
+  `resource_type="auth"`; `metadata={"email": <attempted email>, "reason": <one of "unknown_user"/
+  "wrong_password"/"inactive_account">}`). The HTTP-facing failure path is untouched: every branch still
+  returns the single, generic `Result.fail(UnauthorizedError(_INVALID_CREDENTIALS))` it always did — the
+  `reason` distinction exists only in the audit trail, never in the response, preserving the existing
+  no-enumeration guarantee `TestAuthenticate` already covers. The "user exists but has no
+  `password_hash`" branch shares the `"unknown_user"` reason with a truly-unknown email, rather than
+  inventing a fourth reason the authorized scope doesn't name — both are functionally "cannot
+  authenticate via password" from an external caller's perspective. `AuthService.__init__()` gained a
+  new required `audit_logger: AuditLogger` parameter; `refresh()`/`revoke()` are untouched, per the
+  authorized scope covering login and permission-denied only.
+- **Permission-denied auditing (`presentation/api/deps.py`).** `RequirePermission`'s inner
+  `_require_permission()` now wraps the *final* candidate permission's
+  `authorization_service.require_permission(user, permissions[-1])` call in a `try`/`except
+  ForbiddenError`: on denial, it records exactly one `permission_denied` event (actor = the already-
+  resolved authenticated `CurrentUser`; `resource_type="endpoint"`;
+  `metadata={"required_permissions": list(permissions)}`), then re-raises the identical `ForbiddenError`
+  unchanged — the HTTP `403` response is byte-for-byte what it was before this batch. Every candidate
+  permission *before* the last is still tried inside its own `try`/`except ForbiddenError: continue`,
+  completely unmodified from `T63` — a denial there that a later candidate then grants never reaches the
+  new `except` block at all, so it is never audited. This is exactly `T63`'s "authorize on any one
+  supplied permission" contract, now with the added guarantee that only a denial the caller actually
+  *experiences* (every candidate failed) is ever recorded. The `401` short-circuit above (an
+  unauthenticated caller) is unchanged and is never audited, per the authorized exclusion.
+- **Dependency wiring.** No new `AuditLogger` implementation — the existing, unmodified
+  `LoggingAuditLogger` (structured `logger.info(...)` on the `app.audit` channel) and its existing
+  container registration (`container.register(AuditLogger, LoggingAuditLogger)`, pre-dating this batch)
+  are reused as-is. A new `get_audit_logger_dependency()`/`AuditLoggerDep` pair in `deps.py` mirrors the
+  file's own established `get_settings_dependency()`/`SettingsDep` pattern exactly
+  (`container.resolve(AuditLogger)`), and is what `get_auth_service()` now passes into `AuthService`'s
+  new constructor parameter. `RequirePermission` deliberately does **not** take `AuditLogger` as an
+  injected parameter — it calls `container.resolve(AuditLogger)` directly inside `_require_permission()`
+  instead, specifically so that function's own signature (`user`, `authorization_service`) stays
+  unchanged, since `tests/unit/test_auth.py::TestRequirePermission` (outside this batch's authorized
+  file list) calls it directly with exactly those two positional arguments, bypassing FastAPI's
+  `Depends()` wiring entirely — confirmed unaffected, 24/24 passing, unmodified.
+
+## Files Modified — T65 batch
+
+- `backend/src/app/application/auth_service.py` — modified: new `audit_logger` constructor parameter;
+  `authenticate()` records `login_success`/`login_failure`; new private `_record_login_failure()`
+  helper; new `AuditLogger`/`CurrentUser` imports.
+- `backend/src/app/presentation/api/deps.py` — modified: new `get_audit_logger_dependency()`/
+  `AuditLoggerDep`; `get_auth_service()` passes `audit_logger` through to `AuthService`;
+  `RequirePermission`'s final-candidate check now audits on denial before re-raising; new `AuditLogger`
+  import.
+- `backend/tests/unit/test_auth_service.py` — extended: local `_RecordingAuditLogger` fake; `auth_service`
+  fixture updated for the new constructor parameter; new `TestAuthenticateAuditing` class, 5 tests.
+- `backend/tests/integration/test_auth_login.py` — extended: new `TestLoginAuditing` class, 5 tests,
+  using `caplog` attached directly to the `app.audit` logger.
+- `backend/tests/integration/test_users.py` — extended: new `TestPermissionDeniedAuditing` class, 5
+  tests, same `caplog` technique, reusing `T62`/`T63`'s existing fixtures/helpers unmodified.
+- `docs/ImplementationLog/Stage3/Phase3.md` — this file (T65 batch appended by a dedicated
+  documentation-only rework, after the initial QA review found the implementation itself defect-free
+  but this batch narrative missing; header's `Related Tasks`/`Git Commit`/`Pull Request` lines updated).
+
+No new dependency; no new `AuditLogger` implementation; no audit schema/storage/model/migration change;
+`CurrentUser`, `AuthorizationService`, `RbacAuthorizationService`, `PermissiveAuthorizationService`,
+`crud_router_factory.py`, every route file, every frontend file, and every `T52`–`T64` file otherwise
+untouched. No governance file (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+`PROJECT_CHECKPOINT.md`) touched. `tests/unit/test_auth.py` — deliberately **not** modified; the design
+of both production changes above was chosen specifically to avoid needing to. The pre-existing,
+unrelated uncommitted changes present in the working tree throughout this batch
+(`docs/prompts/README.md`, `docs/prompts/GitCI_PR_Manager.md`, `docs/HANDOFF/`) were left exactly as
+found.
+
+## Tests Added — T65 batch
+
+15 new tests across three files:
+
+- **`tests/unit/test_auth_service.py::TestAuthenticateAuditing` (5)** — success records exactly one
+  `login_success` event with the correct actor id/display name and `resource_type`, and no plaintext
+  password anywhere in the recorded call; unknown email, wrong password, and inactive account each
+  record exactly one `login_failure` event with the correct `email`/`reason` metadata and an anonymous
+  actor; a fifth test exercises all four branches against one recorder and inspects every recorded
+  call's full `repr()` for plaintext-password or password-hash leakage, broader than any single-branch
+  assertion.
+- **`tests/integration/test_auth_login.py::TestLoginAuditing` (5)** — the same four login outcomes
+  (success, wrong password, unknown email, inactive account), each verified end-to-end through the real
+  mounted app against the real, unmocked `LoggingAuditLogger`, via `caplog` attached directly to the
+  `app.audit` logger; a fifth test proves a `422` malformed body records no audit event at all (the
+  request never reaches `AuthService.authenticate()`).
+- **`tests/integration/test_users.py::TestPermissionDeniedAuditing` (5)** — a denied request records
+  exactly one `permission_denied` event with the correct `resource_type`/`required_permissions`; the
+  actor is confirmed to be the authenticated caller (not anonymous, not the target resource); an
+  authorized request records no event; a caller holding only the *second* of two OR'd permissions
+  (`roles:manage`, not `users:manage`) records no event either — direct proof `T63`'s OR semantics
+  survive this batch; an unauthenticated `401` request records no event.
+
+## Test Results — T65 batch
+
+- New tests in isolation: unit — **5/5 passed**; integration (login) — **5/5 passed**; integration
+  (permission-denied) — **5/5 passed** — 15/15 total, personally run this session.
+- `tests/unit/test_auth.py::TestRequirePermission` (outside this batch's file scope, re-run to confirm
+  it stayed unaffected) — **8/8 passed**, unmodified, including the exact-call assertion
+  (`service.calls == [(user, "clients:write")]`) that would fail immediately if `_require_permission`'s
+  signature or single-permission call path had changed at all.
+- Full backend suite: **481 passed**, 0 failed, 0 skipped, personally run against live Postgres.
+- **Lint:** `uv run ruff check src tests alembic` — clean.
+- **Format:** `uv run black --check src tests alembic` — clean (199 files unchanged).
+- **Boot smoke test:** `python -c "from app.main import app"` — succeeds; `app.openapi()["paths"]`
+  independently confirmed unchanged from pre-`T65` — this batch adds no route, so the eleven prior
+  route/method combinations are exactly what's still present.
+- **PR #41 CI:** `gh pr view 41 --json statusCheckRollup` — **6/6 checks `SUCCESS`** (Lint/format/test
+  ×4, Build verification ×2 — the expected double-trigger per [ADR/0017](../../../ADR/0017-github-actions-ci.md)).
+- **Scope check:** `git diff origin/main...HEAD --name-only` (equivalently, PR #41's own file list)
+  confirms exactly the five files listed above under Files Modified — no forbidden file touched.
+
+**Environment note, disclosed per this file's own established convention for recording implementation
+problems (see `T58`'s and `T64`'s own accounts):** this session's local `.env` `DATABASE_URL` pointed at
+host port `5432`, while the only running `legal_dms_postgres` container was mapped to host port `5433`
+— a pre-existing environment drift, unrelated to this batch's own changes, confirmed by the identical
+`ConnectionRefusedError` occurring on the untouched, pre-existing `TestLogin` tests as well as the new
+ones. A second, separate pre-existing issue surfaced once the correct port was reachable: that specific
+container's schema had no tables at all (`relation "users" does not exist`), i.e. migrations had never
+been applied to it. Both were worked around locally — an environment-variable override to the container's
+actual exposed port, then `alembic upgrade head` (an additive application of the existing, unmodified
+migration chain, not a migration change) — solely to execute and verify these tests against a real
+database rather than skip verification or claim success without running them. No project file
+(`.env`, `docker-compose.yml`, or any migration) was changed to do this, and no schema/migration file was
+modified.
+
+## Design Decisions — T65 batch
+
+- **`reason` distinguishes login-failure causes only in the audit trail, never in the HTTP response.**
+  `AuthService.authenticate()`'s three failure branches already collapsed into one generic
+  `UnauthorizedError` message before this batch, specifically so a caller can't enumerate valid emails
+  or account states (`T50`'s own design, re-confirmed unchanged by `TestAuthenticate`'s existing tests).
+  Adding a `reason` to the *audit* call, a server-side-only channel, gives operators the distinction
+  without ever exposing it externally — the two concerns (external non-enumeration, internal
+  observability) are independent, so satisfying one doesn't require compromising the other.
+- **`container.resolve(AuditLogger)` inside `_require_permission()`'s body, not a new injected
+  parameter.** The alternative — adding `audit_logger: AuditLoggerDep` (or a raw `Request`) as a new
+  parameter — would change `_require_permission`'s call signature, breaking
+  `tests/unit/test_auth.py::TestRequirePermission`'s existing direct two-argument calls
+  (`await check(user, service)`), a file outside this batch's authorized scope. Resolving the singleton
+  directly from the container, exactly as `get_settings_dependency()` already does elsewhere in the same
+  file, avoids the conflict entirely while still using this project's own established DI mechanism, not
+  a new one.
+- **`resource_id=None` for `permission_denied` events.** The authorized contract allows this ("if
+  compatible with the existing `AuditLogger` contract") — obtaining a route/request identifier at
+  `_require_permission`'s current signature would require the same kind of parameter change the point
+  above rules out, for a field the contract itself treats as optional.
+- **Only the final candidate permission's denial is audited, never an earlier one a later candidate then
+  overturns.** This is the direct, minimal expression of "a request authorized by any supplied
+  permission must not generate a `permission_denied` event" — auditing every individual denial along the
+  way would have logged a false rejection for every OR-permission caller who succeeds on their second
+  (or later) candidate, which is not a permission-denied event from the caller's own experience of the
+  request.
+
+## Problems Encountered — T65 batch
+
+**One process gap, corrected by this documentation-only batch:** the original implementation PR (#41,
+commit `fab38e3`) was implemented, tested, and opened for review without an accompanying `T65` batch
+entry in this file — an omission from the established `T58`–`T64` pattern of the Backend Developer role
+recording the batch narrative alongside (not after) implementation. The independent QA Reviewer's review
+of PR #41 found **no technical, behavioral, security, scope, test, lint, DI, OpenAPI, or `T63`
+OR-permission defect** — the sole blocking finding was this missing narrative, which this entry corrects.
+No implementation, test, or governance file is touched by this correction; PR #41's implementation
+content is unchanged.
+
+**One factual correction made while writing this entry, disclosed rather than silently propagated:** the
+rework instructions for this correction cited `b63bc6d` as `T65`'s authorization commit. Independently
+verified via `git log`, `git show`, and `gh pr view 40 --json commits`: `b63bc6d` is actually `T64`'s
+authorization commit ("docs: authorize T64 for missing error-shape and invalid-token coverage");
+`T65`'s real authorization commit, and PR #40's own sole commit, is `095ac91` ("docs: authorize T65 audit
+logging"). The merge commit (`61e64d3`) and PR number (`#40`) cited alongside it were both independently
+confirmed correct. `095ac91` is the hash recorded throughout this entry and in the header metadata block
+above.
+
+**Environment side (unrelated to `T65`'s own code):** the port-mismatch and missing-schema issues
+described under Test Results — both pre-existing, both resolved locally without touching any project
+file, per that section's own account.
+
+## Deferred Work — T65 batch
+
+- **`T66`/`T67`** — not started, not authorized, not touched by this batch or this correction.
+- **QA Decision** — not recorded by this correction; see below. The QA Reviewer role must independently
+  re-review this documentation addition and render the decision separately.
+- **Merge, branch cleanup, local `main` sync** — deliberately not performed, per this role's own stop
+  conditions; PR #41 remains open and unmerged throughout.
+- **`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md` synchronization** — Project
+  Manager/Documentation Manager owned, performed only after a QA Decision exists, per this project's
+  established Documentation Ownership rules — not touched by this correction.
+
+## Future Considerations — T65 batch
+
+- **The missing-batch-entry gap this correction fixes** is itself worth noting as a process signal: five
+  consecutive prior batches (`T61`–`T64`, per this file's own record) included the implementation-log
+  entry as part of the original implementation pass, not as a follow-up correction. Whether this was a
+  one-off oversight or worth a lighter-weight checklist reminder for future batches is a question for the
+  Project Manager/QA Reviewer roles, not resolved here.
+- **`T66`'s `role_permissions` matrix sign-off** is the next natural dependency for any future batch that
+  wants `permission_denied` auditing to reflect a fully-populated, project-owner-approved permission set
+  rather than the ad hoc test-only grants this batch's own tests construct — not a blocker for `T65`
+  itself, since auditing a denial doesn't depend on which permissions exist, only on whether the caller
+  holds one of the ones a route actually requires.
+
+## Reviewer Checklist — T65 batch
+
+Self-assessed by the Backend Developer role against this session's own verified work (both the original
+implementation and this documentation correction).
+
+```
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+□ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+Notes on the less-obvious ones:
+
+- **ADR updated (if required):** `□` — not required: wiring an existing, previously-unused port
+  (`AuditLogger`, dating to Stage 1) into two call sites via its existing implementation and existing
+  container registration is not a new architectural decision.
+- **PROJECT_STATE updated (if required):** `□` — deliberately not updated, for the same reason every
+  prior batch's own checklist gives: `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/
+  `PROJECT_CHECKPOINT.md` are Project Manager/Documentation Manager owned, synchronized only after a QA
+  Decision exists.
+- **No scope creep:** `☑` — verified above: exactly five files in the original implementation (all
+  within the authorized list), exactly one file (this one) in this correction; no forbidden file, no
+  `T66`/`T67` work, no audit schema/model/migration change, no route/OpenAPI change.
+- **Ready for QA:** `☑` — this entry, together with PR #41's own content, now states every fact a
+  reviewer needs: the authorized scope, the implementation, test evidence, the authorization-provenance
+  record, and (this correction's own contribution) the batch narrative the initial QA pass found
+  missing.
+
+## QA Decision — T65 batch
+
+**Pending.** Not recorded by this documentation-only correction, per this role's own explicit
+instruction not to. The independent QA Reviewer who found this batch narrative missing must review this
+addition separately and render `T65`'s QA Decision (`Approved`/`Approved with comments`/`Rework
+required`) in a subsequent pass, following the same pre-merge-recording discipline established by `T63`.
+PR #41 remains open and unmerged. `T66`/`T67` remain unauthorized and untouched.
