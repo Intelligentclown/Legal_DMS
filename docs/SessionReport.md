@@ -2373,3 +2373,23 @@ a project-owner sign-off of its specific matrix — **not authorized**. Standing
 unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness, and the
 recurring `backend/.env` vs. actual-container port mismatch.
 
+
+---
+
+## Session: Post-Merge Verification & Documentation Closeout - T66 (2026-08-17)
+
+**Goal:** Synchronize the canonical project records with T66's actual merged state (seeding the `role_permissions` matrix), ensuring no implementation files are modified and T67 remains unauthorized.
+
+**Verified the Live State Directly:** confirmed `main` and `origin/main` synchronized at `2edc23e` (PR #44 merged). Confirmed authorization `66f94bf`, implementation `533226d`, QA rework `b2b86b6`, formatting correction `0239d80`, and final QA approval `5ab88a5` (which was committed before merge). Confirmed exactly one Alembic head `224b650e5235` exists, downgrade safety holds, and exact 59-entry matrix is tested exhaustively. `ruff` and `black` are clean, and tests pass.
+
+**Corrected every pending-implementation phrase to the true merged state:** updated `IMPLEMENTATION_QUEUE.md`'s `T66` row with the full `Done` closeout, including its multi-pass QA history. Updated `PROJECT_STATE.json` (`currentStage` note and removed open question). Updated `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, and `PROJECT_CHECKPOINT.md` to reflect `T66` as Done and merged.
+
+**Preserved the QA Decision's and the batch narrative's historical text untouched:** the Stage 4 Phase 0 history is recorded and preserved. An explicitly dated **"Post-Merge Verification - T66 batch (2026-08-17)"** section was appended to `docs/ImplementationLog/Stage4/Phase0.md` after the `QA Decision` section.
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`, `docs/prompts/README.md`, and `docs/HANDOFF/` (separate uncommitted work); `backend/.env` (known issue).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass. `T67` was not started, scoped, or authorized.
+
+**Documentation Updated (committed to a new documentation branch - not yet merged into `main`):** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `PROJECT_CHECKPOINT.md`, `docs/ImplementationLog/Stage4/Phase0.md`, and `docs/SessionReport.md`.
+
+**Next Session Goals:** merge this session's documentation PR to bring the corrected governance records onto `main`. `T67` (First-admin bootstrap CLI command) is the next unstarted task, but it remains **not authorized**.

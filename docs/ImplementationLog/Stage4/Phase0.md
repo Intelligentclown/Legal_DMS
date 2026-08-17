@@ -2,17 +2,17 @@
 
 # Stage 4 - Phase 0
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-17
 
-Completed: 
+Completed: 2026-08-17
 
 Related Tasks: T66
 
 Related ADRs: 
 
-Git Commit: 
+Git Commit: `2edc23e`
 
 Pull Request: T66 - #44
 
@@ -53,3 +53,23 @@ Rendered by the QA Reviewer role, independently, against PR #44 (`feature/stage4
 - **Lint/Format:** `black` passes, `ruff` passes.
 
 **No technical defects found in the PR scope.** This is an `Approved` disposition. PR #44 is approved for merge but was NOT merged at the time of this decision.
+
+## Post-Merge Verification - T66 batch (2026-08-17)
+
+**Verified directly on `main` at `2edc23e`:**
+- `main` and `origin/main` are synchronized at `2edc23e`.
+- T66's exact authorized 59-entry role-permission matrix is successfully seeded via migration `224b650e5235`.
+- Exactly one Alembic head exists.
+- Safe targeted downgrade holds.
+- Exhaustive matrix validation tests are passing.
+- Black is clean. Ruff is clean.
+- T66 tests passing and relevant regression tests passing.
+- T67 remains completely unauthorized and not started.
+
+**T66 is now Done - merged.**
+- Authorization commit: `66f94bf` (PR #43)
+- Implementation commit: `533226d`
+- QA rework commit: `b2b86b6`
+- Formatting correction commit: `0239d80`
+- QA-approval commit: `5ab88a5`
+- Merge commit: `2edc23e` (PR #44)
