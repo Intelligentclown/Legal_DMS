@@ -5,42 +5,78 @@ pytestmark = pytest.mark.asyncio
 
 EXPECTED_MATRIX = {
     "Administrator": {
-        "matters:read", "matters:write", "matters:delete",
-        "clients:read", "clients:write", "clients:delete",
-        "properties:read", "properties:write", "properties:delete",
-        "documents:read", "documents:write", "documents:delete",
-        "financial:read", "financial:write",
-        "users:manage", "roles:manage", "settings:manage",
-        "reports:read"
+        "matters:read",
+        "matters:write",
+        "matters:delete",
+        "clients:read",
+        "clients:write",
+        "clients:delete",
+        "properties:read",
+        "properties:write",
+        "properties:delete",
+        "documents:read",
+        "documents:write",
+        "documents:delete",
+        "financial:read",
+        "financial:write",
+        "users:manage",
+        "roles:manage",
+        "settings:manage",
+        "reports:read",
     },
     "Advocate": {
-        "matters:read", "matters:write", "matters:delete",
-        "clients:read", "clients:write", "clients:delete",
-        "properties:read", "properties:write", "properties:delete",
-        "documents:read", "documents:write", "documents:delete",
-        "financial:read", "reports:read"
+        "matters:read",
+        "matters:write",
+        "matters:delete",
+        "clients:read",
+        "clients:write",
+        "clients:delete",
+        "properties:read",
+        "properties:write",
+        "properties:delete",
+        "documents:read",
+        "documents:write",
+        "documents:delete",
+        "financial:read",
+        "reports:read",
     },
     "Paralegal": {
-        "matters:read", "matters:write",
-        "clients:read", "clients:write",
-        "properties:read", "properties:write",
-        "documents:read", "documents:write",
-        "financial:read", "reports:read"
+        "matters:read",
+        "matters:write",
+        "clients:read",
+        "clients:write",
+        "properties:read",
+        "properties:write",
+        "documents:read",
+        "documents:write",
+        "financial:read",
+        "reports:read",
     },
     "Clerk": {
-        "matters:read", "matters:write",
-        "clients:read", "clients:write",
-        "documents:read", "documents:write"
+        "matters:read",
+        "matters:write",
+        "clients:read",
+        "clients:write",
+        "documents:read",
+        "documents:write",
     },
     "Accountant": {
-        "financial:read", "financial:write",
-        "matters:read", "clients:read", "reports:read"
+        "financial:read",
+        "financial:write",
+        "matters:read",
+        "clients:read",
+        "reports:read",
     },
     "Read Only": {
-        "matters:read", "clients:read", "properties:read",
-        "documents:read", "financial:read", "reports:read"
-    }
+        "matters:read",
+        "clients:read",
+        "properties:read",
+        "documents:read",
+        "financial:read",
+        "reports:read",
+    },
 }
+
 
 async def test_t66_role_permissions_matrix_exact_match(db_session):
     # Fetch roles

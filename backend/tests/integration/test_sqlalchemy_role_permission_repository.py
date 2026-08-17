@@ -37,6 +37,7 @@ class TestSqlAlchemyRolePermissionRepository:
     ) -> None:
         # T66 seeds the matrix, so we must clear it first to test the empty case.
         from sqlalchemy import text
+
         await db_session.execute(text("DELETE FROM role_permissions"))
         repository = SqlAlchemyRolePermissionRepository(db_session)
 
