@@ -20,6 +20,7 @@ the current (pytest-asyncio) event loop, so the override actually works.
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncGenerator
 from uuid import uuid4
 
@@ -136,3 +137,114 @@ class TestLogin:
         assert response.status_code == 422
         assert response.json()["error"]["code"] == "validation_error"
         assert isinstance(response.json()["error"]["message"], str)
+
+
+class TestLoginAuditing:
+    """T65: `POST /auth/login` wires through to `AuthService.authenticate()`'s
+    new `AuditLogger` calls -- `LoggingAuditLogger` (the real, container-
+    registered implementation, unmocked here) writes each event as a
+    structured `logger.info(...)` call on the `app.audit` channel, captured
+    via `caplog` directly attached to that logger (`app`'s own logger has
+    `propagate=False`, so a plain root-level `caplog` capture would miss
+    these -- `logger="app.audit"` attaches the capturing handler directly to
+    the channel that actually emits them, independent of that setting).
+    """
+
+    async def test_successful_login_records_exactly_one_login_success_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        user = await _make_user(db_session)
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": user.email, "password": _PASSWORD}
+            )
+
+        assert response.status_code == 200
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+        assert len(audit_records) == 1
+        record = audit_records[0]
+        assert record.action == "login_success"
+        assert record.resource_type == "auth"
+        assert record.actor_id == str(user.id)
+        assert _PASSWORD not in record.getMessage()
+        assert _PASSWORD not in repr(record.metadata)
+        assert _PASSWORD not in repr(record.__dict__)
+
+    async def test_wrong_password_records_exactly_one_login_failure_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        user = await _make_user(db_session)
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": user.email, "password": "wrong-password"}
+            )
+
+        assert response.status_code == 401
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+        assert len(audit_records) == 1
+        record = audit_records[0]
+        assert record.action == "login_failure"
+        assert record.resource_type == "auth"
+        assert record.metadata == {"email": user.email, "reason": "wrong_password"}
+        assert "wrong-password" not in repr(record.__dict__)
+
+    async def test_unknown_email_records_exactly_one_login_failure_event(
+        self, client: AsyncClient, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        email = f"{uuid4()}@example.com"
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": email, "password": _PASSWORD}
+            )
+
+        assert response.status_code == 401
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+        assert len(audit_records) == 1
+        record = audit_records[0]
+        assert record.action == "login_failure"
+        assert record.resource_type == "auth"
+        assert record.metadata == {"email": email, "reason": "unknown_user"}
+
+    async def test_inactive_account_records_exactly_one_login_failure_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        user = await _make_user(db_session, is_active=False)
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": user.email, "password": _PASSWORD}
+            )
+
+        assert response.status_code == 401
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+        assert len(audit_records) == 1
+        record = audit_records[0]
+        assert record.action == "login_failure"
+        assert record.resource_type == "auth"
+        assert record.metadata == {"email": user.email, "reason": "inactive_account"}
+
+    async def test_malformed_request_body_records_no_audit_event(
+        self, client: AsyncClient, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """422 validation errors are explicitly excluded from T65's scope --
+        the request never reaches `AuthService.authenticate()` at all, since
+        FastAPI rejects the malformed body before the route handler runs."""
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": "missing-password@example.com"}
+            )
+
+        assert response.status_code == 422
+        assert [record for record in caplog.records if record.name == "app.audit"] == []

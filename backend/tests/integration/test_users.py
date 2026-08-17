@@ -19,6 +19,7 @@ rather than inventing a new one.
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncGenerator
 from uuid import uuid4
 
@@ -1004,21 +1005,127 @@ class TestRemoveRole:
         role = await _make_role(db_session)
         db_session.add(UserRole(user_id=user.id, role_id=role.id))
         await db_session.flush()
-        roles_before = (
+        roles_before_removal = (
             await db_session.execute(select(func.count()).select_from(Role))
         ).scalar_one()
-        role_permissions_before = (
+        role_permissions_before_removal = (
             await db_session.execute(select(func.count()).select_from(RolePermission))
         ).scalar_one()
 
         response = await client.delete(f"/api/v1/users/{user.id}/roles/{role.id}", headers=headers)
 
         assert response.status_code == 204
-        roles_after = (
+        roles_after_removal = (
             await db_session.execute(select(func.count()).select_from(Role))
         ).scalar_one()
-        role_permissions_after = (
+        role_permissions_after_removal = (
             await db_session.execute(select(func.count()).select_from(RolePermission))
         ).scalar_one()
-        assert roles_after == roles_before
-        assert role_permissions_after == role_permissions_before
+        assert roles_after_removal == roles_before_removal
+        assert role_permissions_after_removal == role_permissions_before_removal
+
+
+class TestPermissionDeniedAuditing:
+    """T65: `RequirePermission` (`deps.py`) records exactly one
+    `permission_denied` `AuditLogger` event when the *final* candidate
+    permission is also denied -- captured the same way
+    `test_auth_login.py::TestLoginAuditing` captures `AuthService`'s events:
+    `caplog` attached directly to the `app.audit` logger (`app`'s own
+    logger has `propagate=False`, so a root-level capture would miss these).
+    `GET /api/v1/users` is used throughout as a representative `T62`/`T63`
+    route -- the router-level dependency is shared by all seven, so this
+    one route's behavior generalizes to the others without needing to
+    repeat the same assertions per route.
+
+    `caplog.clear()` immediately after entering the capture block discards
+    the `login_success` event `_authorized_headers()`/`_headers_with_permissions()`/
+    `_login()` themselves generate while setting up the caller's token --
+    without it, that unrelated event would be counted alongside (or instead
+    of) the one this test actually cares about.
+    """
+
+    async def test_denied_request_records_exactly_one_permission_denied_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        headers = await _unauthorized_headers(client, db_session)
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            caplog.clear()
+            response = await client.get("/api/v1/users", headers=headers)
+
+        assert response.status_code == 403
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+        assert len(audit_records) == 1
+        record = audit_records[0]
+        assert record.action == "permission_denied"
+        assert record.resource_type == "endpoint"
+        assert record.metadata == {"required_permissions": ["users:manage", "roles:manage"]}
+
+    async def test_denied_request_actor_is_the_authenticated_caller(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        caller = await _make_user(db_session)
+        access_token = await _login(client, caller)
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            caplog.clear()
+            response = await client.get("/api/v1/users", headers=headers)
+
+        assert response.status_code == 403
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+        assert len(audit_records) == 1
+        assert audit_records[0].actor_id == str(caller.id)
+
+    async def test_authorized_request_records_no_permission_denied_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        headers = await _authorized_headers(client, db_session)
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            caplog.clear()
+            response = await client.get("/api/v1/users", headers=headers)
+
+        assert response.status_code == 200
+        assert [record for record in caplog.records if record.name == "app.audit"] == []
+
+    async def test_either_permission_alone_records_no_permission_denied_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """T63's OR-permission semantics preserved: a caller holding only
+        `roles:manage` (not `users:manage`) is still authorized on this
+        route via the second candidate permission succeeding, so the denial
+        on the first candidate must not itself generate an audit event."""
+        headers = await _headers_with_permissions(client, db_session, "roles:manage")
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            caplog.clear()
+            response = await client.get("/api/v1/users", headers=headers)
+
+        assert response.status_code == 200
+        assert [record for record in caplog.records if record.name == "app.audit"] == []
+
+    async def test_unauthenticated_401_records_no_audit_event(
+        self, client: AsyncClient, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """401 (no/invalid token) is explicitly excluded from T65's scope --
+        `RequirePermission` raises before ever reaching the permission
+        check, let alone the audit call inside its `except` branch."""
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            caplog.clear()
+            response = await client.get("/api/v1/users")
+
+        assert response.status_code == 401
+        assert [record for record in caplog.records if record.name == "app.audit"] == []
