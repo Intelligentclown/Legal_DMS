@@ -305,10 +305,73 @@ Reviewer Checklist (T67 batch)
 QA Decision (T67 batch)
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
 ```
 
-Not yet rendered — left for the QA Reviewer role in a separate session, per this batch's own stop
-condition (Backend Developer role stops after implementation and self-assessment; does not render
-the QA Decision, open a PR, or proceed further).
+Rendered by the QA Reviewer role, independently, against feature commit `b409f78`
+(`feature/stage4-t67-first-admin-bootstrap`) — no PR opened yet; this decision is recorded
+pre-PR, per this project's practice of committing the QA Decision to the branch before any PR is
+opened or merged.
+
+**Verification Results (all checked directly against the repository and a live run, not taken from
+the Developer's self-assessment):**
+
+- **Authorization:** T67 authorization (`IMPLEMENTATION_QUEUE.md` row, `PROJECT_STATE.json`) is
+  recorded before the implementation commit — confirmed by commit order (`119d612` precedes
+  `b409f78`).
+- **Scope:** `git diff main...feature/stage4-t67-first-admin-bootstrap --stat` independently
+  confirms exactly five files changed: `backend/pyproject.toml` (new `[project.scripts]` table
+  only), `backend/src/app/infrastructure/cli/__init__.py` (new, empty), `backend/src/app/
+  infrastructure/cli/bootstrap.py` (new), `backend/tests/integration/test_bootstrap_admin.py`
+  (new), and this phase log. No route, schema/migration, `deps.py`, `AuthService`, or any
+  `T52`–`T66` file touched. `T68` is not implemented. Matches the approved scope in
+  `IMPLEMENTATION_QUEUE.md`'s T67 row and `ADR-0018`'s D4 exactly — no scope creep, no
+  untouched-file violation.
+- **D4 compliance (password never via argv/env/file):** verified by reading
+  `infrastructure/cli/bootstrap.py` directly, not by trusting the docstring's claim. The password is
+  read exclusively via `getpass.getpass()`; the file contains no `sys.argv`, `os.environ`, or config
+  file access anywhere. Genuinely satisfies D4, not merely asserted.
+- **Idempotency:** genuinely proven, at the `run_bootstrap()` level, by two non-vacuous tests —
+  `test_returns_none_without_creating_duplicate` (existing user present → returns `None`, user count
+  stays at exactly 1) and `test_does_not_touch_existing_user` (existing row unmodified) — both would
+  fail if the no-op guard were removed or broken. **Gap, disclosed not hidden:** these tests exercise
+  `run_bootstrap()` only; the full CLI-level second-invocation behavior (`main()` prints a message
+  and exits cleanly with no error) is not exercised by any automated test. The phase log's own Test
+  Results/Deferred Work sections already disclose this — a manual interactive smoke test hung under
+  piped stdin and had to be killed. Not hidden or presented as passing; noted here as a real,
+  disclosed verification gap, not a defect.
+- **Tests — independently re-run this session:** `uv run pytest tests/integration/
+  test_bootstrap_admin.py -v` → 5/5 passing. `uv run pytest` (full suite) → 487/487 passing.
+  `uv run ruff check src tests alembic` → clean. `uv run black --check src tests alembic` → clean,
+  204 files unchanged. All four independently reproduced against the live `legal_dms_postgres`
+  container, not taken on the Developer's word.
+- **Architecture:** `infrastructure/cli/bootstrap.py` sits in the infrastructure layer alongside
+  `infrastructure/auth/`, `infrastructure/persistence/`; no port/contract changed; no layering
+  violation.
+- **Edge cases the tests miss (non-blocking, recorded as comments):**
+  1. `run_bootstrap()` re-implements user creation and role assignment by hand
+     (`session.add()`/`flush()`) instead of reusing `AbstractRepository[User].add()` and, notably,
+     `UserRepository.assign_role()` — both already exist on `SqlAlchemyUserRepository` and do the
+     identical job. `assign_role()` additionally catches `IntegrityError` from a concurrent
+     duplicate-assignment race, a safety net the hand-rolled version lacks. Functionally immaterial
+     here (bootstrap always operates on a brand-new `user_id`, so the `(user_id, role_id)` pair
+     cannot collide), but a real, minor divergence from this codebase's established repository-layer
+     convention for user/role mutations — not what the Design Decisions section's "mirrors
+     `SqlAlchemyUserRepository`'s existing convention" claim would suggest to a reader expecting
+     actual reuse.
+  2. The `RuntimeError` guard for "no `Administrator` role found" (migrations not yet run) has zero
+     test coverage. Not required by the approved scope's two named test requirements, and the
+     Future Considerations section already flags the adjacent pre-migration failure mode as a known
+     gap — but this specific guard clause is untested code, worth closing if this file is touched
+     again.
+- **Out of scope for this review:** the working tree also carries an unrelated modified
+  `docs/prompts/README.md` and untracked `docs/HANDOFF/`/`docs/prompts/GitCI_PR_Manager.md` — none
+  of these are part of feature commit `b409f78` (`git show --stat b409f78` confirms only the five
+  files listed under Scope above), so they don't affect this decision.
+
+**Disposition:** no technical defect blocks this batch — scope is exact, D4 is genuinely satisfied,
+tests are real and non-vacuous, and the full suite/lint/format are independently clean. The two
+items above are recorded as comments (pattern-consistency and an untested guard clause), not
+rework — both are the kind of finding this project's `Approved with comments` disposition exists
+for.
