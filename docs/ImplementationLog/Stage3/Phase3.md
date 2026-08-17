@@ -8,13 +8,13 @@ Started: 2026-08-15
 
 Completed:
 
-Related Tasks: T58, T59, T60, T61, T62, T63, T65
+Related Tasks: T58, T59, T60, T61, T62, T63, T64, T65
 
 Related ADRs:
 
-Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — ef419c3 (merge; feature commit 3cea676; QA-approval commit 6a8608f; authorization commit 93cda84). T65 — authorization commit `095ac91` (merged as `61e64d3`, PR #40); implementation commit `fab38e3`, PR #41, feature branch `feature/stage3-t65-audit-logging`, not yet merged as of this entry.
+Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — ef419c3 (merge; feature commit 3cea676; QA-approval commit 6a8608f; authorization commit 93cda84). T64 — fab2933 (merge; feature commit f321065; QA-approval commit fc9fb0b; authorization commit b63bc6d). T65 — d91d00c (merge; implementation commit fab38e3; documentation-correction commit d270828; QA-approval commit 9ac7191; authorization commit 095ac91).
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it. T65 — #40 (authorization, commit `095ac91`, 2026-08-16, merged `61e64d3`); implementation #41 (`feature/stage3-t65-audit-logging` at `fab38e3`, base `main` at `61e64d3`, documentation correction `d270828`) — **QA Decision: Approved, recorded in this file's `QA Decision — T65 batch` section prior to merge**; PR #41 not yet merged as of this entry.
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it. T64 — authorization commit `b63bc6d`; implementation #38 (merged `fab2933`, 2026-08-16), QA-approval commit `fc9fb0b`, committed pre-merge. T65 — #40 (authorization, commit `095ac91`, 2026-08-16, merged `61e64d3`); implementation #41 (merged `d91d00c`, 2026-08-17) — implementation commit `fab38e3` initially shipped without a batch entry in this file; documentation-correction commit `d270828` added it and corrected a factual authorization-reference error in its own rework instructions (`095ac91`, not `b63bc6d`, is `T65`'s real authorization commit); QA-approval commit `9ac7191` was then committed and pushed *before* PR #41 merged, continuing `T63`'s pre-merge-QA-Decision discipline; see the QA Decision — T65 batch section and the Post-Merge Verification note appended after it.
 
 Release:
 
@@ -2003,3 +2003,51 @@ persistence models).
 merge are the Documentation Manager's/project owner's next steps, not performed by this QA review. This
 review did not merge `PR #41`, did not authorize or start `T66`/`T67`, and did not modify any
 implementation or test file.
+
+## Post-Merge Verification — T65 batch (2026-08-17)
+
+Recorded as an append, not a rewrite of the QA Decision above — that section's own account of what was
+true at review time (QA Decision committed to the feature branch, PR #41 still open) remains accurate
+history and is left untouched, together with this batch's own governance narrative (the missing-batch
+finding, the authorization-reference correction, and the two independent QA passes) under Problems
+Encountered above.
+
+**`T65`'s QA-approval commit (`9ac7191`, "docs(qa): record QA decision for T65") was committed and
+pushed to `feature/stage3-t65-audit-logging` *before* PR #41 merged** — continuing, not breaking, the
+pre-merge-QA-Decision discipline `T63` established. PR #41 subsequently merged into `main` as `d91d00c`
+on 2026-08-17, carrying all three commits together, in order — implementation (`fab38e3`),
+documentation correction (`d270828`), QA approval (`9ac7191`) — confirmed directly via `git log
+--oneline --decorate`, not assumed.
+
+Independently re-verified this session, directly against the merged repository state (`main` at
+`d91d00c`, `origin/main` confirmed identical via `git rev-parse`), not transcribed from the PR body or
+the QA Decision's own prior figures:
+
+- **Scope:** `git diff 61e64d3..d91d00c --name-only` confirms exactly six files changed in the full
+  authorization-to-merge range — `application/auth_service.py`, `presentation/api/deps.py`,
+  `tests/unit/test_auth_service.py`, `tests/integration/test_auth_login.py`,
+  `tests/integration/test_users.py`, and this file — matching the QA Decision's own account exactly.
+  No forbidden file (`CurrentUser`, `AuthorizationService`, `RbacAuthorizationService`,
+  `PermissiveAuthorizationService`, `crud_router_factory.py`, any route file, any `alembic/` migration,
+  any frontend file) present in the diff.
+- **Lint/format:** `uv run ruff check src tests alembic` — clean. `uv run black --check src tests
+  alembic` — clean (199 files unchanged).
+- **Boot/route surface:** `python -c "from app.main import app"` succeeds on merged `main`;
+  `app.openapi()["paths"]` independently re-confirmed unchanged — the same eleven route/method
+  combinations as pre-`T65` (no route added, consistent with this batch being a pure server-side
+  auditing side effect).
+- **Tests:** `uv run pytest -q` — **481 passed, 0 failed, 0 skipped**, personally re-run against live
+  Postgres directly on merged `main`, matching the QA Decision's own figure exactly.
+- **Environment note, independently reproduced, not merely repeated:** this session's own local `.env`
+  `DATABASE_URL` was also found pointing at host port `5432`, while `docker ps` showed the only running
+  `legal_dms_postgres` container mapped to host port `5433` — the identical drift this batch's own Test
+  Results and QA Decision both already disclosed. Worked around the same way, locally, via a shell
+  environment-variable override at test-invocation time only; `backend/.env` was not modified, confirmed
+  via `git status --short backend/.env` showing no change.
+
+**`T65` is now `Done`** — authorization, implementation, its own documentation-correction batch, QA
+Decision, and the final merge are all in `main`. Unlike `T62`, and consistent with `T63`, this batch's
+QA Decision was durably recorded *before* merge, not after — no new governance finding to add.
+`T66`–`T67` remain not started, not authorized by this verification pass. `docs/prompts/README.md`,
+`docs/prompts/GitCI_PR_Manager.md`, and `docs/HANDOFF/` are separate, unrelated, still-uncommitted
+changes, untouched by this pass.

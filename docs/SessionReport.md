@@ -2283,3 +2283,93 @@ done) — **not authorized**. Standing item, still unaddressed:
 
 **Next Session Goals:** `T65` (audit logger wiring) is the next unstarted task in Phase 3's order, depending on `T58`–`T64` (all done) — **not authorized**. Standing item, still unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness.
 
+## Session: 2026-08-17 — T65 post-merge documentation closeout
+
+**Independently verified repository state before touching anything, per instruction not to rely
+solely on the task description.** `git fetch`/`git log --oneline --decorate -20`/`gh pr view
+40`/`gh pr view 41` confirmed: PR #40 (authorization, `095ac91` → `61e64d3`) and **PR #41
+(implementation, three commits) both `MERGED`** — `main`/`origin/main` both at `d91d00c`. `git log`
+showed PR #41 carrying its three commits in order: `fab38e3` (implementation), `d270828`
+(documentation correction), `9ac7191` ("docs(qa): record QA decision for T65") — confirming the QA
+Decision was genuinely committed and pushed **before** the merge, not reconstructed after.
+
+**Read `docs/ImplementationLog/Stage3/Phase3.md`'s full T65 batch, including its `QA Decision — T65
+batch` section, before treating any of it as settled** — cross-checked against `git log`/`git show`
+rather than accepted at face value. Confirmed the full historical sequence exactly as the task
+described, preserved (not invented) by this session: (1) implementation PR #41 originally shipped
+without a `Phase3.md` batch entry; a first independent QA pass found the code itself defect-free —
+no technical, behavioral, security, scope, test, lint, DI, or `OpenAPI` defect — but blocked on that
+missing narrative (no formal `Rework required` checkbox was ever rendered; the finding stayed
+narrative, communicated via the rework instructions, and the QA Decision was left explicitly pending);
+(2) `d270828` added the standard eleven-section batch and, in writing it, independently caught and
+corrected a separate factual error in its own rework instructions — `b63bc6d` is actually `T64`'s
+authorization commit, not `T65`'s; `T65`'s real one is `095ac91`, independently re-confirmed via `gh
+pr view 40 --json commits`; (3) a second, independent QA pass re-verified the (unchanged)
+implementation end to end and rendered `QA Decision: Approved`, committed as `9ac7191` before PR #41
+merged, continuing — not breaking — the pre-merge-QA-Decision discipline `T63` established after
+`T62`'s own named finding.
+
+**Independently re-verified the merged code before writing anything about it as settled fact,** rather
+than trusting the QA Decision's own prior figures alone: `uv run ruff check`/`black --check` clean;
+`python -c "from app.main import app"` boot smoke succeeds; `app.openapi()["paths"]` — unchanged,
+still exactly eleven route/method combinations (`T65` adds no route). Before running the test suite,
+independently confirmed the exact same environment drift the QA Decision itself had disclosed:
+`docker ps` showed the running `legal_dms_postgres` container mapped to host port `5433`, while
+`backend/.env`'s `DATABASE_URL` still names port `5432` — reproduced, not assumed, and worked around
+identically (a shell-level `DATABASE_URL` override at test-invocation time only; `backend/.env` itself
+confirmed unmodified via `git status --short backend/.env`). `uv run pytest -q` — **481 passed, 0
+failed, 0 skipped**, personally run against live Postgres directly on merged `main`, matching the QA
+Decision's own figure exactly.
+
+**Corrected every "not yet merged"/pending-implementation phrase to the true merged state, everywhere
+it appeared, without rewriting any historical narrative:** `IMPLEMENTATION_QUEUE.md`'s `T65` row
+(previously ending only with its authorized scope, no completion text at all) gained the full `Done`
+closeout, including the multi-pass QA history stated in full;
+`docs/ImplementationLog/Stage3/Phase3.md`'s header (`Related Tasks`/`Git Commit`/`Pull Request` lines
+for `T65` — plus a real, separate gap independently noticed and fixed in the same pass: `T64` had its
+own complete batch section in this file already, but was never listed in the header's `Related Tasks`
+line); `PROJECT_STATE.json` (`currentStage`/`stages`/`completion` narrative — found stale for **both**
+`T64` and `T65`, not just `T65`, and corrected for both; `tests.backend.total`/`passing` 459 → 481;
+`currentStageScopePercent` 60 → 63; `git.latestCommitAtThisUpdate` `ef419c3` → `d91d00c`; two new
+`backendSubsystems` entries added, one each for `T64` and `T65`, matching the established
+once-merged pattern); `docs/AI_HANDOVER.md` (found `T64`'s own closeout paragraph present in one of
+its two parallel narrative sections but **entirely missing from the other** — added both `T64`'s
+missing paragraph and `T65`'s new one there, and `T65`'s paragraph to the section that already had
+`T64`'s); `docs/Roadmap.md`; `PROJECT_CHECKPOINT.md` (rewritten in place — found similarly inconsistent
+internally, mixing stale `T63`-era and newer `T64`-era content across different sections; rewritten
+as one coherent, currently-accurate document).
+
+**Preserved the QA Decision's and the batch narrative's own historical text untouched, per this
+project's rule against rewriting completed records.** `docs/ImplementationLog/Stage3/Phase3.md`'s
+`Problems Encountered — T65 batch` section (recording the missing-narrative finding and the
+authorization-reference correction) and its `QA Decision — T65 batch` section (recording the
+pre-merge disposition) are both left exactly as written — merged as part of PR #41 itself, not
+touched by this session. A new, explicitly dated **"Post-Merge Verification — T65 batch
+(2026-08-17)"** section was appended after them instead, recording the actual merge and this
+session's own independent re-verification — mirroring `T61`'s and `T63`'s own precedent.
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md`
+and `docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier sessions); `backend/.env`
+and `docker-compose.yml` (the port-mismatch is disclosed, not fixed — no session has been authorized
+to change project infrastructure files for this); `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`
+(pre-existing, repeatedly-flagged staleness, not caused by `T65`).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — the merged
+backend code was only read and independently exercised (lint/format/boot/tests), never edited. `T66`
+and `T67` were not started, scoped, or authorized anywhere in this session's edits — every reference
+reads "not started, not authorized," and `T66`'s row additionally states its own extra
+matrix-sign-off gate, not glossed over.
+
+**Documentation Updated (committed to a new documentation branch — not yet merged into `main` as of
+this entry):** `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md` (this file), `PROJECT_CHECKPOINT.md`, and
+`docs/ImplementationLog/Stage3/Phase3.md` (header correction plus the new Post-Merge Verification
+note — the `QA Decision — T65 batch` section itself is already on `main`, merged via PR #41).
+
+**Next Session Goals:** merge this session's documentation PR to bring the corrected governance
+records onto `main` (not performed by this session). `T66` (`role_permissions` matrix seeding
+migration) is the next unstarted task in Stage 3's order, gated on both ordinary authorization *and*
+a project-owner sign-off of its specific matrix — **not authorized**. Standing items, still
+unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness, and the
+recurring `backend/.env` vs. actual-container port mismatch.
+
