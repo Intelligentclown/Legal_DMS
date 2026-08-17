@@ -725,10 +725,7 @@ implementation has exactly one unambiguous spec to build against.
   session commits on success, rolls back on exception" as a deliberate policy, not an incidental
   patch; this is the ADR the Stage 2.5 section above had flagged as worth writing once T1 landed).
 
-**Still open, distinct from D1–D7 — needs your sign-off before T66 specifically (not blocking
-anything else):** the exact `role_permissions` matrix proposed in T66 below (which of the 18
-permissions each of the 6 roles gets) was a proposal, not one of the seven approved decisions —
-flagging so it isn't assumed approved by association.
+**Resolved:** The exact `role_permissions` matrix proposed in T66 below has been officially approved by the project owner (2026-08-17), replacing the prior ambiguity.
 
 ### Task breakdown
 
@@ -804,7 +801,7 @@ recommended (not yet adopted) "task IDs are immutable" rule to prevent this recu
 
 | ID | Task | Complexity | Depends on |
 |---|---|---|---|
-| T66 | New migration seeding `role_permissions` — map the 18 existing permissions to the 6 existing roles against a concrete proposed matrix (e.g. Administrator: all 18; Advocate: matters/clients/properties/documents `read`+`write`, financial `read`, reports `read`; Paralegal: same minus `write` on financial and minus `delete` everywhere; Clerk: matters/clients/documents `read`+`write`, no financial; Accountant: financial `read`+`write`, matters/clients `read`, reports `read`; Read Only: every `:read` permission, nothing else) — **the exact matrix is itself worth a quick sign-off, not just accepted silently**, since it's a real access-control decision. | S | T45 |
+| T66 | New migration seeding `role_permissions` — map the 18 existing permissions to the 6 existing roles against the owner-approved matrix. **Authorized by the project owner, 2026-08-17, recorded here — as its own documentation-only commit — before any implementation exists.** Approved scope: exact matrix sign-off: Administrator (all 18 permissions); Advocate (`matters:read`, `matters:write`, `matters:delete`; `clients:read`, `clients:write`, `clients:delete`; `properties:read`, `properties:write`, `properties:delete`; `documents:read`, `documents:write`, `documents:delete`; `financial:read`; `reports:read`); Paralegal (`matters:read`, `matters:write`; `clients:read`, `clients:write`; `properties:read`, `properties:write`; `documents:read`, `documents:write`; `financial:read`; `reports:read` — explicitly no delete permissions and no `financial:write`, superseding any previously ambiguous wording); Clerk (`matters:read`, `matters:write`; `clients:read`, `clients:write`; `documents:read`, `documents:write`); Accountant (`financial:read`, `financial:write`; `matters:read`; `clients:read`; `reports:read`); Read Only (every `:read` permission). T66 must independently verify exactly one Alembic head after the migration. T67 remains not authorized. | S | T45 |
 | T67 | First-admin bootstrap: one-time CLI command, interactive password prompt (`getpass` or equivalent — never argv/env/a config file) per approved D4. | S | T46, T62 |
 | T68 | Tests: seed row counts match the approved matrix; bootstrap creates exactly one admin and is idempotent on re-run (doesn't create a second one, doesn't error). | S | T66, T67 |
 
