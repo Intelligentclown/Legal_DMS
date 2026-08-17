@@ -294,7 +294,20 @@ merge, not after.** Full suite **459/459 passing**, `ruff`/`black` clean, boot s
 personally re-run against merged `main`. **`T63` is now Done — merged.** Feature commit `3cea676`,
 QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16); `main`/`origin/main` both
 independently re-verified at `ef419c3`, exactly the seven expected files, no forbidden file touched.
-`T64` is now Done — merged. Feature commit `f321065`, QA-approval commit `fc9fb0b`, PR #38, merged `fab2933` (2026-08-16); `main`/`origin/main` both independently re-verified at `fab2933`. `T65`–`T67` remain not started, not authorized.
+`T64` is now Done — merged. Feature commit `f321065`, QA-approval commit `fc9fb0b`, PR #38, merged `fab2933` (2026-08-16); `main`/`origin/main` both independently re-verified at `fab2933`.
+
+**`T65` (wire `login_success`/`login_failure`/`permission_denied` into the existing `AuditLogger`
+port) followed.** No new audit capability or schema — `AuthService.authenticate()` and
+`RequirePermission`'s final-candidate denial each now call the existing, unmodified `LoggingAuditLogger`
+singleton. **Governance history preserved in full:** implementation PR #41 (`fab38e3`) shipped without
+a `Phase3.md` batch narrative; a first QA pass found the code itself defect-free but blocked on that
+missing entry; a documentation-only correction (`d270828`) added it and fixed a factual error the
+rework instructions had introduced (`b63bc6d` is `T64`'s authorization commit, not `T65`'s — the real
+one is `095ac91`); a second QA pass then re-verified everything and rendered **QA Decision: Approved**,
+committed (`9ac7191`) **before** PR #41 merged. 23/23 targeted tests, 481/481 full suite, `ruff`/`black`
+clean, boot smoke passed, `OpenAPI` unchanged. **`T65` is now Done — merged.** Authorization commit
+`095ac91` (PR #40, merged `61e64d3`), implementation `fab38e3`, QA-approval `9ac7191`, PR #41, merged
+`d91d00c` (2026-08-17). `T66`–`T67` remain not started, not authorized.
 
 | Feature | Status |
 |---|---|

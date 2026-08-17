@@ -352,6 +352,49 @@ personally re-run against live Postgres on merged `main`, `ruff`/`black` clean, 
 passed, `app.openapi()["paths"]` confirmed to contain exactly the eleven expected route/method
 combinations. Backend test count is 459, still 9 frontend.
 
+**`T64` followed — integration tests for explicit error shapes and invalid-token coverage across
+`T58`–`T63`'s routes, no production code touched.** Every existing negative test covering 401/403/404/
+409/422 in `test_auth_login.py`/`test_auth_refresh.py`/`test_auth_logout.py`/`test_auth_me.py`/
+`test_users.py` now explicitly asserts `response.json()["error"]["code"]`/`["message"]`; explicit
+invalid-token coverage (distinct from missing-token coverage) added alongside for all seven `T62`/`T63`
+user/resource routes. The established login (no bearer-token requirement) and logout (no missing-token
+401) contracts were preserved unchanged. No `backend/src/app/**` file, no new file, no migration, no
+audit/`T65` work. **QA Decision: Approved** — pre-merge, commit `fc9fb0b`; test execution was
+constrained that session by a pre-existing infrastructure issue on `main` (multiple alembic heads,
+unrelated to `T64`'s own changes), but static verification passed. **`T64` is now Done — merged.**
+Authorization commit `b63bc6d`, feature commit `f321065`, PR #38, merged `fab2933` (2026-08-16);
+`main`/`origin/main` both independently re-verified at `fab2933`.
+
+**`T65` followed — wiring the existing, previously-unused `AuditLogger` port into login outcomes and
+permission-denied events, no new audit capability or schema.** `AuthService.authenticate()` records
+exactly one `login_success`/`login_failure` event per call (`resource_type="auth"`; failure reason —
+`unknown_user`/`wrong_password`/`inactive_account` — distinguished only in the audit trail, never in
+the still-single-generic-401 HTTP response); `RequirePermission`'s final-candidate denial records
+exactly one `permission_denied` event (`resource_type="endpoint"`) before re-raising the identical
+`ForbiddenError` — `T63`'s OR-permission semantics preserved exactly, so a denial a later candidate
+then grants is never audited. No new `AuditLogger` implementation; `AuditLoggerDep` in `deps.py` mirrors
+the file's existing `get_settings_dependency()` pattern; `RequirePermission` resolves `AuditLogger`
+directly via `container.resolve()` rather than a new parameter, specifically so
+`tests/unit/test_auth.py::TestRequirePermission`'s existing direct two-argument calls (outside this
+batch's file scope) stay unaffected (confirmed 8/8 unchanged). 15 new tests across three files. **This
+batch's own governance history is worth stating plainly, not smoothed over:** the original
+implementation PR (#41, commit `fab38e3`) was opened without an accompanying `Phase3.md` batch
+narrative — the first independent QA pass found the implementation itself defect-free but blocked on
+that missing entry; a documentation-only correction (`d270828`) added the standard eleven-section batch
+and, in writing it, caught and fixed a separate factual error the rework instructions had introduced
+(citing `b63bc6d` — actually `T64`'s authorization commit — instead of `T65`'s real one, `095ac91`); a
+second, independent QA pass then re-verified everything end-to-end and rendered **QA Decision:
+Approved**, committed as `9ac7191` **before** PR #41 merged, continuing the discipline `T63` established
+of recording the QA Decision ahead of merge, not after. 23/23 targeted tests (unit + integration +
+regression) and 481/481 full suite passing, `ruff`/`black` clean, boot smoke passed, `app.openapi()["paths"]` unchanged (no route added). One unrelated environment issue disclosed, not worked
+around by changing any project file: the session's local `.env` `DATABASE_URL` pointed at a stale host
+port versus the actually-running Postgres container — corrected locally via an environment-variable
+override, not a repository change. **`T65` is now Done — merged.** Authorization commit `095ac91`
+(PR #40, merged `61e64d3`), implementation commit `fab38e3`, documentation-correction commit `d270828`,
+QA-approval commit `9ac7191`, PR #41, merged `d91d00c` (2026-08-17); `main`/`origin/main` both
+independently re-verified at `d91d00c`. Backend test count is 481, still 9 frontend. `T66`–`T67` remain
+not started, not authorized.
+
 ## Pending Work
 
 Everything past Stage 2. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md). The most likely
@@ -735,7 +778,31 @@ personally re-run against merged `main`, not just the PR branch. **`T63` is now 
 Feature commit `3cea676`, QA-approval commit `6a8608f`, PR #36, merged `ef419c3` (2026-08-16);
 `main`/`origin/main` both independently re-verified at `ef419c3`, `git diff 97ab953..ef419c3
 --name-only` confirms exactly the seven files this batch's scope covers, no forbidden file touched.
-`T64` is now Done — merged. Feature commit `f321065`, QA-approval commit `fc9fb0b`, PR #38, merged `fab2933` (2026-08-16); `main`/`origin/main` both independently re-verified at `fab2933`. `T65`–`T67` remain not started, not authorized.
+`T64` is now Done — merged. Feature commit `f321065`, QA-approval commit `fc9fb0b`, PR #38, merged `fab2933` (2026-08-16); `main`/`origin/main` both independently re-verified at `fab2933`.
+
+**`T65` followed — wiring the existing `AuditLogger` port (unused since Stage 1) into login outcomes
+and permission-denied events, no new audit capability or schema.** `AuthService.authenticate()` records
+`login_success`/`login_failure` (`resource_type="auth"`, failure `reason` distinguished only in the
+audit trail, never in the still-generic-401 response); `RequirePermission`'s final-candidate denial
+records `permission_denied` (`resource_type="endpoint"`) before re-raising the identical
+`ForbiddenError`, `T63`'s OR-permission semantics preserved exactly. **This batch's governance history
+is worth stating in full, not collapsed into a clean single-pass story:** implementation PR #41
+(`fab38e3`) was opened without a `Phase3.md` batch narrative; a first independent QA pass found the
+implementation itself defect-free but blocked on that missing entry (no formal `Rework required`
+checkbox was rendered — the finding was communicated narratively and left the QA Decision pending); a
+documentation-only correction (`d270828`) added the standard batch and, while writing it, independently
+caught and fixed a factual error in the rework instructions themselves (they cited `b63bc6d` — actually
+`T64`'s authorization commit — instead of `T65`'s real one, `095ac91`); a second, independent QA pass
+then re-verified everything end-to-end (23/23 targeted tests, 481/481 full suite, `ruff`/`black` clean,
+boot smoke + unchanged `OpenAPI` surface, PR #41 CI 6/6 green) and rendered **QA Decision: Approved**,
+committed as `9ac7191` **before** PR #41 merged — continuing, not breaking, the pre-merge-QA-Decision
+discipline `T63` established. One unrelated environment issue disclosed rather than worked around by
+changing any project file: a stale `.env` `DATABASE_URL` port versus the actually-running Postgres
+container, corrected locally via an environment-variable override only. **`T65` is now Done — merged.**
+Authorization commit `095ac91` (PR #40, merged `61e64d3`), implementation commit `fab38e3`,
+documentation-correction commit `d270828`, QA-approval commit `9ac7191`, PR #41, merged `d91d00c`
+(2026-08-17); `main`/`origin/main` both independently re-verified at `d91d00c`. `T66`–`T67` remain not
+started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
