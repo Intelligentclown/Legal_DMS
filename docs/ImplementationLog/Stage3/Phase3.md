@@ -14,7 +14,7 @@ Related ADRs:
 
 Git Commit: T58 — e67da02 (merge; feature commit 76cd28f; authorization commit 58c8e40). T59 — 721cec5 (merge; feature commit 56eb7c2; authorization commit 163085d). T60 — 941ed42 (merge; feature commit 5b9bf57; authorization commit 726e8cf). T61 — bdffb5e (merge; feature commit fa57e28; authorization commit 520026f). T62 — 3a4a21c (merge; feature commit a3e8810; authorization commit e10bdc8). T63 — ef419c3 (merge; feature commit 3cea676; QA-approval commit 6a8608f; authorization commit 93cda84). T65 — authorization commit `095ac91` (merged as `61e64d3`, PR #40); implementation commit `fab38e3`, PR #41, feature branch `feature/stage3-t65-audit-logging`, not yet merged as of this entry.
 
-Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it. T65 — #40 (authorization, commit `095ac91`, 2026-08-16, merged `61e64d3`); implementation #41 (`feature/stage3-t65-audit-logging` at `fab38e3`, base `main` at `61e64d3`), not yet merged, no QA Decision recorded yet.
+Pull Request: T58 — #22 (authorization recorded beforehand, commit `58c8e40`, 2026-08-13). T59 — #24 (authorization recorded beforehand, commit `163085d`, 2026-08-15). T60 — #26 (authorization recorded beforehand, commit `726e8cf`, 2026-08-15). T61 — #30 (authorization recorded beforehand, commit `520026f`, 2026-08-15; merged `bdffb5e`, 2026-08-15). T62 — #32 (authorization, commit `e10bdc8`, 2026-08-16, merged `ea80b74`); implementation #33 (merged `3a4a21c`, 2026-08-16) — merged before its QA Decision was recorded in this file; see the QA Decision — T62 batch section's named governance finding. T63 — #35 (authorization, commit `93cda84`, 2026-08-16, merged `97ab953`); implementation #36 (merged `ef419c3`, 2026-08-16) — **QA Decision (commit `6a8608f`) was committed and pushed *before* PR #36 merged**, the deliberate correction of `T62`'s own governance finding; see the QA Decision — T63 batch section and the Post-Merge Verification note appended after it. T65 — #40 (authorization, commit `095ac91`, 2026-08-16, merged `61e64d3`); implementation #41 (`feature/stage3-t65-audit-logging` at `fab38e3`, base `main` at `61e64d3`, documentation correction `d270828`) — **QA Decision: Approved, recorded in this file's `QA Decision — T65 batch` section prior to merge**; PR #41 not yet merged as of this entry.
 
 Release:
 
@@ -1921,8 +1921,85 @@ Notes on the less-obvious ones:
 
 ## QA Decision — T65 batch
 
-**Pending.** Not recorded by this documentation-only correction, per this role's own explicit
-instruction not to. The independent QA Reviewer who found this batch narrative missing must review this
-addition separately and render `T65`'s QA Decision (`Approved`/`Approved with comments`/`Rework
-required`) in a subsequent pass, following the same pre-merge-recording discipline established by `T63`.
-PR #41 remains open and unmerged. `T66`/`T67` remain unauthorized and untouched.
+```
+QA Decision (T65 batch)
+
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role, independently, in a re-review pass against PR #41
+(`feature/stage3-t65-audit-logging` at `fab38e3`, plus this file's own documentation correction
+`d270828`) — **PR #41 is not merged; this decision is recorded pre-merge**, following the same
+discipline `T63` established. This is the second independent QA pass on this batch: the first pass
+found the implementation itself free of any technical, behavioral, security, scope, test, lint, DI, or
+`OpenAPI` defect, with the sole blocking finding being this file's missing `T65` batch narrative; this
+pass re-verifies that correction and re-confirms the underlying implementation, which was not changed
+in the interim (`fab38e3`'s own diff is untouched by `d270828`).
+
+**Governance recheck:** `095ac91` ("docs: authorize T65 audit logging") independently re-confirmed, via
+`git log`/`git show`/`gh pr view 40 --json commits`, as `PR #40`'s sole commit and as an ancestor of its
+merge commit `61e64d3`, itself confirmed an ancestor of implementation commit `fab38e3` — authorization
+genuinely precedes implementation, by commit timestamp (`095ac91` 2026-08-16 17:01 IST; `61e64d3` 17:02
+IST; `fab38e3` 2026-08-17 14:18 IST) and by ancestry, not merely by narrative claim. `b63bc6d` is
+independently confirmed to be `T64`'s authorization commit, not `T65`'s — the prior rework instructions'
+factual error, corrected by `d270828`, is verified accurate. `PR #41` independently confirmed `OPEN`,
+`MERGEABLE`, not merged (`gh pr view 41 --json state,mergeable`).
+
+**Documentation blocker — resolved:** `docs/ImplementationLog/Stage3/Phase3.md` now contains all eleven
+required sections for the `T65` batch (Objective through this `QA Decision` section), matching the
+`T58`–`T64` structure. `git diff fab38e3 d270828` independently confirms the correction touched only
+this file, only appended new `T65` content plus three header bookkeeping lines (`Related Tasks`/`Git
+Commit`/`Pull Request`), and left every `T58`–`T64` batch body byte-for-byte intact — no existing
+section content was altered or removed. The entry accurately cites `095ac91` throughout and does not
+claim QA approval anywhere prior to this section.
+
+**Scope re-verified:** `git diff origin/main...HEAD --name-only` — exactly six files: the five
+originally authorized implementation files (unchanged from the first QA pass, confirmed by an identical
+`git diff 61e64d3...fab38e3 --stat` byte count) plus this documentation file. No production, test,
+migration, frontend, or governance file outside that list touched by either `fab38e3` or `d270828`.
+
+**Technical re-verification (independently re-run, not assumed unchanged):**
+- `tests/unit/test_auth_service.py::TestAuthenticateAuditing` — **5/5 passed**.
+- `tests/integration/test_auth_login.py::TestLoginAuditing` — **5/5 passed**.
+- `tests/integration/test_users.py::TestPermissionDeniedAuditing` — **5/5 passed**.
+- `tests/unit/test_auth.py::TestRequirePermission` — **8/8 passed**, confirming `_require_permission`'s
+  two-positional-argument call path (used directly by this suite, bypassing `Depends()`) remains
+  byte-for-byte unchanged for the single-permission case.
+- Full backend suite — **481/481 passed**, 0 failed, 0 skipped, live Postgres.
+- `ruff check src tests alembic` — clean. `black --check src tests alembic` — clean.
+- Boot smoke test — succeeds; `app.openapi()["paths"]` — unchanged, identical eleven route/method
+  combinations as pre-`T65` (no route added, confirming this batch is a pure server-side side effect).
+- `PR #41` CI — 6/6 checks `pass` (`gh pr checks 41`).
+
+**Contract verification, re-confirmed by direct source and test reading:** `AuditLogger`'s existing port
+and its existing, unmodified `LoggingAuditLogger` implementation are genuinely invoked — `AuthService`
+via a required constructor parameter, `RequirePermission` via `container.resolve(AuditLogger)` against
+the same pre-existing singleton registration. `login_success`/`login_failure`/`permission_denied` all
+carry the authorized `resource_type` (`auth`/`endpoint`), correct actor (authenticated user for
+success/permission-denied, anonymous `CurrentUser()` for login failure), and correct metadata, with no
+plaintext password, hash, or token in any recorded call (dedicated `repr()`-inspection tests for both).
+`401`, `422`, `refresh()`, `revoke()`, and successful authorization all independently confirmed to
+generate no audit event. `T63`'s OR-permission semantics are preserved exactly — a denial on an earlier
+candidate that a later candidate then grants is never audited
+(`test_either_permission_alone_records_no_permission_denied_event`), and only the final candidate's
+denial (the one the caller actually experiences as a `403`) is ever recorded. Unit tests prove the port
+*contract* via a real `AuditLogger` subclass; integration tests prove the production *wiring* via
+`caplog` attached to the real, unmocked `app.audit` channel the real singleton writes to — neither tier
+is vacuous, and neither could pass on an unrelated log line, since both assert the specific
+`action`/`resource_type`/`metadata` attributes `LoggingAuditLogger.record()` itself sets. Resolving the
+stateless, singleton `AuditLogger` directly from the container inside `RequirePermission` (rather than
+as a new `Depends()` parameter) introduces no lifecycle or global-state risk — `LoggingAuditLogger` holds
+no per-request state — and is the deliberate, disclosed reason `TestRequirePermission`'s existing direct
+two-argument calls remain unaffected.
+
+**No technical or process defect remains.** The prior blocking finding is resolved; this pass surfaced
+no new issue. `T66`/`T67` independently re-confirmed unauthorized and untouched
+(`IMPLEMENTATION_QUEUE.md` rows carry no authorization language; zero diff against `alembic/`/
+persistence models).
+
+`IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`/`PROJECT_CHECKPOINT.md` synchronization and the actual
+merge are the Documentation Manager's/project owner's next steps, not performed by this QA review. This
+review did not merge `PR #41`, did not authorize or start `T66`/`T67`, and did not modify any
+implementation or test file.
