@@ -35,6 +35,10 @@ class TestSqlAlchemyRolePermissionRepository:
     async def test_no_role_permissions_rows_yields_empty_mapping(
         self, db_session: AsyncSession
     ) -> None:
+        # T66 seeds the matrix, so we must clear it first to test the empty case.
+        from sqlalchemy import text
+
+        await db_session.execute(text("DELETE FROM role_permissions"))
         repository = SqlAlchemyRolePermissionRepository(db_session)
 
         mapping = await repository.get_permission_codes_by_role_name()
