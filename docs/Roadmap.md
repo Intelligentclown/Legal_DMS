@@ -307,7 +307,17 @@ one is `095ac91`); a second QA pass then re-verified everything and rendered **Q
 committed (`9ac7191`) **before** PR #41 merged. 23/23 targeted tests, 481/481 full suite, `ruff`/`black`
 clean, boot smoke passed, `OpenAPI` unchanged. **`T65` is now Done — merged.** Authorization commit
 `095ac91` (PR #40, merged `61e64d3`), implementation `fab38e3`, QA-approval `9ac7191`, PR #41, merged
-`d91d00c` (2026-08-17). `T66`–`T67` remain not started, not authorized.
+`d91d00c` (2026-08-17).
+
+**`T66` (seed `role_permissions` against the owner-approved matrix) followed — the first task past
+Stage 3's routes phase, tracked in a new `docs/ImplementationLog/Stage4/Phase0.md`.** Exactly 59
+authorized associations seeded, UUIDs dynamically resolved, downgrade-safe, exactly one Alembic head
+(`224b650e5235`) confirmed. **Governance history, preserved not collapsed:** an initial QA review
+returned substantive rework findings, resolved in a follow-up commit, followed by a formatting
+correction, before the final QA pass rendered **QA Decision: Approved**, committed (`5ab88a5`) before
+PR #44 merged. **`T66` is now Done — merged.** Authorization commit `66f94bf` (PR #43, merged
+`81bf99f`), implementation `533226d`, QA-rework `b2b86b6`, formatting `0239d80`, QA-approval `5ab88a5`,
+PR #44, merged `2edc23e` (2026-08-17). `T67` remains not started, not authorized.
 
 | Feature | Status |
 |---|---|
