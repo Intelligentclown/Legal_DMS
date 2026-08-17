@@ -6,6 +6,15 @@ Not a port/interface -- this is application-layer orchestration logic
 with exactly one real shape, not a capability a future caller needs to
 swap behind an interface (same reasoning `T46`/`T47` already applied to
 `hash_password`/`create_access_token`, one level up).
+
+T65: `authenticate()` records exactly one audit event per call, via the
+existing `AuditLogger` port -- `login_success` on success, `login_failure`
+(with a `reason` distinguishing unknown user / wrong password / inactive
+account) on any rejection. The HTTP-facing failure message/status stays the
+single generic `_INVALID_CREDENTIALS` `UnauthorizedError` it always was --
+only the audit trail, not the response, distinguishes *why*. `refresh()`/
+`revoke()` are unmodified: T65's authorized scope is login and permission-
+denied events only.
 """
 
 from __future__ import annotations
@@ -14,6 +23,8 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from app.application.errors import AppError, UnauthorizedError
+from app.application.interfaces.audit import AuditLogger
+from app.application.interfaces.auth import CurrentUser
 from app.application.interfaces.refresh_token_repository import RefreshTokenRepository
 from app.application.interfaces.user_repository import UserRepository
 from app.domain.common.result import Result
@@ -37,10 +48,12 @@ class AuthService:
         user_repository: UserRepository,
         refresh_token_repository: RefreshTokenRepository,
         settings: Settings,
+        audit_logger: AuditLogger,
     ) -> None:
         self._user_repository = user_repository
         self._refresh_token_repository = refresh_token_repository
         self._settings = settings
+        self._audit_logger = audit_logger
 
     async def authenticate(self, email: str, password: str) -> Result[User, AppError]:
         """Verifies credentials and, on success, records `last_login_at`.
@@ -48,19 +61,46 @@ class AuthService:
         "correct password but inactive account" in the returned error --
         all three collapse to the same message/error code, so a caller
         can't use response differences to enumerate valid emails or
-        account states.
+        account states. (The audit trail is a separate, server-side-only
+        channel -- T65's `reason` metadata *does* distinguish them there,
+        without that distinction ever reaching the HTTP response.)
         """
         user = await self._user_repository.get_by_email(email)
         if user is None or user.password_hash is None:
+            # No `password_hash` is functionally the same as "no such
+            # account" from an external caller's perspective -- neither can
+            # ever authenticate via password, so both share the
+            # "unknown_user" audit reason rather than inventing a fourth.
+            await self._record_login_failure(email, reason="unknown_user")
             return Result.fail(UnauthorizedError(_INVALID_CREDENTIALS))
         if not verify_password(password, user.password_hash):
+            await self._record_login_failure(email, reason="wrong_password")
             return Result.fail(UnauthorizedError(_INVALID_CREDENTIALS))
         if not user.is_active:
+            await self._record_login_failure(email, reason="inactive_account")
             return Result.fail(UnauthorizedError(_INVALID_CREDENTIALS))
 
         user.last_login_at = datetime.now(UTC)
         await self._user_repository.update(user)
+        await self._audit_logger.record(
+            actor=CurrentUser(id=str(user.id), display_name=user.full_name, is_authenticated=True),
+            action="login_success",
+            resource_type="auth",
+            metadata={"email": user.email},
+        )
         return Result.ok(user)
+
+    async def _record_login_failure(self, email: str, *, reason: str) -> None:
+        """Anonymous actor -- no user is available to attribute a rejected
+        login to (T65's own explicit actor rule). Never includes the
+        plaintext password, a hash, or any token -- only the email that was
+        attempted and why it was rejected."""
+        await self._audit_logger.record(
+            actor=CurrentUser(),
+            action="login_failure",
+            resource_type="auth",
+            metadata={"email": email, "reason": reason},
+        )
 
     async def issue_tokens(self, user: User) -> tuple[str, str]:
         """Issues a fresh access + refresh token pair for `user` and

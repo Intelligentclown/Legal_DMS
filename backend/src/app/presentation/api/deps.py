@@ -34,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.auth_service import AuthService
 from app.application.errors.exceptions import ForbiddenError, UnauthorizedError
+from app.application.interfaces.audit import AuditLogger
 from app.application.interfaces.auth import (
     AuthenticationProvider,
     AuthorizationService,
@@ -57,7 +58,12 @@ def get_settings_dependency() -> Settings:
     return container.resolve(Settings)
 
 
+def get_audit_logger_dependency() -> AuditLogger:
+    return container.resolve(AuditLogger)
+
+
 SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
+AuditLoggerDep = Annotated[AuditLogger, Depends(get_audit_logger_dependency)]
 DBSessionDep = Annotated[AsyncSession, Depends(get_db)]
 
 
@@ -82,14 +88,20 @@ async def get_authorization_service(session: DBSessionDep) -> AuthorizationServi
     return RbacAuthorizationService(permission_codes_by_role_name)
 
 
-async def get_auth_service(session: DBSessionDep, settings: SettingsDep) -> AuthService:
+async def get_auth_service(
+    session: DBSessionDep, settings: SettingsDep, audit_logger: AuditLoggerDep
+) -> AuthService:
     """Built fresh per request (T58, mirrors `get_authentication_provider()`/
     `get_authorization_service()`, T55) — `AuthService`'s two repositories
-    both need *this* request's session, not a cached/shared one."""
+    both need *this* request's session, not a cached/shared one.
+    `audit_logger` (T65) is the one dependency here that isn't session-bound
+    -- resolved straight from the container via `AuditLoggerDep`, the same
+    singleton `RequirePermission` below also reaches for."""
     return AuthService(
         SqlAlchemyUserRepository(session),
         SqlAlchemyRefreshTokenRepository(session),
         settings,
+        audit_logger,
     )
 
 
@@ -144,7 +156,21 @@ def RequirePermission(*permissions: str) -> Callable[..., Awaitable[None]]:
     case (every call site before T63), the loop body never runs and the one
     supplied code is checked exactly as before -- byte-for-byte the same
     call, same exception, same message, on the sole `AuthorizationService`
-    call this factory ever risked skipping."""
+    call this factory ever risked skipping.
+
+    T65: only the *final* denial -- the one that actually results in a 403
+    reaching the caller -- is audited as `permission_denied`. A denial on an
+    earlier candidate permission that a later one then grants is not an
+    audit-worthy event; the caller was authorized. `AuditLogger` is resolved
+    directly from the container (`container.resolve(AuditLogger)`), not
+    added as a new parameter here -- this keeps `_require_permission`'s own
+    signature (`user`, `authorization_service`) unchanged, since it's called
+    directly with exactly those two positional arguments by this project's
+    existing `TestRequirePermission` unit suite, bypassing FastAPI's own
+    `Depends()` wiring entirely. `resource_id` is left `None`: no request/
+    route object is available at this same signature without the identical
+    problem. The 401 path above never reaches here, so it's never audited,
+    per T65's own explicit exclusion."""
 
     async def _require_permission(
         user: CurrentUserDep,
@@ -159,6 +185,15 @@ def RequirePermission(*permissions: str) -> Callable[..., Awaitable[None]]:
                 return
             except ForbiddenError:
                 continue
-        authorization_service.require_permission(user, permissions[-1])
+        try:
+            authorization_service.require_permission(user, permissions[-1])
+        except ForbiddenError:
+            await container.resolve(AuditLogger).record(
+                actor=user,
+                action="permission_denied",
+                resource_type="endpoint",
+                metadata={"required_permissions": list(permissions)},
+            )
+            raise
 
     return _require_permission

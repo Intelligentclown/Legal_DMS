@@ -11,17 +11,26 @@ password, unknown email, inactive user, expired/invalid/already-revoked
 refresh token, refresh rotation) in the same batch as T50's implementation
 -- see this batch's Design Decisions note in
 docs/ImplementationLog/Stage3/Phase1.md for why.
+
+`TestAuthenticateAuditing` (T65) covers `authenticate()`'s new
+`login_success`/`login_failure` `AuditLogger` calls, via a local
+`_RecordingAuditLogger` fake -- mirroring `tests/unit/test_auth.py`'s
+`_RecordingAuthorizationService` pattern for the same "assert exactly what
+was forwarded" purpose.
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import uuid4
 
 import pytest
 
 from app.application.auth_service import AuthService
 from app.application.errors import UnauthorizedError
+from app.application.interfaces.audit import AuditLogger
+from app.application.interfaces.auth import CurrentUser
 from app.infrastructure.config.settings import Settings
 from app.infrastructure.persistence.models.identity import RefreshToken, User
 from app.infrastructure.security.jwt_service import create_refresh_token, decode_token
@@ -31,6 +40,25 @@ from tests.support.in_memory_refresh_token_repository import InMemoryRefreshToke
 from tests.support.in_memory_user_repository import InMemoryUserRepository
 
 _PASSWORD = "correct horse battery staple"
+
+
+class _RecordingAuditLogger(AuditLogger):
+    """Fake that records every `record()` call, for asserting exactly what
+    `AuthService.authenticate()` forwards -- never a real logging channel,
+    which is `LoggingAuditLogger`'s (T65-untouched) own job."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[CurrentUser, str, str, str | None, dict[str, Any] | None]] = []
+
+    async def record(
+        self,
+        actor: CurrentUser,
+        action: str,
+        resource_type: str,
+        resource_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.calls.append((actor, action, resource_type, resource_id, metadata))
 
 
 @pytest.fixture
@@ -49,12 +77,18 @@ def refresh_token_repository() -> InMemoryRefreshTokenRepository:
 
 
 @pytest.fixture
+def audit_logger() -> _RecordingAuditLogger:
+    return _RecordingAuditLogger()
+
+
+@pytest.fixture
 def auth_service(
     user_repository: InMemoryUserRepository,
     refresh_token_repository: InMemoryRefreshTokenRepository,
     settings: Settings,
+    audit_logger: _RecordingAuditLogger,
 ) -> AuthService:
-    return AuthService(user_repository, refresh_token_repository, settings)
+    return AuthService(user_repository, refresh_token_repository, settings, audit_logger)
 
 
 def _make_user(*, is_active: bool = True, password: str | None = _PASSWORD) -> User:
@@ -138,6 +172,113 @@ class TestAuthenticate:
 
         assert result.is_success
         assert result.value.last_login_at is not None
+
+
+class TestAuthenticateAuditing:
+    """T65: `authenticate()` records exactly one `AuditLogger` event per
+    call -- `login_success` on success, `login_failure` (with a `reason`)
+    on any of the three rejection branches. The HTTP-facing result stays
+    the single generic `_INVALID_CREDENTIALS` error in every failure case
+    (already proven unchanged by `TestAuthenticate` above); these tests
+    cover only the audit side."""
+
+    async def test_success_records_exactly_one_login_success_event(
+        self,
+        auth_service: AuthService,
+        user_repository: InMemoryUserRepository,
+        audit_logger: _RecordingAuditLogger,
+    ) -> None:
+        user = _make_user()
+        await user_repository.add(user)
+
+        await auth_service.authenticate("advocate@example.com", _PASSWORD)
+
+        assert len(audit_logger.calls) == 1
+        actor, action, resource_type, _resource_id, metadata = audit_logger.calls[0]
+        assert action == "login_success"
+        assert resource_type == "auth"
+        assert actor.id == str(user.id)
+        assert actor.display_name == user.full_name
+        assert metadata is not None
+        assert _PASSWORD not in repr(metadata)
+        assert _PASSWORD not in repr(actor)
+
+    async def test_unknown_email_records_exactly_one_login_failure_event(
+        self, auth_service: AuthService, audit_logger: _RecordingAuditLogger
+    ) -> None:
+        await auth_service.authenticate("nobody@example.com", _PASSWORD)
+
+        assert len(audit_logger.calls) == 1
+        actor, action, resource_type, _resource_id, metadata = audit_logger.calls[0]
+        assert action == "login_failure"
+        assert resource_type == "auth"
+        assert actor.display_name == "Anonymous"
+        assert metadata == {"email": "nobody@example.com", "reason": "unknown_user"}
+
+    async def test_wrong_password_records_exactly_one_login_failure_event(
+        self,
+        auth_service: AuthService,
+        user_repository: InMemoryUserRepository,
+        audit_logger: _RecordingAuditLogger,
+    ) -> None:
+        await user_repository.add(_make_user())
+
+        await auth_service.authenticate("advocate@example.com", "wrong password")
+
+        assert len(audit_logger.calls) == 1
+        actor, action, resource_type, _resource_id, metadata = audit_logger.calls[0]
+        assert action == "login_failure"
+        assert resource_type == "auth"
+        assert actor.display_name == "Anonymous"
+        assert metadata == {"email": "advocate@example.com", "reason": "wrong_password"}
+        assert "wrong password" not in repr(metadata)
+
+    async def test_inactive_account_records_exactly_one_login_failure_event(
+        self,
+        auth_service: AuthService,
+        user_repository: InMemoryUserRepository,
+        audit_logger: _RecordingAuditLogger,
+    ) -> None:
+        await user_repository.add(_make_user(is_active=False))
+
+        await auth_service.authenticate("advocate@example.com", _PASSWORD)
+
+        assert len(audit_logger.calls) == 1
+        actor, action, resource_type, _resource_id, metadata = audit_logger.calls[0]
+        assert action == "login_failure"
+        assert resource_type == "auth"
+        assert actor.display_name == "Anonymous"
+        assert metadata == {"email": "advocate@example.com", "reason": "inactive_account"}
+
+    async def test_no_plaintext_password_or_hash_anywhere_in_recorded_calls(
+        self,
+        auth_service: AuthService,
+        user_repository: InMemoryUserRepository,
+        audit_logger: _RecordingAuditLogger,
+    ) -> None:
+        """Exercises all four `authenticate()` branches (success, wrong
+        password, unknown email, inactive account) against one recorder,
+        then inspects every recorded call's full `repr()` for leakage --
+        broader than any single-branch test above, and independent of
+        exactly which branch a leak might hide in."""
+        user = _make_user()
+        await user_repository.add(user)
+        inactive = _make_user(is_active=False)
+        inactive.email = "inactive@example.com"
+        await user_repository.add(inactive)
+
+        await auth_service.authenticate("advocate@example.com", _PASSWORD)
+        await auth_service.authenticate("advocate@example.com", "wrong password")
+        await auth_service.authenticate("nobody@example.com", _PASSWORD)
+        await auth_service.authenticate("inactive@example.com", _PASSWORD)
+
+        assert len(audit_logger.calls) == 4
+        for actor, _action, _resource_type, _resource_id, metadata in audit_logger.calls:
+            assert _PASSWORD not in repr(metadata)
+            assert _PASSWORD not in repr(actor)
+            assert "wrong password" not in repr(metadata)
+            assert user.password_hash not in repr(metadata)
+            assert user.password_hash not in repr(actor)
 
 
 class TestIssueTokens:
