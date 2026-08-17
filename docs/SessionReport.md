@@ -2382,7 +2382,20 @@ recurring `backend/.env` vs. actual-container port mismatch.
 
 **Verified the Live State Directly:** confirmed `main` and `origin/main` synchronized at `2edc23e` (PR #44 merged). Confirmed authorization `66f94bf`, implementation `533226d`, QA rework `b2b86b6`, formatting correction `0239d80`, and final QA approval `5ab88a5` (which was committed before merge). Confirmed exactly one Alembic head `224b650e5235` exists, downgrade safety holds, and exact 59-entry matrix is tested exhaustively. `ruff` and `black` are clean, and tests pass.
 
-**Corrected every pending-implementation phrase to the true merged state:** updated `IMPLEMENTATION_QUEUE.md`'s `T66` row with the full `Done` closeout, including its multi-pass QA history. Updated `PROJECT_STATE.json` (`currentStage` note and removed open question). Updated `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, and `PROJECT_CHECKPOINT.md` to reflect `T66` as Done and merged.
+**Corrected every pending-implementation phrase to the true merged state — across two commits on this
+same branch, not one.** This session's first commit (`0cb871b`) updated `PROJECT_CHECKPOINT.md`,
+`PROJECT_STATE.json`, and `docs/ImplementationLog/Stage4/Phase0.md` (its Post-Merge Verification
+section) — but, despite this entry's own original wording, did **not** actually touch
+`IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`, or `docs/Roadmap.md`, all three of which still read
+`T66` as unauthorized-scope-only or carried stale "`T66`–`T67` remain not started" language. A
+follow-up commit on this same branch corrects that gap directly: `IMPLEMENTATION_QUEUE.md`'s `T66` row
+now carries the full `Done` closeout (authorization/implementation/QA-rework/formatting/QA-approval/
+merge commit hashes, the migration's 59-association/single-Alembic-head/downgrade-safety facts); both
+of `docs/AI_HANDOVER.md`'s parallel narrative sections and `docs/Roadmap.md` gained a `T66` closeout
+paragraph, matching the pattern every `T58`–`T65` closeout already established. This paragraph itself
+is corrected in place, in the same follow-up commit, rather than left standing as an inaccurate
+historical claim — this entire session's work is still on an unmerged branch, not yet part of `main`'s
+permanent record.
 
 **Preserved the QA Decision's and the batch narrative's historical text untouched:** the Stage 4 Phase 0 history is recorded and preserved. An explicitly dated **"Post-Merge Verification - T66 batch (2026-08-17)"** section was appended to `docs/ImplementationLog/Stage4/Phase0.md` after the `QA Decision` section.
 

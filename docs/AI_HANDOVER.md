@@ -392,8 +392,23 @@ port versus the actually-running Postgres container — corrected locally via an
 override, not a repository change. **`T65` is now Done — merged.** Authorization commit `095ac91`
 (PR #40, merged `61e64d3`), implementation commit `fab38e3`, documentation-correction commit `d270828`,
 QA-approval commit `9ac7191`, PR #41, merged `d91d00c` (2026-08-17); `main`/`origin/main` both
-independently re-verified at `d91d00c`. Backend test count is 481, still 9 frontend. `T66`–`T67` remain
-not started, not authorized.
+independently re-verified at `d91d00c`. Backend test count is 481, still 9 frontend.
+
+**`T66` followed — a new migration under `docs/ImplementationLog/Stage4/Phase0.md` (Stage 4, not
+Stage 3 — the first task past the routes phase), seeding `role_permissions` against the owner-approved
+matrix.** Exactly 59 authorized `role_permission` associations, UUIDs dynamically resolved from the
+existing `roles`/`permissions` rows rather than hardcoded; downgrade removes only the T66-created
+associations and preserves any unrelated ones; exactly one Alembic head (`224b650e5235`) confirmed
+after the migration. Exhaustive matrix-validation tests added; `T63`/`T65` regression behavior
+confirmed preserved. **Governance history, preserved not collapsed:** the initial QA review returned
+substantive rework findings, resolved in a follow-up commit, followed by a separate formatting
+correction, before the final QA pass. **QA Decision: Approved** (plain) — rendered pre-merge, directly
+against PR #44, recorded in `docs/ImplementationLog/Stage4/Phase0.md`'s `QA Decision — T66 batch`
+section. **`T66` is now Done — merged.** Authorization commit `66f94bf` (PR #43, merged `81bf99f`),
+implementation commit `533226d`, QA-rework commit `b2b86b6`, formatting-correction commit `0239d80`,
+QA-approval commit `5ab88a5` (committed before PR #44 merged), PR #44, merged `2edc23e` (2026-08-17);
+`main`/`origin/main` both independently re-verified at `2edc23e`. `T67` remains not started, not
+authorized.
 
 ## Pending Work
 
@@ -801,8 +816,21 @@ changing any project file: a stale `.env` `DATABASE_URL` port versus the actuall
 container, corrected locally via an environment-variable override only. **`T65` is now Done — merged.**
 Authorization commit `095ac91` (PR #40, merged `61e64d3`), implementation commit `fab38e3`,
 documentation-correction commit `d270828`, QA-approval commit `9ac7191`, PR #41, merged `d91d00c`
-(2026-08-17); `main`/`origin/main` both independently re-verified at `d91d00c`. `T66`–`T67` remain not
-started, not authorized.
+(2026-08-17); `main`/`origin/main` both independently re-verified at `d91d00c`.
+
+**`T66` followed — the first task past Stage 3's routes phase, tracked in a new
+`docs/ImplementationLog/Stage4/Phase0.md` rather than `Phase3.md`.** A new migration seeds exactly 59
+authorized `role_permission` associations against the owner-approved matrix, UUIDs dynamically
+resolved from the existing `roles`/`permissions` rows; downgrade removes only the T66-created
+associations; exactly one Alembic head (`224b650e5235`) confirmed after the migration. Exhaustive
+matrix-validation tests added, `T63`/`T65` regression preserved. **Governance history, preserved not
+collapsed:** the initial QA review returned substantive rework findings, resolved in a follow-up
+commit, followed by a separate formatting correction, before the final QA pass rendered **QA Decision:
+Approved** (plain), committed (`5ab88a5`) **before** PR #44 merged. **`T66` is now Done — merged.**
+Authorization commit `66f94bf` (PR #43, merged `81bf99f`), implementation commit `533226d`,
+QA-rework commit `b2b86b6`, formatting-correction commit `0239d80`, QA-approval commit `5ab88a5`,
+PR #44, merged `2edc23e` (2026-08-17); `main`/`origin/main` both independently re-verified at
+`2edc23e`. `T67` remains not started, not authorized.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
