@@ -456,11 +456,15 @@ temporarily removed `bootstrap.py`'s `session.commit()` call, re-ran the two "ac
 and watched both fail exactly as expected, then reverted and re-confirmed the full suite clean —
 proving the new tests are genuinely non-vacuous, not merely plausible by construction. Authorization
 commit `d6b6b45` (PR #49, merged `5bca735`) precedes implementation commit `33c728b` — confirmed by
-commit order. **`T68` is implemented and QA-approved, but not yet merged** — feature commit
-`33c728b`, QA-approval commit `5b5c9b9`, both pushed to `feature/stage4-t68-bootstrap-entrypoint-tests`;
-this documentation-synchronization pass is committed to the same branch and opened as a pull request
-into `main`, not merged by this pass. See `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for
-full detail.
+commit order. **`T68` is now Done — merged.** Feature commit `33c728b`, QA-approval commit `5b5c9b9`,
+PR #50, merge commit `43aa0a7` (2026-08-18, parents `5bca735` and `1ced5f2`) — `main`/`origin/main`
+both independently re-verified at `43c8ddb` this session via `git log`/`git show` and `gh pr view 50`
+(state `MERGED`), not taken on faith — an unrelated documentation merge, PR #51, landed on top of
+`43aa0a7` and doesn't touch any `T68` file. Full suite **490/490 passing, personally re-run against
+merged `main` with live Postgres this session**, `ruff`/`black` clean (204 files unchanged), boot smoke
+test passed, `app.openapi()["paths"]` confirmed unchanged — still exactly the eleven routes `T63`
+established, since `T68` is test-file-only. **Stage 4 Phase 0 (`T66`–`T68`) is now complete in full and
+merged.** See `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
 
 ## Pending Work
 
@@ -910,9 +914,12 @@ unchanged — test-file-only. 3 new tests, full suite **490/490 passing**, `ruff
 Decision: Approved** (plain) — QA independently ran a mutation test (temporarily removed
 `bootstrap.py`'s `commit()` call, confirmed both "actually commits" tests fail, reverted), proving the
 tests non-vacuous. Authorization commit `d6b6b45` (PR #49, merged `5bca735`) precedes implementation
-commit `33c728b`. **`T68` is implemented and QA-approved, but not yet merged** — feature commit
-`33c728b`, QA-approval commit `5b5c9b9`, both pushed to `feature/stage4-t68-bootstrap-entrypoint-tests`;
-see `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
+commit `33c728b`. **`T68` is now Done — merged.** Feature commit `33c728b`, QA-approval commit
+`5b5c9b9`, PR #50, merge commit `43aa0a7` (2026-08-18) — `main`/`origin/main` both independently
+re-verified at `43c8ddb` this session, full suite **490/490 passing** personally re-run against merged
+`main` with live Postgres, `ruff`/`black` clean, boot smoke passed, `app.openapi()["paths"]` unchanged.
+**Stage 4 Phase 0 (`T66`–`T68`) is now complete in full and merged.** See
+`docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
