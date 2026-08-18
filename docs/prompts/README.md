@@ -56,3 +56,18 @@ Repeat
 
 Full detail on every step: [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md), especially
 §3 (Standard Development Lifecycle) and §7 (AI Roles).
+
+## A fifth prompt: `GitCI_PR_Manager.md`
+
+[`GitCI_PR_Manager.md`](GitCI_PR_Manager.md) operationalizes the "Git / CI / PR / Merge" box in the
+diagram above — the same box §3's lifecycle table already describes (Git Commit → Push → GitHub
+Actions → Pull Request → Merge → Delete Branch → Update Local `main`), just not previously packaged
+as a copy-ready prompt the way the other four steps are.
+
+**This is not yet a fifth entry in `PROJECT_WORKFLOW.md` §7's "AI Roles" table**, and
+`PROJECT_WORKFLOW.md`'s own "Standard Prompts" list still names only the four above — both are
+authoritative and neither has been updated to list it. Formally adopting a fifth standing role is a
+process change under `AI_BOOTSTRAP.md`'s "Process changes are versioned" rule and requires its own
+proposal, review, and sign-off before those documents are edited to match. Until then, treat
+`GitCI_PR_Manager.md` as an available, usable prompt for the already-described lifecycle steps — not
+as evidence that a fifth role has been formally established.
