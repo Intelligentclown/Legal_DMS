@@ -360,10 +360,12 @@ present, falling back to the existing generic message otherwise; `get()`/`reques
 unchanged. 8 new tests, full suite **17/17 passing** (9 prior + 8 new), `eslint`/`prettier` clean.
 **QA Decision: Approved** (plain) — scope (`git diff main...feature/stage4-t69-http-client-methods
 --name-only`: exactly three files) and authorization-before-implementation commit order (`cf7a570`/
-`0a9ad12`, PR #52, merged `5abceee`, precedes `cca729f`) independently re-verified. **`T69` is
-implemented and QA-approved, but not yet merged** — feature commit `cca729f`, QA-approval commit
-`6b90ede`, both pushed to `feature/stage4-t69-http-client-methods`; see
-`docs/ImplementationLog/Stage4/Phase1.md`'s T69 batch for full detail.
+`0a9ad12`, PR #52, merged `5abceee`, precedes `cca729f`) independently re-verified. **`T69` is now Done
+— merged.** Feature commit `cca729f`, QA-approval commit `6b90ede`, PR #54, merge commit `5196fdf`
+(2026-08-18) — `main`/`origin/main` both independently re-verified at `5196fdf` this session, full
+suite **17/17 passing** personally re-run against merged `main`, `eslint`/`prettier` clean. **Stage 4
+Phase 5 (`T69`) is now complete in full.** See `docs/ImplementationLog/Stage4/Phase1.md`'s Post-Merge
+Verification — T69 batch note for full detail.
 
 | Feature | Status |
 |---|---|

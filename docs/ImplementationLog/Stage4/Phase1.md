@@ -2,22 +2,23 @@
 
 # Stage 4 – Phase 1
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-18
 
-Completed:
+Completed: 2026-08-18
 
 Related Tasks: T69
 
 Related ADRs: None (closes Stage 2.5's finding F10 — a pre-existing gap flagged before Stage 3, not
 a new architectural decision)
 
-Git Commit: `cca729f` (feature branch `feature/stage4-t69-http-client-methods`, pushed; no PR opened —
-Frontend Developer role stops here per this batch's stop condition, QA review happens in a separate
-session)
+Git Commit: `5196fdf` (merge; parents `b544135` and `79af7ac`; feature commit `cca729f`;
+documentation-metadata commit `d5ecdbc`; pre-merge `main`-sync merge `f09f3a5`; QA-approval commit
+`6b90ede`; pre-merge documentation-synchronization commit `79af7ac`) — independently verified via
+`git log`/`git show 5196fdf` this session, not taken on faith.
 
-Pull Request: not yet opened
+Pull Request: #54 (`feature/stage4-t69-http-client-methods` → `main`, merged `5196fdf`, 2026-08-18)
 
 Release:
 
@@ -219,6 +220,14 @@ merged. Context rebuilt from the repository directly (`docs/prompts/QAReviewer.m
 `PROJECT_WORKFLOW.md`, `IMPLEMENTATION_QUEUE.md`'s T69 row, this phase log) — not from prior chat
 history.
 
+**Post-merge correction (2026-08-18):** the "no PR opened yet"/"recorded pre-PR" framing above was
+accurate at the time this QA Decision was rendered and is preserved verbatim, not rewritten. A
+documentation-synchronization pass then committed to the same branch (`79af7ac`), a pull request was
+opened (PR #54), and it merged as `5196fdf` with **no rework** — this QA Decision's `Approved` (plain)
+disposition was carried into the merge exactly as rendered, with zero changes requested or made
+between this decision and the merge. See the Post-Merge Verification section below for the
+independent post-merge re-check.
+
 **Files reviewed:** `frontend/src/infrastructure/api/httpClient.ts`,
 `frontend/src/infrastructure/api/httpClient.test.ts`, and this phase log — the full diff against
 `main` (`git diff main...feature/stage4-t69-http-client-methods`), read directly, not the
@@ -279,3 +288,40 @@ QA action required.
 No defects found. Scope matches authorization exactly. Tests are real and independently confirmed
 passing. Error parsing validates response shape before trusting it and fails safely on both
 non-JSON and differently-shaped bodies.
+
+## Post-Merge Verification — T69 batch (2026-08-18)
+
+**Verified directly on `main` at `5196fdf`, not assumed:**
+- `git log --oneline -8 main` and `git rev-parse main origin/main` both confirm `main`/`origin/main`
+  are synchronized at `5196fdf` — "Merge pull request #54 from
+  Intelligentclown/feature/stage4-t69-http-client-methods."
+- `git show --no-patch --format="%H%n%P"` on `5196fdf` confirms its parents are `b544135` (prior
+  `main`, T68's own post-merge documentation closeout) and `79af7ac` (the feature branch tip, this
+  batch's own pre-merge documentation-synchronization commit) — beneath which sit `6b90ede` (QA
+  Decision — T69 batch: Approved), `d5ecdbc` (feature-commit metadata), and `cca729f`
+  (implementation), plus `f09f3a5` (this branch's own merge of up-to-date `main`, performed before the
+  documentation-synchronization pass since `main` had advanced past this branch's original base via
+  `T68`'s own closeout).
+- `gh pr view 54` independently confirms `state: MERGED`, `mergeCommit.oid: 5196fdf...`,
+  `baseRefName: main`, `headRefName: feature/stage4-t69-http-client-methods`.
+- `git show --stat 5196fdf` confirms the file set matches this batch plus its own documentation sync
+  exactly: `frontend/src/infrastructure/api/httpClient.ts`,
+  `frontend/src/infrastructure/api/httpClient.test.ts`, this phase log, and the five project-wide
+  documentation files (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`,
+  `docs/Roadmap.md`, `docs/SessionReport.md`) — no backend file touched.
+- `npm run test -- --run` on merged `main`: **17/17 passing, 4 test files** — personally re-run this
+  session, not carried over from the pre-merge figure.
+- `npm run lint`: 0 errors, 3 warnings, all three pre-existing (`react-refresh/only-export-components`
+  in files this batch never touches). `npm run format:check`: clean.
+- No rework occurred between this QA Decision and the merge — `Approved` (plain) is the batch's only
+  QA Decision, carried into `main` unchanged.
+
+**`T69` is now Done — merged.**
+- Authorization commit: `cf7a570` (`PROJECT_STATE.json` sync `0a9ad12`, PR #52, merged `5abceee`)
+- Implementation commit: `cca729f`
+- QA-approval commit: `6b90ede`
+- Documentation-synchronization commit: `79af7ac`
+- Merge: PR #54, `5196fdf` (2026-08-18)
+
+**Stage 4 Phase 5 (`T69`) is complete in full.** `T70`–`T76` remain explicitly out of scope and
+unauthorized.
