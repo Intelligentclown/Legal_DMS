@@ -13,7 +13,7 @@ Related Tasks: T69
 Related ADRs: None (closes Stage 2.5's finding F10 — a pre-existing gap flagged before Stage 3, not
 a new architectural decision)
 
-Git Commit: pending (feature branch `feature/stage4-t69-http-client-methods` pushed; no PR opened —
+Git Commit: `cca729f` (feature branch `feature/stage4-t69-http-client-methods`, pushed; no PR opened —
 Frontend Developer role stops here per this batch's stop condition, QA review happens in a separate
 session)
 
