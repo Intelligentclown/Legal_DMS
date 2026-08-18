@@ -379,3 +379,10 @@ deliberately business-logic-free. The database schema each of these would sit on
 
 This table should be rewritten with real priorities/dependencies/stages once Stage 4 planning
 actually starts — with explicit direction from the project owner on what Stage 4 covers.
+
+The project owner's original pre-implementation vision document — matter/client/property/document
+concepts, the proposed file-numbering scheme, module list, and a rough phased roadmap — is preserved
+verbatim at [BusinessRequirementsPlan.md](BusinessRequirementsPlan.md) for this planning session to
+start from. It predates Stages 1–3 and is not authoritative over what has actually been built since;
+see that document's own "Review notes" section for where it already diverges from the real schema/
+roles/auth design.
