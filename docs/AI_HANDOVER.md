@@ -435,8 +435,32 @@ and `gh pr view 47` (state `MERGED`), not taken on faith. Full suite **487/487 p
 re-run against merged `main` with live Postgres this session** (482 prior + 5 new), `ruff`/`black`
 clean, boot smoke test passed, `app.openapi()["paths"]` confirmed unchanged — still exactly the eleven
 routes `T63` established, since `T67` adds a CLI entry point, not a route. See
-`docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch for full detail. `T68` remains not started, not
-authorized.
+`docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch for full detail.
+
+**`T68` followed — closing the one gap `T67`'s own QA Decision named as a non-blocking comment:**
+`test_bootstrap_admin.py` covered `run_bootstrap()`, the in-memory core, but nothing exercised
+`bootstrap.py`'s actual entry point. Authorization was narrowed by a direct pre-authorization check —
+the seed-row-count/matrix-match half of `T68`'s original description was found already covered by
+`test_t66_role_permissions.py::test_t66_role_permissions_matrix_exact_match` and was **not**
+re-authorized or re-tested. The genuinely missing half: two new test classes in
+`test_bootstrap_admin.py` exercise `_async_main()` directly (not `main()`, since `asyncio.run()` can't
+be called from inside `pytest-asyncio`'s already-running event loop) — `TestAsyncMainNoExistingUser`
+proves a first invocation actually `commit()`s (verified through a **second, independent** database
+connection, since a same-session read can't distinguish "committed" from "merely flushed") and assigns
+the `Administrator` role; `TestAsyncMainExistingUser` proves a second/existing-user invocation prints
+the "already exists" message without prompting for or discarding credentials, and without creating a
+duplicate. `bootstrap.py` itself is byte-for-byte unchanged — test-file-only. 3 new tests, full suite
+**490/490 passing (487 prior + 3 new)**, `ruff`/`black` clean. **QA Decision: Approved** (plain, no
+comments) — QA went further than the Developer's own disclosed limitation and ran a mutation test:
+temporarily removed `bootstrap.py`'s `session.commit()` call, re-ran the two "actually commits" tests
+and watched both fail exactly as expected, then reverted and re-confirmed the full suite clean —
+proving the new tests are genuinely non-vacuous, not merely plausible by construction. Authorization
+commit `d6b6b45` (PR #49, merged `5bca735`) precedes implementation commit `33c728b` — confirmed by
+commit order. **`T68` is implemented and QA-approved, but not yet merged** — feature commit
+`33c728b`, QA-approval commit `5b5c9b9`, both pushed to `feature/stage4-t68-bootstrap-entrypoint-tests`;
+this documentation-synchronization pass is committed to the same branch and opened as a pull request
+into `main`, not merged by this pass. See `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for
+full detail.
 
 ## Pending Work
 
@@ -876,8 +900,19 @@ PR #47, merge commit `fc0b142` (2026-08-18) — `main`/`origin/main` both indepe
 `fc0b142` this session, full suite **487/487 passing** personally re-run against merged `main` with
 live Postgres, `ruff`/`black` clean, boot smoke passed, `app.openapi()["paths"]` unchanged (still
 exactly the eleven routes `T63` established — `T67` adds a CLI entry point, not a route). See
-`docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch for full detail. `T68` remains not started, not
-authorized.
+`docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch for full detail.
+
+**`T68` (bootstrap CLI entry-point test coverage) followed** — closes the gap `T67`'s QA Decision
+flagged: two new test classes in `test_bootstrap_admin.py` exercise `_async_main()` directly, proving
+a first invocation actually commits (via a second, independent database connection) and a
+second/existing-user invocation is a clean, non-prompting no-op. `bootstrap.py` itself byte-for-byte
+unchanged — test-file-only. 3 new tests, full suite **490/490 passing**, `ruff`/`black` clean. **QA
+Decision: Approved** (plain) — QA independently ran a mutation test (temporarily removed
+`bootstrap.py`'s `commit()` call, confirmed both "actually commits" tests fail, reverted), proving the
+tests non-vacuous. Authorization commit `d6b6b45` (PR #49, merged `5bca735`) precedes implementation
+commit `33c728b`. **`T68` is implemented and QA-approved, but not yet merged** — feature commit
+`33c728b`, QA-approval commit `5b5c9b9`, both pushed to `feature/stage4-t68-bootstrap-entrypoint-tests`;
+see `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
