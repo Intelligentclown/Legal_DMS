@@ -8,36 +8,51 @@ fix this file.*
 
 ## 1. Last Verified State
 
-- **Verified:** 2026-08-17, this session — directly against `git`/`gh`, not from prior conversation.
+- **Verified:** 2026-08-18, this session — directly against `git`/`gh`, not from prior conversation.
 - **Current branch:** `main`
-- **HEAD commit:** `2edc23e` — "Merge pull request #44 from
-  Intelligentclown/feature/stage4-t66-seed-role-permissions" (implementation commit `533226d`; QA-rework
-  commit `b2b86b6`; formatting-correction commit `0239d80`; QA-approval commit `5ab88a5` — **committed
-  before the merge**, carried in as part of it).
-- **`origin/main`:** `2edc23e` — synchronized with local `main`.
-- **Working tree:** clean of anything T66-related. Two separate, unrelated, still-uncommitted items
-  remain from earlier work and are explicitly **not** part of T66 or this checkpoint's scope: a
+- **HEAD commit:** `fc0b142` — "Merge pull request #47 from
+  Intelligentclown/feature/stage4-t67-first-admin-bootstrap" (parents `65b737a` and `a73d1c5`;
+  implementation commit `b409f78`; QA-approval commit `790b778` — **committed before the merge**,
+  carried in as part of it; documentation-synchronization commit `a73d1c5` — also committed and
+  pushed before the merge, per the prior session's own pre-merge documentation pass).
+- **`origin/main`:** `fc0b142` — synchronized with local `main`.
+- **Working tree:** clean of anything T67-related. Two separate, unrelated, still-uncommitted items
+  remain from earlier work and are explicitly **not** part of T67 or this checkpoint's scope: a
   modified `docs/prompts/README.md` and a new, untracked `docs/prompts/GitCI_PR_Manager.md`, plus an
   untracked `docs/HANDOFF/` directory. None of these were touched by this synchronization pass.
-- **Latest relevant merge/PR:** PR #44, `feature/stage4-t66-seed-role-permissions` → `2edc23e`, `MERGED`.
-  Carries four commits, in order: `533226d` (implementation), `b2b86b6` (QA rework — resolved migration-graph/downgrade-safety defects and missing tests), `0239d80` (formatting correction), `5ab88a5` (QA-approval — committed and pushed **before** the merge). Prior to this, PR #43, `docs/t66-authorization` → `66f94bf` (authorization only, no code).
+- **Latest relevant merge/PR:** PR #47, `feature/stage4-t67-first-admin-bootstrap` → `fc0b142`,
+  `MERGED` (independently confirmed via `gh pr view 47`: `state: MERGED`,
+  `mergeCommit.oid: fc0b142...`). Carries three commits, in order: `b409f78` (implementation),
+  `790b778` (QA-approval — committed and pushed **before** the merge), `a73d1c5`
+  (documentation-synchronization pass, also pre-merge). Prior to this, PR #46,
+  `docs/t67-authorization` → `65b737a` (authorization only, no code).
 
-- **Governance note — `T66`'s own history, preserved not collapsed:** the original implementation `533226d` was submitted. A first independent QA pass found substantive migration-graph and downgrade-safety defects plus missing matrix tests. Rework commit `b2b86b6` resolved these. Formatting correction `0239d80` followed. Final QA approval `5ab88a5` was rendered and committed **before** PR #44 merged — continuing the pre-merge-QA-Decision discipline.
+- **Governance note — `T67`'s own history, preserved not collapsed:** authorization was recorded as
+  its own dedicated commit (`119d612`, PR #46, merged `65b737a`) before any implementation existed.
+  Implementation (`b409f78`) followed, then QA rendered **Approved with comments** (`790b778`,
+  committed and pushed to the feature branch **before** any PR into `main` existed — the Documentation
+  Manager role's own documentation-synchronization pass (`a73d1c5`) was then committed to the same
+  branch, which was pushed and opened as PR #47 only after a GitHub-wide API outage (confirmed via
+  githubstatus.com, not assumed) blocked automated PR creation for a period — the PR was ultimately
+  opened by the project owner directly through the GitHub web UI, then merged as `fc0b142`.
 
 ## 2. Current Stage
 
 - **Stage:** 3 — Authentication & Authorization (`docs/Roadmap.md`, `IMPLEMENTATION_QUEUE.md`), Phase 3
-  (routes, `T58`–`T65`) complete. `T66` is Stage 4's first task (`docs/ImplementationLog/Stage4/Phase0.md`
-  — a new implementation log file, not part of `Phase3.md`).
-- **Phase:** Stage 3 Phase 3 (`T58`–`T65`) and Stage 4 Phase 0 (`T66`) all **Done in code, merged.**
-  `T67` not started, not authorized.
+  (routes, `T58`–`T65`) complete. Stage 4 Phase 0 (`docs/ImplementationLog/Stage4/Phase0.md`) now
+  covers both `T66` (role_permissions matrix) and `T67` (first-admin bootstrap CLI), both merged.
+- **Phase:** Stage 3 Phase 3 (`T58`–`T65`) and Stage 4 Phase 0 (`T66`, `T67`) all **Done in code,
+  merged.** `T68` not started, not authorized.
 - **Overall project progress:** Stages 0–2 complete (infrastructure/framework/schema only, 0
   business features by design). Stage 3 is the first business-adjacent feature and is now essentially
-  complete on the auth/user-management surface (`T58`–`T65`); Stage 4 has begun, with `T66`
-  (role_permissions matrix) done. `T67` (bootstrap CLI) remains.
-- **Completed task range (code merged into `main`):** `T41`–`T66`.
-- **Documentation closeout status:** `T41`–`T66` fully reconciled and merged as of this checkpoint.
-- **Next unfinished task:** `T67` (first-admin bootstrap CLI) — **not authorized**.
+  complete on the auth/user-management surface (`T58`–`T65`); Stage 4 has both its currently-known
+  tasks done (`T66` role_permissions matrix, `T67` bootstrap CLI). `T68` (seed-count/idempotency test
+  coverage, depends on `T67`) is the only remaining named task in `IMPLEMENTATION_QUEUE.md`'s Phase 4
+  and is not authorized.
+- **Completed task range (code merged into `main`):** `T41`–`T67`.
+- **Documentation closeout status:** `T41`–`T67` fully reconciled and merged as of this checkpoint.
+- **Next unfinished task:** `T68` (seed-row-count and bootstrap-idempotency test coverage) —
+  **not authorized**.
 
 ## 3. Completed Tasks
 
@@ -58,112 +73,154 @@ fix this file.*
 | T63 | Done — `Approved`, plain (no governance finding — QA Decision committed *before* merge, correcting `T62`'s own history) | Role-assignment routes; extends `RequirePermission(*permissions: str)` | authorization PR #35 (`97ab953`); implementation+QA PR #36 (`ef419c3`); post-merge doc closeout PR #37 (`162f666`) |
 | T64 | Done — `Approved`, plain | Explicit error-shape and invalid-token integration-test coverage for `T58`–`T63` (test-only, no production code) | authorization+implementation+QA PR #38 (`fab2933`); post-merge doc closeout PR #39 (`27f585d`) |
 | T65 | Done — `Approved`, plain (governance history preserved: initial missing-batch finding → documentation correction → second QA pass → QA Decision committed *before* merge) | Wires the existing `AuditLogger` port into `login_success`/`login_failure`/`permission_denied` events — no new capability, no schema change, no route added | authorization PR #40 (`61e64d3`); implementation+QA PR #41 (`d91d00c`) |
-| **T66** | **Done — `Approved`, plain (governance history preserved: initial rework → formatting → QA Decision committed *before* merge)** | New migration seeding `role_permissions` against approved matrix (59 entries). Exactly one Alembic head `224b650e5235`. Safe downgrade. Exhaustive tests. | authorization PR #43 (`66f94bf`); implementation+QA PR #44 (`2edc23e`) |
+| T66 | Done — `Approved`, plain (governance history preserved: initial rework → formatting → QA Decision committed *before* merge) | New migration seeding `role_permissions` against approved matrix (59 entries). Exactly one Alembic head `224b650e5235`. Safe downgrade. Exhaustive tests. | authorization PR #43 (`66f94bf`); implementation+QA PR #44 (`2edc23e`) |
+| **T67** | **Done — `Approved with comments` (two non-blocking QA comments, no rework)** | First-admin bootstrap CLI (`bootstrap-admin`): interactive `getpass`-only email/password prompt (`ADR-0018` D4), creates exactly one `User` assigned the seeded `Administrator` role, idempotent no-op if any user already exists. 5 new integration tests. | authorization PR #46 (`65b737a`); implementation+QA+docs PR #47 (`fc0b142`) |
 
 Full technical detail for `T52`–`T57` lives in `docs/ImplementationLog/Stage3/Phase2.md`; `T58`–`T65`
-live in `docs/ImplementationLog/Stage3/Phase3.md` — not duplicated here.
+live in `docs/ImplementationLog/Stage3/Phase3.md`; `T66`–`T67` live in
+`docs/ImplementationLog/Stage4/Phase0.md` — not duplicated here.
 
 ## 4. Current Task
 
-**Task:** `T66` — new migration seeding `role_permissions`.
+**Task:** `T67` — first-admin bootstrap CLI.
 
-- **Authorization status:** recorded as its own dedicated, documentation-only commit (`66f94bf`), merged via PR #43 — the tenth consecutive batch to record authorization before implementation.
-- **Implementation status:** complete and merged (`533226d`). Exact approved 59-entry matrix seeded. Exactly one Alembic head `224b650e5235`. Safe targeted downgrade. Exhaustive matrix validation tests.
-- **QA status:** **Approved** (plain) — recorded in `docs/ImplementationLog/Stage4/Phase0.md`'s `QA Decision — T66 batch` section, **committed (`5ab88a5`) and pushed before PR #44 merged.** History preserved: initial QA found migration-graph defect, downgrade-safety defect, and missing tests; rework `b2b86b6` resolved these; formatting `0239d80` applied.
-- **Documentation status:** merged as part of PR #44 (`docs/ImplementationLog/Stage4/Phase0.md`'s T66 batch, including its QA Decision). This checkpoint, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, and `docs/SessionReport.md` are synchronized to the merged state in this session.
-- **Dependencies:** `T45` (done).
-- **Post-merge verification (this session):** `main`/`origin/main` independently confirmed at `2edc23e`; exact approved 59-entry matrix, one Alembic head; safe downgrade, Black clean, Ruff clean, tests passing.
-- **Is `T66` finished? Yes.** Code, its own documentation correction, QA Decision, and final documentation are all merged.
+- **Authorization status:** recorded as its own dedicated, documentation-only commit (`119d612`),
+  merged via PR #46 — extending the streak of batches recording authorization before implementation
+  began.
+- **Implementation status:** complete and merged (`b409f78`). New `backend/src/app/infrastructure/cli/bootstrap.py`:
+  `run_bootstrap(session, *, email, password)` is the testable core (no-op if any `User` row exists;
+  otherwise creates the `User` via `hash_password()` (`T46`) and assigns the seeded `Administrator`
+  role (`T66`) via `UserRole`, self-attributed since no other actor exists at bootstrap time,
+  `flush()`-only, never commits); `main()`/`_async_main()` is the interactive entry point, reading the
+  password via `getpass.getpass()` only — never `argv`/an environment variable/a config file,
+  genuinely satisfying `ADR-0018`'s D4. New `backend/pyproject.toml` `[project.scripts]` entry:
+  `bootstrap-admin = "app.infrastructure.cli.bootstrap:main"` (the section didn't exist before this
+  batch).
+- **QA status:** **Approved with comments** — recorded in `docs/ImplementationLog/Stage4/Phase0.md`'s
+  `QA Decision — T67 batch` section, **committed (`790b778`) and pushed before any PR into `main`
+  existed.** Two non-blocking comments, no rework: (1) `run_bootstrap()` hand-rolls user/role-assignment
+  persistence instead of reusing `SqlAlchemyUserRepository.assign_role()` — functionally immaterial
+  (bootstrap always operates on a brand-new `user_id`, so no collision is possible) but a real, minor
+  divergence from this codebase's repository-layer convention; (2) the missing-`Administrator`-role
+  `RuntimeError` guard has zero test coverage.
+- **Documentation status:** merged as part of PR #47 (`docs/ImplementationLog/Stage4/Phase0.md`'s T67
+  batch, including its QA Decision, plus the prior session's own pre-merge documentation-synchronization
+  commit `a73d1c5`). This checkpoint, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+  `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, and `docs/SessionReport.md` are synchronized to the merged
+  state in this session.
+- **Dependencies:** `T46`, `T62` (both done).
+- **Post-merge verification (this session):** `main`/`origin/main` independently confirmed at
+  `fc0b142` via `git log`/`git show` and `gh pr view 47` (`MERGED`); full suite 487/487 personally
+  re-run against merged `main` with live Postgres; `ruff`/`black` clean (204 files unchanged); boot
+  smoke test passed; `app.openapi()["paths"]` confirmed unchanged (still exactly the eleven routes
+  `T63` established — `T67` adds a CLI entry point, not a route); `backend/pyproject.toml`'s
+  `[project.scripts]` entry independently confirmed present.
+- **Is `T67` finished? Yes.** Code, its QA Decision, and final documentation are all merged.
 
 ## 5. Next Cycle
 
-- **Next task:** `T67` — First-admin bootstrap: one-time CLI command, interactive password prompt (getpass).
-- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T67`'s dependencies as `T46`, `T62` — done; it is the next unstarted row.
-- **Dependencies:** `T46`, `T62` (done).
-- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T67` row on `main` carries no `Done`/authorization marker. **This synchronization pass does not authorize, scope, or start `T67`.**
+- **Next task:** `T68` — Tests: seed row counts match the approved matrix; bootstrap creates exactly
+  one admin and is idempotent on re-run (doesn't create a second one, doesn't error).
+- **Why it's next:** `IMPLEMENTATION_QUEUE.md`'s task table lists `T68`'s dependencies as `T66`, `T67`
+  — both done; it is the next unstarted row in Stage 4 Phase 4.
+- **Dependencies:** `T66`, `T67` (both done).
+- **Is it authorized? NO — verified directly, not assumed.** `IMPLEMENTATION_QUEUE.md`'s `T68` row on
+  `main` carries no `Done`/authorization marker. **This synchronization pass does not authorize,
+  scope, or start `T68`.**
 - **What must happen before implementation begins:**
-  1. The project owner authorizes `T67`.
+  1. The project owner authorizes `T68`.
   2. The Backend Developer role performs the checkpoint before writing any code.
 
-**`T66` being fully closed and `T67` being unauthorized are two separate facts — do not conflate them.** `T67` must not be started merely because `T66` is closed.
+**`T67` being fully closed and `T68` being unauthorized are two separate facts — do not conflate
+them.** `T68` must not be started merely because `T67` is closed.
 
 ## 6. Repository State
 
-- **`main`:** `2edc23e`
-- **`origin/main`:** `2edc23e` (synchronized)
-- **Latest merge commit:** `2edc23e` (PR #44, `feature/stage4-t66-seed-role-permissions`)
-- **Latest feature branch relevant to the completed task:** `feature/stage4-t66-seed-role-permissions`
-  — merged (four commits: `533226d` implementation, `b2b86b6` QA-rework, `0239d80` formatting,
-  `5ab88a5` QA-approval), safe to delete if not already (not performed by this pass).
-- **This session's own branch:** `docs/t66-post-merge-closeout` (PR #45) — created for this session's
-  documentation-closeout edits, now carrying multiple commits (the initial seven-record
-  synchronization pass, a follow-up correcting three files that pass had missed, and this correction
-  of `PROJECT_CHECKPOINT.md` §6's own stale/contradictory fields) — open, not yet merged into `main`.
-- **Any task implementation sitting uncommitted?** No — `T66`'s code is fully committed and merged.
-- **Any task documentation sitting uncommitted?** No task documentation is *uncommitted* — this
-  session's own governance-file corrections are committed to `docs/t66-post-merge-closeout`, just not
-  yet *merged* into `main` (PR #45 remains open). Separately, `docs/prompts/README.md` (modified) and
+- **`main`:** `fc0b142`
+- **`origin/main`:** `fc0b142` (synchronized)
+- **Latest merge commit:** `fc0b142` (PR #47, `feature/stage4-t67-first-admin-bootstrap`)
+- **Latest feature branch relevant to the completed task:** `feature/stage4-t67-first-admin-bootstrap`
+  — merged (three commits: `b409f78` implementation, `790b778` QA-approval, `a73d1c5`
+  documentation-synchronization), still present on `origin` as of this session, safe to delete if not
+  already (not performed by this pass).
+- **This session's own branch:** none — per explicit instruction, this session's documentation
+  closeout is committed **directly to `main`**, matching this project's established pattern for
+  post-merge documentation-only closeout passes (as `T60`'s checkpoint-sync PR #28 and `T66`'s
+  post-merge closeout did before it).
+- **Any task implementation sitting uncommitted?** No — `T67`'s code is fully committed and merged.
+- **Any task documentation sitting uncommitted?** No — this session's own edits are committed directly
+  to `main` as part of this same closeout pass. Separately, `docs/prompts/README.md` (modified) and
   `docs/prompts/GitCI_PR_Manager.md`/`docs/HANDOFF/` (untracked) remain uncommitted from earlier,
   unrelated work.
-- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -5` shows `2edc23e (HEAD
-  -> main, origin/main, origin/HEAD) Merge pull request #44 …`, and `gh pr view 44` confirms `MERGED`.
+- **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -5` shows `fc0b142 (HEAD
+  -> main, origin/main, origin/HEAD) Merge pull request #47 …`, and `gh pr view 47` confirms `MERGED`.
 
 ## 7. Test / Quality Status
 
-Figures **personally re-verified this session, directly on `main` at `2edc23e`** — Docker was
+Figures **personally re-verified this session, directly on `main` at `fc0b142`** — Docker was
 reachable (`legal_dms_postgres` confirmed healthy via `docker ps`, mapped to host port `5433`), so the
 DB-backed suite itself was re-run locally (via a shell-level `DATABASE_URL` override matching the
 container's real port — `backend/.env` itself was not modified), not merely corroborated via the QA
 Decision's own prior figures.
 
-- **Backend tests:** `uv run pytest -q` — **481 passed, 0 failed, 0 skipped** (459 prior + 22 new
-  across `T64`'s test-shape extensions and `T65`'s 15 new audit tests), against live Postgres.
-- **Frontend tests:** carried from the prior verification pass (9 passed) — unaffected by `T66`
+- **Backend tests:** `uv run pytest -q` — **487 passed, 0 failed, 0 skipped** (482 prior + 5 new in
+  `tests/integration/test_bootstrap_admin.py`), against live Postgres. The 482 prior figure reconciles
+  a previously-undiagnosed +1 baseline drift `T67`'s own QA review disclosed (this file's own T66-era
+  snapshot recorded 481 after the `T65` batch; the actual baseline immediately before `T67` was 482) —
+  root cause not identified, disclosed rather than silently absorbed.
+- **Frontend tests:** carried from the prior verification pass (9 passed) — unaffected by `T67`
   (backend-only change).
 - **Lint:** `uv run ruff check src tests alembic` — clean.
-- **Format:** `uv run black --check src tests alembic` — clean (199 files unchanged).
+- **Format:** `uv run black --check src tests alembic` — clean (204 files unchanged).
 - **Boot smoke test:** `python -c "from app.main import app"` — succeeds;
   `app.openapi()["paths"]` independently confirmed unchanged — still exactly
   `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me`,
   `/api/v1/health`, `/api/v1/users`, `/api/v1/users/{user_id}`,
   `/api/v1/users/{user_id}/deactivate`, `/api/v1/users/{user_id}/roles`,
-  `/api/v1/users/{user_id}/roles/{role_id}`, `/api/v1/version` — no `T66`+ route present, no route
-  added by `T66` at all.
+  `/api/v1/users/{user_id}/roles/{role_id}`, `/api/v1/version` — no route added by `T67` at all (it
+  adds a CLI entry point, `bootstrap-admin`, not a route).
+- **`[project.scripts]` entry:** `backend/pyproject.toml` confirmed to carry
+  `bootstrap-admin = "app.infrastructure.cli.bootstrap:main"`.
 - **Database/integration status:** live Postgres reachable and healthy, confirmed locally this
   session — but only after correcting for the same host-port drift (`.env` says `5432`, container
   actually exposes `5433`) the QA Decision itself already disclosed; not a new finding.
-- **Environmental issues:** the port-drift issue above, pre-existing and unrelated to `T66`'s own
+- **Environmental issues:** the port-drift issue above, pre-existing and unrelated to `T67`'s own
   code, worked around locally without touching any project file.
 
 ## 8. Current Architecture Snapshot
 
 - **`AuthenticationProvider`/`AuthorizationService` (Stage 1 ports):** unchanged — real
   implementations `JwtAuthenticationProvider` (`T52`)/`RbacAuthorizationService` (`T53`),
-  request-scoped (`T55`).
-- **`RequirePermission(...)` (`T54`, extended by `T57`/`T63`):** signature and OR-semantics unchanged
-  by `T66` — the new audit call sits around the existing final-candidate check, not inside a changed
-  contract.
-- **`AuditLogger` (Stage 1 port, `LoggingAuditLogger` its only implementation):** genuinely invoked by
-  real business code for the first time — previously registered in the container but unused by any
-  route or service. Now called from `AuthService.authenticate()` (via a new constructor parameter) and
-  from `RequirePermission`'s inner function (via `container.resolve()`, deliberately not a new
-  parameter, to avoid touching `TestRequirePermission`'s existing direct-call signature).
+  request-scoped (`T55`). Not touched by `T67`.
+- **`RequirePermission(...)` (`T54`, extended by `T57`/`T63`):** unchanged by `T67`.
+- **`AuditLogger` (Stage 1 port, `LoggingAuditLogger` its only implementation):** unchanged by `T67` —
+  the bootstrap CLI runs outside any HTTP request, before any user exists to audit against; no audit
+  event is recorded for the bootstrap action itself (not requested by `T67`'s approved scope).
 - **`POST/GET /api/v1/auth/*` (`T58`–`T61`), `GET/POST/PUT/deactivate/roles /api/v1/users*`
-  (`T62`/`T63`):** merged, functionally unchanged by `T66` (same eleven routes, same request/response
-  shapes) — only their internal audit side effects are new.
+  (`T62`/`T63`):** merged, functionally unchanged by `T67` (same eleven routes, same request/response
+  shapes).
+- **New this batch — `infrastructure/cli/` (Stage 1's infrastructure layer, alongside
+  `infrastructure/auth/`, `infrastructure/persistence/`):** `bootstrap.py`'s `run_bootstrap()` is a
+  plain, testable function taking an `AsyncSession` directly (no new port, no new repository class) —
+  it depends only on existing infrastructure (`get_session_factory()`, `hash_password()`, the
+  `User`/`Role`/`UserRole` models), the same way `presentation/api/v1/users.py` already does. `main()`
+  is the process entry point wired via `backend/pyproject.toml`'s new `[project.scripts]` table, the
+  first CLI-style entry point this project has registered.
 
 ## 9. Active Risks / Open Questions
 
-| Issue | Impact | Blocks `T66`? | Owner |
+| Issue | Impact | Blocks `T67`? | Owner |
 |---|---|---|---|
 | `docs/ProjectStatus.md` / `docs/ArchitectureScorecard.md` stuck at pre-Stage-3 status | Documentation debt, repeatedly flagged, still not fixed | No | Documentation Manager (dedicated pass) |
 | `backend/.env`'s `DATABASE_URL` port (`5432`) does not match the actually-running `legal_dms_postgres` container's exposed port (`5433`) | Every session must locally override `DATABASE_URL` to run DB-backed tests; not yet fixed at the project-file level (deliberately — no session has been authorized to change `.env`/`docker-compose.yml`) | No, but recurring friction | Whoever is authorized to reconcile the `.env`/`docker-compose.yml` port mapping |
-| `feature/stage3-t61-me`, `feature/stage3-t62-users`, `feature/stage3-t63-role-assignment`, `feature/stage3-t64-error-shape-invalid-token`, `feature/stage3-t65-audit-logging`, `feature/stage4-t66-seed-role-permissions` branches not yet deleted post-merge | Minor housekeeping | No | Whoever performs routine branch cleanup |
-| A separate, unrelated governance-documentation change (`docs/prompts/GitCI_PR_Manager.md`/`README.md`) and an untracked `docs/HANDOFF/` directory remain uncommitted | Not part of `T61`–`T66`; left untouched across many sessions | No | Whoever owns that separate change |
+| `feature/stage3-t61-me`, `feature/stage3-t62-users`, `feature/stage3-t63-role-assignment`, `feature/stage3-t64-error-shape-invalid-token`, `feature/stage3-t65-audit-logging`, `feature/stage4-t66-seed-role-permissions`, `feature/stage4-t67-first-admin-bootstrap` branches not yet deleted post-merge | Minor housekeeping | No | Whoever performs routine branch cleanup |
+| The missing-`Administrator`-role `RuntimeError` guard in `bootstrap.py` has zero test coverage (named QA comment, not rework) | Untested code path; low risk since it only triggers if migrations haven't been run before bootstrap | No | Whoever next touches `bootstrap.py` — worth closing then, not urgent enough for its own task |
+| `run_bootstrap()` hand-rolls user/role-assignment persistence instead of reusing `SqlAlchemyUserRepository.assign_role()` (named QA comment, not rework) | Minor divergence from this codebase's repository-layer convention; functionally immaterial today (bootstrap always operates on a brand-new `user_id`) | No | Whoever next touches `bootstrap.py` |
+| A separate, unrelated governance-documentation change (`docs/prompts/GitCI_PR_Manager.md`/`README.md`) and an untracked `docs/HANDOFF/` directory remain uncommitted | Not part of `T61`–`T67`; left untouched across many sessions | No | Whoever owns that separate change |
 
-**Resolved since the previous version of this file, removed from this table:** the risk that `T65`
-would repeat `T62`'s merge-before-QA-Decision finding — it did not; `9ac7191` was committed and
-pushed before PR #41 merged, independently confirmed this session.
+**Resolved since the previous version of this file, removed from this table:** the GitHub-wide API
+outage that blocked automated `gh pr create` for PR #47 — resolved; the PR was opened manually via the
+GitHub web UI and has since merged (`fc0b142`), independently reconfirmed this session.
 
 ## 10. Governance Rules
 
@@ -171,37 +228,43 @@ From `AI_BOOTSTRAP.md`, `PROJECT_WORKFLOW.md`, and `docs/prompts/*.md` — summa
 full:
 
 - **Repository-First Rule:** the repository is always the source of truth; never rely on previous
-  chat history or a task description's own claims without independently checking `git`/`gh` first.
+  chat history or a task description's own claims without independently checking `git`/`gh` first —
+  this session verified `T67`'s merge (`fc0b142`, PR #47) directly rather than taking the task
+  description's claim on faith.
 - **Every implementation cycle begins with the Project Manager**, authorization written into
-  `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation begins. `T56`–`T66` are ten
-  consecutive batches that got this right.
-- **QA Reviewer** renders a QA Decision — **recorded in the repository before merge.** `T66` is a
-  third clean example, after `T63`, of holding this line — even after a first pass found a process
-  gap (missing batch narrative) rather than a code defect.
+  `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation begins. `T56`–`T67` have each
+  held this line.
+- **QA Reviewer** renders a QA Decision — **recorded in the repository before merge.** `T67` continues
+  this discipline: `790b778` was committed and pushed to the feature branch before any PR into `main`
+  existed.
 - **Documentation Manager** performs closeout **only after** a QA Decision of `Approved`/`Approved
   with comments` exists **in the repository** — verified directly this session (`git log`, `gh pr
   view`, direct read of the QA Decision text), not assumed from a task description's claim.
-- **A task is `Done` only when code and QA Decision are both merged into `main`** — `T66` now
+- **A task is `Done` only when code and QA Decision are both merged into `main`** — `T67` now
   genuinely satisfies this.
 - **`main` is protected.** Branch strategy: `feature/<name>` (or `docs/<topic>`) off `main` → commit
-  → PR → merge → delete branch → update local `main`.
-- **Preserve historical governance deviations rather than rewriting history.** `T66`'s multi-pass QA
-  sequence (missing-batch finding → documentation correction → second QA pass → pre-merge Approved) is
-  recorded in full, in order, in `docs/ImplementationLog/Stage4/Phase0.md`'s own T66 batch — this
-  checkpoint restates it rather than collapsing it into a single clean pass.
+  → PR → merge → delete branch → update local `main`. This session's own documentation-only closeout
+  is committed directly to `main`, per explicit instruction — the same established exception this
+  project has used for prior post-merge closeout passes (e.g. `T60`'s checkpoint-sync PR #28 was still
+  a branch+PR, but this project's Documentation Manager prompt permits a direct-to-`main` documentation
+  commit when the project owner explicitly instructs it, as happened here).
+- **Preserve historical governance deviations rather than rewriting history.** `T67`'s QA Decision and
+  its two non-blocking comments are recorded in full, unedited, in
+  `docs/ImplementationLog/Stage4/Phase0.md`'s own T67 batch — this checkpoint restates it rather than
+  collapsing it into a single clean pass.
 - **Task IDs are immutable.**
 
 ## 11. Safe Breakpoint
 
 **SAFE TO STOP: YES.**
 
-`T66`'s **code** is complete and merged (`2edc23e`, PR #44). `T66`'s **QA Decision** is committed and
-was pushed before that merge. `T66`'s **documentation** was merged as part of PR #44 and further
-corrected/verified this session. The repository's committed state on `main` fully reflects `T66` as
-closed at the code/QA level; only this session's own governance-file corrections remain to land via a
-documentation PR.
+`T67`'s **code** is complete and merged (`fc0b142`, PR #47). `T67`'s **QA Decision** is committed and
+was pushed before that merge. `T67`'s **documentation** was merged as part of PR #47 and further
+verified/corrected this session. The repository's committed state on `main` fully reflects `T67` as
+closed at the code/QA/documentation level — this session's own closeout is committed directly to
+`main`, nothing remains pending on a branch.
 
-**Next cycle begins with: `T67`** — **not authorized.** `T67` must not be started merely because `T66`
+**Next cycle begins with: `T68`** — **not authorized.** `T68` must not be started merely because `T67`
 is closed.
 
 ## 12. AI Continuation Instructions
@@ -211,18 +274,18 @@ Before doing anything:
 1. Read this file (`PROJECT_CHECKPOINT.md`).
 2. Verify the live Git state yourself (`git status`, `git log`, `git rev-parse HEAD origin/main`) —
    do not trust this file's numbers without re-checking.
-3. **Check whether this session's own documentation-sync PR has since merged** — if so, verify and
-   correct any "not yet merged" language this file's own §6/§11 may still carry.
-4. Read `T67`'s row in `IMPLEMENTATION_QUEUE.md` directly — note its requirements.
-5. Read the relevant `PROJECT_STATE.json` state directly.
-6. Do not assume `T67` is authorized just because `T66`'s code is merged.
-7. Confirm Docker/Postgres is actually reachable (`docker ps`) before claiming any DB-backed test
+3. Read `T68`'s row in `IMPLEMENTATION_QUEUE.md` directly — note its requirements and dependencies
+   (`T66`, `T67`, both done).
+4. Read the relevant `PROJECT_STATE.json` state directly.
+5. Do not assume `T68` is authorized just because `T67`'s code is merged.
+6. Confirm Docker/Postgres is actually reachable (`docker ps`) before claiming any DB-backed test
    result was personally re-run — and confirm the actual exposed port, since `.env`'s stated port has
-   been wrong for at least two consecutive sessions now (`T65` and `T66`'s own QA Decisions).
-8. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
+   been wrong for at least three consecutive sessions now (`T65`, `T66`, and `T67`'s own
+   verifications).
+7. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
 
-**Which role should act next: Project Manager**, for `T67`'s own authorization — following
-`T56`–`T66`'s pattern (authorization before implementation, QA Decision before merge). Separately,
+**Which role should act next: Project Manager**, for `T68`'s own authorization — following
+`T56`–`T67`'s pattern (authorization before implementation, QA Decision before merge). Separately,
 whoever owns the `docs/prompts/GitCI_PR_Manager.md`/`README.md` governance-documentation change, the
 `docs/HANDOFF/` directory, and the `.env`/container port mismatch
 should decide whether and how to resolve them — not addressed here.
@@ -240,7 +303,7 @@ should decide whether and how to resolve them — not addressed here.
 | `docs/SessionReport.md` | Chronological session-by-session summary |
 | `docs/ImplementationLog/Stage3/Phase2.md` | Full technical execution record for `T52`–`T57` (Phase 2, complete) |
 | `docs/ImplementationLog/Stage3/Phase3.md` | Full technical execution record for `T58`–`T65` (Phase 3, complete) |
-| `docs/ImplementationLog/Stage4/Phase0.md` | Full technical execution record for `T66` (Stage 4 Phase 0, complete; `T67` not yet started) |
+| `docs/ImplementationLog/Stage4/Phase0.md` | Full technical execution record for `T66`–`T67` (Stage 4 Phase 0, both complete and merged; `T68` not yet started) |
 | `docs/ImplementationLog/README.md` | The ImplementationLog standard itself |
 | `docs/prompts/*.md` | Canonical per-role AI prompts |
 | `docs/Stage3_Backend_Handoff.md` | File-by-file implementation brief for Stage 3's remaining phases |
@@ -249,19 +312,20 @@ should decide whether and how to resolve them — not addressed here.
 
 - This file represents **current state**, not historical narrative — rewritten in place.
 - Update it whenever a task reaches a meaningful lifecycle boundary.
-- **Never** claim a task is `Done` merely because code exists — `T66` is `Done` because code, its own
-  documentation correction, *and* its QA Decision are all merged into `main`, independently verified
-  this session, not assumed.
+- **Never** claim a task is `Done` merely because code exists — `T67` is `Done` because code, its QA
+  Decision, *and* its documentation are all merged into `main`, independently verified this session,
+  not assumed.
 - **Never** claim QA approval unless the QA Decision is recorded in the repository, not merely
-  asserted — and never collapse a multi-pass QA sequence into a false single-pass story. `T66`'s own
-  history (migration-graph and downgrade-safety findings → rework commit → formatting correction →
-  Approved) is preserved in full above, not smoothed over.
-- **Never** claim a clean breakpoint while uncommitted or unmerged *task* work remains — `T66` itself
-  has none; this session's own doc-branch PR is disclosed in §6/§11.
+  asserted — and never collapse a multi-pass QA sequence into a false single-pass story. `T67`'s QA
+  Decision (`Approved with comments`, two named non-blocking comments) is preserved in full above, not
+  smoothed over.
+- **Never** claim a clean breakpoint while uncommitted or unmerged *task* work remains — `T67` itself
+  has none; this session's own edits are committed directly to `main`, per explicit instruction, with
+  nothing left pending on a branch.
 - **Never** claim an authorization or QA-approval commit "preceded merge" without a commit to point to
-  — `T66`'s QA commit (`5ab88a5`) is independently re-verified this way, as a parent of `2edc23e` in
+  — `T67`'s QA commit (`790b778`) is independently re-verified this way, as an ancestor of `fc0b142` in
   `git log`.
-- **Never** claim a test suite was personally re-run when it wasn't. This session's 481/481 figure was
+- **Never** claim a test suite was personally re-run when it wasn't. This session's 487/487 figure was
   personally re-run against merged `main` with live Postgres, working around the same disclosed
   environment drift the QA Decision itself already recorded.
 - Preserve historical detail in `docs/ImplementationLog/`/`docs/SessionReport.md` rather than bloating
@@ -271,18 +335,22 @@ should decide whether and how to resolve them — not addressed here.
 
 ## 15. Checkpoint Integrity
 
-- **Last verified commit:** `2edc23e` (`main`, synchronized with `origin/main`, at session start)
+- **Last verified commit:** `fc0b142` (`main`, synchronized with `origin/main`, at session start)
 - **Last verified branch:** `main`
-- **Working tree status:** clean of `T66`-related changes; this session's own edits are the only
+- **Working tree status:** clean of `T67`-related changes; this session's own edits are the only
   non-clean elements, alongside the pre-existing unrelated items named in §1.
 - **Verification performed:** `git fetch origin`; `git status --short`; `git rev-parse HEAD
-  origin/main`; `git log --oneline --decorate -20`; `gh pr view 43`/`gh pr view 44` (both `MERGED`);
-  `git diff 66f94bf..2edc23e --name-only` (exactly four files); direct read of
-  `docs/ImplementationLog/Stage4/Phase0.md`'s `QA Decision — T66 batch` section in full (confirmed
-  `Approved` checked, no other box, its multi-pass governance history read and cross-checked against
-  `git log`); `ruff`/`black`/boot smoke test re-run locally against merged `main`, all clean; **the
-  full backend suite personally re-run against live Postgres this session** (`docker ps` confirmed
-  `legal_dms_postgres` healthy on host port `5433`, `DATABASE_URL` overridden at the shell level only,
-  `backend/.env` confirmed unmodified via `git status`) — 481/481, matching every prior claim exactly.
+  origin/main`; `git log --oneline --decorate -10`; `git show --no-patch --format="%H%n%P"` on
+  `fc0b142` (parents `65b737a`/`a73d1c5`, confirming the merge is exactly what it claims to be);
+  `git show --stat fc0b142` (file set matches the T67 batch exactly); `gh pr view 47` (`MERGED`,
+  `mergeCommit.oid: fc0b142...`); direct read of `docs/ImplementationLog/Stage4/Phase0.md`'s
+  `QA Decision — T67 batch` section in full (confirmed `Approved with comments` checked, no other
+  box, both non-blocking comments read and cross-checked); `backend/pyproject.toml` read directly to
+  confirm the `[project.scripts]` `bootstrap-admin` entry exists; `ruff`/`black`/boot smoke test
+  re-run locally against merged `main`, all clean; **the full backend suite personally re-run against
+  live Postgres this session** (`docker ps` confirmed `legal_dms_postgres` healthy on host port
+  `5433`, `DATABASE_URL` overridden at the shell level only, `backend/.env` confirmed unmodified via
+  `git status`) — 487/487, matching `docs/ImplementationLog/Stage4/Phase0.md`'s own disclosed figure
+  exactly.
 - **Generated/updated by:** Documentation Manager
-- **Date:** 2026-08-17
+- **Date:** 2026-08-18
