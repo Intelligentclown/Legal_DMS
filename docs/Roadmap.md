@@ -317,7 +317,22 @@ returned substantive rework findings, resolved in a follow-up commit, followed b
 correction, before the final QA pass rendered **QA Decision: Approved**, committed (`5ab88a5`) before
 PR #44 merged. **`T66` is now Done — merged.** Authorization commit `66f94bf` (PR #43, merged
 `81bf99f`), implementation `533226d`, QA-rework `b2b86b6`, formatting `0239d80`, QA-approval `5ab88a5`,
-PR #44, merged `2edc23e` (2026-08-17). `T67` remains not started, not authorized.
+PR #44, merged `2edc23e` (2026-08-17).
+
+**`T67` (first-admin bootstrap CLI) followed — the next task past Stage 4 Phase 0's seed
+migration.** New `infrastructure/cli/bootstrap.py`: `run_bootstrap(session, *, email, password)` is
+the testable core (no-op if any `User` row exists; otherwise creates the `User` via `hash_password()`
+and assigns the seeded `Administrator` role via `UserRole`, `flush()`-only); `main()`/`_async_main()`
+reads the password via `getpass.getpass()` only — never `argv`/env/a config file (`ADR-0018` D4). New
+`[project.scripts]` entry `bootstrap-admin` in `backend/pyproject.toml`. 5 new integration tests. Full
+suite **487/487 passing (482 prior + 5 new)**, `ruff`/`black` clean. **QA Decision: Approved with
+comments** — `D4` compliance and idempotency independently re-verified; two non-blocking comments
+(hand-rolled persistence instead of reusing `SqlAlchemyUserRepository.assign_role()`; an untested
+missing-role `RuntimeError` guard). Authorization commit `119d612` (PR #46, merged `65b737a`) precedes
+implementation commit `b409f78`. **`T67` is implemented and QA-approved, but not yet merged** —
+feature commit `b409f78`, QA-approval commit `790b778`, both pushed to
+`feature/stage4-t67-first-admin-bootstrap`; see `docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch
+for full detail. `T68` remains not started, not authorized.
 
 | Feature | Status |
 |---|---|
