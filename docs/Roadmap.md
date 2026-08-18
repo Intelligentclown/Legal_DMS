@@ -345,10 +345,12 @@ authorization (the seed-row-count/matrix-match half was already covered by
 `ruff`/`black` clean. **QA Decision: Approved** (plain) — QA independently ran a mutation test
 (temporarily removed `bootstrap.py`'s `commit()` call, confirmed both "actually commits" tests fail,
 reverted), proving the tests non-vacuous. Authorization commit `d6b6b45` (PR #49, merged `5bca735`)
-precedes implementation commit `33c728b`. **`T68` is implemented and QA-approved, but not yet
-merged** — feature commit `33c728b`, QA-approval commit `5b5c9b9`, both pushed to
-`feature/stage4-t68-bootstrap-entrypoint-tests`; see `docs/ImplementationLog/Stage4/Phase0.md`'s T68
-batch for full detail.
+precedes implementation commit `33c728b`. **`T68` is now Done — merged.** Feature commit `33c728b`,
+QA-approval commit `5b5c9b9`, PR #50, merge commit `43aa0a7` (2026-08-18) — `main`/`origin/main` both
+independently re-verified at `43c8ddb` this session, full suite **490/490 passing** personally re-run
+against merged `main` with live Postgres, `ruff`/`black` clean, boot smoke passed, OpenAPI unchanged.
+**Stage 4 Phase 0 (`T66`–`T68`) is now complete in full and merged.** See
+`docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
 
 | Feature | Status |
 |---|---|

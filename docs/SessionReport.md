@@ -2528,3 +2528,102 @@ batch, and its QA Decision — not merging it. Once merged, a post-merge closeou
 T61/T63/T66/T67's own) should independently re-verify the merged state, update `PROJECT_CHECKPOINT.md`
 to reflect T68 as the current closed-out task, and append a dated Post-Merge Verification note to
 `docs/ImplementationLog/Stage4/Phase0.md` if a dedicated technical entry is wanted.
+
+---
+
+## Session: Post-Merge Verification & Documentation Closeout - T68 (2026-08-18)
+
+**Goal:** As Documentation Manager, synchronize the canonical project records with T68's actual merged
+state (PR #50, merge commit `43aa0a7`), ensuring no implementation file is modified, `T68` is reflected
+as fully Done, and every remaining "not yet merged"/"pending" claim from the prior session's pre-merge
+documentation pass is corrected — matching how `T67` was closed out after its own merge.
+
+**Verified the Live State Directly, Not Assumed:** `git fetch origin` + `git log --oneline -15
+origin/main` confirmed `main`'s HEAD is `43c8ddb` — one commit ahead of T68's own merge, via an
+unrelated documentation PR (#51, `docs/business-requirements-plan`) that landed afterward and touches
+none of `T68`'s files. `T68`'s own merge commit, `43aa0a7` — "Merge pull request #50 from
+Intelligentclown/feature/stage4-t68-bootstrap-entrypoint-tests" — was found directly in that log.
+`git show --no-patch --format="%H%n%P"` confirmed its parents are `5bca735` (prior `main`, T68's
+authorization merge) and `1ced5f2` (the feature branch tip, T68's own pre-merge documentation-sync
+commit). `gh pr view 50` independently confirmed `state: MERGED`, `mergeCommit.oid: 43aa0a7...`,
+`baseRefName: main`, `headRefName: feature/stage4-t68-bootstrap-entrypoint-tests` — cross-checked
+against `git log`, not taken on the task description's word alone. `git show --stat 43aa0a7` confirmed
+the file set matches the T68 batch exactly (`backend/tests/integration/test_bootstrap_admin.py`,
+`docs/ImplementationLog/Stage4/Phase0.md`, plus the five documentation files the prior session's own
+sync commit `1ced5f2` touched).
+
+**Test Suite Personally Re-Run Against Merged `main`:** `docker ps` confirmed `legal_dms_postgres`
+healthy on host port `5433` (the already-disclosed `.env`-vs-container port drift, worked around
+locally via a shell-level `DATABASE_URL` override, `backend/.env` itself not modified). `uv run pytest
+-q` — **490 passed, 0 failed, 0 skipped**, matching `docs/ImplementationLog/Stage4/Phase0.md`'s own
+disclosed figure exactly, not merely carried over. `uv run ruff check src tests alembic` — clean.
+`uv run black --check src tests alembic` — clean, 204 files unchanged. Boot smoke test
+(`python -c "from app.main import app"`) succeeded; `app.openapi()["paths"]` independently confirmed
+unchanged — still exactly the eleven routes `T63` established (`T68` is test-file-only, no route
+added).
+
+**Audited all six target documents for staleness beyond the one instance already named in the task
+description, per its explicit instruction — not just patched the one spot.** Found and corrected:
+`PROJECT_STATE.json`'s `completion.note` ("PR pending," the instance already flagged) plus its
+`currentStage.note`, the `stage-3` entry under `stages[]`, and its `git` block (which additionally
+still described the branch/commit as the pre-merge feature branch); `IMPLEMENTATION_QUEUE.md`'s `T68`
+row (still read "Not yet merged") and a second, separate stale trailing sentence in the Stage 3 section
+narrative ("`T68` is implemented and QA-approved... not yet merged"); `docs/AI_HANDOVER.md`'s two
+narrative locations; `docs/Roadmap.md`'s one location. `PROJECT_CHECKPOINT.md` was found to still
+describe `T67` as the current/last-closed task in full — not a small correction but a complete rewrite,
+performed below.
+
+**Corrected a leftover inaccuracy found while reconciling `PROJECT_STATE.json`'s `git` block, not part
+of the originally reported staleness:** the block's note still asserted `T67`'s post-merge closeout
+"was committed directly to main, per explicit instruction, following this project's established
+pattern" — a claim the `T67` closeout session itself had already disclosed as false (branch protection
+rejected the direct push; the actual closeout went through `docs/t67-post-merge-closeout` + PR #48) and
+corrected in `PROJECT_CHECKPOINT.md`/`docs/SessionReport.md` at the time, but the correction never
+propagated back to this one field in `PROJECT_STATE.json`. Fixed here.
+
+**Rewrote `PROJECT_CHECKPOINT.md` to reflect T68 as the current closed-out state**, following its own
+existing 15-section format exactly (Last Verified State, Current Stage, Completed Tasks table gaining
+a `T68` row, Current Task section retargeted from `T67` to `T68`, Next Cycle retargeted to `T69` —
+already authorized per `PROJECT_STATE.json`'s own record, unlike every prior "Next Cycle" entry in this
+file's history, disclosed accurately rather than defaulted to the usual "not authorized" phrasing,
+Repository State, Test/Quality Status, Architecture Snapshot, Active Risks, Governance Rules — this
+session applied the branch+PR route from the start, learning directly from `T67`'s own disclosed
+`GH006` rejection rather than repeating the attempt, Safe Breakpoint, AI Continuation Instructions,
+Authoritative Files table's `Stage4/Phase0.md` row corrected to "`T66`–`T68` complete," Checkpoint
+Maintenance Rules, Checkpoint Integrity).
+
+**Deliberately Not Touched:** `docs/ImplementationLog/Stage4/Phase0.md` itself — this role reads and
+verifies a phase log, it doesn't rewrite the Developer/QA Reviewer's technical content. Its own metadata
+block still reads `T68`'s `Git Commit`/`Pull Request` fields as "pending"/"not yet opened," the same
+kind of staleness a `Correction (...)` note previously fixed for `T67` inside that same file — left as
+documentation debt for whoever next has standing to edit that file's technical content, not fixed here,
+mirroring the restraint the `T67` closeout session itself already established (it also left `Phase0.md`
+untouched). `CHANGELOG.md`/`docs/CHANGELOG.md` (task-level, not release-level, per this project's own
+rule — no tag is being cut here). `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md` and
+`docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier sessions, confirmed via
+`git status` to remain exactly as before). `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`
+(pre-existing, repeatedly-flagged staleness predating `T68`, not caused by it). `T69`'s own
+authorization text (already correctly recorded by an earlier session) — not `T68`'s scope, untouched.
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — the merged
+backend code was only read and independently exercised (lint/format/boot/tests), never edited. `T69`
+was not implemented, and no scope beyond `T68`'s own closeout was touched.
+
+**Documentation Updated (committed to `docs/t68-post-merge-closeout`, opened as a PR into `main`, not
+merged by this session — branch+PR from the start, not a direct-to-`main` attempt):**
+`PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
+`docs/SessionReport.md` (this file), and `PROJECT_CHECKPOINT.md`.
+
+**Documentation Debt, Noted Not Fixed:** `docs/ImplementationLog/Stage4/Phase0.md`'s own metadata block
+still shows `T68`'s `Git Commit`/`Pull Request` fields as pending, per the explanation above.
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed, as
+repeatedly flagged across prior sessions. The recurring `backend/.env` vs. actual-container port
+mismatch remains unfixed (no session has been authorized to change project infrastructure files for
+this).
+
+**Next Session Goals:** `T69` (frontend `httpClient.ts` `post`/`put`/`delete` + structured error
+parsing) is authorized (per `PROJECT_STATE.json`'s own record) but not yet implemented — a separate
+Frontend Developer chat, per its own authorization's explicit instruction, not the Backend Developer
+role used for `T58`–`T68`. Standing items, still unaddressed: the two documentation-debt items above,
+and the still-uncommitted `docs/prompts/GitCI_PR_Manager.md`/`README.md`/`docs/HANDOFF/` work from
+earlier sessions.
