@@ -8,15 +8,17 @@ Started: 2026-08-17
 
 Completed:
 
-Related Tasks: T66, T67
+Related Tasks: T66, T67, T68
 
 Related ADRs: ADR-0018 (D4)
 
-Git Commit: T66 — `2edc23e`. T67 — pending (feature branch `feature/stage4-t67-first-admin-bootstrap`
-pushed; no PR opened yet — Backend Developer role stops here per this batch's stop condition, QA
-review happens in a separate session).
+Git Commit: T66 — `2edc23e`. T67 — `fc0b142` (merge; feature commit `b409f78`; QA-approval commit
+`790b778`; authorization commit `119d612`). T68 — pending (feature branch
+`feature/stage4-t68-bootstrap-entrypoint-tests` pushed; no PR opened yet — Backend Developer role
+stops here per this batch's stop condition, QA review happens in a separate session).
 
-Pull Request: T66 - #44. T67 — not yet opened.
+Pull Request: T66 - #44. T67 — #47 (merged `fc0b142`, 2026-08-18; post-merge closeout #48, merge
+`f0c9b34`). T68 — not yet opened.
 
 Release:
 
@@ -28,6 +30,15 @@ task in flight. `Related Tasks` always included `T67`/`T68` in `IMPLEMENTATION_Q
 row, so the phase itself was never actually finished; `Status`/`Completed` are corrected back to
 `In Progress`/blank here, not silently left wrong, now that `T67`'s implementation begins in this
 same phase.
+
+**Correction (T68 batch, 2026-08-18):** the metadata block's `Git Commit`/`Pull Request` fields for
+`T67` still read "pending" going into this batch, even though `T67` merged (`PR #47`, `fc0b142`,
+2026-08-18) and was closed out (`PR #48`, `f0c9b34`) before this session began — that closeout
+updated `PROJECT_STATE.json`/`IMPLEMENTATION_QUEUE.md`/the changelogs but never came back to fill in
+this file's own metadata block or add a `T67` Post-Merge Verification section. Corrected here, not
+silently left stale, per this project's "trust the code, report the discrepancy" discipline —
+verified directly via `git log`/`git show fc0b142`, not assumed. `Related Tasks` now also includes
+`T68`.
 
 ## T66 Batch: Seed Role Permissions
 
@@ -375,3 +386,325 @@ tests are real and non-vacuous, and the full suite/lint/format are independently
 items above are recorded as comments (pattern-consistency and an untested guard clause), not
 rework — both are the kind of finding this project's `Approved with comments` disposition exists
 for.
+
+## Objective — T68 batch
+
+Close the one gap T67's own QA Decision named as a non-blocking comment: `test_bootstrap_admin.py`
+covered `run_bootstrap()`, the in-memory core, but nothing exercised `infrastructure/cli/
+bootstrap.py`'s actual entry point (`main()`/`_async_main()`) — the `input()`/`getpass()` prompting,
+the `get_session_factory()`-backed session, and, most importantly, the real `session.commit()` call
+`run_bootstrap()`'s own tests never touch (they only ever `flush()`).
+
+**Authorization / Scope (recorded before implementation, `IMPLEMENTATION_QUEUE.md`'s T68 row /
+`PROJECT_STATE.json`, commit `d6b6b45`, PR #49, merge `5bca735`, 2026-08-18):** the project owner
+explicitly authorized T68, narrowed by a direct pre-authorization check to only the genuinely
+missing half of the task's one-line description. **Already satisfied, not re-authorized:** the
+seed-row-count/matrix-match half — `test_t66_role_permissions.py::
+test_t66_role_permissions_matrix_exact_match` already covers this, confirmed by direct read before
+this batch began; no new test written for it, per the authorization's own explicit instruction not
+to duplicate it. **Genuinely missing, authorized:** a new test mocking `input()`/`getpass()`
+(patched at `app.infrastructure.cli.bootstrap.getpass`, matching how the module imports it) and
+`get_session_factory()` (patched to yield the test's own `db_session`, mirroring this codebase's
+`get_db`-override pattern) to invoke `_async_main()`/`main()` directly, covering: (1) a first
+invocation with no existing user creates the admin and actually commits, not just flushes; (2) a
+second invocation, or one run when a user already exists, prints the "already exists" message, does
+not prompt for credentials it would discard, and does not create a duplicate user. Test-file-only —
+`bootstrap.py`, `run_bootstrap()`, and every other `T52`–`T67` file explicitly remain unmodified; no
+migration, route, or schema change.
+
+## Tasks Implemented — T68 batch
+
+- `T68` (genuinely-missing half only): `backend/tests/integration/test_bootstrap_admin.py` extended
+  with two new test classes exercising `_async_main()` directly (not `main()` — `main()`'s only
+  addition beyond `_async_main()` is `asyncio.run(...)`, which cannot be called from inside an
+  already-running event loop, and every `asyncio_mode = auto` async test function here runs inside
+  one; `_async_main()` is the coroutine that actually holds this entry point's logic, so it's what's
+  driven directly, documented as a design decision below rather than silently substituted without
+  comment).
+  - `TestAsyncMainNoExistingUser` (2 tests): with zero existing users, `_async_main()` is invoked
+    with `input()`/`getpass()` mocked to supply an email/password; the created row's existence and
+    its `Administrator` role assignment are each verified through a **second, independent**
+    engine/connection — not `db_session` — proving `session.commit()` genuinely ran (a same-session
+    read can't distinguish "committed" from "merely flushed," since a session always sees its own
+    uncommitted writes).
+  - `TestAsyncMainExistingUser` (1 test): with one existing user already present (via `db_session`,
+    flush-only, no real commit needed since nothing should be created), `_async_main()` is invoked
+    with `input()`/`getpass()` mocked as plain (uncalled) `MagicMock`s; asserts both mocks were never
+    called, the "already exists" message was printed (`capsys`), and the user count stays at exactly
+    one.
+  - `_FakeSessionFactory` (new, test-file-local helper class) and `_install_fake_session_factory()`
+    (new, test-file-local helper function): the CLI-level mirror of `get_db`-override, handing
+    `_async_main()` the test's own `db_session` instead of a freshly-opened one.
+  - `_fetch_and_delete_committed_user()` (new, test-file-local helper function): opens a throwaway
+    second engine/connection to read back (and, if found, delete) a user by email — used both to
+    prove a real commit happened and, since that commit is real and `db_session`'s own rollback can't
+    undo it, to clean the row back up afterward regardless of whether the test's own assertions
+    passed.
+- No change to `bootstrap.py`, `run_bootstrap()`, or any other `T52`–`T67` file — confirmed via
+  `git status`/`git diff --stat` before writing this section (see Files Modified below), not
+  reconstructed from memory.
+
+## Files Modified — T68 batch
+
+- `backend/tests/integration/test_bootstrap_admin.py` (modified — module docstring extended to
+  describe the new coverage; two new test classes and three new helpers added; the five existing
+  `T67` tests/helpers (`_make_user`, `TestRunBootstrapNoExistingUser`,
+  `TestRunBootstrapExistingUser`) left untouched)
+- `docs/ImplementationLog/Stage4/Phase0.md` (this file — the `T68` batch section, plus the metadata
+  block correction noted above)
+
+No other file touched. In particular: `backend/src/app/infrastructure/cli/bootstrap.py` is
+byte-for-byte unchanged (`git diff --stat` against `main` for that path returns nothing), and no
+route, schema/migration, `deps.py`, `AuthService`, or any other `T52`–`T67` file was touched.
+
+## Tests Added — T68 batch
+
+All in `backend/tests/integration/test_bootstrap_admin.py`, against the real migrated schema — the
+existing `db_session` fixture for the session `_async_main()` operates on, plus a second,
+independent `create_async_engine()`/`async_sessionmaker()` pair (created directly in the test/helper,
+not from any fixture) for the two tests that need to prove a real commit happened:
+
+- `TestAsyncMainNoExistingUser::test_creates_admin_and_actually_commits` — with zero existing users,
+  `_async_main()` (session, `input()`, and `getpass()` all mocked) creates the admin; the row is read
+  back through a second, independent connection (proving a real `commit()`, not just a `flush()`) and
+  its password hash is verified against the mocked plaintext; `input()`/`getpass()` are asserted
+  called exactly once each, with the exact prompt strings `_async_main()` actually uses.
+- `TestAsyncMainNoExistingUser::test_assigns_administrator_role_and_actually_commits` — same setup;
+  the `Administrator` role assignment (joined all the way from `User.email`, not just `UserRole`) is
+  read back through a second, independent connection and found to be exactly `["Administrator"]`.
+- `TestAsyncMainExistingUser::test_prints_message_and_skips_without_prompting` — with one existing
+  user pre-seeded (flush-only), `_async_main()` is invoked with `input()`/`getpass()` mocked as
+  plain, uncalled `MagicMock`s; asserts both are never called, `"already exists"` appears in captured
+  stdout, and the user count remains exactly one.
+
+Directly satisfies both of T68's authorized named requirements: "a first invocation with no existing
+user creates the admin and actually commits (not just flushes)" and "a second invocation, or one run
+when a user already exists, prints the message, does not prompt, does not create a duplicate."
+
+## Test Results — T68 batch
+
+- `uv run pytest tests/integration/test_bootstrap_admin.py -v` — **8/8 passing** (the 5 existing `T67`
+  tests, unmodified and still green, plus 3 new), personally run against live Postgres this session
+  (`legal_dms_postgres` container, confirmed healthy via `docker ps` before running).
+- `uv run pytest` (full suite) — **490/490 passing** (0 failed, 0 skipped) — 487 immediately prior to
+  this batch (the count `T67`'s own closeout recorded) + 3 new.
+- `uv run ruff check src tests alembic` — clean (one `UP037` "remove quotes from type annotation"
+  finding, from an initially-quoted forward reference to `_FakeSessionFactory` inside its own class
+  body — unnecessary given this file's `from __future__ import annotations` — was caught and fixed
+  during this batch, not left for QA).
+- `uv run black --check src tests alembic` — clean, 204 files unchanged (one reformat, a single
+  helper function signature `black` wanted collapsed onto one line, applied and re-verified during
+  this batch).
+- **Database hygiene, independently verified, not assumed:** `docker exec legal_dms_postgres psql -U
+  legal_dms -d legal_dms_dev -tAc "SELECT count(*) FROM users;"` returned `0` both before this
+  batch's tests ran and again after the full suite ran — the two tests that call a real
+  `session.commit()` clean up the row they create (via `_fetch_and_delete_committed_user()`, in a
+  `finally` block so cleanup runs even if an assertion above it fails), so this batch leaves the dev
+  database exactly as it found it, despite deliberately not relying on `db_session`'s usual
+  rollback-only safety net for those two tests.
+- **Not independently re-derived via mutation, disclosed rather than asserted:** this batch did not
+  temporarily strip `bootstrap.py`'s `session.commit()` call and re-run the new tests to directly
+  observe them fail (which would have proven the "actually commits" tests aren't vacuous by
+  construction, not just by reasoning about them) — the sandboxed session this batch ran in declined
+  to permit editing `bootstrap.py`, even transiently and for verification purposes only, given `T68`'s
+  own explicit "no changes to bootstrap.py" scope boundary. The soundness argument instead rests on
+  well-established Postgres transaction-isolation semantics (a separate connection cannot see another
+  connection's uncommitted writes, so a same-session read genuinely cannot substitute for this),
+  documented directly in the test file's own module docstring and reasoned through in Design
+  Decisions below — recorded here as a real, disclosed limitation on how this batch's own claim was
+  verified, not silently presented as if a mutation test had actually been run.
+
+## Design Decisions — T68 batch
+
+- **`_async_main()`, not `main()`, is what's driven directly.** `main()`'s only behavior beyond
+  `_async_main()` is `asyncio.run(_async_main())`; `asyncio.run()` raises if called from inside an
+  already-running event loop, which every `asyncio_mode = auto` async test function in this suite
+  runs inside. `_async_main()` is the coroutine holding all of this entry point's actual logic —
+  testing it directly, `await`ed like any other coroutine in this suite, covers everything `main()`
+  would add nothing further to prove.
+- **A second, independent engine/connection is what actually proves a commit happened.** Reading the
+  created row back through `db_session` itself would pass regardless of whether `run_bootstrap()`
+  only flushed or actually committed — a session always sees its own uncommitted writes within the
+  same transaction (Postgres's normal read-your-own-writes behavior). Only a genuinely separate
+  connection can distinguish the two, which is exactly what T68's "actually commits, not just
+  flushes" requirement is asking to be proven, not merely asserted.
+- **The two commit-verifying tests clean up after themselves, deliberately outside `db_session`'s own
+  safety net.** Every other test in this file (and this codebase's integration suite generally) relies
+  entirely on `db_session`'s teardown-time `rollback()` for cleanup — safe, because nothing in those
+  tests ever really commits. These two tests are the deliberate exception: since `_async_main()`
+  really does call `session.commit()`, `db_session`'s later `rollback()` has nothing left to undo.
+  Explicit, `finally`-guarded deletion through the same second connection keeps the dev database
+  exactly as clean after this batch's tests as before them, and keeps the suite re-runnable (a
+  leftover row from a prior run would otherwise make the "zero existing users" precondition false on
+  the next run).
+- **`_FakeSessionFactory` mirrors `get_db`-override, not a new pattern.** `get_session_factory()`'s
+  real return value is an `async_sessionmaker`, itself callable, whose call returns a fresh
+  `AsyncSession` usable as an async context manager. `_FakeSessionFactory` reproduces exactly that
+  shape (callable, returns an async-context-manageable value) while always handing back the test's
+  own `db_session` and doing nothing on exit — the same "yield the test's session, don't open or
+  close a new one" contract `test_users.py`'s `client` fixture already establishes for `get_db`,
+  applied here to a plain function instead of FastAPI's dependency-injection system.
+- **`input()` patched at `builtins.input`; `getpass()` patched at the module's own imported name.**
+  `bootstrap.py` calls the `input` builtin directly (nothing to intercept except the builtin itself),
+  but does `from getpass import getpass`, binding `getpass` into its own module namespace — patching
+  `app.infrastructure.cli.bootstrap.getpass` (not `getpass.getpass`) is what actually affects the
+  name `_async_main()` resolves at call time, exactly as T68's authorization explicitly specified.
+
+## Problems Encountered — T68 batch
+
+- `ruff` initially flagged a `UP037` finding (quoted forward reference to `_FakeSessionFactory`
+  inside its own `__call__` return-type annotation, unnecessary given this file's existing
+  `from __future__ import annotations`) — caught and fixed before this batch's checks were reported
+  clean.
+- `black` wanted one helper function signature (`_install_fake_session_factory`) collapsed onto a
+  single line — applied and re-verified, no manual formatting decisions overridden.
+- This session's sandboxing declined a transient, self-reverting edit to `bootstrap.py` that would
+  have let this batch directly observe the "actually commits" tests fail when the real `commit()`
+  call is removed (a mutation-style soundness check) — see Test Results above for the full account
+  and why the tests are still trusted as non-vacuous by construction, not by having watched them fail.
+
+## Deferred Work — T68 batch
+
+- The mutation-style soundness verification described above (temporarily stripping `bootstrap.py`'s
+  `commit()` call to directly observe the new tests fail) — trigger: a session whose sandboxing
+  permits transient edits to production files for verification purposes, or the project owner running
+  it themselves.
+- T67's QA Decision named two non-blocking comments neither this batch nor its authorization asked it
+  to address: `run_bootstrap()` hand-rolling user/role persistence instead of reusing
+  `SqlAlchemyUserRepository.assign_role()`, and the missing-`Administrator`-role `RuntimeError` guard
+  having zero test coverage. Both remain exactly as `T67` left them — untouched, since `T68`'s
+  authorization is test-file-only and explicitly does not touch `bootstrap.py`. Trigger: a future task
+  that's actually authorized to modify `bootstrap.py`.
+
+## Future Considerations — T68 batch
+
+- `_FakeSessionFactory`/`_install_fake_session_factory()`/`_fetch_and_delete_committed_user()` are
+  currently local to `test_bootstrap_admin.py`. If a future CLI script needs the same
+  "mock `get_session_factory()` at the entry point" pattern, these are the natural candidates to
+  extract into a shared test-support module (mirroring `tests/support/in_memory_user_repository.py`'s
+  existing precedent) rather than re-implementing the same shape — not done here, since this is the
+  only file that currently needs it and inventing a shared module for a single caller would be
+  speculative.
+
+## Reviewer Checklist — T68 batch
+
+```
+Reviewer Checklist (T68 batch)
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+☑ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+□ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+□ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+- **Architecture preserved:** no production code touched at all — test-file-only, exactly as
+  authorized; no port/contract/layering change possible from this batch's diff.
+- **Existing design patterns followed:** the new mocking helpers mirror `get_db`-override
+  (`test_users.py`'s `client` fixture) applied to a plain function instead of FastAPI DI; test
+  class naming (`TestAsyncMainNoExistingUser`/`TestAsyncMainExistingUser`) mirrors the existing
+  `TestRunBootstrapNoExistingUser`/`TestRunBootstrapExistingUser` convention already in this same
+  file; `monkeypatch` (not a mocking library import beyond `unittest.mock.MagicMock` for call-tracking)
+  matches this codebase's existing `test_auth.py` precedent.
+- **Tests added:** 3 new tests, both of T68's authorized named requirements directly covered — see
+  Tests Added above.
+- **Existing tests pass:** full suite 490/490 (487 prior + 3 new), personally re-run against live
+  Postgres this session — see Test Results above. The 5 pre-existing `T67` tests in this same file
+  are unmodified and still pass.
+- **Documentation updated:** this phase log entry, plus the T67 metadata-block correction noted
+  above (a genuine discrepancy found while rebuilding context, corrected per this project's
+  "trust the code, report the discrepancy" rule, not left stale). `AI_BOOTSTRAP.md`/
+  `PROJECT_STATE.json` are left to the Documentation Manager, per this role's ownership boundary —
+  see the two unchecked boxes below.
+- **ADR updated (if required): □** — no architectural decision made or needed; this batch adds test
+  coverage for already-approved `T67`/`ADR-0018` behavior, it doesn't decide anything new.
+- **AI_BOOTSTRAP updated (if required): □** — no non-negotiable rule, required-reading order, or
+  standing convention changed; out of this role's ownership boundary regardless.
+- **PROJECT_STATE updated (if required): □** — `T68`'s status/test counts belong to
+  `PROJECT_STATE.json`, owned by the Documentation Manager, only after a QA Decision exists — not
+  touched by this role, per `docs/prompts/BackendDeveloper.md` §5/§8.
+- **No unrelated refactoring:** the 5 pre-existing `T67` tests/helpers in this file are untouched;
+  no other file's content changed beyond this phase log.
+- **No scope creep:** the seed-row-count/matrix-match half of T68's original one-line description was
+  deliberately *not* re-tested, per the authorization's explicit instruction that
+  `test_t66_role_permissions.py` already covers it; `bootstrap.py` itself was not touched even
+  though two of this batch's own findings (see Deferred Work) would be easy to act on from here.
+- **Ready for QA:** this log entry plus `git diff main...feature/stage4-t68-bootstrap-entrypoint-tests`
+  should let a QA Reviewer verify the batch without needing clarifying questions.
+
+## QA Decision — T68 batch
+
+```
+QA Decision (T68 batch)
+
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+Rendered by the QA Reviewer role, independently, against feature commit `33c728b`
+(`feature/stage4-t68-bootstrap-entrypoint-tests`) — no PR opened yet; this decision is recorded
+pre-PR, per this project's practice of committing the QA Decision to the branch before any PR is
+opened or merged.
+
+**Verification Results (checked directly against the repository and live runs, not taken from the
+Developer's self-assessment):**
+
+- **Authorization:** T68's narrowed scope (`IMPLEMENTATION_QUEUE.md` row, commit `d6b6b45`, PR #49,
+  merge `5bca735`) precedes the implementation commit — confirmed by commit order (`5bca735`/
+  `d6b6b45` precede `33c728b`). The "already satisfied" half (seed-row-count matrix match) was
+  independently re-read in `test_t66_role_permissions.py` and genuinely already covers that ground;
+  no duplicate test was added for it, exactly as the narrowed authorization required.
+- **Scope — test-file-only, verified, not assumed:** `git diff main...feature/stage4-t68-bootstrap-entrypoint-tests --stat`
+  confirms exactly two files changed: `backend/tests/integration/test_bootstrap_admin.py` and this
+  phase log. `git diff main...feature/stage4-t68-bootstrap-entrypoint-tests -- backend/src/` returns
+  **nothing** — `bootstrap.py` is byte-for-byte unchanged. No migration, route, or schema file
+  touched. Matches the authorized scope exactly.
+- **Does this genuinely prove a real commit happened?** Yes — verified two ways, not just by reading
+  the test. (1) The tests read the created row back through a second, independent
+  engine/connection (`_fetch_and_delete_committed_user`, a fresh `create_async_engine()` against the
+  same `get_settings().database_url` the `db_session` fixture itself uses — confirmed by reading
+  `tests/conftest.py` directly), which cannot see another connection's merely-flushed, uncommitted
+  writes under Postgres's normal transaction isolation. (2) **This QA review went further and ran a
+  mutation test the Developer's own log disclosed being unable to perform:** `session.commit()` was
+  temporarily removed from `bootstrap.py`'s `_async_main()`, the two "actually commits" tests were
+  re-run, and both failed exactly as expected (`AssertionError: assert [] == ['Administrator']` /
+  the equivalent for the row-existence assertion) — proving they are genuinely non-vacuous, not
+  merely plausible by construction. The change was reverted immediately
+  (`git diff --stat` on `bootstrap.py` confirms zero diff afterward) and the full suite (490/490) and
+  a direct `psql` user count (0) were re-verified clean post-revert.
+- **Are "no duplicate created" and "no prompt shown" actually asserted?** Yes, explicitly, not
+  implied: `TestAsyncMainExistingUser::test_prints_message_and_skips_without_prompting` asserts
+  `input_mock.assert_not_called()`, `getpass_mock.assert_not_called()`, `"already exists" in
+  captured.out`, and `len(remaining.scalars().all()) == 1` (post-existing count unchanged) — all four
+  are real, would-fail-if-broken assertions, not inferred from the absence of an error.
+- **Do the new tests clean up correctly without rollback-based isolation?** Verified directly, not
+  assumed: ran `docker exec legal_dms_postgres psql ... "SELECT count(*) FROM users;"` before and
+  after the full suite — **0 both times**, including after this review's own mutation-test run (whose
+  failed assertions never reached `commit()`, so `db_session`'s ordinary rollback handled that case
+  correctly on its own). The two committing tests' `try`/`finally`-guarded
+  `_fetch_and_delete_committed_user()` calls delete `UserRole` rows before the `User` row (correct FK
+  order) through the same database the fixture itself targets — confirmed by reading
+  `tests/conftest.py`, not assumed to match.
+- **Tests — independently re-run this session:** `uv run pytest tests/integration/
+  test_bootstrap_admin.py -v` → 8/8 passing (5 pre-existing `T67` tests unmodified and green, 3 new).
+  `uv run pytest` (full suite) → 490/490 passing. `uv run ruff check src tests alembic` → clean.
+  `uv run black --check src tests alembic` → clean, 204 files unchanged.
+- **Architecture:** no production code touched at all this batch — no layering or port/contract
+  question arises. The mocking helpers (`_FakeSessionFactory`, patching `builtins.input` and the
+  module's own imported `getpass` name) correctly target the actual interception points `bootstrap.py`
+  exposes — confirmed by reading the unmodified source directly, not inferred from the test's own
+  claims about it.
+
+**Disposition:** no technical defect, no scope violation, no vacuous test. The Developer's own
+disclosure (unable to run the mutation test in their sandboxing) was honest and non-blocking on its
+own terms — this review closed that exact gap directly and it confirmed the tests as sound.
+Plain **Approved** — no comments to record beyond what the Developer already disclosed themselves
+(the two `T67`-scoped findings deferred in this batch's own Deferred Work section, out of scope for
+`T68` and unaffected by it).
