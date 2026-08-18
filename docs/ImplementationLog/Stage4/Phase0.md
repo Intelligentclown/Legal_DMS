@@ -643,11 +643,68 @@ Reviewer Checklist (T68 batch)
 ```
 QA Decision (T68 batch)
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
 ```
 
-Not yet rendered — left for the QA Reviewer role in a separate session, per this batch's own stop
-condition (Backend Developer role stops after implementation and self-assessment; does not render
-the QA Decision, open a PR, or proceed further).
+Rendered by the QA Reviewer role, independently, against feature commit `33c728b`
+(`feature/stage4-t68-bootstrap-entrypoint-tests`) — no PR opened yet; this decision is recorded
+pre-PR, per this project's practice of committing the QA Decision to the branch before any PR is
+opened or merged.
+
+**Verification Results (checked directly against the repository and live runs, not taken from the
+Developer's self-assessment):**
+
+- **Authorization:** T68's narrowed scope (`IMPLEMENTATION_QUEUE.md` row, commit `d6b6b45`, PR #49,
+  merge `5bca735`) precedes the implementation commit — confirmed by commit order (`5bca735`/
+  `d6b6b45` precede `33c728b`). The "already satisfied" half (seed-row-count matrix match) was
+  independently re-read in `test_t66_role_permissions.py` and genuinely already covers that ground;
+  no duplicate test was added for it, exactly as the narrowed authorization required.
+- **Scope — test-file-only, verified, not assumed:** `git diff main...feature/stage4-t68-bootstrap-entrypoint-tests --stat`
+  confirms exactly two files changed: `backend/tests/integration/test_bootstrap_admin.py` and this
+  phase log. `git diff main...feature/stage4-t68-bootstrap-entrypoint-tests -- backend/src/` returns
+  **nothing** — `bootstrap.py` is byte-for-byte unchanged. No migration, route, or schema file
+  touched. Matches the authorized scope exactly.
+- **Does this genuinely prove a real commit happened?** Yes — verified two ways, not just by reading
+  the test. (1) The tests read the created row back through a second, independent
+  engine/connection (`_fetch_and_delete_committed_user`, a fresh `create_async_engine()` against the
+  same `get_settings().database_url` the `db_session` fixture itself uses — confirmed by reading
+  `tests/conftest.py` directly), which cannot see another connection's merely-flushed, uncommitted
+  writes under Postgres's normal transaction isolation. (2) **This QA review went further and ran a
+  mutation test the Developer's own log disclosed being unable to perform:** `session.commit()` was
+  temporarily removed from `bootstrap.py`'s `_async_main()`, the two "actually commits" tests were
+  re-run, and both failed exactly as expected (`AssertionError: assert [] == ['Administrator']` /
+  the equivalent for the row-existence assertion) — proving they are genuinely non-vacuous, not
+  merely plausible by construction. The change was reverted immediately
+  (`git diff --stat` on `bootstrap.py` confirms zero diff afterward) and the full suite (490/490) and
+  a direct `psql` user count (0) were re-verified clean post-revert.
+- **Are "no duplicate created" and "no prompt shown" actually asserted?** Yes, explicitly, not
+  implied: `TestAsyncMainExistingUser::test_prints_message_and_skips_without_prompting` asserts
+  `input_mock.assert_not_called()`, `getpass_mock.assert_not_called()`, `"already exists" in
+  captured.out`, and `len(remaining.scalars().all()) == 1` (post-existing count unchanged) — all four
+  are real, would-fail-if-broken assertions, not inferred from the absence of an error.
+- **Do the new tests clean up correctly without rollback-based isolation?** Verified directly, not
+  assumed: ran `docker exec legal_dms_postgres psql ... "SELECT count(*) FROM users;"` before and
+  after the full suite — **0 both times**, including after this review's own mutation-test run (whose
+  failed assertions never reached `commit()`, so `db_session`'s ordinary rollback handled that case
+  correctly on its own). The two committing tests' `try`/`finally`-guarded
+  `_fetch_and_delete_committed_user()` calls delete `UserRole` rows before the `User` row (correct FK
+  order) through the same database the fixture itself targets — confirmed by reading
+  `tests/conftest.py`, not assumed to match.
+- **Tests — independently re-run this session:** `uv run pytest tests/integration/
+  test_bootstrap_admin.py -v` → 8/8 passing (5 pre-existing `T67` tests unmodified and green, 3 new).
+  `uv run pytest` (full suite) → 490/490 passing. `uv run ruff check src tests alembic` → clean.
+  `uv run black --check src tests alembic` → clean, 204 files unchanged.
+- **Architecture:** no production code touched at all this batch — no layering or port/contract
+  question arises. The mocking helpers (`_FakeSessionFactory`, patching `builtins.input` and the
+  module's own imported `getpass` name) correctly target the actual interception points `bootstrap.py`
+  exposes — confirmed by reading the unmodified source directly, not inferred from the test's own
+  claims about it.
+
+**Disposition:** no technical defect, no scope violation, no vacuous test. The Developer's own
+disclosure (unable to run the mutation test in their sandboxing) was honest and non-blocking on its
+own terms — this review closed that exact gap directly and it confirmed the tests as sound.
+Plain **Approved** — no comments to record beyond what the Developer already disclosed themselves
+(the two `T67`-scoped findings deferred in this batch's own Deferred Work section, out of scope for
+`T68` and unaffected by it).
