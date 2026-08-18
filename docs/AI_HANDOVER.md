@@ -466,6 +466,33 @@ test passed, `app.openapi()["paths"]` confirmed unchanged — still exactly the 
 established, since `T68` is test-file-only. **Stage 4 Phase 0 (`T66`–`T68`) is now complete in full and
 merged.** See `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
 
+**`T69` (`httpClient.ts` `post`/`put`/`delete` + structured error parsing) followed — closing Stage
+2.5's finding F10, the first Stage 4 Phase 1 (Frontend) task.** `frontend/src/infrastructure/api/httpClient.ts`
+gained `post`/`put`/`delete` alongside the existing `get()`, sharing a new `requestWithBody()` helper
+(method passed straight through to `fetch`'s `init.method`; body `JSON.stringify()`-serialized only
+when `body !== undefined`); `HttpError` gained an optional `code?: string`, populated by a new
+`buildHttpError()` when the response body matches the approved `{"error":{"code","message"}}` shape
+via a strict type-guard, `isStructuredErrorBody()` (rejects `error: null`, non-string fields, or a
+non-object body), falling back to the existing generic `Request to <path> failed with status <status>`
+message on any mismatch or an unparseable body (`response.json()` wrapped in `try`/`catch`, never an
+unhandled rejection). `get()` and `request<T>()`'s success path are byte-for-byte unchanged. 8 new
+tests in a new `httpClient.test.ts`, full suite **17/17 passing** (9 prior + 8 new), `eslint` 0 errors
+(3 pre-existing warnings, unrelated files), `prettier --check` clean. **QA Decision: Approved** (plain,
+no comments) — scope independently re-verified (`git diff main...feature/stage4-t69-http-client-methods
+--name-only`: exactly three files — `httpClient.ts`, `httpClient.test.ts`,
+`docs/ImplementationLog/Stage4/Phase1.md`), authorization (`cf7a570`/`0a9ad12`, PR #52, merged
+`5abceee`) confirmed to precede implementation (`cca729f`) by commit order, tests/lint/format
+independently re-run. One non-blocking, already-disclosed observation, re-confirmed not a new finding:
+`delete()`'s success path still calls `response.json()` unconditionally, inherited unchanged from
+`request<T>()`, which would throw on a real `204 No Content` response — correctly out of scope, since
+no caller of `delete()` exists yet (`T70`+ is unauthorized). **`T69` is implemented and QA-approved,
+but not yet merged** — feature commit `cca729f`, QA-approval commit `6b90ede`, both pushed to
+`feature/stage4-t69-http-client-methods` (this branch was also merged up to date with `main` this
+session, since `main` had advanced past this branch's original base via `T68`'s own post-merge
+closeout); this documentation-synchronization pass is committed to the same branch and opened as a
+pull request into `main`, not merged by this pass. See `docs/ImplementationLog/Stage4/Phase1.md`'s T69
+batch for full detail.
+
 ## Pending Work
 
 Everything past Stage 2. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md). The most likely
@@ -920,6 +947,17 @@ re-verified at `43c8ddb` this session, full suite **490/490 passing** personally
 `main` with live Postgres, `ruff`/`black` clean, boot smoke passed, `app.openapi()["paths"]` unchanged.
 **Stage 4 Phase 0 (`T66`–`T68`) is now complete in full and merged.** See
 `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
+
+**`T69` (`httpClient.ts` `post`/`put`/`delete` + structured error parsing) followed.** `post`/`put`/
+`delete` added to `httpClient.ts` alongside `get()`, sharing a new `requestWithBody()` helper;
+`HttpError` gained an optional `code` populated from the backend's structured
+`{"error":{"code","message"}}` body when present, falling back to the existing generic message
+otherwise; `get()`/`request<T>()`'s success path unchanged. 8 new tests, full suite **17/17 passing**
+(9 prior + 8 new), `eslint`/`prettier` clean. **QA Decision: Approved** (plain) — scope and
+authorization-before-implementation commit order independently re-verified. **`T69` is implemented and
+QA-approved, but not yet merged** — feature commit `cca729f`, QA-approval commit `6b90ede`, pushed to
+`feature/stage4-t69-http-client-methods`; see `docs/ImplementationLog/Stage4/Phase1.md`'s T69 batch for
+full detail.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
