@@ -2692,3 +2692,111 @@ T61/T63/T66/T67/T68's own) should independently re-verify the merged state, upda
 `PROJECT_CHECKPOINT.md` to reflect T69 as the current closed-out task, and append a dated Post-Merge
 Verification note to `docs/ImplementationLog/Stage4/Phase1.md` if a dedicated technical entry is
 wanted.
+
+## Session: Post-Merge Verification & Documentation Closeout - T69 (2026-08-18)
+
+**Goal:** As Documentation Manager, synchronize the canonical project records with T69's actual merged
+state (PR #54, merge commit `5196fdf`), ensuring no application source file is modified, `T69` is
+reflected as fully Done, and every remaining "not yet merged"/"pending" claim from the prior session's
+pre-merge documentation pass is corrected — matching how `T67`/`T68` were each closed out after their
+own merge.
+
+**Verified the Live State Directly, Not Assumed:** `git fetch origin` + `git log --oneline -8 main`
+confirmed `main`'s HEAD is `5196fdf` — "Merge pull request #54 from
+Intelligentclown/feature/stage4-t69-http-client-methods" — genuinely `main`'s current tip (no later,
+unrelated commit sits ahead of it, unlike `T67`/`T68`'s own closeouts). `git rev-parse main origin/main`
+confirmed both synchronized at `5196fdf`. `git show --no-patch --format="%H%n%P"` confirmed its parents
+are `b544135` (prior `main`, T68's own post-merge closeout) and `79af7ac` (the feature branch tip, the
+prior session's own pre-merge documentation-synchronization commit) — beneath which sit `6b90ede` (QA
+Decision — T69 batch: Approved), `d5ecdbc` (feature-commit metadata), `cca729f` (implementation), and
+`f09f3a5` (that branch's own merge of up-to-date `main`, performed before its documentation-
+synchronization pass since `main` had advanced past the branch's original base via `T68`'s own
+closeout). `gh pr view 54` independently confirmed `state: MERGED`, `mergeCommit.oid: 5196fdf...`,
+`baseRefName: main`, `headRefName: feature/stage4-t69-http-client-methods` — cross-checked against
+`git log`, not taken on the task description's word alone. `git show --stat 5196fdf` confirmed the file
+set matches the T69 batch plus its own pre-merge documentation sync exactly: `httpClient.ts`,
+`httpClient.test.ts`, `docs/ImplementationLog/Stage4/Phase1.md`, plus the five project-wide
+documentation files the prior session's own sync commit `79af7ac` touched — no backend file.
+
+**Frontend Suite Personally Re-Run Against Merged `main`:** `npm run test -- --run` (from `frontend/`)
+— **17/17 passed, 4 test files** — matching the prior session's own disclosed figure exactly, not
+merely carried over. `npm run lint` — 0 errors, 3 warnings, all three pre-existing
+(`react-refresh/only-export-components` in files this batch never touches). `npm run format:check` —
+clean. Backend suite **not** re-run this session — `T69` is frontend-only and touches no backend file
+(confirmed via `git show --stat 5196fdf`); the 490/490 backend figure is carried over from `T68`'s own
+post-merge closeout and disclosed as such, not silently presented as freshly re-verified.
+
+**Audited all target documents for staleness beyond the instances already named in the task
+description, per this project's own established discipline — not just patched the named spots.** Found
+and corrected: `PROJECT_STATE.json`'s `currentStage.note`, `completion.note`, the `stage-3` entry under
+`stages[]` (both its `note` and `completion` fields), `tests.frontend.note`, and its `git` block (which
+additionally still described the branch/commit as the pre-merge feature branch); `IMPLEMENTATION_QUEUE.md`'s
+`T69` row (still read "Not yet merged"); `docs/AI_HANDOVER.md`'s two narrative locations; `docs/Roadmap.md`'s
+one location. `PROJECT_CHECKPOINT.md` was found to still describe `T69` as "authorized but not yet
+implemented" in full throughout — not a small correction but a complete rewrite, performed below.
+Also corrected, per explicit instruction: `PROJECT_STATE.json`'s `tests.backend.note`, which mixed
+pre-merge and post-merge framing for `T68`'s own test count in the same paragraph (opened with "not
+yet merged to main" / "once T68 merges" language for a batch that had, in fact, already merged two
+sessions prior) — restated plainly as merged (PR #50, `43aa0a7`, 490/490 on `main`), without disturbing
+the historical `T67` figure preserved immediately after it.
+
+**Completed `docs/ImplementationLog/Stage4/Phase1.md`'s metadata block and QA framing, per explicit
+instruction — the one file this role does not normally rewrite the technical content of, but whose
+administrative metadata (`Status`/`Completed`/`Git Commit`/`Pull Request` fields) is exactly the kind
+of housekeeping this role performs, mirroring how earlier phase logs' own metadata blocks were
+completed the same way:** `Status: In Progress` → `Done`; `Completed:` (blank) → `2026-08-18`;
+`Git Commit`/`Pull Request` fields filled in with the real merge commit (`5196fdf`) and PR (#54). The
+QA Decision section's "no PR opened yet"/"recorded pre-PR" framing was preserved verbatim (accurate at
+the time it was written) and followed by a dated post-merge correction note stating plainly that the
+batch merged **as-is, with no rework**, between this QA Decision and the merge. A new
+`## Post-Merge Verification — T69 batch (2026-08-18)` section was appended at the end, mirroring the
+`T66` batch's own precedent in `docs/ImplementationLog/Stage4/Phase0.md` — independent re-verification
+of the merge, the test/lint/format re-run, and a closing "`T69` is now Done — merged" summary with the
+full commit chain.
+
+**Rewrote `PROJECT_CHECKPOINT.md` to reflect T69 as the current closed-out state**, following its own
+existing 15-section format exactly (Last Verified State, Current Stage, Completed Tasks table gaining
+a `T69` row, Current Task section retargeted from `T68` to `T69`, Next Cycle retargeted to `T70` —
+correctly disclosed as **not** authorized, unlike `T69`'s own prior "Next Cycle" entry which genuinely
+had a recorded authorization, Repository State, Test/Quality Status disclosing which figures were
+personally re-run this session versus carried over, Architecture Snapshot describing `httpClient.ts`'s
+actual change, Active Risks table refreshed for `T69`'s own deferred `delete()`/`response.json()`
+observation, Governance Rules, Safe Breakpoint, AI Continuation Instructions redirecting the next role
+to Project Manager for `T70`'s authorization, Authoritative Files table gaining a `Phase1.md` row,
+Checkpoint Maintenance Rules, Checkpoint Integrity). This session applied the branch+PR route from the
+start (`docs/t69-post-merge-closeout`), matching every closeout since `T67`'s own disclosed `GH006`
+rejection.
+
+**Deliberately Not Touched:** `docs/ImplementationLog/Stage4/Phase0.md`'s own still-stale `T68`
+`Git Commit`/`Pull Request` metadata fields — unrelated to `T69`, left as documentation debt for
+whoever next has standing to edit that file's content, per the restraint the `T68` closeout session
+itself already established. `CHANGELOG.md`/`docs/CHANGELOG.md` (task-level, not release-level, per
+this project's own rule — no tag is being cut here). `docs/prompts/GitCI_PR_Manager.md`/
+`docs/prompts/README.md` and `docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier
+sessions, confirmed via `git status` to remain exactly as before). `docs/ProjectStatus.md`/
+`docs/ArchitectureScorecard.md` (pre-existing, repeatedly-flagged staleness predating `T69`, not caused
+by it). `T70`'s own scope — not authorized by this pass, per `T69`'s own authorization text.
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — the merged
+frontend code was only read and independently exercised (lint/format/tests), never edited. `T70` was
+not implemented, scoped, or authorized, and no scope beyond `T69`'s own closeout was touched.
+
+**Documentation Updated (committed to `docs/t69-post-merge-closeout`, opened as a PR into `main`, not
+merged by this session — branch+PR from the start, not a direct-to-`main` attempt):**
+`PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`,
+`docs/SessionReport.md` (this file), `docs/ImplementationLog/Stage4/Phase1.md` (metadata block, QA
+framing correction, and a new Post-Merge Verification section), and `PROJECT_CHECKPOINT.md`.
+
+**Documentation Debt, Noted Not Fixed:** `docs/ImplementationLog/Stage4/Phase0.md`'s own metadata block
+still shows `T68`'s `Git Commit`/`Pull Request` fields as pending, per the explanation above.
+`docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness remains unaddressed, as
+repeatedly flagged across prior sessions. The recurring `backend/.env` vs. actual-container port
+mismatch remains unfixed (no session has been authorized to change project infrastructure files for
+this) — moot for `T69` itself, which has no database surface.
+
+**Next Session Goals:** `T70` (auth state management — a React context/provider holding the current
+user + tokens, `login()`/`logout()` actions) is **not authorized** — `T69`'s own authorization text
+explicitly excluded `T70`–`T76`. A Project Manager cycle must record an explicit authorization before
+any `T70` implementation begins. Standing items, still unaddressed: the documentation-debt items above,
+and the still-uncommitted `docs/prompts/GitCI_PR_Manager.md`/`README.md`/`docs/HANDOFF/` work from
+earlier sessions.

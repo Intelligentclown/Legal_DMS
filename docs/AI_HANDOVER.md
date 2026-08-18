@@ -485,13 +485,15 @@ no comments) — scope independently re-verified (`git diff main...feature/stage
 independently re-run. One non-blocking, already-disclosed observation, re-confirmed not a new finding:
 `delete()`'s success path still calls `response.json()` unconditionally, inherited unchanged from
 `request<T>()`, which would throw on a real `204 No Content` response — correctly out of scope, since
-no caller of `delete()` exists yet (`T70`+ is unauthorized). **`T69` is implemented and QA-approved,
-but not yet merged** — feature commit `cca729f`, QA-approval commit `6b90ede`, both pushed to
-`feature/stage4-t69-http-client-methods` (this branch was also merged up to date with `main` this
-session, since `main` had advanced past this branch's original base via `T68`'s own post-merge
-closeout); this documentation-synchronization pass is committed to the same branch and opened as a
-pull request into `main`, not merged by this pass. See `docs/ImplementationLog/Stage4/Phase1.md`'s T69
-batch for full detail.
+no caller of `delete()` exists yet (`T70`+ is unauthorized). **`T69` is now Done — merged.** Feature
+commit `cca729f`, QA-approval commit `6b90ede`, documentation-synchronization commit `79af7ac`, PR #54,
+merge commit `5196fdf` (2026-08-18, parents `b544135` and `79af7ac`) — `main`/`origin/main` both
+independently re-verified at `5196fdf` this session via `git log`/`git show` and `gh pr view 54` (state
+`MERGED`), not taken on faith. `git show --stat 5196fdf` confirms the file set matches the T69 batch
+plus its own documentation sync exactly — no backend file touched. Frontend suite **17/17 passing**,
+`eslint`/`prettier` clean, personally re-run against merged `main` this session, not carried over from
+the pre-merge figure. **Stage 4 Phase 5 (`T69`) is now complete in full.** See
+`docs/ImplementationLog/Stage4/Phase1.md`'s Post-Merge Verification — T69 batch note for full detail.
 
 ## Pending Work
 
@@ -954,10 +956,12 @@ re-verified at `43c8ddb` this session, full suite **490/490 passing** personally
 `{"error":{"code","message"}}` body when present, falling back to the existing generic message
 otherwise; `get()`/`request<T>()`'s success path unchanged. 8 new tests, full suite **17/17 passing**
 (9 prior + 8 new), `eslint`/`prettier` clean. **QA Decision: Approved** (plain) — scope and
-authorization-before-implementation commit order independently re-verified. **`T69` is implemented and
-QA-approved, but not yet merged** — feature commit `cca729f`, QA-approval commit `6b90ede`, pushed to
-`feature/stage4-t69-http-client-methods`; see `docs/ImplementationLog/Stage4/Phase1.md`'s T69 batch for
-full detail.
+authorization-before-implementation commit order independently re-verified. **`T69` is now Done —
+merged.** Feature commit `cca729f`, QA-approval commit `6b90ede`, PR #54, merge commit `5196fdf`
+(2026-08-18) — `main`/`origin/main` both independently re-verified at `5196fdf` this session, full
+suite **17/17 passing** personally re-run against merged `main`, `eslint`/`prettier` clean. **Stage 4
+Phase 5 (`T69`) is now complete in full.** See `docs/ImplementationLog/Stage4/Phase1.md`'s Post-Merge
+Verification — T69 batch note for full detail.
 
 Outside of Stage 3, do not add business entities, new major dependencies, or
 any repository/service/route touching the other Stage 2 tables (Matter/Client/Property/Document/
