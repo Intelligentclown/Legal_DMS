@@ -352,6 +352,19 @@ against merged `main` with live Postgres, `ruff`/`black` clean, boot smoke passe
 **Stage 4 Phase 0 (`T66`–`T68`) is now complete in full and merged.** See
 `docs/ImplementationLog/Stage4/Phase0.md`'s T68 batch for full detail.
 
+**`T69` (`httpClient.ts` `post`/`put`/`delete` + structured error parsing) followed — the first Stage
+4 Phase 1 (Frontend) task, closing Stage 2.5's finding F10.** `post`/`put`/`delete` added to
+`httpClient.ts` alongside `get()`, sharing a new `requestWithBody()` helper; `HttpError` gained an
+optional `code` populated from the backend's structured `{"error":{"code","message"}}` body when
+present, falling back to the existing generic message otherwise; `get()`/`request<T>()`'s success path
+unchanged. 8 new tests, full suite **17/17 passing** (9 prior + 8 new), `eslint`/`prettier` clean.
+**QA Decision: Approved** (plain) — scope (`git diff main...feature/stage4-t69-http-client-methods
+--name-only`: exactly three files) and authorization-before-implementation commit order (`cf7a570`/
+`0a9ad12`, PR #52, merged `5abceee`, precedes `cca729f`) independently re-verified. **`T69` is
+implemented and QA-approved, but not yet merged** — feature commit `cca729f`, QA-approval commit
+`6b90ede`, both pushed to `feature/stage4-t69-http-client-methods`; see
+`docs/ImplementationLog/Stage4/Phase1.md`'s T69 batch for full detail.
+
 | Feature | Status |
 |---|---|
 | Authentication / login | In Progress — see `IMPLEMENTATION_QUEUE.md` |
