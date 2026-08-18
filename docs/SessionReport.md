@@ -2449,6 +2449,25 @@ permanent record.
 
 **Confirmed:** no application source, test, or migration file was modified by this pass — the merged backend code was only read and independently exercised (lint/format/boot/tests), never edited. `T68` was not started, scoped, or authorized anywhere in this session's edits — every reference reads "not started, not authorized."
 
-**Documentation Updated (committed directly to `main`, per explicit instruction — this is a documentation-only closeout pass, matching this project's established pattern for these):** `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`, `docs/Roadmap.md`, `docs/SessionReport.md` (this file), and `PROJECT_CHECKPOINT.md`.
+**Correction — direct-to-`main` was attempted and rejected, not performed.** The initial instruction
+for this closeout was to commit directly to `main`. That was attempted; GitHub's branch protection
+rejected it outright (`GH006: Protected branch update failed... Changes must be made through a pull
+request`) — confirmed live via the actual `git push` error, not assumed from documentation. Asked how
+to proceed, the project owner chose the branch+PR route, matching what every prior closeout (`T60`'s
+PR #28, `T66`'s PR #45) actually did. The closeout commit (`6794548`) was moved onto a new branch,
+`docs/t67-post-merge-closeout`; local `main` was reset back to match `origin/main` (`fc0b142`) so no
+unpushed commit was left sitting directly on it. A follow-up commit on that branch corrected the
+`PROJECT_CHECKPOINT.md` language that had (incorrectly) asserted a "direct-to-`main` is established
+practice" exception — that claim did not survive contact with the actual protected-branch rule and is
+not repeated going forward.
 
-**Next Session Goals:** `T68` (seed-row-count and bootstrap-idempotency test coverage, depends on `T67`) is the next unstarted task in `IMPLEMENTATION_QUEUE.md`'s order — **not authorized**. Standing items, still unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness, the recurring `backend/.env` vs. actual-container port mismatch, and the still-uncommitted `docs/prompts/GitCI_PR_Manager.md`/`README.md`/`docs/HANDOFF/` work from earlier sessions.
+**Documentation Updated (committed to `docs/t67-post-merge-closeout`, opened as a PR into `main`, not
+merged by this session):** `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md` (this file), and `PROJECT_CHECKPOINT.md`.
+
+**Next Session Goals:** merge this session's documentation PR to bring the corrected governance
+records onto `main`. `T68` (seed-row-count and bootstrap-idempotency test coverage, depends on `T67`)
+is the next unstarted task in `IMPLEMENTATION_QUEUE.md`'s order — **not authorized**. Standing items,
+still unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness,
+the recurring `backend/.env` vs. actual-container port mismatch, and the still-uncommitted
+`docs/prompts/GitCI_PR_Manager.md`/`README.md`/`docs/HANDOFF/` work from earlier sessions.

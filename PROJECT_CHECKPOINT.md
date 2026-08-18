@@ -143,13 +143,17 @@ them.** `T68` must not be started merely because `T67` is closed.
   — merged (three commits: `b409f78` implementation, `790b778` QA-approval, `a73d1c5`
   documentation-synchronization), still present on `origin` as of this session, safe to delete if not
   already (not performed by this pass).
-- **This session's own branch:** none — per explicit instruction, this session's documentation
-  closeout is committed **directly to `main`**, matching this project's established pattern for
-  post-merge documentation-only closeout passes (as `T60`'s checkpoint-sync PR #28 and `T66`'s
-  post-merge closeout did before it).
+- **This session's own branch:** `docs/t67-post-merge-closeout`. A direct push to `main` was
+  attempted first, per the initial instruction, and was rejected by GitHub's branch protection
+  (`GH006: Protected branch update failed... Changes must be made through a pull request`) —
+  confirmed live, not assumed. The project owner then chose the branch+PR route, matching what
+  `T60`'s checkpoint-sync PR #28 and `T66`'s post-merge closeout (PR #45) actually did; this
+  session's closeout commit was moved onto this branch, opened as a PR into `main`, same as every
+  other closeout.
 - **Any task implementation sitting uncommitted?** No — `T67`'s code is fully committed and merged.
-- **Any task documentation sitting uncommitted?** No — this session's own edits are committed directly
-  to `main` as part of this same closeout pass. Separately, `docs/prompts/README.md` (modified) and
+- **Any task documentation sitting uncommitted?** No task documentation is *uncommitted* — this
+  session's own governance-file updates are committed to `docs/t67-post-merge-closeout`, just not yet
+  *merged* into `main` until its PR merges. Separately, `docs/prompts/README.md` (modified) and
   `docs/prompts/GitCI_PR_Manager.md`/`docs/HANDOFF/` (untracked) remain uncommitted from earlier,
   unrelated work.
 - **PR verifiable locally and via `gh`?** Yes — `git log --oneline --decorate -5` shows `fc0b142 (HEAD
@@ -242,12 +246,13 @@ full:
   view`, direct read of the QA Decision text), not assumed from a task description's claim.
 - **A task is `Done` only when code and QA Decision are both merged into `main`** — `T67` now
   genuinely satisfies this.
-- **`main` is protected.** Branch strategy: `feature/<name>` (or `docs/<topic>`) off `main` → commit
-  → PR → merge → delete branch → update local `main`. This session's own documentation-only closeout
-  is committed directly to `main`, per explicit instruction — the same established exception this
-  project has used for prior post-merge closeout passes (e.g. `T60`'s checkpoint-sync PR #28 was still
-  a branch+PR, but this project's Documentation Manager prompt permits a direct-to-`main` documentation
-  commit when the project owner explicitly instructs it, as happened here).
+- **`main` is protected — genuinely, at the GitHub-settings level, not just by convention.** Branch
+  strategy: `feature/<name>` (or `docs/<topic>`) off `main` → commit → PR → merge → delete branch →
+  update local `main`. This session initially attempted a direct commit to `main` per its instruction,
+  which GitHub's branch protection rejected outright (`GH006`) — there is no "documentation-only
+  closeout" exception to this rule in practice, regardless of what an earlier draft of this section
+  claimed. This session's closeout instead went through `docs/t67-post-merge-closeout` + a PR, the
+  same as every prior closeout (`T60`'s checkpoint-sync PR #28, `T66`'s PR #45).
 - **Preserve historical governance deviations rather than rewriting history.** `T67`'s QA Decision and
   its two non-blocking comments are recorded in full, unedited, in
   `docs/ImplementationLog/Stage4/Phase0.md`'s own T67 batch — this checkpoint restates it rather than
@@ -261,8 +266,9 @@ full:
 `T67`'s **code** is complete and merged (`fc0b142`, PR #47). `T67`'s **QA Decision** is committed and
 was pushed before that merge. `T67`'s **documentation** was merged as part of PR #47 and further
 verified/corrected this session. The repository's committed state on `main` fully reflects `T67` as
-closed at the code/QA/documentation level — this session's own closeout is committed directly to
-`main`, nothing remains pending on a branch.
+closed at the code/QA level; this session's own further-verification edits (this file included) are
+committed to `docs/t67-post-merge-closeout` and opened as a PR into `main` — not merged by this
+session, matching every prior closeout's pattern.
 
 **Next cycle begins with: `T68`** — **not authorized.** `T68` must not be started merely because `T67`
 is closed.
@@ -320,8 +326,8 @@ should decide whether and how to resolve them — not addressed here.
   Decision (`Approved with comments`, two named non-blocking comments) is preserved in full above, not
   smoothed over.
 - **Never** claim a clean breakpoint while uncommitted or unmerged *task* work remains — `T67` itself
-  has none; this session's own edits are committed directly to `main`, per explicit instruction, with
-  nothing left pending on a branch.
+  has none; this session's own edits are committed to `docs/t67-post-merge-closeout` and disclosed as
+  pending a PR merge in §6/§11, not silently presented as already on `main`.
 - **Never** claim an authorization or QA-approval commit "preceded merge" without a commit to point to
   — `T67`'s QA commit (`790b778`) is independently re-verified this way, as an ancestor of `fc0b142` in
   `git log`.
