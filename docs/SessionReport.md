@@ -2428,3 +2428,46 @@ permanent record.
 **Confirmed:** no application source, test, or migration file was modified by this pass — read-only verification of the merged/pushed backend state, documentation files only edited.
 
 **Next Session Goals:** commit this synchronization to `feature/stage4-t67-first-admin-bootstrap`, push, and open a pull request into `main` referencing T67, the `docs/ImplementationLog/Stage4/Phase0.md` batch, and its QA Decision — not merging it. Once merged, a post-merge closeout pass (mirroring T61/T63/T66's own) should independently re-verify the merged state and append a dated Post-Merge Verification note to `docs/ImplementationLog/Stage4/Phase0.md`, matching this project's established pattern.
+
+---
+
+## Session: Post-Merge Verification & Documentation Closeout - T67 (2026-08-18)
+
+**Goal:** As Documentation Manager, synchronize the canonical project records with T67's actual merged state (PR #47, merge commit `fc0b142`), ensuring no implementation file is modified, `T68` remains unauthorized, and every remaining "not yet merged" claim from the prior session's pre-merge documentation pass is corrected.
+
+**Verified the Live State Directly, Not Assumed:** `git fetch origin` + `git log --oneline -10 origin/main` confirmed `main`'s HEAD is `fc0b142` — "Merge pull request #47 from Intelligentclown/feature/stage4-t67-first-admin-bootstrap." `git show --no-patch --format="%H%n%P"` confirmed its parents are `65b737a` (prior `main`) and `a73d1c5` (the feature branch tip, exactly the commit this project's own prior session left it at). `gh pr view 47` independently confirmed `state: MERGED`, `mergeCommit.oid: fc0b142...`, `baseRefName: main`, `headRefName: feature/stage4-t67-first-admin-bootstrap` — cross-checked against `git log`, not taken on the task description's word alone. `git show --stat fc0b142` confirmed the file set matches the T67 batch exactly (`backend/src/app/infrastructure/cli/bootstrap.py`, `backend/src/app/infrastructure/cli/__init__.py`, `backend/tests/integration/test_bootstrap_admin.py`, `backend/pyproject.toml`, `docs/ImplementationLog/Stage4/Phase0.md`, plus the five documentation files the prior session's own sync commit `a73d1c5` touched).
+
+**Test Suite Personally Re-Run Against Merged `main`:** `docker ps` confirmed `legal_dms_postgres` healthy on host port `5433` (the already-disclosed `.env`-vs-container port drift, worked around locally via a shell-level `DATABASE_URL` override, `backend/.env` itself not modified). `uv run pytest -q` — **487 passed, 0 failed, 0 skipped**, matching `docs/ImplementationLog/Stage4/Phase0.md`'s own disclosed figure exactly, not merely carried over. `uv run ruff check src tests alembic` — clean. `uv run black --check src tests alembic` — clean, 204 files unchanged. Boot smoke test (`python -c "from app.main import app"`) succeeded; `app.openapi()["paths"]` independently confirmed unchanged — still exactly the eleven routes `T63` established (`T67` adds a CLI entry point, not a route). `backend/pyproject.toml`'s `[project.scripts]` `bootstrap-admin = "app.infrastructure.cli.bootstrap:main"` entry independently confirmed present.
+
+**Corrected every remaining "not yet merged"/"PR pending" phrase to the true merged state:** `PROJECT_STATE.json` (`currentStage.note`, the `stage-3` entry under `stages[]`, `completion.currentStageScopePercent` 65 → 68, `tests.backend` reconciled to 487/487 as personally re-run post-merge, and the `git` block corrected from the stale feature-branch/`790b778` state back to `main`/`fc0b142`); `IMPLEMENTATION_QUEUE.md` (`T67`'s row now carries the full `Done — merged` closeout with PR #47/`fc0b142`, and the Stage 3 section's leftover "`T67` is implemented and QA-approved, not yet merged" trailing sentence — added just last session, already needing correction one session later — corrected to "`T61`–`T67` are all Done and merged"); `docs/AI_HANDOVER.md` (both narrative locations — "Current Stage" and "What Should Be Implemented Next" — that read "implemented and QA-approved, but not yet merged" now read "is now Done — merged," with PR #47/`fc0b142`); `docs/Roadmap.md` (the same correction, one location).
+
+**Preserved the QA Decision's and the batch narrative's own historical text untouched, per this project's rule against rewriting completed records.** `docs/ImplementationLog/Stage4/Phase0.md`'s `QA Decision — T67 batch` section (recording the pre-PR `Approved with comments` disposition and its two non-blocking comments) is left exactly as written — merged as part of PR #47 itself, not touched by this session. No new Post-Merge Verification section was appended to that file this session, unlike some prior closeouts (`T61`, `T66`) — this pass's post-merge verification is instead recorded here and in `PROJECT_STATE.json`/`IMPLEMENTATION_QUEUE.md`, consistent with the "don't duplicate `ImplementationLog`'s content" rule; a future session may still add one if a dedicated technical Post-Merge Verification entry is wanted.
+
+**Rewrote `PROJECT_CHECKPOINT.md` to reflect T67 as the current closed-out state**, following its own existing 15-section format exactly (Last Verified State, Current Stage, Completed Tasks table gaining a `T67` row, Current Task section retargeted from `T66` to `T67`, Next Cycle retargeted to `T68` — not authorized, Repository State, Test/Quality Status, Architecture Snapshot, Active Risks, Governance Rules, Safe Breakpoint, AI Continuation Instructions, Authoritative Files table's `Stage4/Phase0.md` row corrected from "`T67` not yet started" to "`T66`–`T67` complete," Checkpoint Maintenance Rules, Checkpoint Integrity) — the same file the prior T67 session flagged as documentation debt still carrying stale "`T67` not authorized" language throughout, now fully reconciled.
+
+**Left deliberately unchanged, and why:** `docs/prompts/GitCI_PR_Manager.md`/`docs/prompts/README.md` and `docs/HANDOFF/` (separate, unrelated, still-uncommitted work from earlier sessions, confirmed via `git status` to remain exactly as before — not touched by this pass, same as every prior closeout); `backend/.env` (known port-drift issue, disclosed not fixed — no session has been authorized to change project infrastructure files for this); `CHANGELOG.md`/`docs/CHANGELOG.md` (task-level, not release-level, per this project's own rule — no tag is being cut here); `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md` (pre-existing, repeatedly-flagged staleness predating `T67`, not caused by it).
+
+**Confirmed:** no application source, test, or migration file was modified by this pass — the merged backend code was only read and independently exercised (lint/format/boot/tests), never edited. `T68` was not started, scoped, or authorized anywhere in this session's edits — every reference reads "not started, not authorized."
+
+**Correction — direct-to-`main` was attempted and rejected, not performed.** The initial instruction
+for this closeout was to commit directly to `main`. That was attempted; GitHub's branch protection
+rejected it outright (`GH006: Protected branch update failed... Changes must be made through a pull
+request`) — confirmed live via the actual `git push` error, not assumed from documentation. Asked how
+to proceed, the project owner chose the branch+PR route, matching what every prior closeout (`T60`'s
+PR #28, `T66`'s PR #45) actually did. The closeout commit (`6794548`) was moved onto a new branch,
+`docs/t67-post-merge-closeout`; local `main` was reset back to match `origin/main` (`fc0b142`) so no
+unpushed commit was left sitting directly on it. A follow-up commit on that branch corrected the
+`PROJECT_CHECKPOINT.md` language that had (incorrectly) asserted a "direct-to-`main` is established
+practice" exception — that claim did not survive contact with the actual protected-branch rule and is
+not repeated going forward.
+
+**Documentation Updated (committed to `docs/t67-post-merge-closeout`, opened as a PR into `main`, not
+merged by this session):** `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`,
+`docs/Roadmap.md`, `docs/SessionReport.md` (this file), and `PROJECT_CHECKPOINT.md`.
+
+**Next Session Goals:** merge this session's documentation PR to bring the corrected governance
+records onto `main`. `T68` (seed-row-count and bootstrap-idempotency test coverage, depends on `T67`)
+is the next unstarted task in `IMPLEMENTATION_QUEUE.md`'s order — **not authorized**. Standing items,
+still unaddressed: `docs/ProjectStatus.md`/`docs/ArchitectureScorecard.md`'s pre-Stage-3 staleness,
+the recurring `backend/.env` vs. actual-container port mismatch, and the still-uncommitted
+`docs/prompts/GitCI_PR_Manager.md`/`README.md`/`docs/HANDOFF/` work from earlier sessions.

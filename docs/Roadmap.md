@@ -329,10 +329,12 @@ suite **487/487 passing (482 prior + 5 new)**, `ruff`/`black` clean. **QA Decisi
 comments** — `D4` compliance and idempotency independently re-verified; two non-blocking comments
 (hand-rolled persistence instead of reusing `SqlAlchemyUserRepository.assign_role()`; an untested
 missing-role `RuntimeError` guard). Authorization commit `119d612` (PR #46, merged `65b737a`) precedes
-implementation commit `b409f78`. **`T67` is implemented and QA-approved, but not yet merged** —
-feature commit `b409f78`, QA-approval commit `790b778`, both pushed to
-`feature/stage4-t67-first-admin-bootstrap`; see `docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch
-for full detail. `T68` remains not started, not authorized.
+implementation commit `b409f78`. **`T67` is now Done — merged.** Feature commit `b409f78`,
+QA-approval commit `790b778`, PR #47, merge commit `fc0b142` (2026-08-18) — `main`/`origin/main` both
+independently re-verified at `fc0b142` this session, full suite **487/487 passing** personally re-run
+against merged `main` with live Postgres, `ruff`/`black` clean, boot smoke passed, OpenAPI unchanged.
+See `docs/ImplementationLog/Stage4/Phase0.md`'s T67 batch for full detail. `T68` remains not started,
+not authorized.
 
 | Feature | Status |
 |---|---|
