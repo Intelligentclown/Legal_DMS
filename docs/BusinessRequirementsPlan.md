@@ -15,8 +15,15 @@ planning.*
 > been overtaken by decisions made during Stages 1–3 (see the review notes at the end of this
 > document), those later decisions govern; this document is not silently authoritative over
 > the actual repository.
+>
+> **Editorial note (added at the project owner's request):** The original text below named
+> a specific advocate/practice as the initial reference client. That reference has been
+> generalized here, since the system is not scoped to a single practitioner and is intended
+> for use by multiple users/practices once complete. This is the one departure from this
+> document's "preserved verbatim" framing above — flagged here rather than silently edited,
+> consistent with this repository's documentation conventions.
 
-For Advocate Devang M. Khatri Legal Documentation Practice.
+For a legal documentation practice.
 
 ## 1. Executive Summary
 
