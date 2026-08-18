@@ -207,10 +207,75 @@ only after a QA Decision exists.
 ```
 QA Decision (T69 batch)
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
 ```
 
-Not yet rendered — this role (Frontend Developer) stops after implementation and self-assessment,
-per its stop condition. QA review happens in a separate session.
+Rendered by the QA Reviewer role, independently, against feature commit `cca729f`
+(`feature/stage4-t69-http-client-methods`) — no PR opened yet; this decision is recorded pre-PR, per
+this project's practice of committing the QA Decision to the branch before any PR is opened or
+merged. Context rebuilt from the repository directly (`docs/prompts/QAReviewer.md`,
+`PROJECT_WORKFLOW.md`, `IMPLEMENTATION_QUEUE.md`'s T69 row, this phase log) — not from prior chat
+history.
+
+**Files reviewed:** `frontend/src/infrastructure/api/httpClient.ts`,
+`frontend/src/infrastructure/api/httpClient.test.ts`, and this phase log — the full diff against
+`main` (`git diff main...feature/stage4-t69-http-client-methods`), read directly, not the
+Developer's summary alone.
+
+**Verification Results (checked directly against the repository and live test/lint runs, not taken
+from the Developer's self-assessment):**
+
+- **Authorization:** T69's authorization commit (`cf7a570`, `PROJECT_STATE.json` sync `0a9ad12`,
+  PR #52, merged `5abceee`) precedes the implementation commit (`cca729f`) — confirmed by commit
+  order via `git log`.
+- **Scope:** `git diff main...feature/stage4-t69-http-client-methods --name-only` independently
+  confirms exactly three files changed: `httpClient.ts`, `httpClient.test.ts`, and this phase log.
+  Matches `IMPLEMENTATION_QUEUE.md`'s T69 row exactly — no forbidden file touched, no route/schema/
+  backend file touched, `T70`–`T76` not implemented.
+- **HTTP methods and body serialization — read directly, not assumed:** `requestWithBody()` passes
+  `method` straight through to `fetch`'s `init.method`, so `post`/`put` issue `"POST"`/`"PUT"` and
+  `delete` issues `"DELETE"`. The body is `JSON.stringify(body)` only when `body !== undefined`
+  (otherwise `undefined`, not the string `"undefined"` fetch would otherwise send) — correct
+  serialization, including the no-body `delete()` case.
+- **Structured-error validation is a genuine structural check, not an assumption the backend sent
+  what's expected:** `isStructuredErrorBody()` verifies the body itself is a non-null object, that
+  its `error` property is also a non-null object (the explicit `=== null` check matters here —
+  `typeof null` is `"object"` in JS, so a bare `typeof` check alone would have let `error: null`
+  through), and that both `code` and `message` are actually strings before `buildHttpError()` trusts
+  any of it. A body with the right keys but wrong types, or missing keys entirely, correctly falls
+  through to the generic fallback rather than being trusted.
+- **Fails safely, doesn't crash, on non-JSON or differently-shaped bodies:** `buildHttpError()`
+  wraps `response.json()` in `try`/`catch`, so an unparseable body (confirmed via a test where
+  `.json()` rejects) is caught and resolves to the generic-message `HttpError`, never an unhandled
+  rejection. A body that parses as valid JSON but doesn't match the structured shape — wrong keys, a
+  bare string, `error: null` — falls through the type guard to the same generic fallback. No path
+  found where a malformed error body reaches an unhandled throw or a `TypeError` from blindly
+  indexing into an unexpected shape.
+- **Tests — independently re-run, not taken on the reported count:** `npm run test -- --run` on this
+  branch: **17/17 passing, 4 test files** — matches the Developer's claim. The 4 new error-handling
+  tests are non-vacuous: each asserts a specific `.status`/`.code`/`.message` combination, and the
+  two fallback tests exercise genuinely different failure modes (a real-but-non-matching JSON shape,
+  and a rejecting `.json()` call) rather than duplicating the same path twice. The verb tests assert
+  the actual `RequestInit` passed to the mocked `fetch`, not just that the call didn't throw.
+- **Lint/format — independently re-run:** `npm run lint`: 0 errors, 3 warnings, all three
+  pre-existing (`react-refresh/only-export-components` in files this batch never touches) — matches
+  the documented baseline. `npm run format:check`: clean.
+- **Architecture:** no port/contract or layering change; `get()` and `request<T>()`'s success path
+  are byte-for-byte unchanged; `httpClient`'s existing shape (a plain object of verb functions) is
+  extended, not redesigned.
+
+**Non-blocking observation, already disclosed by the Developer, re-confirmed here rather than raised
+as a new finding:** `delete()`'s success path still calls `response.json()` unconditionally
+(inherited unchanged from the pre-existing `request<T>()`), which would throw on a real `204 No
+Content` response. Correctly out of this batch's scope — no caller of `delete()` exists yet (`T70`+
+is unauthorized), and extending the success-path body handling was never part of T69's approved
+scope. The phase log's own Deferred Work section already names this with `T70`+ as the trigger; no
+QA action required.
+
+**Required changes:** None.
+
+No defects found. Scope matches authorization exactly. Tests are real and independently confirmed
+passing. Error parsing validates response shape before trusting it and fails safely on both
+non-JSON and differently-shaped bodies.
