@@ -103,14 +103,18 @@ pass, from `frontend/`:
   instance of the *same* warning in the new `AuthProvider.tsx` (it exports both the `AuthProvider`
   component and the `useAuth` hook from one file — the identical shape `NotificationProvider.tsx`/
   `ThemeProvider.tsx` already have this warning for, not a new category of problem).
-- `npm run format:check` (prettier --check): **fails on 3 files** —
-  `src/app/providers/AuthProvider.tsx`, `src/domain/types/auth.ts`,
-  `src/infrastructure/api/httpClient.ts`. Not corrected in this pass: this batch's authorized scope
-  (per the project owner's own instruction that produced it) is to document the governance finding
-  below and self-assess, not to modify the implementation — `prettier --write` was deliberately not
-  run so the QA Reviewer sees the implementation commit exactly as it was made, not a version this
-  corrective pass cleaned up first. Flagged here as a known, disclosed gap for whoever picks up
-  rework, not hidden.
+- `npm run format:check` (prettier --check): **failed on 3 files at the time this corrective pass was
+  first written** — `src/app/providers/AuthProvider.tsx`, `src/domain/types/auth.ts`,
+  `src/infrastructure/api/httpClient.ts`. Deliberately not corrected at that point, so the QA Reviewer
+  would see the implementation commit exactly as it was made, not a version already cleaned up.
+
+  **Update (2026-08-19, QA Rework required change 1, commit pending in this rework pass):**
+  `prettier --write` run on exactly those 3 files, no other file touched. Diff inspected directly and
+  confirmed formatting-only (JSX collapsed to one line, a trailing blank line removed, one long arrow
+  function re-wrapped) — zero semantic change. Re-run after the fix: `npm run format:check` — **all
+  matched files use Prettier code style**; `npm run lint` — **0 errors, 4 warnings** (unchanged — the
+  3 pre-existing warnings plus `AuthProvider.tsx`'s, as before); `npm run test` — **17/17 passing**,
+  unchanged.
 
 ### Design Decisions
 
@@ -128,11 +132,30 @@ absorbed, per this project's "trust the code, report the discrepancy" discipline
   existing, unmodified `httpClient.post(...)` ... then clears context state" with no mention of
   conditional logic or error handling. The actual implementation only calls the endpoint if
   `state.tokens?.refresh_token` is truthy, wraps the call in `try`/`catch` (logging via
-  `console.error` on failure), and clears state unconditionally afterward either way. This is a
-  defensible defensive-programming choice (logout shouldn't get stuck if the network call fails, and
-  calling `/logout` with no token present is pointless) but goes beyond what the authorization text
-  literally described — surfaced here for QA to judge, not pre-judged as acceptable or not by this
-  pass.
+  `console.error` on failure), and clears state unconditionally afterward either way. The guard (skip
+  the call entirely with no token to send) is sound defensive programming with no behavioral cost.
+  **Corrected by QA (2026-08-19, `feature/stage4-t70-auth-state-management` QA Decision, commit
+  `6493408`) — this entry originally described the `try`/`catch` as guarding against a hypothetical
+  network failure; that was inaccurate, not merely incomplete.** QA independently verified the actual
+  behavior: `POST /api/v1/auth/logout` returns `204 No Content` (confirmed directly in
+  `backend/src/app/presentation/api/v1/auth.py`), and `httpClient`'s shared `request<T>()` success
+  path calls `response.json()` unconditionally on any `2xx` response — verified empirically
+  (`new Response(null, { status: 204 }).json()` rejects with `SyntaxError: Unexpected end of JSON
+  input`). This means **every successful call to `httpClient.post("/api/v1/auth/logout", ...)`
+  throws**, deterministically, 100% of the time — not a hypothetical network-failure edge case. The
+  `catch` block's `console.error("Logout request failed:", ...)` therefore fires and misreports
+  success as failure on every normal logout, even though the backend request already completed
+  successfully server-side (the token is genuinely revoked) before the client-side parse throws.
+  **Functional impact is limited:** `setState({ currentUser: null, tokens: null })` sits after the
+  `try`/`catch` and runs unconditionally either way, so the user is still logged out client-side
+  correctly — the defect is a misleading console error on every successful logout, not a broken
+  logout. This is a generalization of the exact gap `T69`'s own phase log already disclosed for
+  `delete()` (`response.json()` unconditionally called on a `204` response) — now concretely exercised
+  for the first time via `post()`, because `T70`'s `logout()` is the first real caller. **The actual
+  fix belongs to a future `httpClient.ts` task** (correcting `request<T>()`'s success-path body
+  handling for no-content responses) **and is outside `T70`'s authorized scope** — only `get()`'s
+  `headers` parameter was authorized for that file in this batch, so no code change is made to
+  `AuthProvider.tsx` or `httpClient.ts` here; see Deferred Work for the named trigger.
 
 ### Problems Encountered
 
@@ -165,9 +188,21 @@ pass:** `prettier --check` fails on 3 of the 4 implementation files — see Test
 
 ### Deferred Work
 
-- **Formatting fix** (`prettier --write` on the 3 flagged files) — deliberately not performed in this
-  corrective pass; see Test Results for why. Belongs to whatever rework pass follows the QA Reviewer's
-  independent review, once one is arranged.
+- **Formatting fix** (`prettier --write` on the 3 flagged files) — done as QA Rework required change
+  1 (2026-08-19, commit pending in this same rework pass); see Test Results, updated in place.
+- **`httpClient.ts`'s `request<T>()` success path calls `response.json()` unconditionally on any
+  `2xx` response, including `204 No Content`.** Named, concrete trigger (not a vague "someday"):
+  `POST /api/v1/auth/logout` returns `204`, so **every** call to `httpClient.post("/api/v1/auth/logout",
+  ...)` — first exercised by `T70`'s `logout()` — deterministically throws a `SyntaxError` on the
+  client side even though the request already succeeded server-side; `AuthProvider.tsx`'s `try`/
+  `catch` currently masks this by logging it as `"Logout request failed:"` on every successful
+  logout. This generalizes the identical gap `T69`'s own phase log (`Stage4/Phase1.md`) already
+  disclosed for `delete()` — now concretely reproduced via `post()`. **The fix belongs to whichever
+  task next touches `httpClient.ts`'s success-path parsing** (e.g. treating `204`/empty bodies as
+  `Promise<void>` rather than always calling `response.json()`) — out of `T70`'s authorized scope
+  (only `get()`'s `headers` parameter was authorized for that file in this batch). Flagged as a
+  concrete blocker worth resolving before `T74`/`T76` build further on top of `logout()`, per QA's
+  Rework required change 2 (2026-08-19, commit `6493408`).
 - **Automated test coverage for `T70`** — not deferred by oversight, but by explicit prior
   authorization: `T76` owns it, batched with `T71`–`T75`.
 - **Token persistence** (`T71`), UI (`T72`/`T75`), routing (`T73`), header injection/401 handling
