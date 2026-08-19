@@ -63,7 +63,8 @@ function requestWithBody<T>(method: string, path: string, body?: unknown): Promi
 }
 
 export const httpClient = {
-  get: <T>(path: string): Promise<T> => request<T>(path),
+  get: <T>(path: string, options?: { headers?: Record<string, string> }): Promise<T> =>
+    request<T>(path, { headers: options?.headers }),
   post: <T>(path: string, body?: unknown): Promise<T> => requestWithBody<T>("POST", path, body),
   put: <T>(path: string, body?: unknown): Promise<T> => requestWithBody<T>("PUT", path, body),
   delete: <T>(path: string): Promise<T> => requestWithBody<T>("DELETE", path),
