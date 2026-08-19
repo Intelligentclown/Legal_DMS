@@ -287,3 +287,12 @@ IPC pattern (`APP_INFO`).
 
 Per `docs/prompts/QAReviewer.md` §7 (Stop Conditions), this role stops here: no documentation
 synchronization, no PR, no merge performed in this pass.
+
+## Post-Merge Verification -- T71 batch
+
+**Status:** Done -- merged.
+
+- **Git Commit:** `b770505` (merge commit, parents `1da8838` and `bb98ad3`).
+- **Pull Request:** #61
+
+Merged to `main`. Verified directly via `git show --stat b770505` this session: exactly six files landed (`electron/ipc/channels.ts`, `electron/main.ts`, `electron/preload.ts`, `docs/ImplementationLog/Stage4/Phase3.md`, `IMPLEMENTATION_QUEUE.md`, and `PROJECT_STATE.json`), matching the pre-merge QA approval and the pre-merge documentation sync. No scope creep, no unexpected files came along.
