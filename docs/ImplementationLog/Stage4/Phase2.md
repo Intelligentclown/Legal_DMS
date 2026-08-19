@@ -14,13 +14,14 @@ Related ADRs: None (no new architectural decision — matches the existing `Them
 `NotificationProvider.tsx` context/provider pattern; token persistence, the one genuinely
 architectural piece per `ADR-0018`'s D6, is `T71`'s job, explicitly out of scope here)
 
-Git Commit: `da29014` (implementation), `2cf052c` (authorization), `0b30ba2` (initial phase log) —
-pushed to `origin` by the QA Reviewer pass alongside its own QA Decision commit, `6493408`
-(independently confirmed on `origin/feature/stage4-t70-auth-state-management` via `git fetch` +
-`git log` this session). `d54b0a3` (rework: prettier formatting fix + phase-log correction, this
-pass) is **local only, not pushed**, per this rework pass's own explicit stop condition — see the
-`QA Decision — T70 batch` section for QA's required changes and Problems Encountered for the
-governance finding.
+Git Commit: `2cf052c` (authorization), `da29014` (implementation), `0b30ba2` (initial phase log),
+`6493408` (QA Decision: Rework required) — pushed to `origin` by the original QA Reviewer pass.
+`d54b0a3` (rework: formatting fix + phase-log correction) and `d0d73e7` (rework: commit-hash/metadata
+fill-in) were **local only** at the start of this re-review — independently confirmed via `git fetch`
++ `git log origin/feature/stage4-t70-auth-state-management`, which listed only through `6493408`.
+This re-review pass pushed the branch, carrying `d54b0a3`/`d0d73e7` to `origin` alongside its own QA
+Decision commit. See the `QA Re-Review — T70 batch` section for the commit hash and Problems
+Encountered for the governance finding.
 
 Pull Request: not opened
 
@@ -417,3 +418,92 @@ for the formatting gap (Required change 1) and the phase-log correction it surfa
 (Required change 2). Per `PROJECT_WORKFLOW.md`'s Definition of Done and this role's stop condition:
 documentation synchronization and merge wait until a later QA Decision clears this gate; no fix is
 implemented by this review itself.
+
+## QA Re-Review — T70 batch (rework verification)
+
+Rendered by a separate QA Reviewer session, independently, against
+`feature/stage4-t70-auth-state-management` at its current tip (`d0d73e7`, on top of `2cf052c`,
+`da29014`, `0b30ba2`, `6493408`, `d54b0a3`, on `main` at `4198568`). Context rebuilt from the
+repository directly per `docs/prompts/QAReviewer.md`, not from the prior QA pass's conversation —
+the prior `QA Decision — T70 batch` section above and the rework commits' own messages were read as
+a starting point only; every claim was independently re-verified against the repository, live
+command output, and a direct byte-for-byte diff comparison.
+
+**Required change 1 (formatting) — verified resolved:**
+
+- `git show d54b0a3 -- frontend/src/app/providers/AuthProvider.tsx frontend/src/domain/types/auth.ts
+  frontend/src/infrastructure/api/httpClient.ts` shows exactly three hunks: `AuthProvider.tsx`'s
+  closing JSX collapsed from three lines to one, `auth.ts`'s trailing blank line removed, and
+  `httpClient.ts`'s `get()` arrow function re-wrapped across two lines. No line touches identifiers,
+  values, control flow, or types — confirmed formatting-only by direct inspection, not by trusting
+  the commit message.
+- Independently re-ran `npm run format:check` on this branch's current tip: **all matched files use
+  Prettier code style** — passes cleanly, not taken on the rework commit's own claim.
+- Independently re-ran `npm run lint`: **0 errors, 4 warnings** (the same 3 pre-existing
+  `react-refresh/only-export-components` warnings plus `AuthProvider.tsx`'s, unchanged in kind and
+  count from the original QA pass) and `npm run test -- --run`: **17/17 passing**, 4 test files —
+  both unchanged, confirming the formatting pass introduced no behavioral regression.
+
+**Required change 2 (Design Decisions correction) — verified resolved:**
+
+- Read `d54b0a3`'s diff to `docs/ImplementationLog/Stage4/Phase2.md` directly. The `logout()`
+  `try`/`catch` entry no longer frames the behavior as guarding "the network call fail[ing]" — it now
+  states plainly that `POST /api/v1/auth/logout` returns `204 No Content`, that `request<T>()`'s
+  success path calls `response.json()` unconditionally, that this causes **every** successful call to
+  throw `SyntaxError: Unexpected end of JSON input`, and that the `catch` block therefore misreports
+  success as failure on every normal logout — matching, point for point, what the prior QA pass
+  independently found and required. The correction also carries forward correctly into Deferred Work
+  as a named, concrete trigger (not a vague "someday") for whichever task next touches
+  `httpClient.ts`'s success-path parsing, and correctly states the fix is out of `T70`'s authorized
+  scope. Nothing in the corrected text overstates or understates the original finding.
+
+**Required change 3 (nothing else touched) — verified via `git show --stat`:**
+
+- `d54b0a3 --stat`: exactly `docs/ImplementationLog/Stage4/Phase2.md`,
+  `frontend/src/app/providers/AuthProvider.tsx`, `frontend/src/domain/types/auth.ts`,
+  `frontend/src/infrastructure/api/httpClient.ts` — matches the two required changes exactly, no
+  extra file.
+- `d0d73e7 --stat`: exactly `docs/ImplementationLog/Stage4/Phase2.md` — read in full; every hunk is a
+  commit-hash fill-in (`commit pending in this rework pass` → `d54b0a3`) or the metadata block's `Git
+  Commit` field correction (`0b30ba2` was in fact already pushed to `origin` alongside `6493408` in
+  the prior QA pass, confirmed independently this session via `git fetch` + `git log
+  origin/feature/stage4-t70-auth-state-management`, which lists both). No scope-relevant content
+  changed.
+- `git diff main...feature/stage4-t70-auth-state-management --stat` (whole-branch, not just the
+  rework commits): still exactly the same seven files as the original QA pass reviewed
+  (`IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, `Phase2.md`, `AppProviders.tsx`,
+  `AuthProvider.tsx`, `auth.ts`, `httpClient.ts`) — no new file introduced across the full branch
+  history, no forbidden file touched.
+- Re-read `AuthProvider.tsx` in full at the current tip: `login()`/`logout()`'s logic, the
+  `state.tokens?.refresh_token` guard, and the request bodies/endpoints are byte-identical to what
+  the original QA pass reviewed against `backend/src/app/presentation/api/v1/auth.py`, aside from the
+  one cosmetic JSX line-collapse already accounted for above — no re-verification of the
+  login/me/logout backend-contract correctness was needed, since nothing in that logic changed.
+
+**No new issues found.** Both required changes are genuinely and narrowly resolved; nothing beyond
+them was touched; the governance finding (approval-checkpoint skip) remains accurately recorded above
+and doesn't recur in the rework commits (`2cf052c`→`da29014`'s timestamps are unchanged history, not
+something a later commit could or should retroactively fix).
+
+```
+QA Decision (T70 batch, re-review)
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+```
+
+**Comment (non-blocking, no further changes required to this batch):** the `httpClient.ts`
+`request<T>()`-success-path-calls-`response.json()`-unconditionally defect that `logout()`'s
+`try`/`catch` currently masks (see Design Decisions above and `T69`'s own `delete()`/`204`
+disclosure) is real, live, and will reproduce on every successful logout once this code runs — it is
+correctly out of `T70`'s authorized scope to fix, and is already captured with a named, concrete
+trigger in Deferred Work, but is called out here again so it isn't lost before `T74` (global 401
+handling) or `T76` (test coverage for `T70`–`T75`) build further on top of `logout()`. Whoever picks
+up `httpClient.ts` next should treat this as a known, pre-identified fix, not something to
+rediscover.
+
+This batch is **Approved with comments** and, per `PROJECT_WORKFLOW.md` §3, is now ready for the
+Documentation Manager to synchronize project-wide records, and after that for the Git/CI/PR Manager
+to open the pull request. Stopping here, per this role's own stop condition — no documentation
+synchronization, no PR, no merge performed by this review.
