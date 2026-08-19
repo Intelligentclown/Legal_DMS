@@ -2,25 +2,26 @@
 
 # Stage 4 – Phase 3
 
-Status: In Progress
+Status: Done
 
 Started: 2026-08-19
 
-Completed:
+Completed: 2026-08-19
 
 Related Tasks: T71
 
 Related ADRs: ADR-0018 (D6) — this phase implements D6's decision (`safeStorage`-backed refresh
 token storage, main-process-only IPC); no new architectural decision is made here.
 
-Git Commit: `0c0a4d0` (implementation)
+Git Commit: `b770505` (merge)
 
-Pull Request: not opened — per `PROJECT_WORKFLOW.md` §6, PRs are opened once implementation, tests,
-and a QA Decision are in place, not before QA has reviewed.
+Pull Request: #61
 
 Release:
 
-------------------------------------------------
+---
+
+---
 
 **Naming note:** `Stage4/Phase2.md` (T70) is content-complete — its own "QA Re-Review" and
 "Post-Merge Verification" sections record T70 as merged (`551e900`) and closed out — even though its
@@ -106,7 +107,7 @@ Run directly against this branch, from the repository root:
   verification step per `docs/DevelopmentGuide.md`'s CI section, and the only automated check that
   currently exists for `electron/` code (no `eslint`/`prettier`/`vitest` configuration or script
   exists for this directory — confirmed by inspecting `package.json` and the repository root/`
-  electron/` for config files; only `frontend/` has `eslint.config.js`/`.prettierrc`). Root
+electron/` for config files; only `frontend/` has `eslint.config.js`/`.prettierrc`). Root
   `node_modules` had never been installed in this environment prior to this session; `npm install`
   was run first to make `tsc` available (326 packages, 0 vulnerabilities) — this regenerated a
   4-line, purely-additive `engines` block in `package-lock.json` unrelated to this batch's scope, and
@@ -150,7 +151,7 @@ Run directly against this branch, from the repository root:
 - **`getRefreshTokenPath()` helper.** Not explicitly named in the authorization text, but a small,
   private, non-exported function factoring out the one file path (`userData`/`refresh-token.enc`)
   used identically by all three handlers — avoids repeating `path.join(app.getPath("userData"),
-  "refresh-token.enc")` three times, not a new abstraction beyond what the three handlers already
+"refresh-token.enc")` three times, not a new abstraction beyond what the three handlers already
   need.
 
 ### Problems Encountered
