@@ -14,11 +14,13 @@ Related ADRs: None (no new architectural decision — matches the existing `Them
 `NotificationProvider.tsx` context/provider pattern; token persistence, the one genuinely
 architectural piece per `ADR-0018`'s D6, is `T71`'s job, explicitly out of scope here)
 
-Git Commit: `da29014` (implementation), `2cf052c` (authorization) — the Developer left these
-**local only, not pushed**, per this batch's own explicit stop condition (see Problems Encountered
-below for why). The QA Reviewer pass pushed the branch (including these two commits and its own QA
-Decision commit) to `origin` so the recorded decision is independently verifiable there, not just
-locally — see the `QA Decision — T70 batch` section for the commit hash.
+Git Commit: `da29014` (implementation), `2cf052c` (authorization), `0b30ba2` (initial phase log) —
+pushed to `origin` by the QA Reviewer pass alongside its own QA Decision commit, `6493408`
+(independently confirmed on `origin/feature/stage4-t70-auth-state-management` via `git fetch` +
+`git log` this session). `d54b0a3` (rework: prettier formatting fix + phase-log correction, this
+pass) is **local only, not pushed**, per this rework pass's own explicit stop condition — see the
+`QA Decision — T70 batch` section for QA's required changes and Problems Encountered for the
+governance finding.
 
 Pull Request: not opened
 
@@ -108,7 +110,7 @@ pass, from `frontend/`:
   `src/infrastructure/api/httpClient.ts`. Deliberately not corrected at that point, so the QA Reviewer
   would see the implementation commit exactly as it was made, not a version already cleaned up.
 
-  **Update (2026-08-19, QA Rework required change 1, commit pending in this rework pass):**
+  **Update (2026-08-19, QA Rework required change 1, commit `d54b0a3`):**
   `prettier --write` run on exactly those 3 files, no other file touched. Diff inspected directly and
   confirmed formatting-only (JSX collapsed to one line, a trailing blank line removed, one long arrow
   function re-wrapped) — zero semantic change. Re-run after the fix: `npm run format:check` — **all
@@ -189,7 +191,7 @@ pass:** `prettier --check` fails on 3 of the 4 implementation files — see Test
 ### Deferred Work
 
 - **Formatting fix** (`prettier --write` on the 3 flagged files) — done as QA Rework required change
-  1 (2026-08-19, commit pending in this same rework pass); see Test Results, updated in place.
+  1 (2026-08-19, commit `d54b0a3`); see Test Results, updated in place.
 - **`httpClient.ts`'s `request<T>()` success path calls `response.json()` unconditionally on any
   `2xx` response, including `204 No Content`.** Named, concrete trigger (not a vague "someday"):
   `POST /api/v1/auth/logout` returns `204`, so **every** call to `httpClient.post("/api/v1/auth/logout",
