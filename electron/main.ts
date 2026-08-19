@@ -1,7 +1,14 @@
+import fs from "node:fs";
 import path from "node:path";
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, safeStorage, shell } from "electron";
 
 import { IpcChannels } from "./ipc/channels";
+
+const REFRESH_TOKEN_FILE = "refresh-token.enc";
+
+function getRefreshTokenPath(): string {
+  return path.join(app.getPath("userData"), REFRESH_TOKEN_FILE);
+}
 
 const isDev = !app.isPackaged;
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL ?? "http://localhost:5173";
@@ -55,6 +62,33 @@ function registerIpcHandlers(): void {
     version: app.getVersion(),
     environment: isDev ? "development" : "production",
   }));
+
+  ipcMain.handle(IpcChannels.AUTH_STORE_REFRESH_TOKEN, (_event, token: string) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      return;
+    }
+    const encrypted = safeStorage.encryptString(token);
+    fs.writeFileSync(getRefreshTokenPath(), encrypted);
+  });
+
+  ipcMain.handle(IpcChannels.AUTH_GET_REFRESH_TOKEN, () => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      return null;
+    }
+    const tokenPath = getRefreshTokenPath();
+    if (!fs.existsSync(tokenPath)) {
+      return null;
+    }
+    const encrypted = fs.readFileSync(tokenPath);
+    return safeStorage.decryptString(encrypted);
+  });
+
+  ipcMain.handle(IpcChannels.AUTH_CLEAR_REFRESH_TOKEN, () => {
+    const tokenPath = getRefreshTokenPath();
+    if (fs.existsSync(tokenPath)) {
+      fs.unlinkSync(tokenPath);
+    }
+  });
 }
 
 app.whenReady().then(() => {

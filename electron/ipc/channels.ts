@@ -6,6 +6,9 @@
  */
 export const IpcChannels = {
   APP_INFO: "app:get-info",
+  AUTH_STORE_REFRESH_TOKEN: "auth:store-refresh-token",
+  AUTH_GET_REFRESH_TOKEN: "auth:get-refresh-token",
+  AUTH_CLEAR_REFRESH_TOKEN: "auth:clear-refresh-token",
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
