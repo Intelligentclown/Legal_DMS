@@ -93,15 +93,3 @@ Reviewer Checklist
 ☑ No scope creep
 ☑ Ready for QA
 ```
-
-### QA Decision — T75 batch
-
-- **Date:** 2026-08-20
-- **Decision:** [x] Approved | [ ] Approved with comments | [ ] Rework required
-- **Comments / Rework items:** None.
-
-### QA Decision — T75 batch
-
-- **Date:** 2026-08-20
-- **Decision:** [x] Approved | [ ] Approved with comments | [ ] Rework required
-- **Comments / Rework items:** None.
