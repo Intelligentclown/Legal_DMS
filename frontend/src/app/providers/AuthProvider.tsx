@@ -6,6 +6,7 @@ import {
   setAccessToken,
   setUnauthorizedHandler,
 } from "@/infrastructure/api/httpClient";
+import { ipcBridge } from "@/infrastructure/ipc/ipcBridge";
 
 interface AuthState {
   currentUser: CurrentUser | null;
@@ -52,6 +53,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await httpClient.post("/api/v1/auth/logout", { refresh_token: state.tokens.refresh_token });
       } catch (error) {
         console.error("Logout request failed:", error);
+      }
+    }
+    if (ipcBridge.isAvailable()) {
+      try {
+        await ipcBridge.clearRefreshToken();
+      } catch (error) {
+        console.error("Failed to clear persisted refresh token:", error);
       }
     }
     setAccessToken(null);
