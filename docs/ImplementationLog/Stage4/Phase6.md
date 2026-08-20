@@ -93,3 +93,10 @@ Reviewer Checklist
 ☑ No scope creep
 ☑ Ready for QA
 ```
+
+### QA Decision — T75 batch
+
+- **Date:** 2026-08-20
+- **Decision:** [ ] Approved | [x] Approved with comments | [ ] Rework required
+- **Comments / Rework items:**
+  - Non-blocking: Full manual/live browser verification was not performed this session; verification relied exclusively on the RTL test suite.
