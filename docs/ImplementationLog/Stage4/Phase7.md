@@ -12,7 +12,7 @@ Related Tasks: T77
 
 Related ADRs: None explicitly named (Stage 2.5's F4).
 
-Git Commit: implementation commit pending (branch `feature/T77-docs-redoc-development-gate`)
+Git Commit: 64540de (Implementation)
 
 Pull Request: None yet
 
@@ -94,3 +94,11 @@ Reviewer Checklist
 ☑ No scope creep
 ☑ Ready for QA
 ```
+
+### QA Decision — T77 batch
+
+- **Date:** 2026-08-20
+- **Decision:** [x] Approved | [ ] Approved with comments | [ ] Rework required
+- **Comments / Rework items:**
+  - No rework required.
+  - Non-blocking observation: A cosmetic observation about test naming was noted during QA, but required no rework.
