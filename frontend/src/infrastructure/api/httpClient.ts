@@ -1,4 +1,5 @@
 import { env } from "@/shared/config/env";
+import { ipcBridge } from "@/infrastructure/ipc/ipcBridge";
 
 interface StructuredErrorBody {
   error: {
@@ -42,14 +43,52 @@ async function buildHttpError(path: string, response: Response): Promise<HttpErr
   return new HttpError(response.status, genericMessage);
 }
 
+let accessToken: string | null = null;
+let unauthorizedHandler: (() => void) | null = null;
+
+/** Sets the token attached as `Authorization: Bearer <token>` to future requests. */
+export function setAccessToken(token: string | null): void {
+  accessToken = token;
+}
+
+/**
+ * Registers the callback invoked when a request that carried an access token comes back
+ * `401` — i.e. a session that was authenticated has stopped being accepted. Never invoked for
+ * a `401` on a request that had no token attached (e.g. a login attempt with bad credentials),
+ * since there's no session to expire in that case.
+ */
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  unauthorizedHandler = handler;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const hadAccessToken = accessToken !== null;
+
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...init?.headers,
+    },
   });
+
+  if (response.status === 401) {
+    accessToken = null;
+    if (hadAccessToken) {
+      if (ipcBridge.isAvailable()) {
+        void ipcBridge.clearRefreshToken().catch(() => {});
+      }
+      unauthorizedHandler?.();
+    }
+  }
 
   if (!response.ok) {
     throw await buildHttpError(path, response);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return (await response.json()) as T;

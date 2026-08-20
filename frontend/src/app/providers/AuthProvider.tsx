@@ -1,7 +1,11 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { CurrentUser, AuthTokens, LoginCredentials } from "@/domain/types/auth";
-import { httpClient } from "@/infrastructure/api/httpClient";
+import {
+  httpClient,
+  setAccessToken,
+  setUnauthorizedHandler,
+} from "@/infrastructure/api/httpClient";
 
 interface AuthState {
   currentUser: CurrentUser | null;
@@ -21,12 +25,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokens: null,
   });
 
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setState({ currentUser: null, tokens: null });
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
   const login = async (credentials: LoginCredentials) => {
     const tokens = await httpClient.post<AuthTokens>("/api/v1/auth/login", credentials);
-    const response = await httpClient.get<{ data: CurrentUser }>("/api/v1/auth/me", {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
-    setState({ tokens, currentUser: response.data });
+    setAccessToken(tokens.access_token);
+    try {
+      const response = await httpClient.get<{ data: CurrentUser }>("/api/v1/auth/me", {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+      setState({ tokens, currentUser: response.data });
+    } catch (error) {
+      setAccessToken(null);
+      throw error;
+    }
   };
 
   const logout = async () => {
@@ -37,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Logout request failed:", error);
       }
     }
+    setAccessToken(null);
     setState({ currentUser: null, tokens: null });
   };
 
