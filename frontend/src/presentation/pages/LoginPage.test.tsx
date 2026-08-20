@@ -20,6 +20,8 @@ vi.mock("@/infrastructure/api/httpClient", () => {
   return {
     httpClient: { post: vi.fn(), get: vi.fn() },
     HttpError,
+    setAccessToken: vi.fn(),
+    setUnauthorizedHandler: vi.fn(),
   };
 });
 
