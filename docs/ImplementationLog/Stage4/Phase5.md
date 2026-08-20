@@ -162,8 +162,7 @@ Reviewer Checklist
 
 ### QA Decision — T74 batch
 
-- **Date:**
-- **Decision:** [ ] Approved | [ ] Approved with comments | [ ] Rework required
+- **Date:** 2026-08-20
+- **Decision:** [ ] Approved | [x] Approved with comments | [ ] Rework required
 - **Comments / Rework items:**
-
----
+  - Approved with comments. (Note: Both non-blocking findings from T73 remain preserved above).
