@@ -102,3 +102,22 @@ Reviewer Checklist
 - **Comments / Rework items:**
   - No rework required.
   - Non-blocking observation: A cosmetic observation about test naming was noted during QA, but required no rework.
+
+## T78 Batch: Tighten CORS `allow_methods`/`allow_headers` from wildcards
+
+### Implementation
+
+- **Git Commit:** 07fe8e1
+- **Verification Results:**
+  - 10/10 T78 tests passed
+  - 506/506 backend tests passed
+  - Ruff clean
+  - Black clean
+
+### QA Decision - T78 batch
+
+- **Date:** 2026-08-20
+- **Decision:** [ ] Approved | [x] Approved with comments | [ ] Rework required
+- **Comments / Rework items:**
+  - No rework required.
+  - Non-blocking observation: The test `test_disallowed_method_is_rejected_by_cors_preflight` uses `TRACE`. Starlette rejects TRACE even under the previous wildcard `allow_methods=["*"]`, so that particular negative-path assertion does not itself discriminate the T78 tightening (it does not prove the tightening by itself). However, the positive exact-list assertions and the X-Custom-Header rejection test genuinely discriminate the tightened configuration.
