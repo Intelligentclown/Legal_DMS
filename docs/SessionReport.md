@@ -2800,3 +2800,119 @@ explicitly excluded `T70`–`T76`. A Project Manager cycle must record an explic
 any `T70` implementation begins. Standing items, still unaddressed: the documentation-debt items above,
 and the still-uncommitted `docs/prompts/GitCI_PR_Manager.md`/`README.md`/`docs/HANDOFF/` work from
 earlier sessions.
+
+## Session: 2026-08-21 — Documentation Manager catch-up (T70–T82, previously unrecorded here)
+
+**Finding:** this file had no entry at all for `T70` through `T82` — ten merged PRs (#58–#72) and one
+governance decision (`T79`) had accumulated since the `T69` entry above with nothing recorded here.
+The summaries below close that gap; they intentionally do not restate implementation detail already
+covered by each batch's own `docs/ImplementationLog/` phase log — see the citation on each entry.
+
+- **T70 — auth state management.** `AuthProvider.tsx`/`auth.ts`, `login()`/`logout()`. Named
+  governance finding: the required approval-checkpoint pause was skipped between authorization and
+  implementation (~5 seconds apart); original QA Decision **Rework required** (process grounds), a
+  formatting-only fix followed, then **Approved with comments**. `docs/ImplementationLog/Stage4/
+  Phase2.md`. PR #58, merge `551e900`.
+- **T71 — Electron secure token storage (ADR-0018 D6).** `safeStorage` in the Electron main process,
+  IPC exposure to the renderer. QA Decision: **Approved with comments** (no tests, no manual
+  verification, default file permissions — all non-blocking). `docs/ImplementationLog/Stage4/
+  Phase3.md`. PR #61, merge `b770505`.
+- **T72 — Login page/form.** Integrates `T70`/`T71`. QA Decision: **Approved with comments**;
+  Independent Technical Verification: **Approved with comments** (non-blocking IPC-persistence
+  test-coverage gap). `docs/ImplementationLog/Stage4/Phase4.md`. PR #64, merge `a8ad712`.
+- **T73 — Protected-route wrapper.** Redirects unauthenticated users to `/login`. QA Decision:
+  **Approved with comments**; Independent Technical Verification: **Approved with comments**
+  (non-blocking: `<Navigate replace>` verified by inspection, not tested; phase log written post-QA).
+  `docs/ImplementationLog/Stage4/Phase5.md`. PR #65, merge `ecfd4a4`.
+- **T74 — Global `Authorization` header / 401 handling.** Attaches the access token to outgoing
+  requests; a 401 clears session and redirects (no auto-refresh — explicitly prohibited this batch);
+  resolves the pre-existing `204 No Content` parsing defect. QA Decision: **Approved with comments**.
+  `docs/ImplementationLog/Stage4/Phase5.md`. PR #66, merge `312361a`.
+- **T75 — Current-user display + logout.** `MainLayout` header gains the display and logout action;
+  wires `ipcBridge.clearRefreshToken()` into logout, closing `T74`'s deferred item. QA Decision:
+  **Approved with comments**. `docs/ImplementationLog/Stage4/Phase6.md`. PR #67, merge `193bc8a`.
+- **T76 — formally resolved as Superseded/Distributed**, not separately implemented: its intended RTL
+  coverage was completed cumulatively across `T72`–`T75`. Commit `60d07f0`, PR #68, merge `545d00b`.
+- **T77 — gate `/docs`/`/redoc` behind `settings.is_development`**, closing Stage 2.5's F4.
+  `openapi_url` deliberately left ungated (named Deferred Work). QA Decision: **Approved** (plain).
+  `docs/ImplementationLog/Stage4/Phase7.md` in full. PR #69, merge `9cb420f`.
+- **T78 — tighten CORS `allow_methods`/`allow_headers`** from wildcards to an explicit list. 10/10 new
+  tests, backend suite 506/506, ruff/black clean. QA Decision: **Approved with comments** (one
+  non-blocking observation about the `TRACE` negative test not itself discriminating the change).
+  Record appended to `docs/ImplementationLog/Stage4/Phase7.md` as a second "T78 Batch" section — but
+  that file's metadata block (`Related Tasks`/`Status`/`Git Commit`) was never updated to include it,
+  and the section itself is missing most of the standard's eleven required parts. Flagged as
+  documentation debt, not corrected here (Developer/QA-owned content). PR #70, merge `e7943e8`.
+- **T79 — verification-only pass, closed as `INCOMPLETE / NOT VERIFIED` (Project Owner final
+  governance decision, 2026-08-20, commit `d134862`) — explicitly not a PASS.** Confirmed PASS:
+  backend suite 506/506, frontend suite 43/43, both lint/format suites, full live browser walkthrough
+  (unauthenticated redirect → login → protected-route access → logout → cleared state). **Unresolved:
+  the Electron refresh/session-persistence requirement (ADR-0018 D6) could not be exercised** — this
+  environment can drive a browser tab but not an actual Electron `BrowserWindow`; the browser-tab
+  result (session clears on refresh) is architecturally expected there and is not treated as evidence
+  either way for the Electron-specific behavior. Four untracked debug files (`backend/insert_admin*.py`,
+  `smoke_test.py`) were found, confirmed disposable/non-functional, and deleted by explicit Project
+  Owner authorization. A static-analysis-only finding was recorded, not fixed: `electron/preload.ts`'s
+  `getRefreshToken()` is unsurfaced by `ipcBridge.ts`, and `AuthProvider.tsx` has no mount-time effect
+  calling it — no session-restoration-on-load path exists yet, even inside Electron. No application,
+  test, config, CI/CD, database, API, CORS, or `openapi.json` change was made under `T79` at any point.
+  **No `ImplementationLog` phase log exists for this batch** (verification-only, no implementation) —
+  full record in `PROJECT_STATE.json`'s `currentStage.note` and `IMPLEMENTATION_QUEUE.md`'s `T79` row.
+  **`T82` opened** as the dedicated Electron-runtime live-smoke-verification follow-up — reserved and
+  scoped only, **not started, not authorized**. Authorization `bc8b14e`; PR #71/#72, merge `95bfae1`.
+
+**This entry itself is part of a Documentation Manager current-state/governance reconciliation batch
+(2026-08-21)** — see the separate session entry immediately below for that batch's own scope and
+findings. Neither this catch-up entry nor that batch authorizes, implements, or changes `T82`.
+
+## Session: 2026-08-21 — Documentation Manager: current-state & role/governance reconciliation
+
+**Objective:** A repository-first documentation/governance reconciliation batch, requested
+independently of any single implementation task: (a) synchronize this project's current-state
+documentation — which had drifted stale after `T69` (`docs/AI_HANDOVER.md`, this file's own gap
+closed above), `T71`/`T72` (`PROJECT_CHECKPOINT.md`), and Stage 2 (`docs/ProjectStatus.md`,
+`docs/ArchitectureScorecard.md`'s header metadata) — and (b) audit this project's role documentation
+against its actual workflow. Explicitly **not** an authorization for `T82` and **not** an
+implementation of it; no application, test, configuration, CI, or database file was touched.
+
+**Completed:**
+- Rebuilt current state directly from `git`/`gh` (`git log --oneline --merges`, `git branch -a`,
+  `gh pr list`, `gh pr view`) and cross-checked every current-state document against it and against
+  `PROJECT_STATE.json` (found to already be the single most up-to-date narrative document in the
+  repository — no changes needed there, nor to `IMPLEMENTATION_QUEUE.md`, both independently verified
+  accurate for `T79`/`T82`).
+- `PROJECT_CHECKPOINT.md` rewritten in place (its own stated maintenance rule) — was stuck at the
+  `T71`/`T72` boundary (2026-08-19, ten merged PRs behind); now reflects `T78` done/merged, `T79`
+  closed as INCOMPLETE/NOT VERIFIED, `T82` reserved and unauthorized, HEAD `95bfae1`.
+- `docs/AI_HANDOVER.md`: appended `T70`–`T82` catch-up under "Current Stage" (its established
+  append-only narrative pattern), corrected the stale "Pending Work" and "Current Branch" snapshots
+  (dated notes appended, original text preserved, not rewritten), and added a governance note on the
+  Frontend Developer / Independent Technical Verifier gap under "Important Decisions."
+- `docs/SessionReport.md` (this file): appended the `T70`–`T82` catch-up entry and this entry —
+  ten merged PRs had no session entry at all before this pass.
+- `docs/ProjectStatus.md` and `docs/ArchitectureScorecard.md`: header/status metadata refreshed from
+  a Stage-2/2026-08-06 snapshot to current state.
+- `docs/Roadmap.md`: appended a `T70`–`T82` continuation to its Stage 3 narrative.
+- `docs/prompts/README.md`: added a governance disclosure section for the Frontend Developer and
+  Independent Technical Verifier roles, mirroring the existing `GitCI_PR_Manager.md` disclosure
+  pattern — disclosed, not adopted.
+
+**Governance findings, disclosed rather than resolved (all require project-owner or role-owner
+decision, none acted on by this batch):**
+1. A Stage-numbering inconsistency: `IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` still file `T66`+
+   under one "Stage 3" heading; `PROJECT_STATE.json`/`docs/ImplementationLog/` call the same work
+   "Stage 4." Both files are Project-Manager-owned; not resolved by this pass.
+2. `T78`'s phase-log entry exists but its metadata block was never updated for it, and the section
+   itself is missing most of the standard's required parts; `T79` has no phase log at all. Neither
+   corrected by this pass — Developer/QA-owned content.
+3. The "Frontend Developer" role (used for `T69`, `T70`, `T72`–`T75`) and the "Independent Technical
+   Verifier" role/review-step (used for `T72`, `T73`, and referenced in `PROJECT_STATE.json`'s `git`
+   block) both operate in this project's actual history without a `docs/prompts/` entry or a row in
+   `PROJECT_WORKFLOW.md` §7. The Independent Technical Verifier's own citation of a governing
+   document, `Legal_DMS_Process_Supervision.md`, points at a file that does not exist anywhere in
+   this repository or its git history.
+
+**T82 boundary, stated explicitly:** T82 was not implemented, authorized, or changed by this batch.
+
+See this batch's own Documentation Manager report (delivered directly to the requester) for the full
+discrepancy matrix, file-by-file rationale, and validation performed.

@@ -495,13 +495,115 @@ plus its own documentation sync exactly — no backend file touched. Frontend su
 the pre-merge figure. **Stage 4 Phase 5 (`T69`) is now complete in full.** See
 `docs/ImplementationLog/Stage4/Phase1.md`'s Post-Merge Verification — T69 batch note for full detail.
 
+**Catch-up (2026-08-21, Documentation Manager current-state/governance reconciliation batch): this
+section had gone stale after `T69` and is corrected here to cover `T70`–`T79`/`T82` without
+duplicating each batch's own technical record — see the cited phase log or `PROJECT_STATE.json`'s
+`currentStage.note` for full detail, not repeated here.** `main`'s current tip, independently
+re-verified this session via `git log`/`git status`/`gh pr view`, is `95bfae1`.
+
+**`T70` (auth state management) is Done — merged.** New `AuthProvider.tsx`/`auth.ts` (React
+context/provider holding user + tokens, `login()`/`logout()`); `httpClient.ts`'s `get()` gained an
+optional `headers` parameter. **Named governance finding, preserved as permanent history:** the
+required approval-checkpoint pause between authorization (`2cf052c`) and implementation (`da29014`)
+was skipped (~5 seconds apart) — original **QA Decision: Rework required** (process grounds only,
+plus a `prettier --check` failure on 3 files), closed by a formatting-only rework commit (`d54b0a3`),
+then **QA Re-Review: Approved with comments**. See `docs/ImplementationLog/Stage4/Phase2.md`. Merged:
+PR #58 (`551e900`); doc closeout PR #59 (`fd74573`).
+
+**`T71` (Electron secure token storage, ADR-0018 D6) is Done — merged.** `safeStorage` in the Electron
+main process, IPC exposure to the renderer. **QA Decision: Approved with comments** — three
+non-blocking comments (no tests, no manual verification, default file permissions). See
+`docs/ImplementationLog/Stage4/Phase3.md`. Merged: PR #61 (`b770505`); doc closeout PR #62
+(`e36fee4`).
+
+**`T72` (Login page/form) is Done — merged.** Integrates `T70`/`T71`'s auth infrastructure. **QA
+Decision: Approved with comments; Independent Technical Verification: Approved with comments**
+(non-blocking IPC-persistence test-coverage gap recorded — see the Independent Technical Verifier
+governance note under "Important Decisions" below for what this second review step is and isn't).
+See `docs/ImplementationLog/Stage4/Phase4.md`. Merged: PR #64 (`a8ad712`).
+
+**`T73` (Protected-route wrapper) is Done — merged.** Redirects unauthenticated users to `/login`
+using `T70`'s auth state. **QA Decision: Approved with comments; Independent Technical Verification:
+Approved with comments** — non-blocking: `<Navigate replace>` semantics verified by source inspection,
+not automated-tested; the phase log was created post-QA. See `docs/ImplementationLog/Stage4/
+Phase5.md`. Merged: PR #65 (`ecfd4a4`).
+
+**`T74` (global `Authorization` header / 401 handling) is Done — merged.** Attaches the current access
+token to outgoing authenticated requests; a 401 clears the session and redirects to `/login` (no
+automatic refresh, retry, or rotation — explicitly prohibited in this batch's authorized scope);
+resolves `httpClient.ts`'s pre-existing `204 No Content` parsing issue, flagged since `T70`. **QA
+Decision: Approved with comments.** See `docs/ImplementationLog/Stage4/Phase5.md`. Merged: PR #66
+(`312361a`).
+
+**`T75` (current-user display + logout) is Done — merged.** Adds the authenticated-user display and
+logout action to `MainLayout`'s header; wires `ipcBridge.clearRefreshToken()` into the user-facing
+logout flow, completing `T74`'s deferred work. **QA Decision: Approved with comments.** See
+`docs/ImplementationLog/Stage4/Phase6.md`. Merged: PR #67 (`193bc8a`).
+
+**`T76` was formally resolved as Superseded/Distributed** (2026-08-20, commit `60d07f0`) — its
+intended RTL test coverage was completed cumulatively within `T72`–`T75`, so it was closed rather than
+separately implemented. Not a cancellation for cause. PR #68, merge `545d00b`.
+
+**`T77` (gate `/docs`/`/redoc` behind `settings.is_development`) is Done — merged**, closing Stage
+2.5's F4 finding. `openapi_url` deliberately left ungated, named as Deferred Work. **QA Decision:
+Approved** (plain). See `docs/ImplementationLog/Stage4/Phase7.md` in full. Merged: PR #69 (`9cb420f`).
+
+**`T78` (tighten CORS `allow_methods`/`allow_headers`) is Done — merged.** Wildcards replaced with an
+explicit allow-list; 10/10 new tests, full backend suite 506/506 passing, ruff/black clean. **QA
+Decision: Approved with comments** — one non-blocking observation: the `TRACE`-method negative test
+doesn't itself discriminate the tightening (Starlette already rejects `TRACE` under the prior
+wildcard), though the positive exact-list and `X-Custom-Header` rejection tests do. Authorization
+`713a866`, implementation `07fe8e1`, PR #70, merge `e7943e8`. **This batch's record was appended
+directly to `docs/ImplementationLog/Stage4/Phase7.md`** (a second "T78 Batch" section following
+`T77`'s full entry), **but that file's metadata block was never updated to reflect it** — `Related
+Tasks` still reads only `T77`, `Status` still reads `In Progress`, `Git Commit` still cites only
+`T77`'s `64540de`, not `T78`'s `07fe8e1` — and the `T78` section itself is missing most of the
+standard's eleven required sections. Flagged as documentation debt during this catch-up pass, not
+corrected — that's Developer/QA-owned content, outside this role's routine remit.
+
+**`T79` (verification-only pass) is CLOSED — but explicitly as `INCOMPLETE / NOT VERIFIED`, not as a
+PASS.** Project Owner final governance decision, 2026-08-20 (commit `d134862`). Confirmed PASS:
+backend suite, frontend suite, both lint/format suites, and the full unauthenticated-redirect →
+login → protected-route access → logout → cleared-state browser walkthrough, all independently
+re-verified live. **Unresolved: the Electron refresh/session-persistence requirement is NOT VERIFIED**
+— this environment can drive a browser tab but not an actual Electron `BrowserWindow`, so ADR-0018
+D6's `safeStorage`-backed persistence could not be exercised in its documented target runtime; the
+browser-tab result obtained (session clears on refresh) is architecturally expected there and is
+explicitly not evidence for or against the Electron-specific behavior. Four untracked debug files
+(`backend/insert_admin*.py`, `smoke_test.py`) found during this pass were investigated, confirmed
+disposable and non-functional against current `main`, and deleted by explicit Project Owner
+authorization — not project tooling. A static-analysis-only finding was recorded, not fixed:
+`electron/preload.ts`'s `getRefreshToken()` is not surfaced by `ipcBridge.ts`'s `ElectronApi` wrapper,
+and `AuthProvider.tsx` has no mount-time effect calling it — no session-restoration-on-load path
+exists yet, even inside Electron. **`T79` also has no `ImplementationLog` phase log** (verification-
+only, no implementation) — its full record lives in `PROJECT_STATE.json`'s `currentStage.note` and
+`IMPLEMENTATION_QUEUE.md`'s own `T79` row. Published: PR #71/#72, merge `95bfae1`.
+
+**`T82` (Electron-runtime live smoke verification) is opened as the direct follow-up to `T79`'s
+unresolved item — reserved and scoped only.** `IMPLEMENTATION_QUEUE.md`'s `T82` row records the
+intended scope: launch the actual Electron application (not a browser tab); confirm the
+unauthenticated-redirect, login, protected-route-access, and logout flows; specifically exercise
+refresh/reload inside the Electron window to confirm (or refute) session restoration through
+ADR-0018 D6's `safeStorage`-backed mechanism. **`T82` is NOT authorized, NOT started, and NOT
+implemented** — no Project Manager cycle has recorded authorization for it, and this catch-up pass
+does not authorize it either.
+
 ## Pending Work
 
-Everything past Stage 2. **Nothing is scoped yet** — see [Roadmap.md](Roadmap.md). The most likely
-next step is wiring a real feature (repository → service → route) to a slice of the Stage 2 schema,
-but that must be confirmed with the project owner, not assumed. Separately, **Stage 2.7 has one open
-item**: `IMPLEMENTATION_QUEUE.md` T35 — a real GitHub Actions run has not been observed yet, since
-that requires a `git commit` + `git push`, a confirm-first action not taken as part of
+**Update (2026-08-21, Documentation Manager catch-up):** the paragraph below describes the state as
+of Stage 2's close and is preserved as historical context, not current reality — see the `T70`–`T82`
+catch-up under "Current Stage" above for what's actually pending now. In short: `T41`–`T78` are done
+and merged; `T79` (verification-only) is closed as `INCOMPLETE / NOT VERIFIED`; `T82` (Electron-
+runtime live smoke verification) is the only open, scoped item, and it is **not authorized**. A
+Project Manager cycle must record explicit authorization before any `T82` implementation begins. See
+[PROJECT_CHECKPOINT.md](../PROJECT_CHECKPOINT.md) for the fullest current-state detail.
+
+Everything past Stage 2, as originally written here. **Nothing is scoped yet** — see
+[Roadmap.md](Roadmap.md). The most likely next step is wiring a real feature (repository → service →
+route) to a slice of the Stage 2 schema, but that must be confirmed with the project owner, not
+assumed. Separately, **Stage 2.7 has one open item**: `IMPLEMENTATION_QUEUE.md` T35 — a real GitHub
+Actions run has not been observed yet, since that requires a `git commit` + `git push`, a
+confirm-first action not taken as part of
 implementation. If you're picking this up next and have the go-ahead to push, that's the fastest
 way to close Stage 2.7 out completely; if something looks wrong once it actually runs on GitHub's
 runners (cache paths, working-directory typos, an action version that's moved on), fix it there —
@@ -591,6 +693,20 @@ where and why.
 
 ## Important Decisions
 
+**Governance note, not an ADR (2026-08-21, Documentation Manager catch-up) — "Independent Technical
+Verification" and the "Frontend Developer" role, disclosed rather than resolved:** `T69`–`T75`'s own
+records (and `PROJECT_STATE.json`'s `git.note`) refer to a "Frontend Developer" role distinct from
+"Backend Developer," and `T72`/`T73` record a second review step, "Independent Technical
+Verification," alongside the normal QA Decision. Neither is documented as a formal role in
+`PROJECT_WORKFLOW.md` §7's AI Roles table or as a prompt under `docs/prompts/`. One `PROJECT_STATE.json`
+note additionally cites a governing document, `Legal_DMS_Process_Supervision.md`, for the Independent
+Technical Verifier's role-fallback procedure — **that file does not exist anywhere in this repository
+or its git history**, confirmed by direct search this session. Both are operational practices that
+have not been through this project's "process changes are versioned" proposal/review/sign-off
+discipline (`AI_BOOTSTRAP.md`). See [`docs/prompts/README.md`](prompts/README.md)'s own governance
+note (mirroring the existing disclosure it already carries for `GitCI_PR_Manager.md`) for the full
+disclosure. Not resolved here — formal adoption (or correction) is a project-owner decision.
+
 Read the ADRs in [`/ADR`](../ADR/) before making architectural changes:
 - **0001–0005** (Stage 0): ADR practice itself, Clean Architecture layering, the tech stack
   choice, security foundation placeholders, Docker Compose for local Postgres.
@@ -628,9 +744,15 @@ change things silently.
 
 ## Current Branch
 
-`feature/github-actions-ci` — a feature branch was in use for Stage 2.7's work (unlike every prior
-stage, which worked directly on `master`/`main`); confirm with the project owner whether this
-becomes the project's standing workflow or was scoped to this one stage before assuming either way.
+**Update (2026-08-21):** `main`, at `95bfae1`, independently re-verified via `git status`/`git log`
+this session — `feature/<name>`/`docs/<topic>` branches off `main`, merged via PR, is now this
+project's settled standing workflow (confirmed by every `T52`–`T79` batch since), not merely scoped
+to Stage 2.7 as the paragraph below once asked to confirm.
+
+Original note, preserved for continuity: `feature/github-actions-ci` — a feature branch was in use
+for Stage 2.7's work (unlike every prior stage, which worked directly on `master`/`main`); confirm
+with the project owner whether this becomes the project's standing workflow or was scoped to this one
+stage before assuming either way.
 
 ## Files Recently Modified
 

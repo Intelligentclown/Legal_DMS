@@ -367,10 +367,48 @@ suite **17/17 passing** personally re-run against merged `main`, `eslint`/`prett
 Phase 5 (`T69`) is now complete in full.** See `docs/ImplementationLog/Stage4/Phase1.md`'s Post-Merge
 Verification — T69 batch note for full detail.
 
+**Catch-up (2026-08-21, Documentation Manager current-state/governance reconciliation batch) —
+`T70`–`T82`, previously unrecorded here.** This section's own text (and `IMPLEMENTATION_QUEUE.md`)
+still files all of this under one "Stage 3" heading, even though `PROJECT_STATE.json`/
+`docs/ImplementationLog/` have called `T66`+ "Stage 4" since `T66` — a genuine, disclosed naming
+inconsistency between this Project-Manager-owned file and those two, not resolved here (resolving it
+is this file's owning role's call, not a documentation-synchronization pass's). Full technical detail
+for each item below is in its cited phase log, not repeated here.
+
+`T70` (auth state management: `AuthProvider.tsx`/`auth.ts`) is Done — merged (PR #58, `551e900`);
+named governance finding preserved: the approval-checkpoint pause was skipped between authorization
+and implementation, original QA Decision **Rework required** (process grounds), resolved same day.
+`T71` (Electron secure token storage, ADR-0018 D6) is Done — merged (PR #61, `b770505`). `T72`
+(Login page/form) is Done — merged (PR #64, `a8ad712`), QA Decision **Approved with comments**, plus
+an **Independent Technical Verification: Approved with comments** (see the governance note on this
+second, undocumented review step in `docs/prompts/README.md`). `T73` (protected-route wrapper) is
+Done — merged (PR #65, `ecfd4a4`), same dual-review pattern. `T74` (global `Authorization`
+header/401 handling, resolving the 204-parsing defect flagged since `T70`) is Done — merged (PR #66,
+`312361a`). `T75` (current-user display + logout, completing `T74`'s deferred `clearRefreshToken()`
+wiring) is Done — merged (PR #67, `193bc8a`). `T76` was **formally resolved as
+Superseded/Distributed** — its intended test coverage was completed cumulatively across `T72`–`T75`,
+not implemented as its own task (commit `60d07f0`, PR #68, merge `545d00b`). `T77` (gate `/docs`/
+`/redoc` behind `settings.is_development`) is Done — merged (PR #69, `9cb420f`), QA Decision
+**Approved**, plain. `T78` (tighten CORS `allow_methods`/`allow_headers`) is Done — merged (PR #70,
+`e7943e8`), QA Decision **Approved with comments**; its batch record was appended to
+`docs/ImplementationLog/Stage4/Phase7.md` but that file's metadata block was never updated to
+reflect it — documentation debt, not corrected here.
+
+**`T79` (verification-only pass) was closed by the Project Owner as `INCOMPLETE / NOT VERIFIED` —
+explicitly not a PASS** (2026-08-20, commit `d134862`). Backend suite, frontend suite, lint/format,
+and a full live browser walkthrough (unauthenticated redirect → login → protected-route access →
+logout → cleared state) were all independently re-verified live. **The Electron-specific
+session-persistence requirement (ADR-0018 D6) remains unverified** — this environment can drive a
+browser tab but not an actual Electron `BrowserWindow`. A related static-analysis finding was
+recorded, not fixed: `electron/preload.ts`'s `getRefreshToken()` is not surfaced by
+`ipcBridge.ts`'s `ElectronApi` wrapper, and `AuthProvider.tsx` has no mount-time effect calling it.
+**`T82` (Electron-runtime live smoke verification) was opened as the direct follow-up — reserved and
+scoped only. `T82` is NOT authorized and NOT started.** Published via PR #71/#72, merge `95bfae1`.
+
 | Feature | Status |
 |---|---|
-| Authentication / login | In Progress — see `IMPLEMENTATION_QUEUE.md` |
-| Authorization (RBAC) | In Progress — see `IMPLEMENTATION_QUEUE.md` |
+| Authentication / login | Backend + frontend done and merged (`T41`–`T78`); Electron-runtime session persistence unverified (`T79`); `T82` (live smoke verification) reserved, not authorized |
+| Authorization (RBAC) | Done and merged (`T41`–`T68`) |
 
 ## Stage 4+ — Not yet planned
 

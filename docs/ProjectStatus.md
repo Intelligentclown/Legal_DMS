@@ -1,22 +1,38 @@
 # Project Status
 
-**Current Stage:** Stage 2 — Database Architecture & Data Model (plus seven post-Stage-2 framework
-additions: the Command Bus, Query Bus, Transaction Pipeline, Caching Abstraction, Module Manifest
-Loader, Architecture Health Check, and Performance Metrics Service; a QA review of those seven
-additions with two findings fixed; and Stage 2.7 — GitHub Actions CI, see below)
+**Current Stage:** Backend authentication/authorization (`T41`–`T68`) and frontend/Electron
+fundamentals (`T69`–`T78`) are both done and merged. `PROJECT_STATE.json` labels the latter half
+`stage-4` ("Frontend & Electron Fundamentals"); `IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` still
+file the whole `T41`–`T82` range under one "Stage 3 — Authentication & Authorization" heading —
+this is a genuine, disclosed naming inconsistency between Project-Manager-owned planning documents
+and `PROJECT_STATE.json`/`docs/ImplementationLog/`, not resolved by this update (see
+`PROJECT_CHECKPOINT.md` §2 for the full disclosure). `T79`, a verification-only pass intended to
+close this surface out, was **closed by the Project Owner as INCOMPLETE / NOT VERIFIED** — its
+Electron-specific session-persistence requirement (ADR-0018 D6) could not be exercised in this
+environment. `T82` (Electron-runtime live smoke verification, the direct follow-up) is reserved and
+scoped but **not authorized, not started**. See [PROJECT_CHECKPOINT.md](../PROJECT_CHECKPOINT.md)
+for the fullest current-state detail; this file gives the narrative version.
 **Current Version:** 0.3.1 (see [CHANGELOG.md](../CHANGELOG.md)'s versioning note — the `v0.3.0`
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
-what's genuinely new since that tag, previously mislabeled 0.3.9)
-**Last Updated:** 2026-08-06
-**Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope). 0% of the
-overall project — Stages 0–2 are infrastructure/framework/schema only, no business features exist
-and nothing is wired to the new schema yet. See [PROJECT_STATE.json](../PROJECT_STATE.json) for the
-machine-readable version of this file, and [ArchitectureScorecard.md](ArchitectureScorecard.md) for
-a capability-by-category architectural maturity dashboard (status, stage, notes, and future
+what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
+substantial work (`T41`–`T78`) has landed on `main` under this same version number.
+**Last Updated:** 2026-08-21 (Documentation Manager current-state/governance reconciliation batch —
+this file had been stuck at its original 2026-08-06/Stage-2 snapshot throughout all of Stage 3 and
+Stage 4's implementation).
+**Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
+`PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
+infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working
+authentication/authorization/frontend surface to that schema (login, protected routes, RBAC, Electron
+secure token storage), no business feature (Matter/Client/Property/Document Management, etc.) has
+been built yet. `currentStageScopePercent` is tracked in `PROJECT_STATE.json` as a rough proxy, not a
+precisely-weighted estimate. See [PROJECT_STATE.json](../PROJECT_STATE.json) for the machine-readable
+version of this file, and [ArchitectureScorecard.md](ArchitectureScorecard.md) for a
+capability-by-category architectural maturity dashboard (status, stage, notes, and future
 improvements per capability, plus an Overall Architecture Health assessment). For a comprehensive,
 point-in-time snapshot of each released version specifically (features, bug fixes, breaking
 changes, migration notes, known issues, and what's next), see [releases/](releases/) — the current
-release is [releases/v0.3.1.md](releases/v0.3.1.md). Before starting the next stage, complete
+release is [releases/v0.3.1.md](releases/v0.3.1.md), itself now stale relative to `T41`–`T78`'s
+work; no new release note has been cut since. Before starting the next stage, complete
 [templates/PreStageChecklist.md](templates/PreStageChecklist.md) — see
 [templates/README.md](templates/README.md) for how it's used.
 
@@ -395,11 +411,61 @@ approved by the project owner with seven explicit decisions before implementatio
 - **Lint:** N/A — no application code changed; only workflow YAML, two `package.json` `engines`
   additions, one new ADR, and documentation.
 
+## Completed — Stage 3 (Authentication & Authorization) and Stage 4 (Frontend & Electron Fundamentals)
+
+**Added by this Documentation Manager pass (2026-08-21) — this file had never covered Stage 3/4 at
+all before now.** Full task-by-task technical detail lives in `docs/ImplementationLog/Stage3/` and
+`docs/ImplementationLog/Stage4/`, and in `docs/AI_HANDOVER.md`'s `T52`–`T82` narrative — not
+duplicated here; this section is the status-dashboard-level summary this file exists to give.
+
+- **Backend authentication/authorization (`T41`–`T68`), done and merged.** Real
+  `JwtAuthenticationProvider`/`RbacAuthorizationService` (Stage 1's `AuthenticationProvider`/
+  `AuthorizationService` ports), `RequirePermission(...)`, the full `/api/v1/auth/*` and
+  `/api/v1/users*` route surface, `role_permissions` seeded against a 59-entry authorized matrix, and
+  a first-admin bootstrap CLI. Architecture approved D1–D7 ([ADR-0018](../ADR/0018-authentication-authorization-architecture.md),
+  [0019](../ADR/0019-authentication-provider-interface-change.md),
+  [0020](../ADR/0020-session-commit-rollback-policy.md)).
+- **Frontend/Electron fundamentals (`T69`–`T78`), done and merged.** `httpClient.ts` gained
+  `post`/`put`/`delete`, structured error parsing, a global `Authorization` header, and global 401
+  handling; `AuthProvider`/`auth.ts` (React auth state); Electron `safeStorage`-backed secure token
+  storage with IPC exposure ([ADR-0018](../ADR/0018-authentication-authorization-architecture.md)
+  D6); a login page/form; a protected-route wrapper; current-user display + logout in the app header;
+  `/docs`/`/redoc` gated to development only; CORS `allow_methods`/`allow_headers` tightened from
+  wildcards.
+- **`T79` (verification-only) — closed by the Project Owner as `INCOMPLETE / NOT VERIFIED`, not a
+  PASS (2026-08-20).** Backend suite, frontend suite, lint/format, and a full live browser
+  authentication walkthrough all confirmed passing. **The Electron-specific session-persistence
+  requirement (ADR-0018 D6) remains unverified** — this environment can drive a browser tab but not
+  an actual Electron `BrowserWindow`. A related static-analysis finding was recorded, not fixed:
+  `electron/preload.ts`'s `getRefreshToken()` is not currently surfaced to `AuthProvider.tsx`, so no
+  session-restoration-on-load path exists yet even inside Electron.
+- **`T82` — Electron-runtime live smoke verification — reserved, scoped, NOT authorized, NOT
+  started.** The direct follow-up to `T79`'s unresolved item. A Project Manager cycle must record
+  explicit authorization before any implementation begins.
+- **`T76`** was formally resolved as **Superseded/Distributed** (its intended test coverage was
+  completed cumulatively within `T72`–`T75`), not implemented as its own task.
+
 ## Pending
 
-Stage 3 is undefined — nothing planned in detail. See [Roadmap.md](Roadmap.md). Separately,
-Stage 2.7's one open item (a live GitHub Actions run, `IMPLEMENTATION_QUEUE.md` T35) needs an
-explicit go-ahead to commit and push before it can be marked fully done.
+**Update (2026-08-21):** Stage 3/4 are no longer undefined — see "Completed — Stage 3 ... and Stage
+4 ..." above. The one genuinely open item is `T82` (Electron-runtime live smoke verification),
+reserved and scoped but **not authorized**. The paragraph below is preserved as historical context
+from before Stage 3 was scoped, not current reality.
+
+Original note: Stage 3 is undefined — nothing planned in detail. See [Roadmap.md](Roadmap.md).
+Separately, Stage 2.7's one open item (a live GitHub Actions run, `IMPLEMENTATION_QUEUE.md` T35)
+needs an explicit go-ahead to commit and push before it can be marked fully done. **That item has
+since closed** — a real GitHub Actions run has been observed, satisfying the original concern.
+**Correction (2026-08-21, Independent Technical Verifier rework):** the previous wording here
+("CI has run repeatedly, green, on every `T41`+ pull request since") overstated what this
+documentation-only pass actually established. Individual `T41`+ implementation-log entries and QA
+Decisions cite specific green CI runs for their own batches (see each batch's own phase log), and
+`IMPLEMENTATION_QUEUE.md`/`docs/ImplementationLog/` batches reference passing suites, but this file
+does not independently verify, and does not claim, that every single `T41`+ pull request completed
+every CI workflow successfully — that would require re-querying `gh pr checks`/`gh api` for each of
+the dozens of PRs individually, which was not done. Subsequent PRs have had CI activity since Stage
+2.7 closed; this document does not establish that every `T41`+ PR completed every CI workflow
+successfully.
 
 ## Blocked Tasks
 
@@ -407,13 +473,19 @@ None.
 
 ## Known Issues
 
-Same two open items carried since Stage 0, both documented in [KnownIssues.md](KnownIssues.md):
+The two open items carried since Stage 0, both still documented in [KnownIssues.md](KnownIssues.md):
 1. shadcn/ui CLI (`init`/`add`) is broken on this Windows environment — worked around by hand
    authoring components.
 2. `react-router-dom` has one open high-severity advisory not applicable to this project's usage
    (no RSC/framework mode) — accepted, documented, to be re-checked on upgrade.
 
-No new issues from Stage 2.
+**Plus one added during `T79`'s follow-up verification pass (2026-08-20), tracked in
+`PROJECT_STATE.json`'s `knownIssues` as `electron-refresh-token-not-consumed`:**
+3. `electron/preload.ts` exposes `getRefreshToken()` to the renderer, but
+   `frontend/src/infrastructure/ipc/ipcBridge.ts`'s `ElectronApi` wrapper doesn't surface it, and
+   `AuthProvider.tsx` has no mount-time effect calling it — no session-restoration-on-load path
+   exists yet, even inside Electron. Static-analysis observation only, not independently
+   runtime-verified, not fixed. Directly relevant to `T82`.
 
 ## Technical Debt
 
@@ -435,12 +507,21 @@ trade-offs, not debt.
 
 ## Upcoming Stage
 
-Stage 3 is undefined — no plan exists yet. Whoever picks this up next should get explicit
-direction from the user before choosing what Stage 3 covers (see [AI_HANDOVER.md](AI_HANDOVER.md)
-and [AI_BOOTSTRAP.md](../AI_BOOTSTRAP.md)). The schema is now ready for a feature to be wired to
-it — that's a strong candidate for what Stage 3 becomes, but confirm rather than assume. Once
-scoped and approved, complete [templates/PreStageChecklist.md](templates/PreStageChecklist.md)
-before writing any Stage 3 code — see [templates/README.md](templates/README.md).
+**Update (2026-08-21):** the paragraph below predates Stage 3 being scoped and is preserved as
+historical context, not current reality. The actual next item is `T82` (Electron-runtime live smoke
+verification) — reserved and scoped in `IMPLEMENTATION_QUEUE.md`, **not authorized**. Beyond that,
+the business-feature scope this project was originally chartered for (Matter/Client/Property
+Management, Document Automation, OCR, QR, Search, Reports, Payments, AI — see
+[Roadmap.md](Roadmap.md)'s "Stage 4+ — Not yet planned" table) remains entirely unscoped and requires
+explicit project-owner direction before any of it starts.
+
+Original note: Stage 3 is undefined — no plan exists yet. Whoever picks this up next should get
+explicit direction from the user before choosing what Stage 3 covers (see
+[AI_HANDOVER.md](AI_HANDOVER.md) and [AI_BOOTSTRAP.md](../AI_BOOTSTRAP.md)). The schema is now ready
+for a feature to be wired to it — that's a strong candidate for what Stage 3 becomes, but confirm
+rather than assume. Once scoped and approved, complete
+[templates/PreStageChecklist.md](templates/PreStageChecklist.md) before writing any Stage 3 code —
+see [templates/README.md](templates/README.md).
 
 ## Estimated Remaining Work
 
