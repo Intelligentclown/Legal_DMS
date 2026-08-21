@@ -1,6 +1,6 @@
 # AI Role Prompts
 
-Reusable, copy-ready prompt templates for the four roles [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md)
+Reusable, copy-ready prompt templates for the five roles [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md)
 defines. Each file in this folder is the standing instruction set for one role — copy it into a new
 session as-is to start that role's work, rather than re-deriving its responsibilities from scratch
 each time.
@@ -34,7 +34,8 @@ workflow gets executed, not a second definition of what it is.
 | Prompt | Used when |
 |---|---|
 | [`ProjectManager.md`](ProjectManager.md) | At the start of a work session — rebuilds repository state and recommends the next implementation batch. |
-| [`BackendDeveloper.md`](BackendDeveloper.md) | Once a task is approved — implements it. |
+| [`BackendDeveloper.md`](BackendDeveloper.md) | Once a task whose approved scope is backend/Python work is approved — implements it. |
+| [`FrontendDeveloper.md`](FrontendDeveloper.md) | Once a task whose approved scope is frontend/TypeScript/React/Electron-renderer work is approved — implements it. Peer to `BackendDeveloper.md`, not a subordinate or merged variant — see `PROJECT_WORKFLOW.md` §7. |
 | [`QAReviewer.md`](QAReviewer.md) | Once an implementation batch is ready for review — renders the QA Decision. |
 | [`DocumentationManager.md`](DocumentationManager.md) | Once QA approves — synchronizes project-wide documentation. |
 
@@ -43,7 +44,8 @@ workflow gets executed, not a second definition of what it is.
 ```
 Project Manager
         ↓
-Backend Developer
+Backend Developer  /  Frontend Developer
+   (peer roles — selected by the authorized task's domain)
         ↓
 QA Reviewer
         ↓
@@ -53,6 +55,11 @@ Git / CI / PR / Merge
         ↓
 Repeat
 ```
+
+Adopting Frontend Developer (2026-08-22) does not change this lifecycle's shape — it names the
+domain split that already existed at the Developer step (see "Two more roles" below for the
+history), rather than inserting a new stage. QA Reviewer remains the sole independent review gate
+for either Developer role.
 
 Full detail on every step: [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md), especially
 §3 (Standard Development Lifecycle) and §7 (AI Roles).
@@ -72,13 +79,14 @@ proposal, review, and sign-off before those documents are edited to match. Until
 `GitCI_PR_Manager.md` as an available, usable prompt for the already-described lifecycle steps — not
 as evidence that a fifth role has been formally established.
 
-## Two more roles operating in practice, neither formally adopted (added 2026-08-21)
+## Two more roles found operating in practice (added 2026-08-21) — Frontend Developer resolved 2026-08-22
 
 A repository-first documentation/governance reconciliation pass (2026-08-21, Documentation Manager)
 found two more roles in the same position as `GitCI_PR_Manager.md` above — operating in this
 project's actual history, but without a standing prompt file or an entry in `PROJECT_WORKFLOW.md`
-§7's AI Roles table. Recorded here as disclosure, following the same pattern as the section above —
-**neither is adopted by writing this section**, and neither prompt file is created here.
+§7's AI Roles table. Recorded here as disclosure at the time, following the same pattern as the
+section above — **neither was adopted by writing this section originally**. One of the two has since
+been formally resolved; see the update below each paragraph.
 
 **Frontend Developer.** Distinct from Backend Developer, first used for `T69`
 (`docs/ImplementationLog/Stage4/Phase1.md`: "the first task to use the Frontend Developer role instead
@@ -89,6 +97,14 @@ template for frontend work too," in the absence of any Frontend-Developer-specif
 `docs/prompts/FrontendDeveloper.md` exists, and `PROJECT_WORKFLOW.md` §7 lists only "Backend
 Developer." This is a real, repeatedly-used operational role without a standing definition — not a
 hypothetical gap.
+
+> **Resolved 2026-08-22 (Project Manager, project-owner authorized).** Frontend Developer is now a
+> formally adopted, standing role — see [`FrontendDeveloper.md`](FrontendDeveloper.md) and
+> `PROJECT_WORKFLOW.md` §7. It remains a distinct, peer role to Backend Developer (not renamed or
+> merged into a combined role), inherits `BackendDeveloper.md` §5's approval-checkpoint discipline
+> explicitly rather than informally, has no authority to authorize implementation, change scope,
+> render QA Decisions, or act as a merge gate, and does not change this project's lifecycle shape —
+> see the Workflow diagram above.
 
 **Independent Technical Verifier.** `T72`'s and `T73`'s own batch records name an "Independent
 Technical Verification" step, rendering its own disposition ("Approved with comments") alongside
@@ -101,9 +117,16 @@ in this repository or its git history** — confirmed by direct search (`git log
 and a full-tree grep, 2026-08-21) — so that citation currently points at nothing. No `docs/prompts/`
 file defines this role, and `PROJECT_WORKFLOW.md` §7 does not list it.
 
-**Neither gap is resolved by this section.** Per `AI_BOOTSTRAP.md`'s "process changes are versioned"
-rule, formally adopting either role (a standing prompt file, an entry in `PROJECT_WORKFLOW.md` §7,
-and — for the Independent Technical Verifier — either writing the governing document its own
-citation assumes exists or correcting that citation) requires its own proposal, review, and sign-off
-from the project owner. Until then, both continue as informal, undocumented practice — accurately
-disclosed here, not silently formalized and not silently removed from the record either.
+> **Not adopted (project-owner decision, 2026-08-21).** Independent Technical Verifier is explicitly
+> **not** formally adopted as a role. No further ad hoc verification pass should be treated as
+> mandatory unless a future governance proposal defines and authorizes it — including its
+> distinguishing criteria versus QA Reviewer, when it runs, who invokes it, and its explicit
+> inability to override a QA Decision. The dangling `Legal_DMS_Process_Supervision.md` citation
+> above is corrected at its actual source (`PROJECT_STATE.json`'s `git` block) as a separate,
+> documentation-only change — this paragraph is left as the original, accurate disclosure and is not
+> itself rewritten.
+
+Per `AI_BOOTSTRAP.md`'s "process changes are versioned" rule, formally adopting a role (a standing
+prompt file plus an entry in `PROJECT_WORKFLOW.md` §7) requires its own proposal, review, and
+sign-off from the project owner — which is what happened for Frontend Developer above, and what has
+not happened (and is not authorized) for Independent Technical Verifier.
