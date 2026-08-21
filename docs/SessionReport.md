@@ -2916,3 +2916,154 @@ decision, none acted on by this batch):**
 
 See this batch's own Documentation Manager report (delivered directly to the requester) for the full
 discrepancy matrix, file-by-file rationale, and validation performed.
+
+## Session: 2026-08-21 — Project Manager: Stage 3/Stage 4 classification correction
+
+**Finding:** the naming inconsistency the previous session's batch disclosed (`IMPLEMENTATION_QUEUE.md`/
+`docs/Roadmap.md` calling `T66`+ "Stage 3," `PROJECT_STATE.json`/`docs/ImplementationLog/` calling it
+"Stage 4") was resolved by direct project-owner decision: the work was always Stage 3 Phases 4–6, and
+the "Stage 4" label (introduced by commit `4ad5c32`, 2026-08-19) was an unauthorized informal
+classification drift, never a project-owner-approved stage transition (no `PreStageChecklist_Stage4`
+sign-off was ever produced). `PROJECT_STATE.json`'s `currentStage` object corrected back to
+`stage-3`/"Authentication & Authorization"; its `stages[]` array's separate `stage-4` entry marked
+`status: "superseded"` with a governance-correction banner prepended, the original drift-period text
+preserved verbatim below it, not deleted or rewritten. `docs/ImplementationLog/Stage4/README.md`
+updated to cross-reference this correction — the directory itself is **not** renamed, preserved as a
+frozen historical filing artifact. Documentation-only; no application, test, or ImplementationLog phase
+content touched. Commit `af3d456`, PR #74, merge `e4d2f18`.
+
+## Session: 2026-08-21 — Project Manager: Frontend Developer formally adopted as a standing role
+
+**Finding:** the "Frontend Developer" role, in routine use since `T69` across six merged tasks (`T69`,
+`T70`, `T72`–`T75`) without a standing prompt file or a `PROJECT_WORKFLOW.md` §7 entry (disclosed in
+the prior session's governance batch), was formally adopted by direct project-owner decision. New
+`docs/prompts/FrontendDeveloper.md` — peer to `BackendDeveloper.md`, not a subordinate or merged
+variant; explicitly cannot authorize implementation, change scope, render QA Decisions, act as a
+merge gate, or weaken Electron's `sandbox`/`contextIsolation`/`nodeIntegration` posture without
+separate authorization. `PROJECT_WORKFLOW.md` §7's AI Roles table updated to list it alongside
+Backend Developer as peer roles; `docs/ImplementationLog/README.md`'s ownership assignment extended
+accordingly. `docs/prompts/README.md`'s existing disclosure section updated with a "Resolved
+2026-08-22" note, the original disclosure text preserved unchanged above it. Documentation/process-only;
+no application or test file touched. Commit `a31a41d`, PR #75, merge `3a1dae7`.
+
+## Session: 2026-08-21 — Project Manager: correct dangling `Legal_DMS_Process_Supervision.md` references
+
+**Finding:** `PROJECT_STATE.json`'s `git.note` (T70's post-merge closeout entry) had justified a
+role-collapse (an Independent Technical Verifier session performing a Documentation Manager closeout
+directly) by citing "`Legal_DMS_Process_Supervision.md` §§2/3" as a documented fallback procedure.
+Confirmed by direct search (`git log --all --diff-filter=A`, full-tree grep, 2026-08-21): **no such
+document exists anywhere in this repository or its git history.** Project Owner decision (2026-08-22):
+correct the dangling citation at its source — state plainly that no such document exists and the
+role-collapse was an ad hoc, undocumented decision made at the project owner's direct request, not the
+application of a documented procedure. Per explicit instruction, the citation is corrected, not made
+to resolve (the document is not created). `docs/prompts/README.md`'s existing Independent Technical
+Verifier disclosure section left as the original, accurate disclosure, not itself rewritten.
+Documentation-only. Commit `670a951`, PR #76, merge `13d8871`.
+
+## Session: 2026-08-22 — Project Manager: T80 (Architecture Scorecard reassessment) authorized
+
+**Authorization:** T80's original bundle (`docs/Architecture.md`, `docs/API.md`,
+`docs/FeatureRegistry.md`, `docs/ArchitectureScorecard.md`, `docs/ProjectStatus.md`,
+`PROJECT_STATE.json`, both `CHANGELOG.md` files, `docs/SessionReport.md`, `IMPLEMENTATION_QUEUE.md`)
+narrowed for this pass to `docs/ArchitectureScorecard.md` only. Approved scope: reassess every
+existing capability row (not just new ones) against current `main`; incorporate `T69`–`T78`'s
+frontend/authentication/Electron work; correct obsolete Stage 2/2.5/3/4 terminology to the
+formally-established Stage 3 classification; reassess status symbols/dates/notes/Future Improvements
+only where evidence supports it; preserve historical records; do not infer completeness from
+task/PR status alone; explicitly flag partial/deferred/unverified capabilities; reassess Overall
+Architecture Health from repository evidence. No application/test/schema/workflow-governance change
+authorized; `T82` remains explicitly out of scope. Process: the Project Manager authorizes but does
+not itself edit the scorecard — the Documentation Manager role produces the reassessment as its own
+documentation-only commit, which then goes through review before merge. Commit `4058d04`, PR #77,
+merge `a66160b`.
+
+## Session: 2026-08-22 — Documentation Manager: T80 Architecture Scorecard reassessment, implemented and merged
+
+**Completed:** Reassessed every existing `docs/ArchitectureScorecard.md` capability row against
+current `main` — source (`httpClient.ts`, `AuthProvider.tsx`, `ipcBridge.ts`, `electron/preload.ts`,
+`electron/main.ts`, `ProtectedRoute.tsx`, backend `main.py`/`deps.py`/`sqlalchemy_repository.py`/
+`session.py`), tests, ADR-0018/0019/0020, `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`,
+`docs/AI_HANDOVER.md`, `PROJECT_CHECKPOINT.md`, `docs/Roadmap.md`, `docs/KnownIssues.md` — not
+inferred from merged-PR/task-Done status alone. Corrected obsolete Stage 2/2.5/3/4 terminology
+throughout to the Stage 3 classification, while explicitly preserving `docs/ImplementationLog/Stage4/`
+unrenamed as a historical artifact. Materially updated: `get_db()`'s F1 fix confirmed resolved
+directly against `session.py`; CORS (F5) and `/docs`/`/redoc` gating (F4, partially) confirmed
+resolved; `httpClient.ts` (F10) and `RequirePermission` (F11) confirmed resolved; the
+"zero business tables wired" Database claim corrected to reflect the identity/access-control tables
+now being genuinely wired end-to-end. Explicitly flagged, not marked resolved: the Electron
+refresh-token-not-consumed gap (`ipcBridge.ts` doesn't surface `getRefreshToken()`, `AuthProvider.tsx`
+has no mount-time restoration effect — independently re-confirmed by direct source read, not carried
+over from the prior record) and `T71`'s zero test coverage on its IPC handlers. Overall Architecture
+Health rewritten from evidence, including an honest downgrade of "Documentation Quality" reflecting
+this file's own six-week staleness. Commit `b7b2095`, branch `docs/t80-architecture-scorecard-
+reassessment`, PR #78 opened, not merged by this pass (per T80's authorized process).
+
+**Rework (same session, PR #78):** a reviewer (communicated directly in the authorizing chat session,
+not a formally-adopted Independent Technical Verifier role — see `docs/prompts/README.md`'s
+disclosure) found one narrow arithmetic defect: the Overall Architecture Health → Technical Debt
+paragraph said "Four of twelve" Stage 2.5 findings resolved while listing five resolved IDs
+(`F1`/`F4`/`F5`/`F10`/`F11`) against six remaining (`F2`/`F3`/`F6`/`F8`/`F9`/`F12`) — internally
+inconsistent. Reconciled against `IMPLEMENTATION_QUEUE.md`'s own findings table: `F7` was already
+resolved pre-Stage-3 (via `T15`/ADR-0015) and had been omitted from the count. Corrected to 6
+resolved (`F1`, `F4`, `F5`, `F7`, `F10`, `F11`) + 6 open (`F2`, `F3`, `F6`, `F8`, `F9`, `F12`) = 12,
+the original total — no classification changed to force the arithmetic; F1's fix was independently
+re-verified directly against `session.py`'s `get_db()` before finalizing. `git diff --check` clean;
+cumulative PR diff confirmed to touch only `docs/ArchitectureScorecard.md`. Commit `fcd8c47`.
+
+**Merged:** PR #78, merge `b5505bb` — the verifier's approval was communicated directly in the
+interactive session ("PR #78 — APPROVED TO MERGE"), a clear, explicit instruction from the user, not
+content observed from an untrusted source; merge performed and independently confirmed via
+`gh pr view 78` (state `MERGED`) and `git log`. `T81`/`T82` confirmed untouched throughout — no
+`T82` branch, PR, or code/test/config change exists anywhere in this cycle's range.
+
+## Session: 2026-08-22 — Documentation Manager: current-state synchronization (T80/T82, PR #73–#78)
+
+**Objective:** A fresh documentation synchronization against actual `main` (`b5505bb`), explicitly not
+relying on previous session reports or stale checkpoint claims. Rebuilt current state directly from
+`git`/`gh` (`git fetch`, `git log --oneline -15 origin/main`, `gh pr list --state merged --limit 15`,
+`gh pr view <n> --json files` for PR #73–#77) and cross-checked every current-state document against
+it. Explicitly not an authorization for `T82` and not an implementation of it; no application, test,
+configuration, CI, or database file touched.
+
+**Genuine drift found and corrected** (see this session's own reconciliation matrix, delivered
+directly to the requester, for the full old-claim/actual-state/correction accounting per file):
+- `PROJECT_STATE.json`: `tests.backend`/`tests.frontend` `total`/`passing` fields were frozen at
+  `T68`/`T69`-era figures (490/17) despite `currentStage.note`'s own narrative already describing
+  work through `T78`/`T79` (506/43) — corrected, with the last-live-verified figures and their date
+  cited, not re-run by this pass. `git.branch`/`git.latestCommitAtThisUpdate`/`git.note` were frozen
+  at `T70`'s own merge (`551e900`, 2026-08-19) — eight further merges behind — corrected. `T80`'s
+  authorization was recorded (via PR #77) but its completion (PR #78) was not — appended.
+  `completion.note`'s task-count proxy was stale — appended, original preserved.
+- `IMPLEMENTATION_QUEUE.md`: the `## Stage 3` section's own `**Status:**` banner still described
+  2026-08-06/08 (Phase 0/1) state as if current, even though the file's own body narrates through
+  `T78`/`T80` further down — a current-state pointer appended above it, the historical banner
+  preserved unchanged below. `T80`'s row had authorization text only (from PR #77) — its Done/merged
+  closeout appended.
+- `PROJECT_CHECKPOINT.md`: stuck at the `95bfae1`/`T79` boundary (2026-08-21) — six merges behind
+  (PR #73–#78). Rewritten in place (its own stated maintenance rule), now reflecting `T80` done/merged,
+  `T82` still reserved/unauthorized, HEAD `b5505bb`.
+- `docs/AI_HANDOVER.md`: appended a `T80` closeout entry under "Current Stage" (its established
+  append-only pattern) plus a note on the four intervening governance PRs (#73–#76); corrected the
+  stale "Current Branch" snapshot (dated note appended, original preserved).
+- `docs/SessionReport.md` (this file): appended session entries for PR #74, #75, #76, #77, #78 (five
+  merged PRs with no session entry at all before this pass) and this entry.
+
+**Files inspected and found already current — intentionally left untouched:**
+`docs/ArchitectureScorecard.md` (this session's own prior work, already current); `PROJECT_WORKFLOW.md`
+(already reflects Frontend Developer/Independent Technical Verifier correctly, via PR #75); `docs/
+prompts/README.md` (already current, via PR #76); `AI_BOOTSTRAP.md` (generic pointer, no task-specific
+content to drift); `docs/ImplementationLog/README.md` and `docs/ImplementationLog/Stage4/` (the latter
+deliberately not touched — frozen historical artifact, per explicit instruction); `CHANGELOG.md`/
+`docs/CHANGELOG.md` (release-level, tied to version tags — `currentVersion` has not moved past `0.3.1`,
+so no new entry is due; a pre-existing, already-disclosed gap, not worsened by this pass).
+`docs/Roadmap.md` was inspected and left unchanged after determining its existing `T77`–`T82` narrative
+already covers the relevant period faithfully; a `T80` mention was considered but judged non-essential
+to that file's stage-level roadmap purpose (as opposed to `IMPLEMENTATION_QUEUE.md`'s task-level
+tracking) and was not added, to keep this pass's edits to genuinely necessary synchronization only.
+
+**T80/T82 boundary, stated explicitly:** `T80` was not re-implemented or re-authorized by this batch —
+only its already-merged completion was recorded in the files that hadn't caught up to it yet. `T82`
+was not implemented, authorized, or changed by this batch.
+
+See this batch's own Documentation Manager report (delivered directly to the requester) for the full
+reconciliation matrix, file-by-file rationale, and validation performed.
