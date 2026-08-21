@@ -588,6 +588,34 @@ ADR-0018 D6's `safeStorage`-backed mechanism. **`T82` is NOT authorized, NOT sta
 implemented** — no Project Manager cycle has recorded authorization for it, and this catch-up pass
 does not authorize it either.
 
+**Update (2026-08-22, Documentation Manager, fresh current-state synchronization against actual
+`main` at `b5505bb` — this file had gone stale again after the 2026-08-21 catch-up above, six more
+merges behind: `T80` is Done and merged.** Authorized by the project owner (PR #77, `a66160b`),
+narrowed to `docs/ArchitectureScorecard.md` only. Implemented (commit `b7b2095`): every existing
+capability row reassessed against current `main` — source, tests, ADRs, `docs/ImplementationLog/`,
+`PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md` — not inferred from merged-PR/task-Done status
+alone; obsolete Stage 2/2.5/3/4 terminology corrected to the Stage 3 classification throughout; the
+Electron refresh-token-not-consumed gap (ADR-0018 D6) explicitly re-confirmed against current source
+and flagged as unresolved, not marked complete. A reviewer (communicated directly in the authorizing
+chat session, not a formally-adopted Independent Technical Verifier role — see the governance note
+below) found one narrow arithmetic defect: the Technical Debt paragraph's Stage 2.5 finding count
+("Four of twelve") didn't match the five resolved IDs and six open IDs it itself listed. Rework
+commit `fcd8c47` reconciled it against `IMPLEMENTATION_QUEUE.md`'s own findings table — `F7`
+(resolved pre-Stage-3, via `T15`/ADR-0015) had been omitted — to the correct 6 resolved (`F1`, `F4`,
+`F5`, `F7`, `F10`, `F11`) + 6 open (`F2`, `F3`, `F6`, `F8`, `F9`, `F12`) = 12, without changing any
+classification to force the arithmetic. `git diff --check` confirmed clean and the cumulative PR diff
+confirmed to touch only `docs/ArchitectureScorecard.md`. Merged: PR #78, commits `b7b2095`/`fcd8c47`,
+merge `b5505bb` — independently re-verified this session via `git log`/`git show` and
+`gh pr view 78` (state `MERGED`), not taken on faith. **`T81`/`T82` remain untouched and
+unauthorized** throughout `T80`'s entire cycle — confirmed directly, not assumed. Separately, between
+the 2026-08-21 catch-up above and this update, four more governance PRs merged and are recorded here
+for continuity: PR #74 (`e4d2f18`) resolved the Stage-numbering inconsistency the catch-up above
+disclosed — the project is now formally, consistently Stage 3 throughout `PROJECT_STATE.json`'s
+`stages[]` array (the superseded `stage-4` entry preserved as historical record, not deleted); PR
+#75 (`3a1dae7`) formally adopted Frontend Developer as a standing role; PR #76 (`13d8871`) corrected
+the dangling `Legal_DMS_Process_Supervision.md` citation at its source; PR #73 (`4480f3b`, rework
+`630d970`) was this file's own prior current-state synchronization pass.
+
 ## Pending Work
 
 **Update (2026-08-21, Documentation Manager catch-up):** the paragraph below describes the state as
@@ -754,7 +782,11 @@ change things silently.
 
 ## Current Branch
 
-**Update (2026-08-21):** `main`, at `95bfae1`, independently re-verified via `git status`/`git log`
+**Update (2026-08-22):** `main`, at `b5505bb`, independently re-verified via `git fetch`/`git log`/
+`gh pr list` this session — six merges ahead of the 2026-08-21 note below (PR #73–#78). This
+session's own edits are on `docs/t80-t82-current-state-sync`.
+
+**Update (2026-08-21), preserved for continuity:** `main`, at `95bfae1`, independently re-verified via `git status`/`git log`
 this session — `feature/<name>`/`docs/<topic>` branches off `main`, merged via PR, is now this
 project's settled standing workflow (confirmed by every `T52`–`T79` batch since), not merely scoped
 to Stage 2.7 as the paragraph below once asked to confirm.
