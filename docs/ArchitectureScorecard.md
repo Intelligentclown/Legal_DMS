@@ -1,11 +1,17 @@
 # Architecture Scorecard
 
-**Last Updated:** 2026-08-06
-**Current Project Version:** 0.3.1 (see [docs/CHANGELOG.md](CHANGELOG.md)'s versioning note)
-**Current Stage:** Stage 2 — Database Architecture & Data Model (complete), plus seven post-Stage-2
-standalone framework additions, their QA review resolution, and Stage 2.7 (GitHub Actions CI) — see
-[ProjectStatus.md](ProjectStatus.md) for the full narrative and [PROJECT_STATE.json](../PROJECT_STATE.json)
-for the machine-readable snapshot.
+**Last Updated:** 2026-08-21 (Documentation Manager current-state/governance reconciliation batch —
+this header had been stuck at its original 2026-08-06/Stage-2 snapshot even though several rows
+below were separately, partially updated through `T78` at various later points; see
+[ProjectStatus.md](ProjectStatus.md)'s own history note for the same gap).
+**Current Project Version:** 0.3.1 (see [docs/CHANGELOG.md](CHANGELOG.md)'s versioning note) — no
+new tag cut since, despite substantial `T41`–`T78` work having landed on `main` under it.
+**Current Stage:** Backend authentication/authorization (`T41`–`T68`) and frontend/Electron
+fundamentals (`T69`–`T78`) are both done and merged; `T79` (verification-only) was closed by the
+Project Owner as **INCOMPLETE / NOT VERIFIED** (Electron session-persistence unverified); `T82`
+(Electron-runtime live smoke verification) is reserved but **not authorized**. See
+[ProjectStatus.md](ProjectStatus.md) and [PROJECT_CHECKPOINT.md](../PROJECT_CHECKPOINT.md) for the
+full narrative and [PROJECT_STATE.json](../PROJECT_STATE.json) for the machine-readable snapshot.
 
 A high-level architectural maturity dashboard — one row per capability, grouped by category, so a
 reader can see at a glance what exists, how solid it is, and what's still open. This is a snapshot
@@ -158,7 +164,20 @@ general rule that a stage isn't done until its documentation reflects reality �
 
 ## Overall Architecture Health
 
-Qualitative assessment as of 2026-08-06, grounded in the category tables above and the
+**Update (2026-08-21):** the table below still reads largely as of 2026-08-06/Stage 2, aside from
+the Security row (separately touched at various later points through `T78`). It is preserved as
+historical context below rather than rewritten wholesale by this documentation-only pass — a full
+Overall Architecture Health re-assessment against the now-substantial Stage 3/4 auth/frontend/
+Electron surface is Documentation-Manager/QA-Reviewer-owned work in its own right, not a byproduct of
+a current-state synchronization pass. The one factual correction made here: `overallProjectPercent`
+is still deliberately 0%, as the "Architecture Completeness" row already states, but "no business
+feature has been built" now needs the qualifier that a real, working non-business-feature
+authentication/authorization/frontend surface *has* been built and wired to the Stage 2 schema since
+this table was last substantially revised — see [ProjectStatus.md](ProjectStatus.md)'s "Completed —
+Stage 3 ... and Stage 4 ..." section for the current substance.
+
+Qualitative assessment as of 2026-08-06 (Security row partially updated through `T78`, see above),
+grounded in the category tables above and the
 [Documentation Consistency Report](reviews/Documentation_Consistency_Report_2026-08-06.md). Not a
 formula — a snapshot judgment call, meant to be revised each time this file is updated.
 

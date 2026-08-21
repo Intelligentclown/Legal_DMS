@@ -8,173 +8,195 @@ fix this file._
 
 ## 1. Last Verified State
 
-- **Verified:** 2026-08-19, this session — directly against `git`/`gh`, not from prior conversation.
+- **Verified:** 2026-08-21, this session (Documentation Manager, current-state/governance
+  reconciliation batch) — directly against `git`/`gh`, not from prior conversation.
 - **Current branch:** `main`
-- **HEAD commit:** `e36fee4` — PR #62 (T71 post-merge closeout) — genuinely `main`'s current tip.
-- **`T71`'s own merge commit:** `b770505` (PR #61).
-- **`origin/main`:** `e36fee4` — synchronized with local `main`.
+- **HEAD commit:** `95bfae1` — PR #72 (`chore/publish-t79-governance`) — genuinely `main`'s current
+  tip.
+- **`origin/main`:** `95bfae1` — synchronized with local `main` (`git status`: "up to date with
+  'origin/main'", working tree clean).
 - **Working tree:** clean.
-- **Latest relevant merge/PR:** PR #61 (`b770505` - T71 feature) and PR #62 (`e36fee4` - T71 post-merge doc closeout).
+- **Latest relevant merges:** PR #70 (`e7943e8` — T78 CORS tightening), PR #71/#72 (`bc8b14e`/
+  `d134862`, published via `95bfae1` — T79's Project Owner governance decision closing it as
+  **INCOMPLETE/NOT VERIFIED**, and opening **T82**, not started, not authorized).
 
-- **Governance note — `T71`'s own history, preserved not collapsed:** authorization was recorded before any implementation existed. Implementation (`0c0a4d0`) followed on `feature/stage4-t71-electron-token-storage`. QA rendered **Approved with comments** (`1ee01b3`). PR #61 merged as `b770505`. The post-merge documentation-synchronization pass was then committed, pushed, and opened as PR #62, which merged as `e36fee4`.
+**This checkpoint was previously stuck at the T71/T72 boundary (2026-08-19)** — it was not updated
+across T72–T79's entire implementation and closeout sequence. That gap is what this revision
+corrects; see this batch's Documentation Manager report for the full discrepancy record. Nothing
+below reflects new work — it is a synchronization of this file against `git`/`PROJECT_STATE.json`/
+`IMPLEMENTATION_QUEUE.md`, all independently re-verified this session.
 
 ## 2. Current Stage
 
-- **Stage:** 4 — Frontend & Electron Fundamentals (`docs/Roadmap.md`, `IMPLEMENTATION_QUEUE.md`). Phase 0 (`T66`–`T68`), Phase 1/5 (`T69`), Phase 2 (`T70`), and Phase 3 (`T71`) are all complete and merged.
-- **Phase:** Stage 4 Phase 3 (`T71`) is **Done in code, merged.** `T72` (Login page/form) is the next scheduled task but remains unauthorized and not started.
-- **Overall project progress:** Stages 0–2 complete (infrastructure/framework/schema only, 0
-  business features by design). Stage 3 is the first business-adjacent feature and is now essentially
-  complete on the auth/user-management surface (`T58`–`T65`); Stage 4 Phase 0's three known tasks
-  (`T66`–`T68`) are all done; `T69` — the first frontend task, a genuinely different role (Frontend
-  Developer) than the Backend Developer role `T58`–`T68` used — is also done and merged.
-- **Completed task range (code merged into `main`):** `T41`–`T69`.
-- **Documentation closeout status:** `T41`–`T69` fully reconciled and merged as of this checkpoint.
-- **Next unfinished task:** `T70` (auth state management — a React context/provider holding the
-  current user + tokens, `login()`/`logout()` actions) — **not authorized**, per `T69`'s own
-  authorization text, which explicitly named `T70`–`T76` out of scope. A Project Manager cycle
-  (authorization, recorded before implementation) must precede any `T70` work.
+- **Stage:** `PROJECT_STATE.json`'s `currentStage.id` is `"stage-4"` ("Frontend & Electron
+  Fundamentals"). **Note a genuine, unresolved naming inconsistency, not silently picked one way:**
+  `IMPLEMENTATION_QUEUE.md` still carries every task from `T41` through `T82` under one heading,
+  `## Stage 3 — Authentication & Authorization`, with no separate `## Stage 4` heading anywhere in
+  that file or in `docs/Roadmap.md`; `docs/ImplementationLog/`, by contrast, has filed `T66`+ under
+  `Stage4/Phase0.md` onward since `T66`. This checkpoint reports both numbering schemes rather than
+  resolving which is authoritative — `IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` are Project Manager-
+  owned planning documents (`PROJECT_WORKFLOW.md` §8); reconciling their stage boundary is that role's
+  call, not this synchronization pass's.
+- **Phase:** Stage 4 Phase 0 (`T66`–`T68`), Phase 1/5 (`T69`), Phase 2 (`T70`), Phase 3 (`T71`),
+  Phase 4 (`T72`), Phase 5 (`T73`, `T74`), Phase 6 (`T75`), and Phase 7 (`T77`, plus `T78` — see
+  below) are all complete and merged. `T76` was formally resolved as **Superseded/Distributed** (its
+  intended RTL coverage was completed cumulatively within `T72`–`T75`) — see
+  `docs/t76-resolution-t77-authorization` (PR #68, merge `545d00b`). `T78` (CORS tightening) is
+  implemented, QA-approved, and merged; its batch record was appended directly to
+  `docs/ImplementationLog/Stage4/Phase7.md` (a second "T78 Batch" section following T77's full
+  entry), but **that file's own metadata block was never updated** — `Related Tasks` still reads
+  only `T77`, `Status` still reads `In Progress`, `Git Commit` still cites only `64540de` (T77's
+  commit, not T78's `07fe8e1`). The `T78` section is also missing most of the standard's eleven
+  required sections (only an abbreviated "Implementation" block and a QA Decision). Flagged as
+  documentation debt in this batch's report, not fixed here — that content is Developer/QA-owned,
+  and correcting it is a metadata/structure fix to existing content, not authoring new narrative,
+  but still outside this role's routine remit.
+- **`T79` (verification-only task) is CLOSED as `INCOMPLETE / NOT VERIFIED` — explicitly NOT a PASS.**
+  Project Owner final governance decision, 2026-08-20 (commit `d134862`, published via PR #72). PASS
+  items (backend suite, frontend suite, lint/format, and the full login/protected-route/logout browser
+  walkthrough) were independently re-verified live. **The Electron refresh/session-persistence
+  requirement remains NOT VERIFIED** — this environment can drive a browser tab but cannot launch or
+  observe an actual Electron `BrowserWindow`, so ADR-0018 D6's `safeStorage`-backed persistence could
+  not be exercised in its real target runtime. `T79` also has no `ImplementationLog` phase log entry
+  (verification-only, no implementation) — its full record lives in `PROJECT_STATE.json`'s
+  `currentStage.note` and `IMPLEMENTATION_QUEUE.md`'s own `T79` row.
+- **`T82` is the next item — Electron-runtime live smoke verification, the direct follow-up to `T79`'s
+  unresolved item.** `IMPLEMENTATION_QUEUE.md` reserves the ID and records its intended scope only.
+  **`T82` is NOT authorized, NOT started, and NOT implemented.** A fresh, unrelated Electron
+  refresh-token-not-consumed observation (`PROJECT_STATE.json`'s `knownIssues`:
+  `electron-refresh-token-not-consumed`) was recorded as a static-analysis finding during `T79`'s
+  follow-up pass, directly relevant to what `T82` will need to exercise, but was **not fixed** and no
+  implementation was authorized around it.
+- **Completed task range (code + QA + documentation merged into `main`):** `T41`–`T78`, plus `T79`'s
+  own governance closure (documentation-only, no code).
+- **Next unfinished/open task:** `T82` — **not authorized**. No Project Manager cycle has recorded
+  authorization for it. Per this project's standing rule, a Project Manager cycle (authorization,
+  recorded before implementation) must precede any `T82` work.
 
 ## 3. Completed Tasks
 
-| Task    | Status                                                                                                                                                                    | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Commit/PR                                                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| T41–T51 | Done                                                                                                                                                                      | Phase 0/1 — prerequisite fix, auth foundation, credential/token lifecycle                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | see `docs/ImplementationLog/Stage3/Phase0.md`/`Phase1.md`                                                               |
-| T52     | Done                                                                                                                                                                      | `JwtAuthenticationProvider` — real `AuthenticationProvider`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | PR #9 (`baed936`)                                                                                                       |
-| T53     | Done                                                                                                                                                                      | `RbacAuthorizationService` — real `AuthorizationService`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | code PR #10 (`a103dca`); doc closeout PR #11 (`25a6078`)                                                                |
-| T54     | Done                                                                                                                                                                      | `RequirePermission(...)` FastAPI dependency factory                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | code+reconciliation PR #12 (`6396f6b`); doc closeout PR #13 (`512c91e`)                                                 |
-| T55     | Done                                                                                                                                                                      | Request-scoped `Depends()` wiring of real providers in `deps.py`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | code+governance PR #15 (`b094436`); doc closeout PR #16 (`4e03e79`)                                                     |
-| T56     | Done                                                                                                                                                                      | Real bearer-token extraction (`get_bearer_token()`) in `get_current_user()`                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | authorization PR #17 (`89a3a5e`); implementation PR #18 (`d69c4eb`); doc closeout PR #19 (`47c854f`)                    |
-| T57     | Done                                                                                                                                                                      | Distinguish `UnauthorizedError`/401 from `ForbiddenError`/403 in `RequirePermission` — Phase 2 complete                                                                                                                                                                                                                                                                                                                                                                                                                                          | authorization+implementation PR #20 (`472f7cb`); doc closeout PR #21 (`b2606ed`)                                        |
-| T58     | Done                                                                                                                                                                      | `POST /api/v1/auth/login` — the first route in this project                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | authorization+implementation PR #22 (`e67da02`); doc closeout PR #23 (`b037f85`)                                        |
-| T59     | Done                                                                                                                                                                      | `POST /api/v1/auth/refresh` — reuses `T58`'s `AuthServiceDep` unchanged                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | authorization+implementation PR #24 (`721cec5`); doc closeout PR #25 (`1121e20`)                                        |
-| T60     | Done                                                                                                                                                                      | `POST /api/v1/auth/logout` — reuses `T58`'s `AuthServiceDep`; `deps.py`/`router.py`/`AuthService` untouched                                                                                                                                                                                                                                                                                                                                                                                                                                      | code PR #26 (`941ed42`); doc closeout PR #27 (`e6b227c`); checkpoint sync PR #28 (`81fd548`)                            |
-| T61     | Done                                                                                                                                                                      | `GET /api/v1/auth/me` — reuses `CurrentUserDep`; the first route wrapped in `ApiResponse[T]`                                                                                                                                                                                                                                                                                                                                                                                                                                                     | authorization PR #29 (`cca1077`); implementation+docs PR #30 (`bdffb5e`); post-merge doc closeout PR #31 (`627726a`)    |
-| T62     | Done — `Approved with comments` (named governance finding, no code defect)                                                                                                | Five user-management routes, the first Phase 3 batch to exercise `RequirePermission`'s 403 half via real HTTP requests                                                                                                                                                                                                                                                                                                                                                                                                                           | authorization PR #32 (`ea80b74`); implementation PR #33 (`3a4a21c`); post-merge doc closeout PR #34 (`8687dc5`)         |
-| T63     | Done — `Approved`, plain (no governance finding — QA Decision committed _before_ merge, correcting `T62`'s own history)                                                   | Role-assignment routes; extends `RequirePermission(*permissions: str)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | authorization PR #35 (`97ab953`); implementation+QA PR #36 (`ef419c3`); post-merge doc closeout PR #37 (`162f666`)      |
-| T64     | Done — `Approved`, plain                                                                                                                                                  | Explicit error-shape and invalid-token integration-test coverage for `T58`–`T63` (test-only, no production code)                                                                                                                                                                                                                                                                                                                                                                                                                                 | authorization+implementation+QA PR #38 (`fab2933`); post-merge doc closeout PR #39 (`27f585d`)                          |
-| T65     | Done — `Approved`, plain (governance history preserved: initial missing-batch finding → documentation correction → second QA pass → QA Decision committed _before_ merge) | Wires the existing `AuditLogger` port into `login_success`/`login_failure`/`permission_denied` events — no new capability, no schema change, no route added                                                                                                                                                                                                                                                                                                                                                                                      | authorization PR #40 (`61e64d3`); implementation+QA PR #41 (`d91d00c`)                                                  |
-| T66     | Done — `Approved`, plain (governance history preserved: initial rework → formatting → QA Decision committed _before_ merge)                                               | New migration seeding `role_permissions` against approved matrix (59 entries). Exactly one Alembic head `224b650e5235`. Safe downgrade. Exhaustive tests.                                                                                                                                                                                                                                                                                                                                                                                        | authorization PR #43 (`66f94bf`); implementation+QA PR #44 (`2edc23e`)                                                  |
-| T67     | Done — `Approved with comments` (two non-blocking QA comments, no rework)                                                                                                 | First-admin bootstrap CLI (`bootstrap-admin`): interactive `getpass`-only email/password prompt (`ADR-0018` D4), creates exactly one `User` assigned the seeded `Administrator` role, idempotent no-op if any user already exists. 5 new integration tests.                                                                                                                                                                                                                                                                                      | authorization PR #46 (`65b737a`); implementation+QA+docs PR #47 (`fc0b142`); post-merge doc closeout PR #48 (`f0c9b34`) |
-| T68     | Done — `Approved`, plain (QA independently ran a mutation test to prove the new tests non-vacuous)                                                                        | Bootstrap CLI entry-point test coverage: two new test classes exercise `_async_main()` directly, proving a first invocation actually `commit()`s (via a second, independent database connection) and a second/existing-user invocation is a clean, non-prompting no-op. `bootstrap.py` itself byte-for-byte unchanged — test-file-only. 3 new tests.                                                                                                                                                                                             | authorization PR #49 (`5bca735`); implementation+QA+docs PR #50 (`43aa0a7`); post-merge doc closeout PR #53 (`b544135`) |
-| **T69** | **Done — `Approved`, plain (no rework — merged as-is)**                                                                                                                   | `frontend/src/infrastructure/api/httpClient.ts` gains `post`/`put`/`delete` alongside the existing `get()`, sharing a new `requestWithBody()` helper; `HttpError` gains an optional `code?: string`, populated from the backend's structured `{"error":{"code","message"}}` body via a strict type-guard, falling back to the existing generic message otherwise. `get()`/`request<T>()`'s success path unchanged. 8 new tests (`httpClient.test.ts`, new file). The first task to use the Frontend Developer role instead of Backend Developer. | authorization PR #52 (`5abceee`); implementation+QA+docs PR #54 (`5196fdf`)                                             |
+`T41`–`T69` are unchanged from this file's prior revision — see that history below, still accurate,
+not restated in full again. Full technical detail for `T52`–`T57` lives in
+`docs/ImplementationLog/Stage3/Phase2.md`; `T58`–`T65` in `docs/ImplementationLog/Stage3/Phase3.md`;
+`T66`–`T68` in `docs/ImplementationLog/Stage4/Phase0.md`; `T69` in
+`docs/ImplementationLog/Stage4/Phase1.md`.
 
-Full technical detail for `T52`–`T57` lives in `docs/ImplementationLog/Stage3/Phase2.md`; `T58`–`T65`
-live in `docs/ImplementationLog/Stage3/Phase3.md`; `T66`–`T68` live in
-`docs/ImplementationLog/Stage4/Phase0.md`; `T69` lives in
-`docs/ImplementationLog/Stage4/Phase1.md` — not duplicated here.
+| Task | Status | Purpose | Commit/PR |
+| --- | --- | --- | --- |
+| T41–T69 | Done | See prior checkpoint history / `docs/AI_HANDOVER.md` / phase logs above | — |
+| T70 | Done — `Approved with comments` (named governance finding: approval-checkpoint pause skipped between authorization and implementation, resolved as permanent history, not erased) | Auth state management — `AuthProvider.tsx`/`auth.ts` (React context/provider holding user + tokens, `login()`/`logout()`) | authorization `2cf052c`; implementation `da29014`; rework `d54b0a3`; QA re-review `d5cba34`; PR #58, merge `551e900`; doc closeout PR #59, merge `fd74573` |
+| T71 | Done — `Approved with comments` (three non-blocking QA comments: no tests, no manual verification, default file permissions) | Electron secure token storage (ADR-0018 D6) — `safeStorage` in main process, IPC exposure to renderer | authorization PR #60 (`1da8838`); implementation `0c0a4d0`, QA `1ee01b3`; PR #61, merge `b770505`; doc closeout PR #62, merge `e36fee4` |
+| T72 | Done — `Approved with comments`; **Independent Technical Verification: Approved with comments** (non-blocking IPC persistence test-coverage gap recorded) | Login page/form integrating T70/T71 infrastructure | authorization `333f251`; implementation `f3ad6da`; doc sync `257f00e`; PR #64, merge `a8ad712` |
+| T73 | Done — `Approved with comments`; **Independent Technical Verification: Approved with comments** (non-blocking: `<Navigate replace>` semantics verified by inspection, not automated-tested; phase log created post-QA) | Protected-route wrapper redirecting unauthenticated users to `/login` | authorization `aa98a3c`; implementation `bf0fae3`; doc sync `89378fb`; PR #65, merge `ecfd4a4` |
+| T74 | Done — `Approved with comments` | Global `Authorization` header on outgoing requests; global 401 handling (clear session, redirect to `/login`, no auto-refresh); resolved the pre-existing 204-parsing issue in `httpClient.ts` | authorization `d56e7c4`; implementation `4293851`; doc sync `0fb478c`; PR #66, merge `312361a` |
+| T75 | Done — `Approved with comments` | Current-user display + logout action in `MainLayout` header; wired `ipcBridge.clearRefreshToken()` into logout, completing T74's deferred work | authorization `caa9bc5`; implementation `1e25289`; a documentation-state correction (`7f008e1`) mid-batch; doc sync `08d5a74`/`7c36667`; PR #67, merge `193bc8a` |
+| T76 | **Formally resolved as Superseded/Distributed** — its intended RTL coverage was completed cumulatively across T72–T75; not implemented as its own task, and not a cancellation for cause | — | resolution commit `60d07f0`, PR #68, merge `545d00b` |
+| T77 | Done — `Approved` (plain) | Gate `/docs`/`/redoc` behind `settings.is_development` (Stage 2.5 F4); `/openapi.json` deliberately left ungated, named as a Deferred Work item | authorization `60d07f0` (same commit as T76's resolution); implementation `64540de`; doc sync `88909c7`; PR #69, merge `9cb420f`; phase log `docs/ImplementationLog/Stage4/Phase7.md` |
+| T78 | Done — `Approved with comments` (non-blocking observation: the `TRACE`-method negative test doesn't itself discriminate the tightening, though the positive exact-list and `X-Custom-Header` tests do) | Tightened CORS `allow_methods`/`allow_headers` from wildcards to an explicit list | authorization `713a866`; implementation `07fe8e1`; doc sync `e61f63b`; PR #70, merge `e7943e8`. Batch record appended to `docs/ImplementationLog/Stage4/Phase7.md`, but that file's metadata block (`Related Tasks`/`Status`/`Git Commit`) was never updated to include it — flagged as documentation debt. |
+| T79 | **Closed as `INCOMPLETE / NOT VERIFIED` — explicitly not Approved, not Rework-required, not a normal QA Decision.** Verification-only, strict no-code-change boundary, held throughout. | Verification-only pass (tests, lint, format, live browser walkthrough) intended to close Stage 3/4's auth surface; the Electron-specific persistence requirement could not be exercised in this environment | authorization `bc8b14e`; Project Owner governance decision `d134862`; both published via PR #71 (`docs/t79-governance-publish`) then PR #72 (`chore/publish-t79-governance`), merge `95bfae1`. **No `ImplementationLog` phase log** (verification-only; full record in `PROJECT_STATE.json`/`IMPLEMENTATION_QUEUE.md`). |
+| T82 | **Reserved, scoped, NOT authorized, NOT started.** | Electron-runtime live smoke verification — launch the actual Electron app (not a browser tab), exercise login/protected-route/refresh-inside-Electron/logout, specifically to verify ADR-0018 D6's `safeStorage`-backed session restoration | `IMPLEMENTATION_QUEUE.md`'s `T82` row records scope only. No authorization commit exists. |
 
 ## 4. Current Task
 
-**Task:** `T71` — Electron secure token storage (D6).
-
-- **Authorization status:** recorded as its own dedicated, documentation-only commit (`45c8db5`), before any implementation existed. Approved scope: implement ADR-0018 D6 (safeStorage in main process, IPC exposure to renderer).
-- **Implementation status:** complete and merged (`0c0a4d0`, on `feature/stage4-t71-electron-token-storage`). Approval-checkpoint pause honored (~25 min).
-- **QA status:** **Approved with comments** (`1ee01b3`) — diff scope verified, ADR-0018 D6 compliance confirmed, three non-blocking comments (no tests, no manual verification, default file permissions).
-- **Documentation status:** merged as part of PR #62 (T71 post-merge doc closeout).
-- **Post-merge verification (this session):** `main`/`origin/main` independently confirmed at `e36fee4`.
-- **Is `T71` finished? Yes.** Code, its QA Decision, and final documentation are all merged. **Stage 4 Phase 3's `T71` is complete in full.**
+**There is no task currently in progress.** `T78` is done and merged; `T79`'s governance decision is
+closed and published; `T82` is reserved but explicitly unauthorized. This checkpoint's own
+current-state/governance-reconciliation batch is documentation-only (see this session's
+Documentation Manager report) and does not itself constitute or imply authorization for `T82`.
 
 ## 5. Next Cycle
 
-- **Next task:** `T72` — Login page/form.
-- **Why it\'s next:** `IMPLEMENTATION_QUEUE.md` lists `T72` as the next unfinished task.
-- **Dependencies:** `T71` (done, merged).
-- **Is it authorized? NO — verified directly, not assumed.** `T72` remains strictly unauthorized and not started.
-- **What must happen before implementation begins:** a Project Manager cycle to explicitly authorize `T72` in `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` before any implementation begins.
+- **Next task:** `T82` — Electron-runtime live smoke verification.
+- **Why it's next:** it is the only open, scoped item in `IMPLEMENTATION_QUEUE.md`; everything
+  through `T78` is done and merged, and `T79` is formally closed (as incomplete, not as a pass).
+- **Dependencies:** `T71` (Electron secure token storage) and `T74`/`T75` (auth/session wiring), both
+  done and merged.
+- **Is it authorized? NO.** Verified directly against `IMPLEMENTATION_QUEUE.md`'s own `T82` row and
+  `PROJECT_STATE.json`'s `currentStage.note`, both of which state this explicitly, not assumed.
+- **What must happen before implementation begins:** a Project Manager cycle to explicitly authorize
+  `T82` in `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json`, recorded before any implementation begins,
+  per this project's standing discipline. **This documentation/governance reconciliation batch does
+  not authorize `T82`** and was expressly scoped not to.
 
-**`T71` being fully closed does not itself authorize `T72` — this checkpoint does not start, scope, or implement `T72`.**
+**Neither `T78` being done and merged, nor `T79`'s closure, nor this checkpoint's own
+current-state synchronization, authorizes `T82` — this file does not start, scope, or implement it.**
 
 ## 6. Repository State
 
-- **`main`:** `e36fee4` (`T71`'s post-merge documentation closeout — genuinely `main`'s current tip)
-- **`origin/main`:** `e36fee4` (synchronized)
-- **`T71`'s own merge commit:** `b770505` (PR #61, `feature/stage4-t71-electron-token-storage`)
-- **Latest feature branch relevant to the completed task:** `feature/stage4-t71-electron-token-storage`
-- **This session's own branch:** `docs/current-state-reconciliation`
+- **`main`:** `95bfae1` (PR #72 — publishes `T79`'s governance closure and `T82`'s opening; genuinely
+  `main`'s current tip)
+- **`origin/main`:** `95bfae1` (synchronized — `git status` confirms "up to date with 'origin/main'")
+- **This session's own branch:** to be created for this documentation/governance reconciliation batch
+  (`docs/<topic>`, per `PROJECT_WORKFLOW.md` §4) — not yet committed as of this file's own writing.
 - **Any task implementation sitting uncommitted?** No.
-- **Any task documentation sitting uncommitted?** No.
+- **Any task documentation sitting uncommitted?** No, aside from this session's own
+  current-state/governance reconciliation batch (this file included).
+- **Stale local/remote branches observed, not cleaned up by this pass** (routine housekeeping, out of
+  this batch's scope): numerous merged `feature/`/`docs/` branches remain undeleted both locally and
+  on `origin` (e.g. `feature/T72-login-page-form`, `docs/t71-authorization`, `docs/t68-authorization`,
+  and others) — left untouched, consistent with this role's documentation-only mandate.
 
 ## 7. Test / Quality Status
 
-- **Backend tests:** 490 passed, 0 failed, 0 skipped — carried over from `T68`'s post-merge closeout; unaffected by `T71`.
-- **Frontend tests:** Carried forward from pre-merge figures. T71 did not include automated tests per QA comments.
-- **Frontend lint/format:** clean.
-- **Database/integration status:** not exercised this session.
+**Not independently re-run by this documentation-only pass** — per this batch's own scope boundary
+(no test execution required for a documentation/governance reconciliation; the last live-verified
+figures are `T79`'s own PASS items: backend suite 506/506, frontend suite 43/43, both lint/format
+suites clean, all independently re-verified live against a running backend/frontend during `T79`'s
+own governance pass, 2026-08-20). See `docs/ImplementationLog/Stage4/Phase7.md` (`T77`) and
+`docs/SessionReport.md`'s `T78` entry for the last per-batch figures on record; this file does not
+re-derive or re-assert them.
 
 ## 8. Current Architecture Snapshot
 
-- **`AuthenticationProvider`/`AuthorizationService` (Stage 1 ports):** unchanged.
-- **`RequirePermission(...)` (`T54`, extended by `T57`/`T63`):** unchanged.
-- **`AuditLogger`:** unchanged.
-- **`POST/GET /api/v1/auth/*` (`T58`–`T61`), `GET/POST/PUT/deactivate/roles /api/v1/users*` (`T62`/`T63`):** unchanged.
+- **`AuthenticationProvider`/`AuthorizationService`, `RequirePermission(...)`, `AuditLogger`,
+  `/api/v1/auth/*`, `/api/v1/users*` (`T52`–`T65`):** unchanged since `T65`.
 - **`infrastructure/cli/bootstrap.py` (`T67`/`T68`):** unchanged.
-- **`frontend/src/infrastructure/api/httpClient.ts` (`T69`):** unchanged.
-- **Auth state management (`T70`):** React context/provider holding user + tokens.
-- **Electron secure token storage (`T71`, new this batch):** Implements `safeStorage` in main process and exposes IPC to renderer.
+- **`frontend/src/infrastructure/api/httpClient.ts`:** extended by `T69` (post/put/delete) and `T74`
+  (global `Authorization` header attachment, global 401 handling, 204-parsing fix) — otherwise
+  unchanged since `T74`.
+- **Electron secure token storage (`T71`):** `safeStorage` in main process, IPC exposure to renderer.
+  **`electron/preload.ts`'s `getRefreshToken()` remains unsurfaced by `ipcBridge.ts`'s `ElectronApi`
+  wrapper, and `AuthProvider.tsx` still has no mount-time effect calling it** — no session-restoration-
+  on-load path exists yet even inside Electron (static-analysis finding, `T79` follow-up, not fixed;
+  directly relevant to `T82`).
+- **Login page/form (`T72`), protected-route wrapper (`T73`), current-user display + logout in
+  `MainLayout` (`T75`):** all implemented and merged.
+- **`/docs`/`/redoc` (`T77`):** gated behind `settings.is_development`; `/openapi.json` deliberately
+  ungated (named Deferred Work).
+- **CORS `allow_methods`/`allow_headers` (`T78`):** tightened from wildcards to an explicit list.
 
 ## 9. Active Risks / Open Questions
 
-| Issue                                                                                                                                                                                | Impact                                                                                                                                                                                                                                                     | Blocks `T71`? | Owner                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/ProjectStatus.md` / `docs/ArchitectureScorecard.md` stuck at pre-Stage-3 status                                                                                                | Documentation debt, repeatedly flagged, still not fixed                                                                                                                                                                                                    | No            | Documentation Manager (dedicated pass)                                                                                                                                        |
-| `backend/.env`'s `DATABASE_URL` port (`5432`) does not match the actually-running `legal_dms_postgres` container's exposed port (`5433`)                                             | Every backend-testing session must locally override `DATABASE_URL`; not yet fixed at the project-file level (deliberately — no session has been authorized to change `.env`/`docker-compose.yml`); irrelevant to `T71` itself (frontend-only, no database) | No            | Whoever is authorized to reconcile the `.env`/`docker-compose.yml` port mapping                                                                                               |
-| `docs/ImplementationLog/Stage4/Phase0.md`'s own metadata block still reads `T68`'s `Git Commit`/`Pull Request` fields as "pending"/"not yet opened," even though `T68` is now merged | Documentation debt inside a file this role doesn't own the technical content of; unrelated to `T71`, not addressed by this pass either                                                                                                                     | No            | Whoever next has standing to edit `Phase0.md`'s content (mirrors the identical staleness this same file once carried for `T67`, later corrected by a `Correction (...)` note) |
-| `feature/stage3-t61-me` through `feature/stage4-t69-http-client-methods` branches not yet deleted post-merge                                                                         | Minor housekeeping                                                                                                                                                                                                                                         | No            | Whoever performs routine branch cleanup                                                                                                                                       |
-| `delete()`'s success path still calls `response.json()` unconditionally (inherited unchanged from `request<T>()`), which would throw on a real `204 No Content` response             | No caller of `delete()` exists yet (`T72`+ unauthorized); named in `T71`'s own phase log as a `T72`+ concern, not a defect                                                                                                                                 | No            | Whoever implements `T72`+'s first real `delete()` call                                                                                                                        |
-| The missing-`Administrator`-role `RuntimeError` guard in `bootstrap.py` still has its own error branch untested (named `T67` QA comment, not rework)                                 | Untested code path; low risk since it only triggers if migrations haven't been run before bootstrap                                                                                                                                                        | No            | Whoever next touches `bootstrap.py`                                                                                                                                           |
-| `run_bootstrap()` still hand-rolls user/role-assignment persistence instead of reusing `SqlAlchemyUserRepository.assign_role()` (named `T67` QA comment, not rework)                 | Minor divergence from this codebase's repository-layer convention; functionally immaterial today                                                                                                                                                           | No            | Whoever next touches `bootstrap.py`                                                                                                                                           |
-| A separate, unrelated governance-documentation change (`docs/prompts/GitCI_PR_Manager.md`/`README.md`) and an untracked `docs/HANDOFF/` directory remain uncommitted                 | Not part of `T61`–`T71`; left untouched across many sessions                                                                                                                                                                                               | No            | Whoever owns that separate change                                                                                                                                             |
-
-**Resolved since the previous version of this file, removed from this table:** the prior version's
-stale "`T71` authorized, not yet implemented" entries throughout this file — all now corrected to
-reflect `T71` as Done and merged.
+| Issue | Impact | Blocks `T82`? | Owner |
+| --- | --- | --- | --- |
+| Electron session-restoration-on-load path does not exist (`getRefreshToken()` unsurfaced, no mount-time effect) | This is very likely what `T82`'s live smoke verification will actually surface as a FAIL if exercised as-is; recorded as a static-analysis observation, not fixed | Directly relevant, not itself a blocker to *authorizing* T82 | Whoever implements the eventual fix, once separately authorized — not this batch |
+| `T78`'s batch record exists in `docs/ImplementationLog/Stage4/Phase7.md` but that file's metadata block (`Related Tasks`/`Status`/`Git Commit`) still shows only `T77`; the `T78` section itself is missing most of the standard's eleven required sections | Minor documentation-standard deviation; the substance (implementation commit, verification results, QA Decision) is recorded, just incompletely structured | No | Documentation debt — flagged, not corrected by this pass (Developer/QA-owned content) |
+| `T79` (verification-only) also has no `ImplementationLog` phase log | Same category as above; `T79`'s governance decision is otherwise fully recorded in `PROJECT_STATE.json`/`IMPLEMENTATION_QUEUE.md` | No | Same as above |
+| Stage numbering inconsistency: `IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` still call `T66`+ "Stage 3"; `PROJECT_STATE.json`/`docs/ImplementationLog/` call it "Stage 4" | Documentation confusion for a fresh reader; not a blocker to any task | No | Project Manager (owns both files) |
+| `docs/prompts/` has no standing role definition for the "Frontend Developer" role, in active use since `T69` | A role used routinely across multiple merged tasks (`T69`, `T70`, `T72`–`T75`) has no `docs/prompts/FrontendDeveloper.md` and is not listed in `PROJECT_WORKFLOW.md` §7's AI Roles table | No | Requires a proposal/review/sign-off per `AI_BOOTSTRAP.md`'s "process changes are versioned" rule — not silently adopted by this pass |
+| An "Independent Technical Verification" step is referenced as a formal gate (`T72`, `T73`) and an "Independent Technical Verifier" role/session is referenced in `PROJECT_STATE.json`'s `git.note`, citing a governing document (`Legal_DMS_Process_Supervision.md`) that **does not exist anywhere in this repository or its git history** | A review gate and a cited governance document are both operating in practice without any corresponding entry in `PROJECT_WORKFLOW.md`, `docs/prompts/`, or the repository's file tree | No | Requires project-owner decision: formally adopt (proposal/review/sign-off) or correct the dangling reference — not resolved by this pass |
+| Numerous merged feature/docs branches (local and `origin`) not yet deleted | Minor housekeeping | No | Whoever performs routine branch cleanup |
 
 ## 10. Governance Rules
 
-From `AI_BOOTSTRAP.md`, `PROJECT_WORKFLOW.md`, and `docs/prompts/*.md` — summarized, not restated in
-full:
+Unchanged from this file's prior revision — see `AI_BOOTSTRAP.md`, `PROJECT_WORKFLOW.md`, and
+`docs/prompts/*.md`, summarized there, not restated here. One addition specific to this revision:
 
-- **Repository-First Rule:** the repository is always the source of truth; never rely on previous
-  chat history or a task description's own claims without independently checking `git`/`gh` first —
-  this session verified `T71`'s merge (`e36fee4`, PR #62) directly rather than taking the task
-  description's claim on faith.
-- **Every implementation cycle begins with the Project Manager**, authorization written into
-  `IMPLEMENTATION_QUEUE.md`/`PROJECT_STATE.json` before implementation begins. `T56`–`T71` have each
-  held this line. `T72` does **not** yet have a recorded authorization — a new Project Manager cycle
-  is required before it can begin.
-- **QA Reviewer** renders a QA Decision — **recorded in the repository before merge.** `T71` continues
-  this discipline: `6b90ede` was committed and pushed to the feature branch before any PR into `main`
-  existed, and the merge (`e36fee4`) carried that decision in unchanged — no rework.
-- **Documentation Manager** performs closeout **only after** a QA Decision of `Approved`/`Approved
-with comments` exists **in the repository** — verified directly this session (`git log`, `gh pr
-view`, direct read of the QA Decision text), not assumed from a task description's claim.
-- **A task is `Done` only when code and QA Decision are both merged into `main`** — `T71` now
-  genuinely satisfies this.
-- **`main` is protected — genuinely, at the GitHub-settings level, not just by convention.** Branch
-  strategy: `feature/<name>` (or `docs/<topic>`) off `main` → commit → PR → merge → delete branch →
-  update local `main`. This session applied the branch+PR route from the start (`docs/t69-post-merge-closeout`),
-  matching every closeout since the `T67` closeout's own disclosed `GH006` rejection.
-- **Preserve historical governance deviations rather than rewriting history.** `T71`'s QA Decision
-  (plain `Approved`) is recorded in full, unedited, in `docs/ImplementationLog/Stage4/Phase1.md`'s own
-  T71 batch — this checkpoint restates it rather than collapsing it into a single clean pass.
-- **Task IDs are immutable.**
+- **This documentation/governance reconciliation batch does not itself constitute a QA Decision, an
+  implementation batch, or an authorization for `T82`.** It is a Documentation Manager
+  current-state/governance-reconciliation pass, scoped explicitly to avoid implying otherwise.
 
 ## 11. Safe Breakpoint
 
 **SAFE TO STOP: YES.**
 
-`T71`'s **code** is complete and merged (`e36fee4`, PR #62). `T71`'s **QA Decision** is committed and
-was pushed before that merge, with no rework between decision and merge. `T71`'s **documentation** was
-merged as part of PR #62 and further verified/corrected this session. The repository's committed state
-on `main` fully reflects `T71` as closed at the code/QA level — **Stage 4 Phase 5's `T71` is complete
-in full.** This session's own further-verification edits (this file included) are committed to
-`docs/t69-post-merge-closeout` and opened as a PR into `main` — not merged by this session, matching
-every prior closeout's pattern.
+`T78`'s code, QA Decision, and documentation are all merged (`e7943e8`). `T79`'s governance closure is
+merged and published (`95bfae1`). `T82` is reserved, scoped, and explicitly unauthorized — no
+implementation work is in flight. This checkpoint's own edits are this session's only uncommitted
+change, to be committed to a `docs/<topic>` branch per this project's standing branch strategy, not
+merged by this session unless separately authorized.
 
-**Next cycle begins with: `T72`** — **not authorized.** `T71`'s own authorization text explicitly
-named `T72`–`T76` out of scope; a Project Manager cycle (rebuild state, confirm scope against
-`IMPLEMENTATION_QUEUE.md`'s row, get the project owner's explicit authorization recorded before
-implementation begins) must happen first.
+**Next cycle begins with: `T82`** — **not authorized.** A Project Manager cycle must record explicit
+authorization before any implementation begins.
 
 ## 12. AI Continuation Instructions
 
@@ -183,86 +205,61 @@ Before doing anything:
 1. Read this file (`PROJECT_CHECKPOINT.md`).
 2. Verify the live Git state yourself (`git status`, `git log`, `git rev-parse HEAD origin/main`) —
    do not trust this file's numbers without re-checking.
-3. Read `T72`'s row in `IMPLEMENTATION_QUEUE.md` directly — note its approved scope is **not yet
-   recorded**; `T71`'s own authorization explicitly excluded `T72`–`T76`.
-4. Read the relevant `PROJECT_STATE.json` state directly.
-5. Do not assume `T72`+ is authorized just because `T71` is done and merged — `T72`–`T76` remain
-   explicitly out of scope and unauthorized per `T71`'s own authorization text, confirmed directly
-   this session.
+3. Read `T82`'s row in `IMPLEMENTATION_QUEUE.md` directly — its scope is recorded, its authorization
+   is not.
+4. Read the relevant `PROJECT_STATE.json` state directly, especially `currentStage.note`'s `T79`/`T82`
+   text and the `electron-refresh-token-not-consumed` entry in `knownIssues`.
+5. Do not assume `T82` is authorized merely because `T79` reached a governance decision, or because
+   this checkpoint has been refreshed — `T82` remains explicitly out of scope and unauthorized.
 6. Confirm Docker/Postgres is actually reachable (`docker ps`) before claiming any DB-backed test
-   result was personally re-run — and confirm the actual exposed port, since `.env`'s stated port has
-   been wrong for multiple consecutive sessions now (`T65`–`T68`'s own verifications). Not relevant to
-   `T71` itself (frontend-only, no database).
+   result was personally re-run.
 7. Follow the project's role workflow (`PROJECT_WORKFLOW.md` §3, §7).
 
-**Which role should act next: Project Manager**, to authorize `T72` (or whichever task the project
-owner directs next) before any implementation begins — no implementation role should start `T72`
-without that authorization recorded first, per the pattern `T56`–`T71` each held to. Separately,
-whoever owns the `docs/prompts/GitCI_PR_Manager.md`/`README.md` governance-documentation change, the
-`docs/HANDOFF/` directory, the `.env`/container port mismatch, and
-`docs/ImplementationLog/Stage4/Phase0.md`'s own stale `T68` metadata fields should decide whether and
-how to resolve them — not addressed here.
+**Which role should act next: Project Manager**, to authorize `T82` (or whichever task the project
+owner directs next) before any implementation role begins work — no implementation role should start
+`T82` without that authorization recorded first. Separately, the Stage-numbering inconsistency
+(`IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` vs. `PROJECT_STATE.json`/`docs/ImplementationLog/`), the
+missing `T78`/`T79` phase logs, the Frontend Developer role documentation gap, and the Independent
+Technical Verifier / `Legal_DMS_Process_Supervision.md` governance gap are all recorded above and in
+this batch's Documentation Manager report — none are resolved by this pass, all require a decision
+from the appropriate owning role or the project owner.
 
 ## 13. Authoritative Files
 
-| File                                      | Authoritative for                                                                                                                                                                              |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AI_BOOTSTRAP.md`                         | Non-negotiable rules, required-reading order, new-session protocol                                                                                                                             |
-| `PROJECT_WORKFLOW.md`                     | The full development lifecycle, branch/PR/git workflow, AI role definitions, documentation ownership                                                                                           |
-| `PROJECT_STATE.json`                      | Machine-readable point-in-time snapshot (stage, tests, git state)                                                                                                                              |
-| `IMPLEMENTATION_QUEUE.md`                 | The task backlog — what's planned, in what order, current status per task                                                                                                                      |
-| `docs/AI_HANDOVER.md`                     | Deep narrative handover — completed work, open issues, what to do next                                                                                                                         |
-| `docs/Roadmap.md`                         | Stage-by-stage roadmap pointer (defers to `IMPLEMENTATION_QUEUE.md` for detail)                                                                                                                |
-| `docs/SessionReport.md`                   | Chronological session-by-session summary                                                                                                                                                       |
-| `docs/ImplementationLog/Stage3/Phase2.md` | Full technical execution record for `T52`–`T57` (Phase 2, complete)                                                                                                                            |
-| `docs/ImplementationLog/Stage3/Phase3.md` | Full technical execution record for `T58`–`T65` (Phase 3, complete)                                                                                                                            |
-| `docs/ImplementationLog/Stage4/Phase0.md` | Full technical execution record for `T66`–`T68` (Stage 4 Phase 0, complete and merged in full — this file's own metadata block still needs a `T68` Git Commit/PR correction, see Active Risks) |
-| `docs/ImplementationLog/Stage4/Phase1.md` | Full technical execution record for `T71` (Stage 4 Phase 5's first task, complete and merged in full, including its Post-Merge Verification section)                                           |
-| `docs/ImplementationLog/README.md`        | The ImplementationLog standard itself                                                                                                                                                          |
-| `docs/prompts/*.md`                       | Canonical per-role AI prompts                                                                                                                                                                  |
-| `docs/Stage3_Backend_Handoff.md`          | File-by-file implementation brief for Stage 3's remaining phases                                                                                                                               |
+Unchanged from this file's prior revision.
+
+| File | Authoritative for |
+| --- | --- |
+| `AI_BOOTSTRAP.md` | Non-negotiable rules, required-reading order, new-session protocol |
+| `PROJECT_WORKFLOW.md` | The full development lifecycle, branch/PR/git workflow, AI role definitions, documentation ownership |
+| `PROJECT_STATE.json` | Machine-readable point-in-time snapshot (stage, tests, git state) — currently the single most up-to-date narrative document in this project |
+| `IMPLEMENTATION_QUEUE.md` | The task backlog — what's planned, in what order, current status per task |
+| `docs/AI_HANDOVER.md` | Deep narrative handover — completed work, open issues, what to do next |
+| `docs/Roadmap.md` | Stage-by-stage roadmap pointer (defers to `IMPLEMENTATION_QUEUE.md` for detail) |
+| `docs/SessionReport.md` | Chronological session-by-session summary |
+| `docs/ImplementationLog/Stage4/Phase0.md`–`Phase7.md` | Full technical execution record for `T66`–`T77` (see §2 for the `T78`/`T79` gap) |
+| `docs/ImplementationLog/README.md` | The ImplementationLog standard itself |
+| `docs/prompts/*.md` | Canonical per-role AI prompts — currently four formally adopted roles; see §9's Frontend Developer / Independent Technical Verifier rows for what isn't yet formally covered |
+| `docs/Stage3_Backend_Handoff.md` | File-by-file implementation brief for Stage 3's remaining phases |
 
 ## 14. Checkpoint Maintenance Rules
 
-- This file represents **current state**, not historical narrative — rewritten in place.
-- Update it whenever a task reaches a meaningful lifecycle boundary.
-- **Never** claim a task is `Done` merely because code exists — `T71` is `Done` because code, its QA
-  Decision, _and_ its documentation are all merged into `main`, independently verified this session,
-  not assumed.
-- **Never** claim QA approval unless the QA Decision is recorded in the repository, not merely
-  asserted. `T71`'s QA Decision (plain `Approved`, no rework) is preserved in full in
-  `docs/ImplementationLog/Stage4/Phase1.md`, not smoothed over or rewritten here.
-- **Never** claim a clean breakpoint while uncommitted or unmerged _task_ work remains — `T71` itself
-  has none; this session's own edits are committed to `docs/t69-post-merge-closeout` and disclosed as
-  pending a PR merge in §6/§11, not silently presented as already on `main`.
-- **Never** claim an authorization or QA-approval commit "preceded merge" without a commit to point to
-  — `T71`'s QA commit (`6b90ede`) is independently re-verified this way, as an ancestor of `e36fee4` in
-  `git log`.
-- **Never** claim a test suite was personally re-run when it wasn't. This session's frontend 17/17
-  figure was personally re-run against merged `main`; the backend 490/490 figure is explicitly
-  disclosed as carried over from `T68`'s own closeout, not re-run this session, since `T71` touches no
-  backend file.
-- Preserve historical detail in `docs/ImplementationLog/`/`docs/SessionReport.md` rather than bloating
-  this file.
-- **Always** verify Git state directly, including PR state via `gh`, before declaring anything
-  current.
+Unchanged from this file's prior revision — see that section; not restated here. This revision is
+itself an instance of the rule this section states: the file was found stale (stuck at the `T71`/`T72`
+boundary across ten subsequent merged PRs) and is corrected here, in place, rather than left to drift
+further.
 
 ## 15. Checkpoint Integrity
 
-- **Last verified commit:** `e36fee4` (`main`, synchronized with `origin/main`, at session start —
-  genuinely `main`'s current tip, `T71`'s own merge commit)
+- **Last verified commit:** `95bfae1` (`main`, synchronized with `origin/main` — `git status`/`git
+  log`/`gh pr view` all checked directly this session)
 - **Last verified branch:** `main`
-- **Working tree status:** clean of `T71`-related changes; this session's own edits are the only
-  non-clean elements, alongside the pre-existing unrelated items named in §1.
-- **Verification performed:** `git fetch origin`; `git status --short`; `git rev-parse HEAD
-origin/main`; `git log --oneline --decorate -8`; `git show --no-patch --format="%H%n%P"` on
-  `e36fee4` (parents `b544135`/`79af7ac`, confirming the merge is exactly what it claims to be);
-  `git show --stat e36fee4` (file set matches the T71 batch plus its documentation sync exactly);
-  `gh pr view 54` (`MERGED`, `mergeCommit.oid: e36fee4...`); direct read of
-  `docs/ImplementationLog/Stage4/Phase1.md`'s `QA Decision — T71 batch` section in full (confirmed
-  `Approved` checked, no other box); `npm run test -- --run`/`npm run lint`/`npm run format:check`
-  re-run locally against merged `main` from `frontend/`, all clean (17/17, 0 errors/3 pre-existing
-  warnings, clean respectively). Backend suite not re-run this session — disclosed, not assumed, since
-  `T71` touches no backend file.
-- **Generated/updated by:** Documentation Manager
-- **Date:** 2026-08-18
+- **Working tree status:** clean, aside from this session's own documentation/governance
+  reconciliation edits.
+- **Verification performed:** `git status`; `git log --oneline --merges -40 main`; `git log --oneline
+  -5`; `git branch -a`; `gh pr view 71`; `gh pr list --state all --limit 15`; direct commit-range
+  inspection (`git log --oneline <range>`) for every PR cited in §3 above; direct reads of
+  `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`'s `T82` row, `docs/ImplementationLog/Stage4/
+  Phase7.md`, and `docs/SessionReport.md`'s `T78` entry.
+- **Generated/updated by:** Documentation Manager (current-state/governance reconciliation batch)
+- **Date:** 2026-08-21
