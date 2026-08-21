@@ -173,7 +173,7 @@ re-derive or re-assert them.
 | `T79` (verification-only) also has no `ImplementationLog` phase log | Same category as above; `T79`'s governance decision is otherwise fully recorded in `PROJECT_STATE.json`/`IMPLEMENTATION_QUEUE.md` | No | Same as above |
 | Stage numbering inconsistency: `IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` still call `T66`+ "Stage 3"; `PROJECT_STATE.json`/`docs/ImplementationLog/` call it "Stage 4" | Documentation confusion for a fresh reader; not a blocker to any task | No | Project Manager (owns both files) |
 | `docs/prompts/` has no standing role definition for the "Frontend Developer" role, in active use since `T69` | A role used routinely across multiple merged tasks (`T69`, `T70`, `T72`–`T75`) has no `docs/prompts/FrontendDeveloper.md` and is not listed in `PROJECT_WORKFLOW.md` §7's AI Roles table | No | Requires a proposal/review/sign-off per `AI_BOOTSTRAP.md`'s "process changes are versioned" rule — not silently adopted by this pass |
-| An "Independent Technical Verification" step is referenced as a formal gate (`T72`, `T73`) and an "Independent Technical Verifier" role/session is referenced in `PROJECT_STATE.json`'s `git.note`, citing a governing document (`Legal_DMS_Process_Supervision.md`) that **does not exist anywhere in this repository or its git history** | A review gate and a cited governance document are both operating in practice without any corresponding entry in `PROJECT_WORKFLOW.md`, `docs/prompts/`, or the repository's file tree | No | Requires project-owner decision: formally adopt (proposal/review/sign-off) or correct the dangling reference — not resolved by this pass |
+| ~~An "Independent Technical Verification" step is referenced as a formal gate (`T72`, `T73`) and an "Independent Technical Verifier" role/session is referenced in `PROJECT_STATE.json`'s `git.note`, citing a governing document (`Legal_DMS_Process_Supervision.md`) that does not exist~~ **Resolved 2026-08-22 (project-owner decision):** Independent Technical Verifier is explicitly not formally adopted — no further ad hoc verification pass is mandatory unless a future proposal authorizes it. The dangling citation in `PROJECT_STATE.json`'s `git.note` is corrected to state plainly that no such document exists. | Was: a review gate and a cited governance document operating without any corresponding entry in `PROJECT_WORKFLOW.md`, `docs/prompts/`, or the repository's file tree. | No | Resolved — Project Manager, per project-owner decision |
 | Numerous merged feature/docs branches (local and `origin`) not yet deleted | Minor housekeeping | No | Whoever performs routine branch cleanup |
 
 ## 10. Governance Rules
@@ -219,10 +219,12 @@ Before doing anything:
 owner directs next) before any implementation role begins work — no implementation role should start
 `T82` without that authorization recorded first. Separately, the Stage-numbering inconsistency
 (`IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` vs. `PROJECT_STATE.json`/`docs/ImplementationLog/`), the
-missing `T78`/`T79` phase logs, the Frontend Developer role documentation gap, and the Independent
-Technical Verifier / `Legal_DMS_Process_Supervision.md` governance gap are all recorded above and in
-this batch's Documentation Manager report — none are resolved by this pass, all require a decision
-from the appropriate owning role or the project owner.
+missing `T78`/`T79` phase logs are recorded above and in this batch's Documentation Manager report —
+not resolved by this pass. The Frontend Developer role documentation gap and the Independent
+Technical Verifier / `Legal_DMS_Process_Supervision.md` governance gap, both also recorded above,
+were resolved 2026-08-22 by project-owner decision: Frontend Developer is now formally adopted (see
+`docs/prompts/FrontendDeveloper.md`, `PROJECT_WORKFLOW.md` §7); Independent Technical Verifier is
+explicitly not adopted; the dangling citation is corrected in `PROJECT_STATE.json`'s `git.note`.
 
 ## 13. Authoritative Files
 
