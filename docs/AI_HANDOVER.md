@@ -705,7 +705,17 @@ or its git history**, confirmed by direct search this session. Both are operatio
 have not been through this project's "process changes are versioned" proposal/review/sign-off
 discipline (`AI_BOOTSTRAP.md`). See [`docs/prompts/README.md`](prompts/README.md)'s own governance
 note (mirroring the existing disclosure it already carries for `GitCI_PR_Manager.md`) for the full
-disclosure. Not resolved here — formal adoption (or correction) is a project-owner decision.
+disclosure.
+
+**Update (2026-08-22, Project Manager, project-owner authorized).** Both items are now resolved.
+Frontend Developer is formally adopted as a standing role, kept strictly separate from Backend
+Developer — see [`docs/prompts/FrontendDeveloper.md`](prompts/FrontendDeveloper.md) and
+`PROJECT_WORKFLOW.md` §7. The `Legal_DMS_Process_Supervision.md` citation named above has been
+corrected at its source (`PROJECT_STATE.json`'s `git.note`) to state plainly that no such document
+exists and that the fallback it referenced was never a documented procedure. Independent Technical
+Verifier remains explicitly **not** formally adopted, per the project owner's 2026-08-21 decision —
+no further ad hoc verification pass should be treated as mandatory unless a future governance
+proposal defines and authorizes it.
 
 Read the ADRs in [`/ADR`](../ADR/) before making architectural changes:
 - **0001–0005** (Stage 0): ADR practice itself, Clean Architecture layering, the tech stack
