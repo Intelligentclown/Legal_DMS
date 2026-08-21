@@ -467,7 +467,10 @@ backlog only — not scheduled, not implemented._
 ## Stage 3 — Authentication & Authorization
 
 **Status update (2026-08-22, Documentation Manager, fresh sync against actual main at `b5505bb`,
-verified directly via `git`/`gh`):** `T41`–`T78` are Done and merged; `T79` (verification-only) is
+verified directly via `git`/`gh`):** `T41`–`T78` are Done and merged **except `T76`**, formally
+resolved as Superseded/Distributed rather than implemented or merged as its own task — its intended
+RTL coverage was completed cumulatively within `T72`–`T75`; see `T76`'s own row below for the full
+disposition, not restated here. `T79` (verification-only) is
 closed as **INCOMPLETE / NOT VERIFIED**, not a PASS; `T80` (this file's own documentation
 reassessment task) is now Done and merged (see `T80`'s own row below for full detail); `T81`
 (README cleanup) and `T82` (Electron-runtime live smoke verification) remain reserved task IDs,
