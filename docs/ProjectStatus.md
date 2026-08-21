@@ -455,7 +455,17 @@ from before Stage 3 was scoped, not current reality.
 Original note: Stage 3 is undefined — nothing planned in detail. See [Roadmap.md](Roadmap.md).
 Separately, Stage 2.7's one open item (a live GitHub Actions run, `IMPLEMENTATION_QUEUE.md` T35)
 needs an explicit go-ahead to commit and push before it can be marked fully done. **That item has
-since closed** — CI has run repeatedly, green, on every `T41`+ pull request since.
+since closed** — a real GitHub Actions run has been observed, satisfying the original concern.
+**Correction (2026-08-21, Independent Technical Verifier rework):** the previous wording here
+("CI has run repeatedly, green, on every `T41`+ pull request since") overstated what this
+documentation-only pass actually established. Individual `T41`+ implementation-log entries and QA
+Decisions cite specific green CI runs for their own batches (see each batch's own phase log), and
+`IMPLEMENTATION_QUEUE.md`/`docs/ImplementationLog/` batches reference passing suites, but this file
+does not independently verify, and does not claim, that every single `T41`+ pull request completed
+every CI workflow successfully — that would require re-querying `gh pr checks`/`gh api` for each of
+the dozens of PRs individually, which was not done. Subsequent PRs have had CI activity since Stage
+2.7 closed; this document does not establish that every `T41`+ PR completed every CI workflow
+successfully.
 
 ## Blocked Tasks
 
