@@ -272,7 +272,8 @@ document in their column looks wrong.
 |---|---|
 | **Project Manager** | `IMPLEMENTATION_QUEUE.md`; `docs/Roadmap.md`; planning documents generally (scoping, sequencing, acceptance criteria before work starts). |
 | **Software Architect** | ADRs (`/ADR/`); `docs/Architecture.md`; interface/port documentation; architecture decisions generally. |
-| **Backend / Frontend Developer** | `docs/ImplementationLog/` (their own phase logs); developer notes; technical implementation documentation. |
+| **Backend Developer** | `docs/ImplementationLog/` (its own phase logs, backend/Python-domain tasks); developer notes; technical implementation documentation. |
+| **Frontend Developer** | `docs/ImplementationLog/` (its own phase logs, frontend/TypeScript/React/Electron-renderer-domain tasks); developer notes; technical implementation documentation. Peer role to Backend Developer, not a subordinate or merged variant — see [`docs/prompts/FrontendDeveloper.md`](../prompts/FrontendDeveloper.md), formally adopted 2026-08-22. |
 | **QA Reviewer** | `docs/ArchitectureScorecard.md`; QA reports (`docs/reviews/*_QA_Review.md`); test verification records; the **QA Decision** on each implementation batch (see above). |
 | **Documentation Manager** | `docs/AI_HANDOVER.md`; `docs/ProjectStatus.md`; `docs/SessionReport.md`; both `CHANGELOG.md` files; release notes (`docs/releases/`); README updates project-wide; [`PROJECT_STATE.json`](../../PROJECT_STATE.json) (assigned 2026-08-07 — a synchronization document that changes after implementation, QA, releases, and documentation updates, the same consistency-maintenance role this row already covers for everything else in it). |
 

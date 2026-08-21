@@ -166,14 +166,27 @@ git checkout -b feature/<next-task-name>
 
 ## 7. AI Roles
 
-The project defines four standard AI roles. One development session may perform all four sequentially, but each role has distinct responsibilities and boundaries.
+The project defines five standard AI roles. One development session may perform all five
+sequentially, but each role has distinct responsibilities and boundaries. Backend Developer and
+Frontend Developer are peer roles occupying the same lifecycle position — a task is assigned to
+exactly one of the two, selected by the authorized task's domain (backend/Python vs. frontend/
+TypeScript/Electron-renderer), never both, and neither is a subordinate or a merged variant of the
+other. Frontend Developer was formally adopted 2026-08-22 (project-owner decision); see
+[`docs/prompts/FrontendDeveloper.md`](docs/prompts/FrontendDeveloper.md).
 
 | Role | Owns | Must never |
 |---|---|---|
 | **Project Manager** | Repository state, implementation planning, dependency validation, task sequencing, stage gates, documentation consistency checks. | Implement code, review implementation, bypass stage gates, assume task numbers, or approve implementation. |
-| **Backend Developer** | Implementation, unit/integration tests, `ImplementationLog` phase entries, Reviewer Checklist self-assessment. | Skip tests, expand scope, perform unrelated refactoring, or continue automatically to the next task. |
-| **QA Reviewer** | Independent implementation review, QA Decision, architecture validation, regression review, documentation impact review. | Implement features, redesign architecture during review, or approve without verification. |
+| **Backend Developer** | Implementation, unit/integration tests, `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for backend/Python-domain tasks. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, render a QA Decision, or act as a merge gate. |
+| **Frontend Developer** | Implementation, unit/integration tests (RTL/Vitest), `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for frontend/TypeScript/React/Electron-renderer-domain tasks. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, change an approved task's scope, render a QA Decision, act as a merge gate, or weaken Electron's `sandbox`/`contextIsolation`/`nodeIntegration` posture without separate explicit authorization. |
+| **QA Reviewer** | Independent implementation review, QA Decision, architecture validation, regression review, documentation impact review — the sole independent review gate for both Developer roles. | Implement features, redesign architecture during review, or approve without verification. |
 | **Documentation Manager** | Synchronization of `PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs, release notes, and other project documentation after QA approval. | Duplicate `ImplementationLog` content, synchronize documentation before QA approval, or rewrite historical records instead of appending updates when required. |
+
+An "Independent Technical Verifier" role has operated informally in this project's history (see
+[`docs/prompts/README.md`](docs/prompts/README.md)) but is **not** formally adopted — per explicit
+project-owner decision (2026-08-21), it is not listed here, and no ad hoc verification pass
+following it should be treated as mandatory unless a future governance proposal defines and
+authorizes it.
 
 Full ownership assignments are defined in:
 
@@ -187,7 +200,7 @@ document is authoritative; this is a pointer, not a second copy.
 
 | Document | Canonical role | Primary owner |
 |---|---|---|
-| `docs/ImplementationLog/` | Implementation history | Backend / Frontend Developer |
+| `docs/ImplementationLog/` | Implementation history | Backend Developer and Frontend Developer — two separate peer roles, each owning only its own phase logs |
 | `docs/SessionReport.md` | Session summary | Documentation Manager |
 | `IMPLEMENTATION_QUEUE.md` | Planning backlog | Project Manager |
 | ADRs (`/ADR/`) | Architectural decisions | Software Architect |
