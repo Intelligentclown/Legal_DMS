@@ -3067,3 +3067,64 @@ was not implemented, authorized, or changed by this batch.
 
 See this batch's own Documentation Manager report (delivered directly to the requester) for the full
 reconciliation matrix, file-by-file rationale, and validation performed.
+
+## Session: 2026-08-22 — Documentation Manager: one-merge current-state correction (PR #79 lag)
+
+**Objective:** A narrowly-scoped correction only — the session entry immediately above this one (and
+`PROJECT_CHECKPOINT.md`, `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `docs/AI_HANDOVER.md`)
+described `main`'s current tip as `b5505bb` (PR #78). That description was accurate when written,
+but the pass that wrote it was itself PR #79 — its own eventual merge commit (`a0c7a05`) necessarily
+postdated the state it was describing. Once PR #79 merged, every "current main = `b5505bb`" claim
+those documents carried became one merge stale. This session corrects exactly that lag — no new
+implementation, no re-authorization, no reinterpretation of `T79`'s or `T80`'s own status.
+
+**Verified directly, not assumed:** `git rev-parse main`/`git rev-parse origin/main` both return
+`a0c7a05`; `gh pr view 79` confirms `state: MERGED`, `mergeCommit.oid: a0c7a05...`,
+`headRefName: docs/t80-t82-current-state-sync`; `git log HEAD..main` (from that now-merged branch)
+showed exactly two commits ahead — `a0c7a05` (PR #79's own merge) and `b5505bb` (PR #78's merge,
+already merged before PR #79 branched) — confirming `a0c7a05` is genuinely the current tip and
+`b5505bb` is one commit behind it, not a divergent or unrelated state.
+
+**Corrected, current-state claims only:**
+- `PROJECT_CHECKPOINT.md` — HEAD/`main`/`origin/main`/"Last verified commit" fields (§1, §6, §15),
+  rewritten in place per this file's own stated maintenance rule; its "Latest relevant merges" list
+  gained a PR #79 entry; its §14 maintenance-rule paragraph gained one sentence disclosing this as a
+  third, narrower correction pass.
+- `PROJECT_STATE.json` — `git.branch` (`docs/t80-t82-current-state-sync` → `main`) and
+  `git.latestCommitAtThisUpdate` (`b5505bb` → `a0c7a05`) updated directly, being point-in-time
+  snapshot fields; `git.note` gained a new leading paragraph, with the prior `b5505bb` note preserved
+  below it, explicitly marked "preserved for continuity" — matching this file's own established
+  supersession pattern, not rewritten in place.
+- `IMPLEMENTATION_QUEUE.md` — a correction paragraph appended immediately before the existing
+  `b5505bb` status-update banner; the banner itself left untouched (historically accurate for its own
+  point in time), and the `T82` row itself was not touched at all (it carries no `b5505bb`
+  reference).
+- `docs/AI_HANDOVER.md` — two append-only dated notes added (under "Current Stage"'s `T80` entry, and
+  under "Current Branch"), following this file's own established never-rewrite-append-instead
+  convention; no existing paragraph was edited.
+
+**Deliberately NOT touched, preserved as historical fact:**
+- Every "PR #78 merged as `b5505bb`" reference throughout all five files (e.g.
+  `PROJECT_CHECKPOINT.md`'s Completed Tasks table row for `T80`, its §11 Safe Breakpoint sentence,
+  `docs/AI_HANDOVER.md`'s and this file's own prior "Merged: PR #78 ... `b5505bb`" statements) — these
+  describe what PR #78 itself merged as, which is permanently true regardless of what `main` has done
+  since, and the task's own instructions named this exact distinction explicitly.
+- This file's own prior session entries (including the one immediately above) — session log entries
+  are historical records of what a given sitting did and observed at the time; per this file's
+  standing rule, corrected via a new dated entry (this one), never rewritten in place.
+- `docs/Roadmap.md` and `docs/ArchitectureScorecard.md` — neither was named in this task's scope, and
+  neither contains a `b5505bb` reference (confirmed via a repository-wide search before editing
+  anything).
+- `docs/prompts/*.md`, `PROJECT_WORKFLOW.md`, `AI_BOOTSTRAP.md`, ADRs, `docs/ImplementationLog/` —
+  untouched, outside this task's scope.
+
+**`T79`/`T80`/`T82` boundary, stated explicitly:** `T79` remains `CLOSED / INCOMPLETE / NOT
+VERIFIED` — not reinterpreted as a pass anywhere in this correction. `T80` remains Done/merged,
+unaffected in substance — only the surrounding "current main" pointer was corrected. `T82` was not
+implemented, authorized, scoped further, or otherwise changed by this batch — its queue row in
+`IMPLEMENTATION_QUEUE.md` was not modified at all, since it carries no `b5505bb` reference requiring
+synchronization. No application, test, configuration, CI, database, Electron, frontend, or backend
+file was touched.
+
+**Not committed, pushed, or opened as a PR by this session** — per this task's own explicit
+instruction, these edits sit directly in the working tree pending the project's normal workflow.
