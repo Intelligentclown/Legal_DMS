@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { CurrentUser, AuthTokens, LoginCredentials } from "@/domain/types/auth";
 import {
   httpClient,
+  HttpError,
   setAccessToken,
   setUnauthorizedHandler,
 } from "@/infrastructure/api/httpClient";
@@ -11,6 +12,8 @@ import { ipcBridge } from "@/infrastructure/ipc/ipcBridge";
 interface AuthState {
   currentUser: CurrentUser | null;
   tokens: AuthTokens | null;
+  /** True only while startup session restoration is still in flight. */
+  isInitializing: boolean;
 }
 
 interface AuthContextType extends AuthState {
@@ -20,27 +23,98 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function fetchCurrentUser(accessToken: string): Promise<CurrentUser> {
+  const response = await httpClient.get<{ data: CurrentUser }>("/api/v1/auth/me", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response.data;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     currentUser: null,
     tokens: null,
+    isInitializing: true,
   });
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      setState({ currentUser: null, tokens: null });
+      setState((prev) => ({ ...prev, currentUser: null, tokens: null }));
     });
     return () => setUnauthorizedHandler(null);
+  }, []);
+
+  // Restores a previously-authenticated session (renderer reload or full Electron
+  // restart) from the refresh token Electron's safeStorage-backed IPC persisted on a
+  // prior login (T71/ADR-0018 D6). Browser-tab execution has no such storage to read
+  // from, so it's a deliberate no-op there (ipcBridge.isAvailable() === false).
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession(): Promise<void> {
+      if (!ipcBridge.isAvailable()) {
+        return;
+      }
+
+      let persistedToken: string | null;
+      try {
+        persistedToken = await ipcBridge.getRefreshToken();
+      } catch {
+        return;
+      }
+      if (!persistedToken) {
+        return;
+      }
+
+      let tokens: AuthTokens;
+      try {
+        tokens = await httpClient.post<AuthTokens>("/api/v1/auth/refresh", {
+          refresh_token: persistedToken,
+        });
+      } catch (error) {
+        // A structured HTTP failure (401 etc.) means the persisted token is genuinely
+        // invalid/expired/revoked -- clear it so the app doesn't keep retrying it on
+        // every future launch. A non-HttpError (network failure, backend unreachable)
+        // says nothing about the token's validity, so it's deliberately left in place
+        // for the next attempt.
+        if (error instanceof HttpError) {
+          await ipcBridge.clearRefreshToken().catch(() => {});
+        }
+        return;
+      }
+
+      setAccessToken(tokens.access_token);
+      try {
+        const currentUser = await fetchCurrentUser(tokens.access_token);
+        // /auth/refresh rotates the refresh token -- the one just presented is now
+        // revoked, so the newly-issued one must replace it in persisted storage or
+        // the *next* restoration attempt would fail.
+        await ipcBridge.setRefreshToken(tokens.refresh_token).catch(() => {});
+        if (!cancelled) {
+          setState({ currentUser, tokens, isInitializing: false });
+        }
+      } catch {
+        setAccessToken(null);
+      }
+    }
+
+    void restoreSession().finally(() => {
+      if (!cancelled) {
+        setState((prev) => (prev.isInitializing ? { ...prev, isInitializing: false } : prev));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
     const tokens = await httpClient.post<AuthTokens>("/api/v1/auth/login", credentials);
     setAccessToken(tokens.access_token);
     try {
-      const response = await httpClient.get<{ data: CurrentUser }>("/api/v1/auth/me", {
-        headers: { Authorization: `Bearer ${tokens.access_token}` },
-      });
-      setState({ tokens, currentUser: response.data });
+      const currentUser = await fetchCurrentUser(tokens.access_token);
+      setState({ tokens, currentUser, isInitializing: false });
     } catch (error) {
       setAccessToken(null);
       throw error;
@@ -63,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setAccessToken(null);
-    setState({ currentUser: null, tokens: null });
+    setState({ currentUser: null, tokens: null, isInitializing: false });
   };
 
   return (
