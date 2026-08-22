@@ -8,27 +8,33 @@ fix this file._
 
 ## 1. Last Verified State
 
-- **Verified:** 2026-08-22, this session (Documentation Manager, fresh current-state synchronization
-  against actual `main` — rebuilt directly from `git`/`gh`, not from prior conversation or this
-  file's own prior claims).
+- **Verified:** 2026-08-22, this session (Documentation Manager, one-merge current-state correction
+  after PR #79 — rebuilt directly from `git`/`gh`, not from prior conversation or this file's own
+  prior claims).
 - **Current branch:** `main`
-- **HEAD commit:** `b5505bb` — PR #78 (`docs/t80-architecture-scorecard-reassessment`) — genuinely
-  `main`'s current tip, independently confirmed via `git log --oneline -15 origin/main` and
-  `git rev-parse origin/main`.
-- **`origin/main`:** `b5505bb` — synchronized with local `main`.
-- **Working tree:** clean, aside from this session's own documentation-synchronization edits.
+- **HEAD commit:** `a0c7a05` — PR #79 (`docs/t80-t82-current-state-sync`) — genuinely `main`'s
+  current tip, independently confirmed via `git rev-parse main`/`git rev-parse origin/main` and
+  `gh pr view 79` (state `MERGED`, `mergeCommit.oid: a0c7a05...`).
+- **`origin/main`:** `a0c7a05` — synchronized with local `main`.
+- **Working tree:** clean, aside from this session's own documentation-correction edits.
 - **Latest relevant merges:** PR #73 (`4480f3b`, rework `630d970` — current-state/role documentation
   reconciliation), PR #74 (`e4d2f18` — Stage 3/Stage 4 classification correction), PR #75
   (`3a1dae7` — Frontend Developer formally adopted as a standing role), PR #76 (`13d8871` —
   `Legal_DMS_Process_Supervision.md` dangling-citation correction), PR #77 (`a66160b` — T80
   authorization), PR #78 (`b5505bb` — T80's `docs/ArchitectureScorecard.md` reassessment, commits
-  `b7b2095`/`fcd8c47`).
+  `b7b2095`/`fcd8c47`), **PR #79 (`a0c7a05` — the fresh current-state synchronization pass that
+  produced this file's own immediately-prior revision; its "current main" claim of `b5505bb` became
+  one merge stale the moment PR #79 itself merged, since the merge commit `a0c7a05` is necessarily
+  a commit later than the `b5505bb` state that pass was synchronized against).**
 
 **This checkpoint was previously stuck at the T71/T72 boundary (2026-08-19) through one prior
-revision (2026-08-21, corrected that gap), then went stale again** — six more merges (PR #73–#78)
-landed without this file being updated. That is the gap this revision corrects. Nothing below
-reflects new implementation work — it is a synchronization of this file against `git`/
-`PROJECT_STATE.json`/`IMPLEMENTATION_QUEUE.md`, all independently re-verified this session.
+revision (2026-08-21, corrected that gap), went stale again for six further merges (PR #73–#78,
+corrected 2026-08-22), and then immediately went one merge stale a third time** — the correction
+pass itself (PR #79) necessarily could not describe its own merge commit as "current" before that
+merge existed. That is the narrow, single-merge gap this revision corrects — `b5505bb` (PR #78) to
+`a0c7a05` (PR #79) — not a new round of implementation work. `PR #78`'s own facts (what it merged,
+when, as what commit) are unchanged and correctly preserved below; only claims that `b5505bb` is the
+*current* tip are corrected.
 
 ## 2. Current Stage
 
@@ -127,14 +133,15 @@ current-state synchronization, authorizes `T82` — this file does not start, sc
 
 ## 6. Repository State
 
-- **`main`:** `b5505bb` (PR #78 — publishes T80's `docs/ArchitectureScorecard.md` reassessment;
-  genuinely `main`'s current tip)
-- **`origin/main`:** `b5505bb` (synchronized)
-- **This session's own branch:** `docs/t80-t82-current-state-sync` (documentation-only current-state
-  synchronization, per `PROJECT_WORKFLOW.md` §4) — not yet merged as of this file's own writing.
+- **`main`:** `a0c7a05` (PR #79 — the fresh current-state synchronization pass whose own `b5505bb`
+  claim this revision corrects; genuinely `main`'s current tip)
+- **`origin/main`:** `a0c7a05` (synchronized)
+- **This session's own branch:** none created — this is a narrowly-scoped, uncommitted correction
+  made directly against `main`'s working tree, per this task's own explicit instruction not to
+  commit, push, or open a PR unless separately authorized.
 - **Any task implementation sitting uncommitted?** No.
-- **Any task documentation sitting uncommitted?** No, aside from this session's own current-state
-  synchronization batch (this file included).
+- **Any task documentation sitting uncommitted?** This file and the other documents named in this
+  session's report, pending the project's normal commit/PR process.
 - **Stale local/remote branches observed, not cleaned up by this pass** (routine housekeeping, out of
   this batch's scope): numerous merged `feature/`/`docs/` branches remain undeleted both locally and
   on `origin` — left untouched, consistent with this role's documentation-only mandate.
@@ -191,6 +198,14 @@ Unchanged from this file's prior revision — see `AI_BOOTSTRAP.md`, `PROJECT_WO
 - **This documentation/current-state synchronization batch does not itself constitute a QA Decision,
   an implementation batch, or an authorization for `T82`.** It is a Documentation Manager
   current-state-reconciliation pass, scoped explicitly to avoid implying otherwise.
+- **"Independent Technical Verification" entries (`T72`/`T73` rows, §3) are informational/historical
+  only, not a required governance gate.** `docs/prompts/README.md` records the project owner's
+  explicit 2026-08-21 decision that the Independent Technical Verifier role is **not** formally
+  adopted — no ad hoc verification pass, past or future, should be read as a second required
+  approval alongside the QA Decision that actually gates `PROJECT_WORKFLOW.md`'s Definition of Done
+  (§9 there: "QA approved," not "QA approved and independently verified"). The `T72`/`T73` table
+  entries are preserved verbatim as accurate records of what was recorded on those batches at the
+  time — not erased, not elevated to a formal gate by this note.
 
 ## 11. Safe Breakpoint
 
@@ -247,14 +262,18 @@ Unchanged from this file's prior revision.
 
 ## 14. Checkpoint Maintenance Rules
 
-Unchanged from this file's prior revision — see that section; not restated here. This revision is
-itself another instance of the rule this section states: the file was found stale again (six merges
-behind, PR #73–#78) and is corrected here, in place, rather than left to drift further.
+Unchanged from this file's prior revision — see that section; not restated here. That prior revision
+(PR #79) was itself another instance of the rule this section states: the file was found stale again
+(six merges behind, PR #73–#78) and was corrected in place. **This revision is a third, narrower
+instance of the same rule** — PR #79's own merge (`a0c7a05`) necessarily postdated the `b5505bb`
+state that pass had synchronized against, so this file's "current main" claim went one merge stale
+the moment PR #79 merged; corrected here without reopening or redoing any of PR #79's substantive
+work.
 
 ## 15. Checkpoint Integrity
 
-- **Last verified commit:** `b5505bb` (`main`, synchronized with `origin/main` — `git status`/`git
-  log`/`gh pr list --state merged`/`gh pr view` all checked directly this session)
+- **Last verified commit:** `a0c7a05` (`main`, synchronized with `origin/main` — `git rev-parse`/`git
+  fetch`/`gh pr view 79` all checked directly this session)
 - **Last verified branch:** `main`
 - **Working tree status:** clean, aside from this session's own current-state synchronization edits.
 - **Verification performed:** `git fetch origin`; `git status --short`; `git log --oneline -15

@@ -63,7 +63,20 @@ top of any of it yet.
 
 ## Completed Features
 
-None — Stages 0–2 are infrastructure/framework/schema only. See
+**Correction (2026-08-22, Documentation Manager): the "None" claim below describes Stages 0–2 only
+and is now materially stale as a top-level status statement** — a real, working authentication/
+authorization/frontend/Electron surface exists and is merged (`T41`–`T78`): login, logout, token
+refresh, `/api/v1/users*` management routes, RBAC permission checks, a frontend login page,
+protected routes, current-user display, Electron `safeStorage`-backed secure token storage, `/docs`/
+`/redoc` gated by environment, and tightened CORS. This is **not yet a business feature** in this
+project's charter sense (Matter/Client/Property Management, Document Automation, etc. — see
+[Roadmap.md](Roadmap.md)'s "Stage 4+ — Not yet planned" table, still accurate) — but "Completed
+Features: None" is too strong to describe the current repository. See the `T52`–`T82` narrative
+under "Current Stage" below, and [ProjectStatus.md](ProjectStatus.md)'s "Completed — Stage 3 ... and
+Stage 4 ..." section, for the actual current substance.
+
+Original note, preserved for continuity (accurate for Stages 0–2 specifically, not the whole
+project): None — Stages 0–2 are infrastructure/framework/schema only. See
 [FeatureRegistry.md](FeatureRegistry.md) (currently just the "System Health Check" plumbing
 feature, not a business feature).
 
@@ -616,6 +629,15 @@ disclosed — the project is now formally, consistently Stage 3 throughout `PROJ
 the dangling `Legal_DMS_Process_Supervision.md` citation at its source; PR #73 (`4480f3b`, rework
 `630d970`) was this file's own prior current-state synchronization pass.
 
+**Correction (2026-08-22, continued, Documentation Manager, one-merge current-state fix):** the
+paragraph above's own "`main` at `b5505bb`" framing was accurate when written, but that paragraph
+was itself the synchronization performed by PR #79 — its eventual merge commit couldn't be
+"current" before it existed. `main`'s actual current HEAD is now `a0c7a05` (`Merge pull request #79
+from Intelligentclown/docs/t80-t82-current-state-sync`), independently confirmed via `git
+rev-parse`/`gh pr view 79` this session. `T80`'s substance above (Done, merged, `docs/
+ArchitectureScorecard.md` reassessed) is unaffected — only the "current main" pointer needed
+correcting. `T79` remains `INCOMPLETE / NOT VERIFIED`; `T82` remains unauthorized, unimplemented.
+
 ## Pending Work
 
 **Update (2026-08-21, Documentation Manager catch-up):** the paragraph below describes the state as
@@ -781,6 +803,12 @@ If you make a new significant architectural decision, **add a new ADR** (`0018-.
 change things silently.
 
 ## Current Branch
+
+**Update (2026-08-22, continued):** `main`, at `a0c7a05`, independently re-verified via `git
+rev-parse`/`gh pr view 79` this session — one merge ahead of the paragraph immediately below,
+whose `b5505bb` was accurate at the time but is now superseded: that paragraph's own synchronization
+work was PR #79, merged as `a0c7a05` (`docs/t80-t82-current-state-sync`) after the paragraph itself
+was written. `main` is once again the correct current branch to work from.
 
 **Update (2026-08-22):** `main`, at `b5505bb`, independently re-verified via `git fetch`/`git log`/
 `gh pr list` this session — six merges ahead of the 2026-08-21 note below (PR #73–#78). This
