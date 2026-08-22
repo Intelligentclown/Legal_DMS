@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/infrastructure/ipc/ipcBridge", () => ({
   ipcBridge: {
     isAvailable: vi.fn(),
+    getRefreshToken: vi.fn(),
+    setRefreshToken: vi.fn(),
     clearRefreshToken: vi.fn(),
   },
 }));
@@ -21,10 +23,16 @@ import {
 import { ipcBridge } from "@/infrastructure/ipc/ipcBridge";
 
 const mockedIsAvailable = ipcBridge.isAvailable as unknown as Mock;
+const mockedGetRefreshToken = ipcBridge.getRefreshToken as unknown as Mock;
+const mockedSetRefreshToken = ipcBridge.setRefreshToken as unknown as Mock;
 const mockedClearRefreshToken = ipcBridge.clearRefreshToken as unknown as Mock;
 
 const TOKENS = { access_token: "access-123", refresh_token: "refresh-456" };
 const ME_RESPONSE = { data: { id: "u1", display_name: "Jane Doe", roles: ["Administrator"] } };
+const RESTORED_TOKENS = {
+  access_token: "restored-access-789",
+  refresh_token: "restored-refresh-101",
+};
 
 function stubFetch(): void {
   const mockFetch = vi.fn(async (url: unknown) => {
@@ -95,6 +103,8 @@ describe("AuthProvider — global 401 handling", () => {
     setAccessToken(null);
     setUnauthorizedHandler(null);
     mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
     mockedClearRefreshToken.mockReset();
   });
 
@@ -136,6 +146,8 @@ describe("AuthProvider — logout() IPC refresh-token clearing", () => {
     setAccessToken(null);
     setUnauthorizedHandler(null);
     mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
     mockedClearRefreshToken.mockReset();
   });
 
@@ -216,5 +228,168 @@ describe("AuthProvider — logout() IPC refresh-token clearing", () => {
     await loginThenLogout();
 
     expect(mockedClearRefreshToken).toHaveBeenCalledTimes(1);
+  });
+});
+
+function RestorationHarness() {
+  const { currentUser, isInitializing } = useAuth();
+
+  if (isInitializing) {
+    return <p>Initializing…</p>;
+  }
+  return <p>{currentUser ? `Restored: ${currentUser.display_name}` : "Not authenticated"}</p>;
+}
+
+describe("AuthProvider — session restoration on mount", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setAccessToken(null);
+    setUnauthorizedHandler(null);
+    mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
+    mockedClearRefreshToken.mockReset();
+  });
+
+  function stubFetchForRestoration(options: { refreshFails?: boolean } = {}): void {
+    const mockFetch = vi.fn(async (url: unknown) => {
+      const path = String(url);
+      if (path.includes("/auth/refresh")) {
+        if (options.refreshFails) {
+          return {
+            ok: false,
+            status: 401,
+            json: () =>
+              Promise.resolve({
+                error: { code: "UNAUTHORIZED", message: "Invalid or expired token" },
+              }),
+          } as Response;
+        }
+        return { ok: true, status: 200, json: () => Promise.resolve(RESTORED_TOKENS) } as Response;
+      }
+      if (path.includes("/auth/me")) {
+        return { ok: true, status: 200, json: () => Promise.resolve(ME_RESPONSE) } as Response;
+      }
+      return {
+        ok: false,
+        status: 401,
+        json: () =>
+          Promise.resolve({ error: { code: "UNAUTHORIZED", message: "Invalid or expired token" } }),
+      } as Response;
+    });
+    vi.stubGlobal("fetch", mockFetch);
+  }
+
+  it("restores currentUser from a persisted refresh token and persists the rotated token", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("persisted-refresh-token");
+    mockedSetRefreshToken.mockResolvedValue(undefined);
+    stubFetchForRestoration();
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(screen.getByText("Initializing…")).toBeInTheDocument();
+    expect(await screen.findByText("Restored: Jane Doe")).toBeInTheDocument();
+    expect(mockedSetRefreshToken).toHaveBeenCalledWith(RESTORED_TOKENS.refresh_token);
+  });
+
+  it("remains unauthenticated, with no network call, when no refresh token is persisted", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue(null);
+    const mockFetch = vi.fn();
+    vi.stubGlobal("fetch", mockFetch);
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("clears the persisted token and remains unauthenticated when it is invalid, expired, or revoked", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("stale-refresh-token");
+    mockedClearRefreshToken.mockResolvedValue(undefined);
+    stubFetchForRestoration({ refreshFails: true });
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockedClearRefreshToken).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the persisted token untouched and remains unauthenticated on a network failure", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("some-refresh-token");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockedClearRefreshToken).not.toHaveBeenCalled();
+  });
+
+  it("skips restoration entirely outside Electron (ipcBridge.isAvailable() === false)", async () => {
+    mockedIsAvailable.mockReturnValue(false);
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockedGetRefreshToken).not.toHaveBeenCalled();
+  });
+
+  it("does not redirect ProtectedRoute to /login while restoration is still in progress", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    let resolveGetRefreshToken: (value: string | null) => void = () => {};
+    mockedGetRefreshToken.mockReturnValue(
+      new Promise<string | null>((resolve) => {
+        resolveGetRefreshToken = resolve;
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<div>Login page</div>} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<div>Protected content</div>} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText("Login page")).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    resolveGetRefreshToken(null);
+
+    expect(await screen.findByText("Login page")).toBeInTheDocument();
   });
 });
