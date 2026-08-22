@@ -3158,3 +3158,52 @@ or completed. No application, test, configuration, CI/CD, database, API, Electro
 authentication/session code was changed by this pass, and no database operation was performed by
 this session — the account described above was provisioned entirely by the project owner, outside
 this session, before this documentation pass began.
+
+## Session: 2026-08-22 — Documentation Manager: T82 execution/closure (Electron-runtime live smoke verification)
+
+**Executed:** the project owner ran T82 directly against the actual native Electron `BrowserWindow`
+(not a browser tab), using the T83-provisioned Administrator test account. Per-step results, reported
+as observed, not inferred:
+
+- Steps 3–4 (unauthenticated protected-route access): **PASS** — showed Sign-in, redirected to
+  `/login`.
+- Steps 5–6 (login): **PASS** — the Administrator test account authenticated successfully.
+- Step 7 (protected content accessible): **PASS** — header showed `Administrator` / `Log out`; the
+  System status panel rendered `Status: ok`, `Environment: development`, `Version: 0.2.0`.
+- Steps 8A–9A (renderer reload, `Ctrl+R`, while authenticated): **FAIL** — session lost, returned to
+  `/login`.
+- Steps 8B–9B (full Electron application restart): **FAIL** — also returned to `/login` rather than
+  restoring the authenticated session.
+- Step 10 (restoration confirmation): **N/A** — restoration did not survive either reload path.
+- Step 11 (investigate/fix): finding recorded; **no investigation or fix was performed**, per T82's
+  own explicit authorization boundary.
+- Step 12 (logout): **PASS** — after re-authentication, logout returned to `/login` without error.
+- Step 13 (protected route inaccessible after logout): **PASS**.
+
+**T82 overall disposition: FAIL** — the authenticated Electron session does not survive either a
+renderer reload (`Ctrl+R`) or a full Electron application restart. This was previously a
+source-code/static-analysis expectation (`electron/preload.ts` exposes the `safeStorage`-backed
+refresh-token mechanism; `ipcBridge.ts` does not surface `getRefreshToken()` through its
+`ElectronApi` wrapper; `AuthProvider.tsx` has no mount-time restoration effect — unchanged,
+contextual evidence only, none of these files were touched) and is now live-confirmed in the native
+Electron runtime, observed directly, twice.
+
+**QA:** independently reviewed the execution report. QA Decision: **Approved with comments** —
+(1) exact timestamps for the renderer reload and the full application restart were not captured;
+(2) DevTools showed "2 errors, 1 warning" in screenshots, but the actual Console contents were not
+captured — no inference was made about those errors; (3) the session-restoration failure was
+directly observed in the actual native Electron `BrowserWindow`, twice; (4) no implementation
+investigation or fix was performed, as explicitly required by T82; (5) any fix requires a separate,
+newly authorized task. These are evidence-completeness comments and do not invalidate the central
+live observation.
+
+**Closed:** T82 is now closed — **FAIL**, QA-Approved-with-comments — not PASS, not INCOMPLETE, and
+not silently converted to either. T82's own authorization text and approved scope in
+`IMPLEMENTATION_QUEUE.md` are unchanged; only its "Not started" tail was replaced with this execution
+record. A follow-up implementation task, if the project owner decides to address this finding, is
+**NOT authorized by T82** and requires its own task ID, authorization, branch, PR, and QA Decision —
+no such task is created by this pass, and no `docs/ImplementationLog/` entry was created for T82
+(verification-only, no implementation phase). No application, test, configuration, CI/CD, database,
+API, Electron, IPC, or authentication/session code was changed by T82's execution or by this
+documentation closure. No password, password hash, authentication token, or other secret is recorded
+anywhere in this entry.
