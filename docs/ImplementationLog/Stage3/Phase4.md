@@ -349,10 +349,80 @@ own "Remaining limitation" for the full account) — the fix eliminates the conf
 structurally, but this role cannot claim 100% certainty it was *the entire* mechanism. Native-Electron
 regression verification of this specific fix remains outstanding (see Deferred Work).
 
+## QA Re-Verification — Native-Electron Regression Testing (2026-08-24)
+
+Performed by the QA Reviewer role, in the same session as this rework was submitted for review,
+directly against commit `152ca81` (this rework, on `feature/T84-restore-electron-session`) combined
+with `T85`'s preload fix (`dd0a505`, `feature/T85-fix-electron-preload-load-failure`) via a
+disposable, unpushed local branch (`qa/t84-t85-rework-verification`), built and launched as the
+actual native Electron `BrowserWindow`. This role has no tool capable of driving that window
+directly; every runtime observation below was made by the project owner operating it live and
+reported to this role in real time — none are inferred from source code or from the automated test
+suite alone, consistent with `T84`'s own Verification requirement.
+
+**Scenario-by-scenario results:**
+
+1. Preload/IPC bridge — **PASS**. No preload-load error; `window.api` populated with `getAppInfo`,
+   `setRefreshToken`, `getRefreshToken`, `clearRefreshToken`.
+2. Login — **PASS**. Authenticated, protected content rendered.
+3–10. Invalid/expired/revoked token regression (the critical scenario) — **PASS**. After persisting
+   a deliberately invalid token (`await window.api.setRefreshToken("invalid-test-token-12345")`, via
+   the DevTools console — not a code change) and a full application restart: exactly **one**
+   `POST /api/v1/auth/refresh` request, returning `401` (one corresponding console resource-load
+   error, not two as in the original QA finding); no `/auth/me` request followed; the application
+   ended on `/login`, not protected content — directly contradicting the original defect. A
+   subsequent restart showed no further `refresh` attempt at all, consistent with the invalid token
+   having been cleared.
+11. Successful persisted-token restoration — **PASS**. A full restart with a valid token restored
+    `currentUser` without manual login; exactly one `/auth/me` request (not duplicated), its
+    Network-panel Initiator stack confirmed as `fetchCurrentUser @ AuthProvider.tsx:27` ←
+    `AuthProvider.tsx:99` (the restoration path, not `login()`), with a valid `Authorization: Bearer`
+    header present on the request.
+12. Renderer reload while authenticated — **PASS**. Session survived `Ctrl+R`, protected content
+    remained visible, no errors.
+13. Network/backend failure — **PASS**. With the backend stopped, a restart correctly fell back to
+    `/login` (`net::ERR_CONNECTION_REFUSED`, a genuine network-level failure, distinguished from an
+    HTTP error); after restarting the backend, a subsequent reload successfully restored the session
+    — confirming the persisted token had been left intact during the failure, not wrongly cleared.
+14. No-token startup — **PASS**. After logout, a full restart landed cleanly on `/login` with no
+    `refresh` attempt and no console error.
+15. Logout / subsequent reload/restart — **PASS**. Logout returned to `/login`, no error; a reload
+    while at `/login` stayed at `/login`; no stale-token re-authentication.
+
+**StrictMode duplicate-restoration invariant:** confirmed by direct request-count evidence above —
+exactly one `401` in the invalid-token scenario and exactly one `/auth/me` in the successful-
+restoration scenario, both of which were **two** under the pre-rework build in this same role's prior
+verification pass — not asserted from source code alone.
+
+**Governance note:** this rework commit is now confirmed genuinely pushed to
+`origin/feature/T84-restore-electron-session` / PR #86 (`git fetch` + `gh pr view 86`, now 2
+commits) — closing the "unpushed at time of testing" gap this role flagged in its own immediately
+prior verification pass the same session. This also closes the Deferred Work item above ("Rework
+batch: ... remains the operator's next step") — superseded by this section, not rewritten.
+
+**Automated validation, independently re-run, not accepted from the Developer's report alone:**
+`npm run test -- --run`: 53/53 passing, matching the report exactly. `npm run lint`: 0 errors, 4
+pre-existing warnings (same category, no new ones). `npx prettier --check`: clean. `npx tsc
+--noEmit`: clean. `npm run electron:build` (including `T85`'s esbuild preload-bundling step):
+succeeds cleanly.
+
+**Remaining observation (non-blocking):** on full-restart scenarios specifically (both this pass and
+this role's prior one), the `refresh` request row itself was not visible in the DevTools Network
+panel at capture time, despite strong corroborating evidence (console error counts, Initiator call
+stacks, valid Bearer tokens, and the observed end states) that it genuinely occurred. Most likely a
+DevTools-attach timing artifact, not a functional defect — noted for completeness, not treated as an
+open finding.
+
 ## QA Decision (rework batch)
 
 ```
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
 ```
+
+The one comment above (DevTools Network-capture timing gap on full restarts) is informational only —
+no implementation change is required. All native-Electron scenarios required by `T84`'s Verification
+requirement and by this rework's own Deferred Work item passed, including the specific invalid-token
+regression that produced the original `Rework required` finding. That defect is confirmed resolved
+by direct live observation, not by source-code reasoning or automated tests alone.
