@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { StrictMode, useEffect } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 vi.mock("@/infrastructure/ipc/ipcBridge", () => ({
   ipcBridge: {
     isAvailable: vi.fn(),
+    getRefreshToken: vi.fn(),
+    setRefreshToken: vi.fn(),
     clearRefreshToken: vi.fn(),
   },
 }));
@@ -21,10 +23,16 @@ import {
 import { ipcBridge } from "@/infrastructure/ipc/ipcBridge";
 
 const mockedIsAvailable = ipcBridge.isAvailable as unknown as Mock;
+const mockedGetRefreshToken = ipcBridge.getRefreshToken as unknown as Mock;
+const mockedSetRefreshToken = ipcBridge.setRefreshToken as unknown as Mock;
 const mockedClearRefreshToken = ipcBridge.clearRefreshToken as unknown as Mock;
 
 const TOKENS = { access_token: "access-123", refresh_token: "refresh-456" };
 const ME_RESPONSE = { data: { id: "u1", display_name: "Jane Doe", roles: ["Administrator"] } };
+const RESTORED_TOKENS = {
+  access_token: "restored-access-789",
+  refresh_token: "restored-refresh-101",
+};
 
 function stubFetch(): void {
   const mockFetch = vi.fn(async (url: unknown) => {
@@ -95,6 +103,8 @@ describe("AuthProvider — global 401 handling", () => {
     setAccessToken(null);
     setUnauthorizedHandler(null);
     mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
     mockedClearRefreshToken.mockReset();
   });
 
@@ -136,6 +146,8 @@ describe("AuthProvider — logout() IPC refresh-token clearing", () => {
     setAccessToken(null);
     setUnauthorizedHandler(null);
     mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
     mockedClearRefreshToken.mockReset();
   });
 
@@ -216,5 +228,308 @@ describe("AuthProvider — logout() IPC refresh-token clearing", () => {
     await loginThenLogout();
 
     expect(mockedClearRefreshToken).toHaveBeenCalledTimes(1);
+  });
+});
+
+function RestorationHarness() {
+  const { currentUser, isInitializing } = useAuth();
+
+  if (isInitializing) {
+    return <p>Initializing…</p>;
+  }
+  return <p>{currentUser ? `Restored: ${currentUser.display_name}` : "Not authenticated"}</p>;
+}
+
+describe("AuthProvider — session restoration on mount", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setAccessToken(null);
+    setUnauthorizedHandler(null);
+    mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
+    mockedClearRefreshToken.mockReset();
+  });
+
+  function stubFetchForRestoration(options: { refreshFails?: boolean } = {}): void {
+    const mockFetch = vi.fn(async (url: unknown) => {
+      const path = String(url);
+      if (path.includes("/auth/refresh")) {
+        if (options.refreshFails) {
+          return {
+            ok: false,
+            status: 401,
+            json: () =>
+              Promise.resolve({
+                error: { code: "UNAUTHORIZED", message: "Invalid or expired token" },
+              }),
+          } as Response;
+        }
+        return { ok: true, status: 200, json: () => Promise.resolve(RESTORED_TOKENS) } as Response;
+      }
+      if (path.includes("/auth/me")) {
+        return { ok: true, status: 200, json: () => Promise.resolve(ME_RESPONSE) } as Response;
+      }
+      return {
+        ok: false,
+        status: 401,
+        json: () =>
+          Promise.resolve({ error: { code: "UNAUTHORIZED", message: "Invalid or expired token" } }),
+      } as Response;
+    });
+    vi.stubGlobal("fetch", mockFetch);
+  }
+
+  it("restores currentUser from a persisted refresh token and persists the rotated token", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("persisted-refresh-token");
+    mockedSetRefreshToken.mockResolvedValue(undefined);
+    stubFetchForRestoration();
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(screen.getByText("Initializing…")).toBeInTheDocument();
+    expect(await screen.findByText("Restored: Jane Doe")).toBeInTheDocument();
+    expect(mockedSetRefreshToken).toHaveBeenCalledWith(RESTORED_TOKENS.refresh_token);
+  });
+
+  it("remains unauthenticated, with no network call, when no refresh token is persisted", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue(null);
+    const mockFetch = vi.fn();
+    vi.stubGlobal("fetch", mockFetch);
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("clears the persisted token and remains unauthenticated when it is invalid, expired, or revoked", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("stale-refresh-token");
+    mockedClearRefreshToken.mockResolvedValue(undefined);
+    stubFetchForRestoration({ refreshFails: true });
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockedClearRefreshToken).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the persisted token untouched and remains unauthenticated on a network failure", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("some-refresh-token");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockedClearRefreshToken).not.toHaveBeenCalled();
+  });
+
+  it("skips restoration entirely outside Electron (ipcBridge.isAvailable() === false)", async () => {
+    mockedIsAvailable.mockReturnValue(false);
+
+    render(
+      <AuthProvider>
+        <RestorationHarness />
+      </AuthProvider>,
+    );
+
+    expect(await screen.findByText("Not authenticated")).toBeInTheDocument();
+    expect(mockedGetRefreshToken).not.toHaveBeenCalled();
+  });
+
+  it("does not redirect ProtectedRoute to /login while restoration is still in progress", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    let resolveGetRefreshToken: (value: string | null) => void = () => {};
+    mockedGetRefreshToken.mockReturnValue(
+      new Promise<string | null>((resolve) => {
+        resolveGetRefreshToken = resolve;
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<div>Login page</div>} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<div>Protected content</div>} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText("Login page")).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    resolveGetRefreshToken(null);
+
+    expect(await screen.findByText("Login page")).toBeInTheDocument();
+  });
+});
+
+function DetailedRestorationHarness() {
+  const { currentUser, tokens, isInitializing } = useAuth();
+  return (
+    <p>
+      {isInitializing
+        ? "Initializing"
+        : `currentUser=${currentUser ? currentUser.display_name : "null"} tokens=${tokens ? "set" : "null"}`}
+    </p>
+  );
+}
+
+/**
+ * T84 rework (QA finding: invalid/expired/revoked refresh token restoration defect,
+ * disposition FAIL). QA observed, in the real native Electron runtime, an invalid
+ * persisted refresh token producing two POST /auth/refresh 401 responses yet the
+ * application ending up showing authenticated protected content -- with React 18
+ * StrictMode / duplicate effect execution named as an unconfirmed possible
+ * contributor. These tests prove the two things that matter regardless of the exact
+ * mechanism: (1) StrictMode's double effect invocation, which is real and does
+ * produce a second /auth/refresh call under the pre-rework implementation, no longer
+ * does so -- restoreSession() now runs its side-effecting work at most once per app
+ * startup; and (2) every other T84 restoration behavior that already passed QA
+ * (successful restoration, no-token, network failure, non-Electron, ProtectedRoute's
+ * initializing wait) continues to work identically under StrictMode.
+ */
+describe("AuthProvider — StrictMode-safe session restoration (T84 rework)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setAccessToken(null);
+    setUnauthorizedHandler(null);
+    mockedIsAvailable.mockReset();
+    mockedGetRefreshToken.mockReset();
+    mockedSetRefreshToken.mockReset();
+    mockedClearRefreshToken.mockReset();
+  });
+
+  it("invalid refresh token: refresh is attempted at most once under StrictMode, and the app remains fully unauthenticated", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("invalid-test-token-12345");
+    mockedClearRefreshToken.mockResolvedValue(undefined);
+
+    let refreshCallCount = 0;
+    const mockFetch = vi.fn(async (url: unknown) => {
+      const path = String(url);
+      if (path.includes("/auth/refresh")) {
+        refreshCallCount++;
+        return {
+          ok: false,
+          status: 401,
+          json: () =>
+            Promise.resolve({
+              error: { code: "UNAUTHORIZED", message: "Invalid or expired token" },
+            }),
+        } as Response;
+      }
+      throw new Error(`Unexpected fetch in this scenario: ${path}`);
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    render(
+      <StrictMode>
+        <AuthProvider>
+          <DetailedRestorationHarness />
+        </AuthProvider>
+      </StrictMode>,
+    );
+
+    expect(await screen.findByText("currentUser=null tokens=null")).toBeInTheDocument();
+
+    // The regression itself: under the pre-rework implementation, StrictMode's
+    // second effect invocation started its own, independent restoreSession() call,
+    // producing a second /auth/refresh request (exactly what QA observed: "two POST
+    // /api/v1/auth/refresh responses returned HTTP 401").
+    expect(refreshCallCount).toBe(1);
+    expect(mockedGetRefreshToken).toHaveBeenCalledTimes(1);
+    expect(mockedClearRefreshToken).toHaveBeenCalledTimes(1);
+  });
+
+  it("successful restoration still works under StrictMode, with /auth/refresh called exactly once", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    mockedGetRefreshToken.mockResolvedValue("persisted-refresh-token");
+    mockedSetRefreshToken.mockResolvedValue(undefined);
+
+    let refreshCallCount = 0;
+    const mockFetch = vi.fn(async (url: unknown) => {
+      const path = String(url);
+      if (path.includes("/auth/refresh")) {
+        refreshCallCount++;
+        return { ok: true, status: 200, json: () => Promise.resolve(RESTORED_TOKENS) } as Response;
+      }
+      if (path.includes("/auth/me")) {
+        return { ok: true, status: 200, json: () => Promise.resolve(ME_RESPONSE) } as Response;
+      }
+      throw new Error(`Unexpected fetch: ${path}`);
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    render(
+      <StrictMode>
+        <AuthProvider>
+          <DetailedRestorationHarness />
+        </AuthProvider>
+      </StrictMode>,
+    );
+
+    expect(await screen.findByText("currentUser=Jane Doe tokens=set")).toBeInTheDocument();
+    expect(refreshCallCount).toBe(1);
+    expect(mockedSetRefreshToken).toHaveBeenCalledTimes(1);
+    expect(mockedSetRefreshToken).toHaveBeenCalledWith(RESTORED_TOKENS.refresh_token);
+  });
+
+  it("does not throw or warn when the component unmounts while restoration is still in flight", async () => {
+    mockedIsAvailable.mockReturnValue(true);
+    let resolveGetRefreshToken: (value: string | null) => void = () => {};
+    mockedGetRefreshToken.mockReturnValue(
+      new Promise<string | null>((resolve) => {
+        resolveGetRefreshToken = resolve;
+      }),
+    );
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const { unmount } = render(
+      <AuthProvider>
+        <DetailedRestorationHarness />
+      </AuthProvider>,
+    );
+
+    unmount();
+    resolveGetRefreshToken(null);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const reactStateWarnings = consoleErrorSpy.mock.calls.filter((call) =>
+      String(call[0]).includes("update on an unmounted component"),
+    );
+    expect(reactStateWarnings).toHaveLength(0);
+
+    consoleErrorSpy.mockRestore();
   });
 });

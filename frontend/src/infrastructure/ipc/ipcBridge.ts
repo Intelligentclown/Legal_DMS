@@ -8,6 +8,7 @@ export interface ElectronAppInfo {
 interface ElectronApi {
   getAppInfo: () => Promise<ElectronAppInfo>;
   setRefreshToken: (token: string) => Promise<void>;
+  getRefreshToken: () => Promise<string | null>;
   clearRefreshToken: () => Promise<void>;
 }
 
@@ -32,6 +33,13 @@ export const ipcBridge = {
       throw new Error("Electron IPC bridge is unavailable — not running inside Electron.");
     }
     return window.api.setRefreshToken(token);
+  },
+
+  getRefreshToken: (): Promise<string | null> => {
+    if (!window.api) {
+      throw new Error("Electron IPC bridge is unavailable — not running inside Electron.");
+    }
+    return window.api.getRefreshToken();
   },
 
   clearRefreshToken: (): Promise<void> => {
