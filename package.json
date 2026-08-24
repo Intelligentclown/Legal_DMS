@@ -9,8 +9,10 @@
     "npm": ">=11.11.1"
   },
   "scripts": {
-    "electron:build": "tsc -p electron/tsconfig.json",
-    "electron:watch": "tsc -p electron/tsconfig.json --watch",
+    "electron:build:main": "tsc -p electron/tsconfig.json",
+    "electron:build:preload": "esbuild electron/preload.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/preload.js",
+    "electron:build": "npm run electron:build:main && npm run electron:build:preload",
+    "electron:watch": "concurrently -k -n tsc,preload \"npm run electron:build:main -- --watch\" \"npm run electron:build:preload -- --watch\"",
     "electron:dev": "npm run electron:build && wait-on http://localhost:5173 && electron .",
     "electron:start": "electron .",
     "dev": "concurrently -k -n frontend,electron \"npm --prefix frontend run dev\" \"npm run electron:dev\"",
@@ -22,6 +24,7 @@
     "concurrently": "^10.0.4",
     "electron": "^43.3.0",
     "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.2",
     "wait-on": "^9.1.0"
   }
