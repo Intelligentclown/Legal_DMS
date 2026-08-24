@@ -10,6 +10,8 @@ from collections.abc import Sequence
 from typing import Protocol
 from uuid import UUID
 
+from app.application.common.query import SearchQuery
+
 
 class SupportsId(Protocol):
     """Structural type for anything with a UUID `id` — domain entities and
@@ -26,7 +28,9 @@ class AbstractRepository[T: SupportsId](ABC):
     async def get_by_id(self, id_: UUID) -> T | None: ...
 
     @abstractmethod
-    async def list(self, *, limit: int = 100, offset: int = 0) -> Sequence[T]: ...
+    async def list(
+        self, *, limit: int = 100, offset: int = 0, query: SearchQuery | None = None
+    ) -> Sequence[T]: ...
 
     @abstractmethod
     async def count(self) -> int: ...
