@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { CurrentUser, AuthTokens, LoginCredentials } from "@/domain/types/auth";
 import {
@@ -44,12 +44,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, []);
 
-  // Restores a previously-authenticated session (renderer reload or full Electron
-  // restart) from the refresh token Electron's safeStorage-backed IPC persisted on a
-  // prior login (T71/ADR-0018 D6). Browser-tab execution has no such storage to read
-  // from, so it's a deliberate no-op there (ipcBridge.isAvailable() === false).
+  // Guards session restoration so it runs at most once per app startup. React 18
+  // StrictMode (development only) intentionally double-invokes every effect
+  // (mount -> cleanup -> mount) to surface effects that aren't safe to run twice --
+  // and this one makes a real, side-effecting network call (/auth/refresh), so a
+  // second, concurrent invocation is exactly the kind of thing StrictMode exists to
+  // catch. `restorationStartedRef` ensures only the first invocation ever starts the
+  // actual work; `isMountedRef` (reset to `true` on every invocation's synchronous
+  // body, set `false` only by cleanup) tracks whether the component is *currently*
+  // mounted in a way that's immune to StrictMode's synchronous probe-cleanup, so the
+  // one real restoreSession() call can still safely update state once it resolves.
+  // Together these remove the possibility of a second, competing restoration attempt
+  // entirely, rather than only gating its result after the fact.
+  const restorationStartedRef = useRef(false);
+  const isMountedRef = useRef(false);
+
   useEffect(() => {
-    let cancelled = false;
+    isMountedRef.current = true;
 
     async function restoreSession(): Promise<void> {
       if (!ipcBridge.isAvailable()) {
@@ -90,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // revoked, so the newly-issued one must replace it in persisted storage or
         // the *next* restoration attempt would fail.
         await ipcBridge.setRefreshToken(tokens.refresh_token).catch(() => {});
-        if (!cancelled) {
+        if (isMountedRef.current) {
           setState({ currentUser, tokens, isInitializing: false });
         }
       } catch {
@@ -98,14 +109,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    void restoreSession().finally(() => {
-      if (!cancelled) {
-        setState((prev) => (prev.isInitializing ? { ...prev, isInitializing: false } : prev));
-      }
-    });
+    if (!restorationStartedRef.current) {
+      restorationStartedRef.current = true;
+      void restoreSession().finally(() => {
+        if (isMountedRef.current) {
+          setState((prev) => (prev.isInitializing ? { ...prev, isInitializing: false } : prev));
+        }
+      });
+    }
 
     return () => {
-      cancelled = true;
+      isMountedRef.current = false;
     };
   }, []);
 
