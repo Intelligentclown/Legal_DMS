@@ -235,6 +235,31 @@ is disclosed as such rather than implied to be more than it is.
 
 ```
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
 ```
+
+T85's authorized scope (bundle `electron/preload.ts` via esbuild so it loads under Electron's
+sandboxed-preload constraint) is confirmed working in the actual native Electron `BrowserWindow`,
+evidenced by `docs/ImplementationLog/Stage3/Phase4.md`'s native-Electron verification sections (both
+the original T84 pass and the T84-rework re-verification pass): no `preload-error`, `window.api`
+populated with exactly the four functions this phase's own Design Decisions name (`getAppInfo`,
+`setRefreshToken`, `getRefreshToken`, `clearRefreshToken`), and `getRefreshToken()` specifically
+confirmed reachable and returning real data through a live `/auth/refresh`/`/auth/me` round-trip
+during T84's reload/restart checkpoints — the exact gap this phase's Objective names. Every
+subsequent T84 checkpoint that depends on the IPC bridge being available (session restoration,
+invalid-token handling, network-failure fallback) could only have produced its observed results if
+this phase's fix genuinely holds; before this phase, the identical scenario produced
+`window.api: undefined` and none of those checkpoints were reachable at all.
+
+**Comment (non-blocking):** all native-Electron evidence for this phase comes from a combined
+T84+T85 build, not an isolated T85-only build with T84's code absent — this role did not
+independently launch a T85-alone Electron session, and does not claim to have. Disclosed rather than
+glossed over, but this doesn't weaken the conclusion: T85's entire changed-file scope (`package.json`,
+`package-lock.json`, both build-tooling only) has zero overlap with T84's files, and
+`electron/preload.ts` itself — the file whose loading behavior is what's actually being verified — is
+byte-identical regardless of whether T84's frontend changes are present. There is no plausible
+mechanism by which T84's code presence could be responsible for `window.api` becoming populated; the
+preload-loading fix is provably attributable to T85 alone. Automated build/lint/format/typecheck
+results (Test Results above, independently re-run during T84's native-Electron QA sessions) also
+passed cleanly for T85's specific changes.
