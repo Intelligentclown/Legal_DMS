@@ -174,6 +174,28 @@ its Reviewer Checklist and the log itself — not pre-filled by the implementer,
 once review happens (a QA Decision section with every box unchecked means review hasn't happened
 yet, not that it happened and passed).
 
+**A checked box in a local commit is not itself a completed QA approval — the approval is what
+exists on the implementation PR's actual remote HEAD.** This project's recurring failure mode is
+the QA Reviewer checking the box, committing locally, and reporting "QA Approved" without pushing
+that commit — leaving the remote PR's `Phase#.md` still unchecked, invisible to anyone (a Project
+Manager verifying merge-readiness, CI, GitHub itself, another session) who inspects the PR as it
+actually exists on the remote. `LOCAL QA COMMIT ≠ REMOTE QA APPROVAL`. A QA Decision is complete,
+for merge purposes, only once:
+
+1. the QA Decision commit has been **pushed** to the implementation PR's own remote branch;
+2. that commit is confirmed a genuine **ancestor of the exact remote PR HEAD**
+   (`git merge-base --is-ancestor <qa-commit> <remote-head>`, not assumed);
+3. the checked box has been **independently re-read from that remote HEAD**
+   (e.g. `git show <remote-head>:docs/ImplementationLog/Stage<N>/Phase<M>.md`), not merely
+   confirmed to exist in a local working tree.
+
+Until all three hold, the correct status to report is "QA review complete locally; QA approval NOT
+YET COMPLETE because the QA commit has not been pushed" — not "QA Approved." The QA Reviewer owns
+pushing the QA decision commit; a Project Manager verifying merge-readiness must not be expected to
+discover or repair an unpushed QA record. See `docs/prompts/QAReviewer.md`'s Required Output for the
+exact fields this requires the QA Reviewer to report, and `docs/prompts/ProjectManager.md`'s
+Pre-Merge Governance Gate for the corresponding independent verification before any merge.
+
 | Status | Meaning |
 |---|---|
 | **Approved** | The batch is correct as-is. Implementation may proceed to the Documentation Manager for final documentation synchronization and merge. |

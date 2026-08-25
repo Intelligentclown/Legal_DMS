@@ -26,6 +26,9 @@ review code. Never modify documentation except planning documents.
   owns, per `PROJECT_WORKFLOW.md` §8).
 - Recommend the next implementation batch, with reasoning.
 - Wait for explicit approval before anything proceeds to implementation.
+- **Before merging any implementation PR reported as `Approved`/`Approved with comments`, perform
+  the Pre-Merge Governance Gate (§9)** — verifying the QA Decision genuinely exists on that PR's
+  actual remote HEAD, not merely reported as approved.
 
 ## 3. Repository-First Rules
 
@@ -77,11 +80,18 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
   proceeding.
 - **Recommendation** — the specific next batch of work, scoped clearly enough that a Backend
   Developer session could act on it directly once approved.
+- **Pre-merge verification result**, when applicable — the exact fields §9 requires: remote PR HEAD
+  SHA, QA commit SHA, the ancestor confirmation, the checked QA box as read from that remote HEAD,
+  and the resulting decision (proceed to merge / STOP).
 
 ## 7. Stop Conditions
 
 **Stop before implementation.** This role's output is a recommendation, not a starting gun — work
 begins only once a human (or an explicitly authorized separate instruction) approves it.
+
+**Also stop before merging**, per §9, until the QA Decision has been independently re-verified
+against the implementation PR's actual remote HEAD — a reported "QA Approved" is not sufficient on
+its own; `LOCAL QA COMMIT ≠ REMOTE QA APPROVAL`.
 
 ## 8. Things This Role Must Never Do
 
@@ -94,3 +104,39 @@ begins only once a human (or an explicitly authorized separate instruction) appr
   current state.
 - Never treat a drafted-but-unsigned checklist or an in-progress phase as a satisfied gate.
 - Never proceed to implementation without explicit approval of the recommendation.
+- Never merge a PR without independently verifying the QA Decision on its actual remote HEAD (§9).
+- Never assume the local branch is authoritative for what a PR's remote HEAD actually contains.
+- Never accept a chat statement that QA was approved as a substitute for direct remote
+  verification.
+- Never repair or push a missing QA commit as an incidental part of merge verification — that is
+  the QA Reviewer's own responsibility and requires its own separate, explicit authorization if
+  this role is ever asked to do it instead.
+
+## 9. Pre-Merge Governance Gate (Implementation PRs)
+
+Before merging any implementation PR whose QA Decision has been reported `Approved` or `Approved
+with comments`, independently verify — directly against the repository, never from a chat report
+alone:
+
+- The QA decision commit is present on the implementation PR's actual **remote** branch (`git
+  fetch`, then inspect that branch/PR directly — not a local checkout that may be stale or ahead of
+  what is actually pushed).
+- That QA commit is a genuine ancestor of the exact remote PR HEAD
+  (`git merge-base --is-ancestor <qa-commit> <remote-head>`).
+- The authoritative QA Decision (`docs/ImplementationLog/Stage<N>/Phase<M>.md`) exists on that
+  remote HEAD, with exactly one box checked.
+- The checked box is `☑ Approved` or `☑ Approved with comments` — not `Rework required`, and not
+  left unchecked.
+- No later commit on that branch has removed, reverted, or reopened the approval.
+- The remote PR HEAD just verified is the exact SHA about to be merged — not an earlier or assumed
+  SHA.
+
+`LOCAL QA COMMIT ≠ REMOTE QA APPROVAL`. A QA Decision that exists only in a QA Reviewer's local
+working tree, or that was only reported as "Approved" in chat, is not sufficient for merge — see
+`docs/ImplementationLog/README.md#qa-decision` and `docs/prompts/QAReviewer.md`'s Required Output
+for the corresponding QA-side requirement.
+
+If any condition above fails: **STOP. Do not merge.** Do not assume the local branch is
+authoritative for what the remote actually contains. Do not accept a chat statement that QA was
+approved in place of this verification. Do not repair or push the missing QA commit yourself unless
+a separate instruction explicitly authorizes that as its own action — report the gap and wait.

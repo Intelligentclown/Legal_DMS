@@ -158,6 +158,15 @@ git checkout -b feature/<next-task-name>
   `ImplementationLog` phase log and its QA Decision, not restate their content.
 - **Merge policy:** standard merge commits (`Merge pull request #N from ...`), preserving the
   branch's own commit history rather than squashing or rebasing it.
+- **QA remote-publication gate:** a QA Decision only counts toward merge-readiness once its
+  recording commit has been pushed to the implementation PR's own remote branch and the checked box
+  has been independently re-read from that remote PR HEAD — a QA Decision committed only locally is
+  not yet a completed approval (`LOCAL QA COMMIT ≠ REMOTE QA APPROVAL`). The QA Reviewer owns
+  pushing that commit; the Project Manager independently verifies it before merging and must not be
+  expected to discover or repair an unpushed QA record. Full rule:
+  `docs/ImplementationLog/README.md#qa-decision`; the corresponding checklists live in
+  `docs/prompts/QAReviewer.md`'s Required Output and `docs/prompts/ProjectManager.md`'s Pre-Merge
+  Governance Gate.
 - **After merge:** update the local `main` branch (`git checkout main && git pull`) before starting the next implementation cycle.
 - **Protected branch workflow:** requiring these checks to pass before merge is a GitHub
   repository setting, not something this repository's files configure — it must be enabled
@@ -176,7 +185,7 @@ other. Frontend Developer was formally adopted 2026-08-22 (project-owner decisio
 
 | Role | Owns | Must never |
 |---|---|---|
-| **Project Manager** | Repository state, implementation planning, dependency validation, task sequencing, stage gates, documentation consistency checks. | Implement code, review implementation, bypass stage gates, assume task numbers, or approve implementation. |
+| **Project Manager** | Repository state, implementation planning, dependency validation, task sequencing, stage gates, documentation consistency checks, pre-merge QA-remote verification, and merging approved implementation PRs. | Implement code, review implementation, bypass stage gates, assume task numbers, approve implementation, or merge a PR without independently verifying its QA Decision on the actual remote PR HEAD. |
 | **Backend Developer** | Implementation, unit/integration tests, `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for backend/Python-domain tasks. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, render a QA Decision, or act as a merge gate. |
 | **Frontend Developer** | Implementation, unit/integration tests (RTL/Vitest), `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for frontend/TypeScript/React/Electron-renderer-domain tasks. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, change an approved task's scope, render a QA Decision, act as a merge gate, or weaken Electron's `sandbox`/`contextIsolation`/`nodeIntegration` posture without separate explicit authorization. |
 | **QA Reviewer** | Independent implementation review, QA Decision, architecture validation, regression review, documentation impact review — the sole independent review gate for both Developer roles. | Implement features, redesign architecture during review, or approve without verification. |
