@@ -11,12 +11,34 @@ it where it isn't needed.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.common.query import FilterOperator, FilterSpec, SearchQuery
 from app.application.interfaces.repository import AbstractRepository, SupportsId
+
+
+def _filter_predicate(column: Any, spec: FilterSpec) -> ColumnElement[bool]:
+    match spec.operator:
+        case FilterOperator.EQ:
+            return column == spec.value
+        case FilterOperator.NEQ:
+            return column != spec.value
+        case FilterOperator.GT:
+            return column > spec.value
+        case FilterOperator.GTE:
+            return column >= spec.value
+        case FilterOperator.LT:
+            return column < spec.value
+        case FilterOperator.LTE:
+            return column <= spec.value
+        case FilterOperator.CONTAINS:
+            return column.contains(spec.value)
+        case FilterOperator.IN:
+            return column.in_(spec.value)
 
 
 class SqlAlchemyRepository[ModelT: SupportsId](AbstractRepository[ModelT]):
@@ -29,8 +51,16 @@ class SqlAlchemyRepository[ModelT: SupportsId](AbstractRepository[ModelT]):
     async def get_by_id(self, id_: UUID) -> ModelT | None:
         return await self._session.get(self._model, id_)
 
-    async def list(self, *, limit: int = 100, offset: int = 0) -> Sequence[ModelT]:
-        stmt = select(self._model).limit(limit).offset(offset)
+    async def list(
+        self, *, limit: int = 100, offset: int = 0, query: SearchQuery | None = None
+    ) -> Sequence[ModelT]:
+        stmt = select(self._model)
+        if query is not None and query.filters:
+            conditions = [
+                _filter_predicate(getattr(self._model, spec.field), spec) for spec in query.filters
+            ]
+            stmt = stmt.where(*conditions)
+        stmt = stmt.limit(limit).offset(offset)
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
