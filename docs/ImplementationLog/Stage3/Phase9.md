@@ -189,5 +189,50 @@ Reviewer Checklist
 QA Decision
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
+
+Independently verified by the QA Reviewer role (2026-08-25) against `be527fd`: diff scope
+confirmed as exactly `crud_router_factory.py` (+39/−2) + this log; `build_crud_router` confirmed
+not mounted anywhere in `main.py` or elsewhere in `backend/src/app/` (remains test-only, per
+acceptance criterion 16). `SearchQuery`/`SortSpec`/`SortDirection`/`FilterSpec`/`FilterOperator`
+all confirmed reused from `application/common/query.py`, no duplicate abstraction. `filters`
+correctly aliased to the external `filter` query-string key via `Query(alias="filter")`.
+
+Behavioral verification performed via targeted checks against the actual `_parse_sort_param`/
+`_parse_filter_param`/`_build_search_query` functions plus a real `BaseService`/
+`SqlAlchemyRepository`/Postgres stack (no full `TestClient`/FastAPI app needed to exercise this
+logic directly): no-params → `None`; single sort (default `ASC`) and explicit `:desc`; multiple
+sorts preserving precedence; all eight `FilterOperator` strings correctly mapped; `IN` correctly
+splits on `,` into a list; a filter value containing `:` preserved intact (`maxsplit=2` protects
+this); multiple filters both captured; combined filter+sort+pagination end-to-end through
+`list_page()` with `total` correctly remaining the unfiltered `count()` (by design, per T5/T6/T7);
+repeated-sort precedence honored live (`ORDER BY is_system_role DESC, name ASC`); no-query
+compatibility through `list_page()` preserved. All checks passed.
+
+**Limitation assessment (independently reproduced and extended, not merely accepted from the
+report):** confirmed live that filtering `is_system_role` (a boolean column, not just the
+integer/`version` case the report described) with a string value also fails —
+`operator does not exist: boolean = character varying` — proving the root cause is general to any
+non-text column, not narrowly integer-specific. Classification: **(B) an existing architectural
+limitation, now reachable via a new surface, correctly treated as (D) acceptable deferred work** —
+not (A) an acceptance-criteria failure (T8 requires only that parameters be accepted, assembled via
+existing abstractions, and forwarded; none of the nine criteria require value-type coercion) and
+not (C) a regression (`list_items` had zero filter capability before this phase; nothing that
+previously worked now fails). The underlying gap (`FilterSpec.value: object` with no coercion) has
+existed since T5 and is inherent to the query framework's current design, not something T8's
+parsing logic introduced incorrectly. Correctly flagged as Deferred Work for T9/a future task
+rather than fixed here — coercion logic would itself be new scope beyond T8's wiring.
+
+`uv run pytest` independently re-run: 500 passed, 6 failed, identical failures/root cause already
+established across T4–T7's phase logs (pre-existing shared-dev-database state from T83, unrelated
+to this diff). `ruff`/`black --check`/`git diff --check` all independently reproduced clean. No
+T9/T10 work, no Stage 4 feature, no unrelated refactoring found. `IMPLEMENTATION_QUEUE.md`/
+`PROJECT_STATE.json` untouched.
+
+**Comment (the reason for "with comments" rather than plain "Approved"):** the string-vs-typed-
+column limitation, while correctly out of T8's scope to fix, is broader than the implementer's own
+disclosure suggested (affects boolean columns too, not just integer) — worth naming explicitly for
+whoever scopes T9 or a follow-up, so test coverage and any future coercion design account for the
+full breadth of the gap, not just the one column type that happened to surface it during
+implementation.
