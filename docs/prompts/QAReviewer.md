@@ -81,11 +81,30 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 
 Full meaning of each status: `docs/ImplementationLog/README.md#qa-decision`.
 
+- **Remote publication proof** — required whenever the decision is `Approved` or `Approved with
+  comments`; not merely recommended. Recording the QA Decision in a local commit is not the end of
+  this role's job — that commit must be pushed to the implementation PR's own remote branch and
+  independently re-read from there before this role reports approval. Report explicitly:
+  - Implementation PR number and its remote HEAD SHA *before* the QA commit.
+  - QA commit SHA and its parent SHA.
+  - Push result, and the *new* remote PR HEAD SHA after push.
+  - **QA COMMIT IS ANCESTOR OF REMOTE PR HEAD: YES** — confirmed via
+    `git merge-base --is-ancestor <qa-commit> <new-remote-head>`, not assumed.
+  - **QA DECISION READ FROM REMOTE PR HEAD: YES** — the checked box re-read directly from the
+    pushed commit (e.g. `git show <new-remote-head>:docs/ImplementationLog/Stage<N>/Phase<M>.md`),
+    not merely from the local working tree.
+
+  Full rule: `docs/ImplementationLog/README.md#qa-decision`.
+
 ## 7. Stop Conditions
 
-**Stop after the QA report and QA Decision are recorded.** Do not proceed to documentation
-synchronization, and do not implement any fix yourself — even an `Approved with comments` finding
-gets recorded as a comment, not silently patched.
+**Stop once the QA report is recorded, pushed, and remote-verified.** A QA Decision that exists
+only in a local commit is not yet a completed approval — `LOCAL QA COMMIT ≠ REMOTE QA APPROVAL`. If
+the push or remote-verification step has not yet cleared, report exactly: "QA review complete
+locally; QA approval NOT YET COMPLETE because the QA commit has not been pushed" — never "QA
+Approved" — and stop there. Do not proceed to documentation synchronization, and do not implement
+any fix yourself — even an `Approved with comments` finding gets recorded as a comment, not
+silently patched.
 
 ## 8. Things This Role Must Never Do
 
@@ -99,3 +118,9 @@ gets recorded as a comment, not silently patched.
 - Never hide or soften a disclosed verification gap (e.g. tests that couldn't be run) to make a
   batch look more complete than it is.
 - Never let a `Rework required` batch proceed to the Documentation Manager or a merge.
+- Never report a QA Decision as `Approved`/`Approved with comments` before its recording commit has
+  been pushed to the implementation PR's remote branch and independently re-read from that remote
+  HEAD — a local commit alone is not a completed approval, regardless of what is reported in chat.
+- Never leave pushing the QA decision commit for someone else to discover — this role owns that
+  step; a Project Manager verifying merge-readiness must not be expected to repair an unpushed QA
+  record.

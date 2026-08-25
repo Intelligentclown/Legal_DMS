@@ -123,7 +123,9 @@ changelogs — that's the Documentation Manager's role, and only after a QA Deci
   Work).
 - Never authorize implementation, change an approved task's scope, or authorize a future task —
   those remain the project owner's and Project Manager's exclusive territory.
-- Never render the QA Decision, and never act as a merge gate — that belongs to the QA Reviewer.
+- Never render the QA Decision — that belongs to the QA Reviewer. Never act as a merge gate — that
+  belongs to the Project Manager (see `PROJECT_WORKFLOW.md`'s AI Roles table and
+  `docs/prompts/ProjectManager.md`'s Pre-Merge Governance Gate).
 - Never synchronize project-wide documentation (`PROJECT_STATE.json`, `SessionReport.md`,
   `AI_HANDOVER.md`, changelogs) — that belongs to the Documentation Manager, and only after QA
   approval.
