@@ -14,6 +14,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from app.application.common.pagination import PageRequest, PageResult
+from app.application.common.query import SearchQuery
 from app.application.errors.exceptions import NotFoundError
 from app.application.interfaces.repository import AbstractRepository, SupportsId
 from app.infrastructure.logging.logger import get_logger
@@ -33,8 +34,15 @@ class BaseService[T: SupportsId]:
             raise NotFoundError(f"{self._resource_name} with id {id_} was not found")
         return entity
 
-    async def list_page(self, request: PageRequest) -> PageResult[T]:
-        items = await self._repository.list(limit=request.limit, offset=request.offset)
+    async def list_page(
+        self, request: PageRequest, *, query: SearchQuery | None = None
+    ) -> PageResult[T]:
+        if query is not None:
+            items = await self._repository.list(
+                limit=request.limit, offset=request.offset, query=query
+            )
+        else:
+            items = await self._repository.list(limit=request.limit, offset=request.offset)
         total = await self._repository.count()
         return PageResult.create(list(items), total=total, request=request)
 
