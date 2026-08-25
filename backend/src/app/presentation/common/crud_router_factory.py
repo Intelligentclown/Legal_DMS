@@ -23,13 +23,43 @@ value is captured directly rather than deferred to a string.
 from collections.abc import Callable
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
 
 from app.application.common.base_service import BaseService
 from app.application.common.pagination import DEFAULT_PAGE_SIZE, PageRequest
+from app.application.common.query import (
+    FilterOperator,
+    FilterSpec,
+    SearchQuery,
+    SortDirection,
+    SortSpec,
+)
 from app.application.interfaces.repository import SupportsId
 from app.presentation.common.response import ApiResponse, paginated_response
+
+
+def _parse_sort_param(raw: str) -> SortSpec:
+    field, _, direction = raw.partition(":")
+    if direction:
+        return SortSpec(field=field, direction=SortDirection(direction))
+    return SortSpec(field=field)
+
+
+def _parse_filter_param(raw: str) -> FilterSpec:
+    field, operator, value = raw.split(":", 2)
+    parsed_operator = FilterOperator(operator)
+    parsed_value: object = value.split(",") if parsed_operator is FilterOperator.IN else value
+    return FilterSpec(field=field, operator=parsed_operator, value=parsed_value)
+
+
+def _build_search_query(sort: list[str] | None, filters: list[str] | None) -> SearchQuery | None:
+    if not sort and not filters:
+        return None
+    return SearchQuery(
+        sort=tuple(_parse_sort_param(item) for item in sort or []),
+        filters=tuple(_parse_filter_param(item) for item in filters or []),
+    )
 
 
 def build_crud_router[
@@ -60,9 +90,16 @@ def build_crud_router[
     async def list_items(
         page: int = 1,
         page_size: int = DEFAULT_PAGE_SIZE,
+        sort: list[str] | None = Query(default=None),
+        filters: list[str] | None = Query(default=None, alias="filter"),
         service: BaseService = Depends(get_service),
     ) -> ApiResponse[list[ReadSchema]]:
-        page_result = await service.list_page(PageRequest(page=page, page_size=page_size))
+        request = PageRequest(page=page, page_size=page_size)
+        search_query = _build_search_query(sort=sort, filters=filters)
+        if search_query is not None:
+            page_result = await service.list_page(request, query=search_query)
+        else:
+            page_result = await service.list_page(request)
         entity_response = paginated_response(page_result)
         return ApiResponse(
             data=[_to_read(item) for item in entity_response.data],
