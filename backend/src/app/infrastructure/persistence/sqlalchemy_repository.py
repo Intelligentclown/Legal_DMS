@@ -17,7 +17,13 @@ from uuid import UUID
 from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.common.query import FilterOperator, FilterSpec, SearchQuery
+from app.application.common.query import (
+    FilterOperator,
+    FilterSpec,
+    SearchQuery,
+    SortDirection,
+    SortSpec,
+)
 from app.application.interfaces.repository import AbstractRepository, SupportsId
 
 
@@ -41,6 +47,14 @@ def _filter_predicate(column: Any, spec: FilterSpec) -> ColumnElement[bool]:
             return column.in_(spec.value)
 
 
+def _sort_expression(column: Any, spec: SortSpec) -> ColumnElement[Any]:
+    match spec.direction:
+        case SortDirection.ASC:
+            return column.asc()
+        case SortDirection.DESC:
+            return column.desc()
+
+
 class SqlAlchemyRepository[ModelT: SupportsId](AbstractRepository[ModelT]):
     """Generic CRUD repository for a single SQLAlchemy declarative model."""
 
@@ -60,6 +74,11 @@ class SqlAlchemyRepository[ModelT: SupportsId](AbstractRepository[ModelT]):
                 _filter_predicate(getattr(self._model, spec.field), spec) for spec in query.filters
             ]
             stmt = stmt.where(*conditions)
+        if query is not None and query.sort:
+            order_by_clauses = [
+                _sort_expression(getattr(self._model, spec.field), spec) for spec in query.sort
+            ]
+            stmt = stmt.order_by(*order_by_clauses)
         stmt = stmt.limit(limit).offset(offset)
         result = await self._session.execute(stmt)
         return result.scalars().all()
