@@ -149,6 +149,37 @@ Reviewer Checklist
 
 QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
+
+Independently verified by the QA Reviewer role (2026-08-25) against `622554b`: diff scope
+confirmed as exactly `base_service.py` (+10/−2) + this log — `tests/support/in_memory_repository.py`
+confirmed byte-identical to `origin/main` (empty diff), no router/presentation file touched (the
+pre-existing `list_page()` callers in `users.py`/`crud_router_factory.py` are also untouched).
+`SearchQuery` confirmed reused from `application/common/query.py`, no new abstraction.
+
+The reported regression was independently reproduced, not accepted on the report's word: called
+`InMemoryRepository.list(limit=10, offset=0, query=None)` directly and confirmed it raises
+`TypeError: InMemoryRepository.list() got an unexpected keyword argument 'query'` — proving
+unconditional forwarding genuinely would have broken this second `AbstractRepository`
+implementation, and confirming the conditional-forwarding fix is necessary, not merely
+convenient.
+
+Behavioral verification performed live via a throwaway, non-committed script (built and then
+deleted, per instruction not to leave scratch files behind) against a real `BaseService` over a
+real `SqlAlchemyRepository`/Postgres, plus the actual `InMemoryRepository`: (1) existing no-`query`
+call path — total=6, unaffected; (2) explicit `query=None` — identical result to the no-arg path;
+(3) filter forwarded end-to-end (`WHERE is_system_role = true`); (4) sort forwarded end-to-end
+(`ORDER BY name DESC`); (5) filter+sort+pagination together, correctly sliced per page; (6)
+`total`/`count()` semantics unaffected by filters (still reflects the unfiltered row count, as
+designed — not a T7 regression); (7a) `InMemoryRepository`-backed `list_page()` with no `query`
+arg — no `TypeError`, confirming the fix holds; (7b) `InMemoryRepository`-backed `list_page()`
+*with* an explicit `query=` still raises the same `TypeError` — expected and correctly out of
+scope, not a regression, since no real caller does this yet.
+
+`uv run pytest` independently re-run: 500 passed, 6 failed, identical failures/root cause already
+established in T5's/T6's phase logs (pre-existing shared-dev-database state from T83, unrelated to
+this diff). `ruff`/`black --check`/`git diff --check` all independently reproduced clean. No
+T8/T9/T10 work, no Stage 4 feature, no unrelated refactoring found. `IMPLEMENTATION_QUEUE.md`/
+`PROJECT_STATE.json` untouched.
