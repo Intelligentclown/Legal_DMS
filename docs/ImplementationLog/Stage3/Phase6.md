@@ -144,6 +144,24 @@ Reviewer Checklist
 
 QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
+
+Independently verified by the QA Reviewer role (2026-08-25) against `2047403`/`02b7f2e`: diff
+scope confirmed as exactly `sqlalchemy_repository.py` + this log (no unauthorized file touched);
+`FilterSpec`/`FilterOperator`/`SearchQuery` confirmed reused from `application/common/query.py`,
+not duplicated; all eight operators verified both by source review and by live execution against
+the real dev Postgres database via a throwaway, non-committed script (`EQ`, `NEQ`, `GT`, `GTE`,
+`LT`, `LTE`, `CONTAINS`, `IN`, a combined-AND case, `query=None`, and an empty-filters
+`SearchQuery()` — 9/9 passed, generated SQL inspected directly for each); `count()` and
+`SortSpec`/`ORDER BY` confirmed untouched; `base_service.py` confirmed byte-identical to
+`origin/main` (caller compatibility preserved); no T6–T10 scope creep found. `uv run pytest`
+independently re-run: 500 passed, 6 failed, all in `tests/integration/test_bootstrap_admin.py` —
+root-caused directly (not merely asserted) to the shared dev database's pre-existing single
+`users` row from an earlier, unrelated session (T83), which that test file's own preconditions
+don't tolerate; mechanically unrelated to this diff, which that test file doesn't even import.
+`ruff`/`black --check`/`git diff --check` all independently reproduced clean. Full detail:
+[`docs/reviews/T5_QA_Review.md`](../../reviews/T5_QA_Review.md) — this section is the
+authoritative QA Decision record for T5; that file is the supporting detail, not a competing
+record.
