@@ -128,3 +128,52 @@ by this report:
   step, not part of this commit.
 - The documentation PR was not merged, and this report does not authorize a merge — merge remains
   gated on the QA Reviewer's independent decision, per this task's own stop condition.
+
+---
+
+## T86 QA Decision
+
+**Decision: APPROVED WITH COMMENTS**
+
+**Reviewed PR:** #111 (`docs/t86-domain-model-spec-adoption`)
+**Reviewed HEAD:** `8ac14852f839647f4891c5e6cb1d1e3bfcfad98c`
+
+**Comment (non-blocking):** The specification was previously untracked, so no literal before/after
+`git diff` exists to prove that no business rule changed during adoption. This is an inherent
+evidentiary limitation of first-time adoption, not a rework requirement. The QA Reviewer
+independently verified the committed content, its 46 rules, structural consistency, and all
+authorized correction points.
+
+**Provenance of this record:** this decision was reached and reported by the QA Reviewer role in
+its own review session; at the time of that review, no GitHub-native PR review or comment was
+posted to PR #111 (confirmed via `gh pr view 111 --json reviews,comments`: both empty), and no
+`docs/reviews/T86_QA_Review.md` or other repository file recorded it — the decision had no
+persistent repository record. This section formally records it, following the precedent set by
+commit `bceff1c` ("docs(qa): record T81 approval"), which recorded T81's QA Decision under the
+same circumstance ("already reached and reported in the prior QA review chat session but had no
+persistent repository record").
+
+**This is the formal QA Reviewer decision**, distinct from and superseding, for governance
+purposes, the earlier informal advisory Independent Technical Verification referenced in T86's own
+authorization text (`IMPLEMENTATION_QUEUE.md`'s T86 row) — that earlier pass is not a substitute
+for this decision and is not what is being recorded here.
+
+**Independent re-verification performed by this Documentation Manager pass, not merely restated**
+(mirroring `bceff1c`'s own "independently re-performed here" discipline):
+
+- **Diff scope** — `git diff --stat main HEAD` on this branch: exactly two files changed,
+  `docs/Legal_DMS — Domain Model & Functional Specification.md` (new, +3859) and this report
+  itself (new, +130). No other file touched.
+- **§4 rule count** — re-counted directly (`awk`-isolated §4 body, `grep -c '^[0-9]+\.'`): exactly
+  **46**.
+- **§21/§23/Part II/§24.4/§25 correction points** — re-read directly at their current committed
+  locations: §21's terminology note and item 7's TP/FP↔Scheme assignment; §23's "46 rules in
+  total, 1–46" statement; Part II's introductory "Reference-numbering note"; §24.4's TP/FP Record
+  entry assigning the Scheme-boundary question to Required ADR #7, not #6; §25's terminology note
+  distinguishing its 14-row checklist from §4's 46 rules. All confirmed present and unchanged from
+  §3 of this report's own earlier verification pass.
+- **No other change** — confirmed no ADR file, source file, migration, test, configuration, or
+  `PROJECT_STATE.json` change exists anywhere in this branch's diff against `main`.
+
+**No rework required.** This QA Decision does not require any change to the specification, and
+none was made.
