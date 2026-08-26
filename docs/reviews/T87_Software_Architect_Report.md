@@ -204,3 +204,57 @@ this report or by `ADR/0021` itself:
 - The PR was not opened as merged, and this report does not authorize a merge — merge remains
   gated on the QA Reviewer's independent decision against the actual PR HEAD, per T87's own stop
   condition and this task's governing instructions.
+
+---
+
+## T87 QA Decision
+
+**Decision: APPROVED**
+
+**Reviewed PR:** #114 (`docs/t87-adr-0021-tenant-enforcement`)
+**Reviewed HEAD:** `30a374913e7df5b124315d839ecc3b1fe19b6895`
+
+**Blocking findings:** none.
+**Non-blocking comments:** none.
+
+The QA Reviewer independently confirmed: T87 authorization is active; `ADR/0021`'s content is
+correct against the governed specification; `ADR/0001`–`0020` and `ADR/template.md` are untouched;
+no source/schema/API/migration file was touched; Stage 4 remains unselected; no `T88` row exists;
+the full ADR was read directly, not sampled; the relevant specification sections (§4, §21, §23,
+§24.1, §25, §26) were independently checked against the ADR's claims; and this Software Architect
+report was independently cross-checked rather than taken on trust. No file was modified by the QA
+review itself.
+
+**Provenance of this record:** this decision was reached and reported by the QA Reviewer role in
+its own review session; at the time of that review, no GitHub-native PR review or comment was
+posted to PR #114 (confirmed via `gh pr view 114 --json reviews,comments`: both empty), and no
+`docs/reviews/T87_QA_Review.md` or other repository file recorded it — the decision had no
+persistent repository record. This section formally records it, following the precedent set by
+commit `bceff1c` ("docs(qa): record T81 approval") and commit `f6974cf` ("docs(qa): record T86
+approval with comments"), both of which recorded a QA Decision under the identical circumstance.
+
+**This is the formal QA Reviewer decision** for T87 — the sole review gate this task requires; no
+earlier informal/advisory verification pass exists for T87 to be confused with.
+
+**Independent re-verification performed by this Documentation Manager pass, not merely restated**
+(mirroring `bceff1c`'s and `f6974cf`'s own "independently re-performed here" discipline):
+
+- **PR HEAD match** — `gh pr view 114 --json headRefOid` returns `30a374913e7df5b124315d839ecc3b1fe19b6895`,
+  exactly the reviewed HEAD; no commit was added to the branch after the review, and no scope
+  changed after QA.
+- **Diff scope** — `git diff --stat main 30a3749`: exactly two files,
+  `ADR/0021-organization-tenant-boundary-enforcement.md` (new, +402) and this report (new, +206;
+  now +49 more for this section). No other file touched.
+- **ADR/0021 content** — re-read directly at its committed location: explicitly resolves only
+  Required ADR #1 + #19; explicitly defers #18 with a recorded composition dependency, not a
+  silent decision; explicitly lists #2–#17 and #20 as untouched; the "Decision" section specifies a
+  mechanism, not implementation code (no repository, migration, or infrastructure file created or
+  changed).
+- **No other ADR touched** — confirmed `ADR/0001`–`0020` and `ADR/template.md` do not appear in
+  `git diff --stat main 30a3749`.
+- **No other change** — confirmed no source, schema, migration, test, configuration,
+  `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, or specification file exists anywhere in this
+  branch's diff against `main`.
+
+**No rework required.** This QA Decision does not require any change to `ADR/0021`, and none was
+made.
