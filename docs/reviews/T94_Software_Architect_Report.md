@@ -578,6 +578,76 @@ requiring rework. PR #135 remains open and unmerged; no governance file was modi
 
 ---
 
+## Ancestry Re-Verification (2026-08-28)
+
+**This is a fresh, independent re-verification — not reliance on any prior QA approval, any PM
+report's narrative, or an assumption that a reported remediation succeeded.** A subsequent Project
+Manager pre-merge gate identified that this PR branch's own history, as it stood after the QA Decision
+above (commit `1a8402ac64b6fc9ad0450119f8e6986930379b4c`), did not itself contain the T94 authorization
+commit (`3e1ab1b2f4b6af5ae7367602e1bbd7c9e7fa15ab`) as an ancestor — the authorization existed on `main`
+but had not yet been merged into this feature branch. This section independently re-verifies the
+reported fix, mechanically, from the live remote state.
+
+**Live PR state re-fetched fresh, not cached:** `gh pr view 135` confirms state `OPEN`, base `main`,
+mergeable `MERGEABLE`, actual current HEAD `97a32d21021a696d1212b40f0a31c1d8cfbdf680` — a genuine merge
+commit with two parents, confirmed via `git log --format=%P`: `1a8402ac...` (this branch's own prior
+tip) and `9c29d081fd3e4b43eab12abd3bdff9c0ae1cd26a` (current `main`'s tip, independently re-confirmed
+via `git rev-parse origin/main`). All three CI checks (Backend, Frontend, Release) report `SUCCESS` on
+this commit.
+
+**Ancestry verified mechanically, not asserted:**
+
+```
+git merge-base --is-ancestor 3e1ab1b2f4b6af5ae7367602e1bbd7c9e7fa15ab 97a32d21021a696d1212b40f0a31c1d8cfbdf680
+→ true (AUTH IS ANCESTOR: YES)
+
+git merge-base --is-ancestor origin/main 97a32d21021a696d1212b40f0a31c1d8cfbdf680
+→ true (MAIN IS ANCESTOR OF PR HEAD: YES)
+```
+
+Both checks pass. The T94 authorization commit is now genuinely an ancestor of PR #135's actual
+remote HEAD, and current `main` in its entirety is now an ancestor of that same HEAD — the merge
+did what it claims.
+
+**Content drift independently re-checked — zero:**
+
+```
+git diff 1a8402ac64b6fc9ad0450119f8e6986930379b4c 97a32d21021a696d1212b40f0a31c1d8cfbdf680 \
+  -- ADR/ docs/reviews/T94_Software_Architect_Report.md
+→ (empty)
+```
+
+The merge introduced no change whatsoever to `ADR/0028` or to this report — both are byte-identical
+to the versions already reviewed in full above. `IMPLEMENTATION_QUEUE.md` on the PR head is also
+byte-identical to current `main`'s copy (`git diff origin/main 97a32d2... -- IMPLEMENTATION_QUEUE.md`
+→ empty), confirming a clean merge with no conflict-resolution edits of any kind — the T94
+authorization row arrived intact, not altered in transit. The PR's full diff against its original
+merge-base (`e00bdb72`) now correctly includes exactly three files —
+`ADR/0028-...md`, `IMPLEMENTATION_QUEUE.md` (carrying only the pre-existing authorization row from
+`main`, not a new independent edit by this branch), and this report — with `PROJECT_STATE.json` and
+`ADR/0021`–`0027` confirmed absent throughout.
+
+**T94/T95 status re-confirmed on the actual PR head** (not assumed carried over): the `T94` row is
+present and, read directly from `97a32d2`, contains no "Implemented"/"Done" annotation of its own —
+correctly left for a future post-merge governance step; zero `T95` rows exist anywhere in
+`IMPLEMENTATION_QUEUE.md` at this commit; current `main`'s `PROJECT_STATE.json` contains no `T94`
+reference, correctly deferred pending Documentation Manager synchronization after merge.
+
+**Since the substantive content under review is unchanged (confirmed by direct diff, not assumed),
+the architectural findings recorded in the "Fresh QA Decision (Post-Remediation)" section above —
+including the rule-36/37/38 mechanical analysis, the authorization-to-PR scope gate, and all four
+non-blocking comments — remain fully valid against this new HEAD and are not re-derived here merely
+for form's sake.** What this section adds, and what was genuinely re-verified fresh rather than
+carried over, is exclusively the ancestry/governance-mechanics question the PM gate raised: it is now
+mechanically confirmed, not merely reported, that this branch's history satisfies the authorization-
+ancestry requirement.
+
+**Blocking findings: none.** **QA Decision: Approved with comments — reaffirmed against ancestry-
+correct PR HEAD `97a32d21021a696d1212b40f0a31c1d8cfbdf680`.** PR #135 remains open and unmerged; `T94`
+is not marked Done; no `T95` exists; no governance file was modified by this pass.
+
+---
+
 **This report ends T94's authorized scope at the implementation PR handoff.** Per this task's own
 governing instructions, T94 stops here, awaiting independent QA. No further action (opening/merging
 a PR beyond the point specified below, creating T95, marking T94 Done, performing QA, governance
