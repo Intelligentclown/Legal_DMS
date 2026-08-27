@@ -285,12 +285,114 @@ than presented as a specification mandate.
 ## QA Decision
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
 
 This Software Architect pass does not record, anticipate, or imply any of the three outcomes above
 — per `docs/prompts/SoftwareArchitect.md` §11/§13, this role never renders a QA Decision or
 substitutes for the QA Reviewer. `ADR/0027` and this report are not self-certifying.
+
+**Recorded by the QA Reviewer role (2026-08-27), against this exact commit
+(`753cb84f9def5e2310cd557a00360d6a751b29bb`), independently verified, not accepted on this report's
+word.** PR #133 confirmed open, base `main`, remote HEAD exactly `753cb84f`; T93's authorization
+commit `4e3b9a27c9f3fb8ac2835c7aa6315b8140f9210c` confirmed an ancestor via
+`git merge-base --is-ancestor`, with exactly one commit (`753cb84`) between the authorization merge
+(`9bbd939`, `main`'s tip) and the PR head — no unauthorized commit exists in between, and T92's own
+governance closeout (`444477b`/PR #131) was independently confirmed to precede T93's authorization,
+not merely asserted. The single-commit diff against `main` confirmed as exactly two files
+(`ADR/0027-...md`, this report) — `ADR/0021`–`0026`, the specification, `IMPLEMENTATION_QUEUE.md`,
+and `PROJECT_STATE.json` all absent from the diff; no `T94` row, branch, or PR exists (the stray
+`T94` string match in `frontend/package-lock.json`/`package-lock.json` is an unrelated integrity-hash
+substring, confirmed not part of this PR's diff).
+
+§4 rules 4–7, §17.5's five mandatory tests (quoted verbatim: "File without Matter → reject," "Matter
+without File → allow," "File creation → assigns File Number," "Concurrent File creation → no
+duplicate," "Deleted/archived File → number not silently reused"), §21 item 9, §24.8's "File" and
+"File Numbering" blocks (including the three named candidate mechanisms/scopes and the Matter-scoped
+format example), §25 invariant #8, and §26 item 6's "concurrency-critical, not cosmetic" framing were
+all independently read directly from `docs/Legal_DMS — Domain Model & Functional Specification.md`
+and confirmed to match `ADR/0027`'s quotations verbatim — not accepted on the ADR's word. The
+repository-investigation claims were independently re-run and confirmed exact:
+`matters.matter_number`/`invoices.invoice_number`/`receipts.receipt_number` are plain unique
+`String(50)` columns with zero application-layer generation code anywhere outside the model files
+themselves; `Matter` carries no `organization_id` today; a full grep for `FOR UPDATE`/
+`with_for_update`/`Sequence(`/advisory-lock usage across `backend/src/app/` returns zero matches;
+`docker-compose.yml` runs `postgres:16-alpine` only, no Redis or distributed-lock service;
+`backend/src/app/infrastructure/database/session.py` sets no explicit transaction isolation level —
+confirming Postgres's default READ COMMITTED applies, which is the specific isolation level under
+which the ADR's claimed "blocks, then proceeds" concurrency behavior for `INSERT ... ON CONFLICT`
+actually holds (a materially different, incorrect narrative would result under SERIALIZABLE, which
+this codebase does not use). `ADR/0020`'s per-request commit/rollback boundary was re-read in full
+and confirmed to match the transaction-scope reuse this ADR claims. `ADR/0021`'s mandatory-
+`organization_id`-directly-on-generator-tables discipline and `ADR/0022`'s resource+action model were
+independently re-confirmed to support the composition claims made; neither is modified (confirmed
+absent from the diff).
+
+**Concurrency mechanism — independently verified mechanically, not merely accepted.** The
+`INSERT ... ON CONFLICT (matter_id) DO UPDATE SET next_number = next_number + 1 RETURNING
+next_number` idiom is Postgres's own documented atomic-upsert pattern: under READ COMMITTED (this
+codebase's actual, unmodified default), a second transaction targeting the same conflict target
+blocks on the row/index-entry lock until the first commits or rolls back, then re-evaluates against
+the now-current state — this is exactly the mechanical behavior `ADR/0027`'s "Detailed Concurrency
+Analysis" describes, not an unverified claim of "thread-safe." The shared-transaction design
+(counter upsert + File-row insert in one transaction, reusing `ADR/0020`'s boundary) correctly
+guarantees a rolled-back attempt never permanently burns a number, verified against `ADR/0020`'s own
+text directly.
+
+**Matter-scoped numbering inference — confirmed genuinely and correctly labeled as inference.** The
+"Scope Decision" section is explicit that the specification leaves scope `ED` among three named
+candidates, and grounds the Matter-scoped recommendation in two named textual signals (§24.8's own
+Matter-scoped format example — independently confirmed as the *only* one of the three candidates
+given a concrete example — and rule 4's "work package within a Matter" framing) plus one disclosed
+architectural argument (contention distribution), while explicitly naming Organization-scoped
+numbering as a genuinely defensible alternative, not a strawman. This does not overreach into a
+specification mandate.
+
+**§17.5 mandatory-test coverage — confirmed, with one completeness gap.** Three of the five tests are
+directly and explicitly addressed by this ADR's own "Invariants" section: "File creation → assigns
+File Number," "Concurrent File creation → no duplicate," and "Deleted/archived File → number not
+silently reused." The remaining two — "File without Matter → reject" and "Matter without File →
+allow" — are correctly outside Required ADR #9's scope (they test File's own existence/FK
+relationship to Matter, which is Required ADR #8's territory, not the numbering mechanism this ADR
+decides) and are not silently ignored (the "Explicit Out-of-Scope Boundaries" section covers
+Matter-vs-File lifecycle generally) — but neither is named individually by its own §17.5 test text
+the way the other three are, a minor traceability gap for a future reader checking full §17.5
+coverage against this ADR alone.
+
+**Scope containment confirmed:** Required ADR #8, #10, #13, #20 remain untouched and explicitly
+listed as unresolved; File's broader field architecture, Matter-vs-File lifecycle, Matter-deletion
+cascade, and Workflow/Task/GovernmentProcess attachment granularity are all correctly deferred to #8;
+the exact stored/display format and `UNIQUE` constraint shape are correctly deferred to #8, not
+invented (no office/district/year/department code introduced).
+
+Blocking findings: none.
+
+Non-blocking comments (do not block approval):
+
+1. **The "Allocation gaps" point in the Detailed Concurrency Analysis (point 8) is confusingly
+   worded and appears to internally tension with the ADR's own "Invariants" section.** Point 8 opens
+   with "Allocation gaps: possible only if..." and describes a scenario (a transaction reads the
+   `RETURNING` value, then its own commit later fails), but because the counter increment and the
+   File insert share one transaction, a failed commit rolls back atomically — no gap is actually
+   created in the persisted-number ledger; the next transaction receives the identical number again,
+   exactly as point 5 and the "Invariants" section (correctly) already establish. The ADR's
+   substantive guarantee is not wrong — no rule-7 violation occurs either way — but the "possible
+   only if" framing in point 8 reads as asserting gaps *can* occur under normal operation of this
+   mechanism, when in fact, per this ADR's own design, they cannot occur within the persisted ledger
+   at all (unlike the rejected native-`SEQUENCE` alternative, which does permanently burn gaps). A
+   future revision should reword point 8 to avoid this internal ambiguity.
+2. **The two structural §17.5 tests not addressed by this ADR** ("File without Matter → reject,"
+   "Matter without File → allow") are correctly out of scope but not individually named — see
+   above. Naming them explicitly as "Required ADR #8's tests, not this ADR's" would close the
+   traceability gap for a future reader auditing full §17.5 coverage without needing to cross-
+   reference #8's eventual scope.
+
+**QA Decision: Approved with comments.** ADR/0027 makes a mechanically-verified, specification-
+grounded decision on the File numbering algorithm and concurrency mechanism, correctly disqualifies
+the in-process-lock alternative on real multi-process grounds, honestly labels Matter-scoped
+numbering as inference rather than mandate, and does not silently decide File's broader field
+architecture, format, or any other Required ADR #8 territory. No implementation code, schema, or
+governance file was touched. PR #133 remains open and unmerged.
 
 ---
 
