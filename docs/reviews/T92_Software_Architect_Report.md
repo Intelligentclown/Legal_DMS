@@ -258,10 +258,130 @@ actual code, not asserted without evidence.
 
 ## 15. QA Status
 
-**Unresolved.** No QA Decision has been rendered as of this report. This Software Architect pass
-does **not** record, anticipate, or imply `Approved`, `Approved with comments`, or `Rework required`
-— that decision belongs solely to the QA Reviewer role, independently, against this commit and the
-eventual PR HEAD. This report and `ADR/0026` are not self-certifying.
+**Unresolved as of this report's original drafting.** This Software Architect pass did **not**
+record, anticipate, or imply `Approved`, `Approved with comments`, or `Rework required` — that
+decision belongs solely to the QA Reviewer role, independently, against this commit and the eventual
+PR HEAD. This report and `ADR/0026` were not self-certifying at the time they were written.
+
+## QA Decision
+
+□ Approved
+☑ Approved with comments
+□ Rework required
+
+**Recorded by the QA Reviewer role (2026-08-27), against this exact commit
+(`b48b14fd5d79129ececffb9b9b54ca109d7b804a`), independently verified, not accepted on this report's
+word.** PR #130 confirmed open, base `main`, remote HEAD exactly `b48b14fd`; T92's authorization
+commit `1fcfbb49` confirmed an ancestor via `git merge-base --is-ancestor`, with exactly one
+commit (`b48b14f`) between the authorization merge (`ed1466d`, `main`'s tip) and the PR head — no
+unauthorized architecture or implementation commit exists in between. The single-commit diff against
+`main` confirmed as exactly two files (`ADR/0026-...md`, this report) — `ADR/0021`–`0025`, the
+specification, `IMPLEMENTATION_QUEUE.md`, and `PROJECT_STATE.json` all absent from the diff; no `T93`
+row, branch, or PR exists (the `T93` string matches found elsewhere in the tree are a pre-existing
+`IMPLEMENTATION_QUEUE.md` disclosure clause and an unrelated `frontend/package-lock.json` integrity
+hash substring, neither part of this PR's diff).
+
+§4 rules 25–28, §24.3's "Property ⟷ Scheme is plausible... but not frozen as a required
+relationship — ED," §24.4's TP/FP↔Scheme boundary assignment to #7 (not #6), §24.5's full Scheme
+entity treatment, §26 item 4, and §27's dependency-ordering self-check were independently read
+directly from `docs/Legal_DMS — Domain Model & Functional Specification.md` and confirmed to match
+`ADR/0026`'s quotations and characterizations verbatim — not accepted on the ADR's word. The
+repository-investigation claims were independently re-run and confirmed exactly: zero `parent_id`/
+self-referencing-FK/`lft`/`rgt` pattern anywhere in `backend/src/app/infrastructure/persistence/
+models/`; the only two `scheme` matches in `backend/src/app/` are `deps.py`'s unrelated
+`_bearer_scheme`/`HTTPBearer`; `docs/ERD.md` contains no Scheme mention. `ADR/0021`'s
+`organization_id`/`FORCE`-RLS requirement, `ADR/0022`'s resource+action permission model, and
+`ADR/0023`'s "fragment the permission surface" anti-pattern reasoning (which `ADR/0026` mirrors for
+`scheme_nodes`) were each independently re-read and confirmed to support the composition claims made.
+`ADR/0024` was re-read in full: its "assessed, not resolved" treatment of Property↔Scheme cardinality
+is preserved, not narrowed, by `ADR/0026`. `ADR/0025`'s "Explicit #7 Deferral" section was re-read
+and confirmed to match `ADR/0026`'s own "#5 ↔ #7 Traceability" section's characterization of what was
+already decided versus deferred.
+
+**TP/FP↔Scheme boundary — independently verified, not merely asserted.** `ADR/0026`'s "Data-Model
+Consequences" section was checked specifically: `TPRecord` is stated **unchanged**, no `scheme_id` or
+other structural column is added to it, and `tp_scheme_number` remains a plain, non-FK `String`
+field exactly as `ADR/0025` froze it. No polymorphic link, implicit join, or new TP/FP-to-Scheme
+database relationship of any kind is introduced. The "TP/FP↔Scheme Boundary Decision" section's
+conclusion (distinct concepts, no relationship) is explicitly labeled by the ADR itself as "an
+architectural interpretation grounded in indirect textual signals, not an explicit specification
+statement" — correctly not misattributed as a specification mandate.
+
+**Property↔Scheme cardinality — confirmed assessed, not resolved.** `ADR/0026`'s own section by that
+name states the hierarchy-mechanism decision "does not constrain that future decision in either
+direction," and names only the stable identity (`schemes.id`/`scheme_nodes.id`) a future decision
+would reference — no one-to-one/one-to-many/many-to-many architecture is established.
+
+**Scheme hierarchy mechanism — independently assessed as adequately justified.** The adjacency-list
+selection is evaluated against variable-depth support (§4 rule 27/28's explicit requirement, which
+directly disqualifies the fixed/optional-levels alternative), concurrency safety (nested set's
+renumbering-lock risk is a real, correctly-characterized concern, not a vague assertion; materialized
+path's re-parenting cost — rewriting every descendant's path string — is a genuine, concretely-stated
+weakness, not "more complex" hand-waving), repository consistency, and implementation complexity, in
+that order — a defensible driver ordering matching `ADR/0021`–`0025`'s own established evidentiary
+discipline (specification mandate first, novelty last). `geography.py` is correctly cited as
+*negative* precedent (proof the fixed-level-per-table shape works for a genuinely fixed-depth
+hierarchy, and exactly why it does not transfer to Scheme) rather than being misrepresented as
+existing-pattern support for adjacency list itself — this ADR is honest that a self-referencing
+hierarchy is a first-of-its-kind idiom for this codebase, not backed by direct precedent the way
+`ADR/0024`'s polymorphic-reference choice was.
+
+**Cycle prevention — acceptable as disclosed.** The ADR correctly distinguishes the architectural
+selection (adjacency list) from the database-integrity question (a `CHECK` trivially blocks
+self-parenting; a deeper cycle needs application-layer validation or a trigger) and names this as a
+disclosed "Risk," explicitly deferring the specific mechanism to a future implementation task rather
+than either silently ignoring it or over-specifying an implementation detail this architecture-level
+document has no authorized basis to mandate.
+
+**Tenant/authorization composition — confirmed, no parallel system created.** Both `schemes` and
+`scheme_nodes` carry independent, mandatory `organization_id` columns (not merely inherited via
+`scheme_id`), for the same reason `ADR/0024` required it on `property_record_references` — verified
+as consistent, not a new or weaker standard. `scheme_nodes` is governed by `schemes:*` permission
+codes, not a fragmented `scheme_nodes:*` surface, mirroring `ADR/0023`/`ADR/0024`'s own precedent
+exactly.
+
+**Alternatives analysis — confirmed genuine, not strawmen.** All four candidates (adjacency list,
+materialized path, nested set, fixed/optional levels) are structurally distinct real options, each
+rejected or selected on concrete, named criteria (re-parenting cost, renumbering/concurrency risk,
+direct textual conflict with rule 27/28) rather than generic preference — unlike a strawman
+comparison, the fixed/optional-levels rejection explicitly credits that option as `geography.py`'s
+own proven, working pattern, rejecting it only because the use case is materially different, not
+because the pattern itself is deficient.
+
+**Dependency/scope containment confirmed:** Required ADR #8, #9, #10, #13, #20 remain untouched and
+explicitly listed as unresolved; Scheme's Building/Block/Section/Unit vocabulary is correctly
+deferred as business/config content, not schema; no Matter/File/Document architecture is touched; no
+migration strategy is designed.
+
+Blocking findings: none.
+
+Non-blocking comments (do not block approval):
+
+1. **The TP/FP≠Scheme conclusion partially rests on an unsourced real-world characterization.** The
+   reasoning that a Town Planning Scheme is "a statutory land-development mechanism created and
+   administered by a government town-planning authority," categorically different from what §4 rule
+   26 describes an Organization as "own[ing]/control[ling]," is a real-world domain fact asserted by
+   this ADR, not sourced from the specification text or this repository — the specification itself
+   never states what a Town Planning Scheme administratively *is*. The ADR already discloses its
+   conclusion as an interpretation rather than a specification mandate and explicitly leaves room to
+   revisit it ("This ADR neither assumes nor forecloses that possibility"), which is the correct
+   discipline — but a future reviewer with more direct Gujarat land-administration domain knowledge
+   should specifically re-check this real-world premise, since the entire distinct-concepts
+   conclusion depends on it being accurate.
+2. **The concurrency-safety decision driver extends §17.5's File-Numbering-specific concurrency test
+   to Scheme hierarchy mutation "by extension."** This is disclosed as an extension/analogy, not
+   claimed as a direct specification requirement for Scheme specifically, so it does not misrepresent
+   the specification — but a future reader skimming only the Decision Drivers section should not
+   mistake §17.5 itself as governing Scheme; the citation is this ADR's own reasonable generalization
+   of a documented concurrency-discipline pattern, not a textual mandate.
+
+**QA Decision: Approved with comments.** ADR/0026 makes a defensible, specification-grounded
+decision on Scheme hierarchy storage and the TP/FP↔Scheme conceptual boundary, correctly disqualifies
+fixed/optional levels on rule 27/28's own textual grounds, honestly discloses adjacency list as a
+first-of-its-kind idiom rather than overstating repository precedent, leaves `ADR/0025`'s
+`tp_scheme_number` decision genuinely untouched, and does not silently resolve Property↔Scheme
+cardinality or any other downstream Required ADR. No implementation code, schema, or governance file
+was touched. PR #130 remains open and unmerged.
 
 ## 16. Explicitly Not Done By This Pass
 
