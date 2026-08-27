@@ -401,6 +401,183 @@ authorized scope. PR #135 remains open and unmerged; no governance file was modi
 
 ---
 
+## Fresh QA Decision (Post-Remediation, 2026-08-28)
+
+**This is a new, independent QA gate — not a restatement of the finding above.** The prior "Rework
+required" decision (immediately above, QA persistence commit `2b51b2da57592f58162abef17d5f57ba2c21061b`)
+is preserved verbatim as the auditable historical record of the procedural defect it found; it is
+**not** deleted, edited, or superseded by this section. This section records a fresh review performed
+after the authorization-remediation PR (#136) merged into `main`.
+
+**Baseline independently re-verified, live, not assumed:** current `main` confirmed at
+`9c29d081fd3e4b43eab12abd3bdff9c0ae1cd26a` (`main == origin/main`, working tree clean). Git log
+confirms `9c29d08` (merge PR #136) → `3e1ab1b` ("docs(governance): authorize T94 (remediation...)")
+→ `e00bdb7` (T93 governance closeout tip). `IMPLEMENTATION_QUEUE.md`'s T94 row, read directly from
+this exact `main` commit, confirmed present, and confirmed to explicitly disclose the remediation as
+after-the-fact ("**It does not assert, and this text explicitly disclaims, that authorization
+preceded drafting in this instance — it did not.**"), name the prior QA finding
+(`2b51b2da5`) as not deleted or superseded, and authorize exactly: Charge/Expense as distinct
+first-class entities; Charge/Expense→Invoice linkage; Invoice total architecture; PaymentAllocation
+target/cardinality; the rule-37 allocation-sum invariant; the rule-38 non-silent-mutation mechanism;
+and rule-36's structural Charge/Expense distinction — while explicitly excluding `ADR/0021`–`0027`
+(frozen), Required ADR #1–7/9/18/19 (not reopened), #8/#10/#20 (untouched), full Commercial
+Scope/Refund design, configurable vocabulary, any implementation, and `T95`. T93 confirmed `Done`;
+`T94` confirmed **not** marked Done anywhere in this row (no "Implemented"/"QA Decision"/"Done"
+annotation present — correctly left for post-merge governance steps); no `T95` row exists anywhere
+in `IMPLEMENTATION_QUEUE.md` (confirmed via direct grep, zero matches). The authorization commit
+`3e1ab1b` itself independently confirmed to touch only `IMPLEMENTATION_QUEUE.md` (1 insertion) — no
+modification to `ADR/0028`, this report, `PROJECT_STATE.json`, or any `ADR/0021`–`0027` file.
+
+**PR #135 re-verified live, not assumed unchanged:** `gh pr view 135` confirms state `OPEN`, base
+`main`, mergeable `MERGEABLE`, actual current HEAD exactly `2b51b2da57592f58162abef17d5f57ba2c21061b`
+— **identical** to the QA persistence commit from the prior "Rework required" pass; no new commits
+have been added to this PR since that review. All three required CI checks (Backend, Frontend,
+Release) report `SUCCESS`. The PR's own diff against its true merge-base (`e00bdb72`) is confirmed,
+independently, to be exactly the same two files as before — `ADR/0028-...md` (343 insertions) and
+this report (407 insertions, reflecting the prior QA commit's additions) — no `IMPLEMENTATION_QUEUE.md`,
+`PROJECT_STATE.json`, `ADR/0021`–`0027`, or code file anywhere in the diff. (A diff against the
+*current* `main` tip shows a 1-line `IMPLEMENTATION_QUEUE.md` difference — this is `main` having
+advanced past the PR's branch point via the unrelated PR #136 merge, not anything this PR introduced;
+it resolves as an ordinary merge with no conflict, confirmed by GitHub's own `MERGEABLE` status.)
+
+**Authorization-to-PR scope gate — passes cleanly.** Every item the T94 authorization row's
+"Approved scope" names is actually decided in `ADR/0028`: Charge/Expense as two distinct, first-class,
+Matter-scoped tables (Decision, Alternatives A); a nullable `invoice_id` FK linkage on each (Decision,
+Alternatives B); Invoice totals as a frozen snapshot computed at issuance (Decision, Alternatives B);
+PaymentAllocation targeting Invoice only, one Payment producing multiple allocation rows across
+distinct Invoices (Decision, Alternatives C, Invariant 4); the rule-37 allocation-sum invariant via
+transaction-scoped row locking (Detailed Integrity & Concurrency Analysis, Invariant 3); the rule-38
+immutable-after-finalization mechanism with reversal/adjustment records (Decision, Alternatives D,
+Invariant 2); and rule-36's structural Charge/Expense separation (Decision, Alternatives A). Every
+item the row's "Explicitly outside scope" list names is confirmed untouched: `ADR/0021`–`0027` not
+modified (absent from the diff); Required ADR #8 (Matter-vs-File attachment, File lifecycle/field
+architecture, Matter-deletion cascade, Workflow/Task/GovernmentProcess granularity) explicitly
+disclosed as an inference in the "Attachment-Granularity Boundary" section, not resolved; #10 and #20
+untouched; full Commercial Scope fee-structure and detailed Refund architecture not designed beyond
+the stated minimum; Charge-type/Expense-category vocabularies correctly deferred as
+organization-configurable content; no schema/migration/code/test; no `T95`.
+
+**Specification re-verified directly, independent of the prior review's citations:** §4 rules 35–38,
+§6.2, §17.8 (the seven-stage mandatory test lifecycle, quoted verbatim), §24.13's full seven-entity
+Commercial & Finance block (including Payment Allocation's own explicit "target (Invoice or
+Charge — ED, unresolved which)" framing and Charge/Expense's differing Matter vs. Matter/File
+dependency signals), §25 invariant #14, §26 item 9, and §2's Feature Catalogue dependency rows for
+Charge/Expense/Payment Allocation — all re-read directly from the specification file at its current
+content and confirmed to match `ADR/0028`'s quotations and characterizations accurately; no
+misquotation or selective framing found.
+
+**Rule 37 (allocation-sum) mechanism — independently re-verified mechanically, from scratch, not
+accepted because it "mentions a row lock."** The Payment row targeted by `SELECT ... FOR UPDATE` is
+guaranteed to already exist before any allocation attempt (unlike `ADR/0027`'s lazily-created counter
+row) — a `PaymentAllocation` requires a mandatory, pre-existing `payment_id` FK, so there is no
+row-creation race to reason about, only row-locking. Walked through mechanically: T1 locks the
+Payment row, reads the current allocation sum, validates, inserts, commits. T2 (concurrent, same
+`payment_id`, any target `invoice_id`) blocks on the *same* row lock regardless of which Invoice it
+targets — because the lock key is `payment_id`, not `invoice_id` — until T1 resolves; T2 then
+re-reads the sum under READ COMMITTED (confirmed no isolation-level override exists in
+`session.py`, re-verified this pass), correctly seeing T1's committed allocation before validating
+its own. This correctly prevents collective over-allocation across multiple invoices targeting the
+same Payment, not merely single-invoice over-allocation. The mechanism is concretely specified (named
+transaction boundary, named lock statement, named validation step) — not the vague
+"validate-in-application-code" pattern this task's instructions caution against crediting.
+
+**Rule 38 (historical mutation) mechanism — independently re-verified for consistency across all
+four entities.** Invariant 2 names a distinct, coherent finalization trigger for each: Charge/Expense
+(linked to an *issued* Invoice — not merely `invoice_id` being set on a still-draft Invoice, a
+distinction the ADR draws correctly and which matters, since a Charge pre-linked to a draft Invoice
+remains editable until the Invoice is actually issued); Invoice (`status` leaves `draft`); Payment
+(`status` is `completed`). No inconsistency found between entities — each finalization point is
+independently coherent and specification-grounded. Service-layer enforcement (no mutation endpoint
+exposed on a finalized row) is confirmed, independently, to be the architecturally correct choice
+given this codebase's genuine absence of trigger infrastructure (re-confirmed by direct grep this
+pass) — mirroring `DocumentVersion`'s own existing immutability-by-absence-of-mutation-path
+precedent, not a hand-wavy substitute for a "real" mechanism. The trade-off (no DB-level enforcement
+against a direct/administrative bypass) is honestly disclosed, not hidden, consistent with this
+series' established evidentiary discipline.
+
+**Rule 36 (structural distinction) — independently re-verified as genuinely structural, not merely
+semantic.** Two distinct tables make accidental conflation physically impossible for any query
+touching only one table (unlike a shared table with a `WHERE kind = ...` filter, which a query author
+could omit by accident) — this is a stronger guarantee than a naming convention or application-layer
+discipline alone, and is a fair, technically accurate basis for the ADR's own reasoning.
+
+**Matter-vs-File boundary — confirmed not resolved.** The Charge/Expense asymmetry (§2 names
+Charge's dependency as `Matter`, Expense's as `Matter/File`) is disclosed accurately, not silently
+normalized to one uniform treatment; no `file_id` column is added to either table by this ADR; File
+lifecycle, File field architecture, and Workflow/Task/GovernmentProcess attachment granularity are
+all confirmed untouched, matching the newly-recorded authorization's exclusion list exactly.
+
+**PaymentAllocation-targets-Invoice-only — reassessed from scratch, not automatically re-flagged.**
+The evidentiary basis is modest but genuine: §2's Feature Catalogue "Payment/Invoice" dependency
+listing, §17.8's own lifecycle ordering (Allocation follows both Invoice and Payment), and the
+existing repository precedent of `Payment.invoice_id` already targeting Invoice. Critically,
+§24.13's own explicit "ED — unresolved which" framing for this exact question means deciding it is
+squarely within Required ADR #13's newly-recorded authorized scope ("PaymentAllocation's target and
+cardinality" is named verbatim in the authorization row), not an overreach into a still-open question
+this task lacks authority to close. The rejected alternatives (direct-to-Charge targeting; a
+target-type discriminator) are genuine, non-strawman options evaluated on real textual and structural
+grounds, not dismissed by assertion. Classified as: a legitimate, adequately-authorized architectural
+inference resting on lighter textual support than some of this series' other decisions — not a
+defect requiring rework.
+
+**Repository consistency — re-confirmed unchanged and accurate:** `financial.py` (`invoices`/
+`payments`/`receipts` columns, `CHECK` constraints, `Payment.invoice_id` nullable, no
+`OptimisticLockMixin` on any Finance model today), `matter.py` (`Matter` has no `organization_id`
+today, consistent with this whole ADR series' finding), `document.py`'s `DocumentVersion` (confirmed
+append-only, no `AuditMixin`/`version`), and the absence of any trigger, `Charge`, `Expense`,
+`CommercialScope`, or `PaymentAllocation` class anywhere in `backend/src/app/` — all independently
+re-verified by direct grep/read this pass, not assumed unchanged from the prior review.
+
+**ADR quality and internal consistency — re-checked specifically for the kind of ambiguity flagged
+in `ADR/0027`'s own "Allocation gaps" wording (per this task's explicit instruction to reassess, not
+assume fixed).** No equivalent self-contradictory passage exists anywhere in `ADR/0028`; the
+Detailed Integrity & Concurrency Analysis section, the Invariants section, and the Alternatives
+tables agree with each other throughout, with one completeness gap noted below (non-blocking).
+
+**Blocking findings: none.**
+
+**Non-blocking comments:**
+
+1. **Invoice-issuance concurrency is not walked through with the same mechanical rigor as the
+   PaymentAllocation sum invariant.** The ADR explicitly and mechanically describes the
+   `SELECT ... FOR UPDATE` transaction boundary for rule 37, but does not give an equivalent explicit
+   walkthrough of what serializes "reading a Matter's linked Charges to compute an Invoice's frozen
+   total at issuance" against a concurrent Charge creation/edit for the same Invoice. The architecture
+   is not unsound — the natural implementation (compute the total, persist it, and transition the
+   Invoice's status out of `draft`, all within one transaction) follows directly from this document's
+   own general transactional discipline and from `ADR/0020`'s existing per-request boundary — but the
+   ADR does not state this explicitly the way it does for allocation, leaving a documentation
+   completeness gap for a future implementer to close rather than an architectural flaw to rework.
+2. **`payments.status` already defaults to `"completed"` in the existing schema.** A practical,
+   likely-intended but unstated consequence of Invariant 2 is that an ordinary new `Payment` row
+   becomes immutable essentially immediately upon creation (since its status starts at the finalized
+   value already), meaning even a same-day typo correction would require a reversal record under this
+   ADR's rule rather than a direct edit — a strict, arguably correct reading of rule 38, but worth the
+   ADR stating as an intentional consequence rather than leaving implicit.
+3. **Whether one Invoice may receive `PaymentAllocation` rows from multiple distinct Payments** (as
+   opposed to only one Payment allocating across multiple Invoices) is structurally supported by the
+   proposed schema (no uniqueness constraint on `invoice_id` alone blocks it) but not explicitly
+   confirmed in the ADR's prose as an intended, supported case — a one-sentence clarification would
+   remove any ambiguity for a future implementer.
+4. **The PaymentAllocation-targets-Invoice-only decision** (see reassessment above) rests on genuine
+   but modest textual support relative to some of this series' better-evidenced decisions — correctly
+   authorized and honestly reasoned, not a defect, but worth flagging for a future reader comparing
+   this ADR's evidentiary weight against `ADR/0024`'s or `ADR/0025`'s stronger textual grounding.
+
+**QA Decision: Approved with comments.** The governance defect the prior QA pass found has been
+genuinely and honestly remediated — `IMPLEMENTATION_QUEUE.md`'s T94 row, merged via PR #136,
+retroactively but explicitly and accurately establishes the authorization boundary, discloses that
+authorization followed drafting rather than concealing it, and preserves the prior QA finding as an
+auditable historical record rather than erasing it. `ADR/0028`'s content — unchanged since the prior
+review, re-verified fresh and independently in full against the specification, the repository, and
+the newly-recorded scope boundary — falls entirely within its authorized decision surface, resolves
+rule 36/37/38 with mechanically sound and internally consistent architecture, and correctly defers
+Required ADR #8/#10/#20 without silently deciding any part of them. The four non-blocking comments
+above are documentation/completeness observations on an already sound architecture, not defects
+requiring rework. PR #135 remains open and unmerged; no governance file was modified by this pass.
+
+---
+
 **This report ends T94's authorized scope at the implementation PR handoff.** Per this task's own
 governing instructions, T94 stops here, awaiting independent QA. No further action (opening/merging
 a PR beyond the point specified below, creating T95, marking T94 Done, performing QA, governance
