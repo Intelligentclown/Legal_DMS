@@ -309,12 +309,81 @@ no part of the ADR silently resolves Required ADR #7 for field-model convenience
 ## QA Decision
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
 
 This Software Architect pass does not record, anticipate, or imply any of the three outcomes above
 — per `docs/prompts/SoftwareArchitect.md` §11/§13, this role never renders a QA Decision or
 substitutes for the QA Reviewer. `ADR/0025` and this report are not self-certifying.
+
+**Recorded by the QA Reviewer role (2026-08-27), against this exact commit
+(`cd1010a622631acf6c9598df2133733ee100a00a`), independently verified, not accepted on this report's
+word.** PR #127 confirmed open, base `main`, remote HEAD exactly `cd1010a6`; T91's authorization
+commit `2554ad3b` confirmed an ancestor via `git merge-base --is-ancestor`; the single-commit diff
+against `main` (`25c845d7`) confirmed as exactly two files (`ADR/0025-...md`,
+`docs/reviews/T91_Software_Architect_Report.md`) — `ADR/0021`–`0024`, the specification,
+`IMPLEMENTATION_QUEUE.md`, and `PROJECT_STATE.json` all absent from the diff; no `T92` row, branch,
+or PR exists. §4 rules 19–24, §24.4's three ED field blocks (including the TP/FP↔Scheme boundary's
+explicit assignment to Required ADR #7, not #6), §26 item 5, and §27's "Dependency ordering
+coherence" self-check were independently read directly from
+`docs/Legal_DMS — Domain Model & Functional Specification.md` and confirmed to match this ADR's
+quotations verbatim — not accepted on the ADR's word. `geography.py` (the full
+Country→State→District→Taluka→Village chain, no `organization_id`/`AuditMixin`), `property.py`
+(`Property.village_id`'s existing nullable FK; `survey_number`/`sub_division_number` as unconstrained
+`String` columns), and `client.py` (`pan_number`/`aadhaar_number`'s exact regex `CHECK` constraints)
+were each read directly and confirmed to match the ADR's repository-precedent claims exactly. The
+`properties:read`/`write`/`delete` permission codes were independently confirmed seeded in
+`backend/alembic/versions/224b650e5235_seed_role_permissions.py`. A full-specification search
+confirmed the PAN/Aadhaar regex-`CHECK` precedent is scoped only to Party/Client (§24.2, line ~2728)
+and is never extended, analogized, or referenced anywhere in connection with Revenue/City-Survey/
+TP-FP identifiers — the ADR's "no format rule exists" claim is accurate, not a gap this review found
+and the ADR missed. `ADR/0024` was independently re-read in full: its `record_type` discriminator,
+`property_record_references` mechanism, and "assessed, not resolved" treatment of both #5 and #7 are
+composed with by `ADR/0025`, not redesigned or reopened, confirmed by direct comparison.
+
+**#5 ↔ #7 boundary — independently verified, not merely asserted.** The ADR's "Explicit #7
+Deferral" section and its `TPRecord.tp_scheme_number` field-table row were checked specifically
+against the distinction this task's QA watch item requires: "TP/FP contains a scheme-number value"
+(decided here, a #5 question — `tp_scheme_number` as a plain, non-FK `String` column) versus "TP/FP
+has an architectural relationship to a Scheme entity" (explicitly and visibly left undecided — no
+`scheme_id` FK, no structural link, the field's own table row states "architectural meaning of the
+value: deferred to #7" directly, not merely in a separate section disconnected from the field
+itself). This satisfies the watch item's specific requirement that the tension be *visibly
+disclosed*, not silently resolved for field-model convenience: the deferral is named at the point of
+decision (the field table), in a dedicated section, and again in "Consequences" and "Unresolved
+Questions" — not asserted once and left to be taken on faith elsewhere in the document.
+
+**Dependency review confirmed:** Required ADR #7 (Scheme hierarchy, TP/FP↔Scheme boundary) remains
+fully deferred; Required ADR #20 (migration/backfill) is disclosed as dependencies only, not
+designed or sequenced; Property↔Scheme cardinality is left exactly as open as `ADR/0024` left it;
+`PropertyOwner`'s `client_id`→Party retargeting is confirmed untouched. No downstream ADR is
+accidentally resolved.
+
+Blocking findings: none.
+
+Non-blocking comments (do not block approval):
+
+1. **TP/FP table-structure alternatives.** The "Alternatives Considered" section's third option (a
+   "generic renamed combined table") is, by the ADR's own admission, "a variant of option 1 with
+   different naming" rather than a structurally independent alternative — the real evaluation is a
+   two-way choice (one combined table vs. two separate tables), not a genuine three-way one. The ADR
+   discloses this itself and does not misrepresent the choice as broader than it is, so this does not
+   affect the decision's soundness; a future revision of this ADR's Alternatives section could
+   simply merge options 1 and 3 for clarity.
+2. **`NOT NULL` on each record's defining identifier.** Requiring `survey_number`/
+   `city_survey_number`/`tp_scheme_number`/`fp_number` to be non-nullable is an architectural
+   inference (purpose-fitness reasoning, plus `Property.survey_number`'s own existing non-nullable
+   precedent) layered onto specification text that only labels these fields as ED candidates, not as
+   frozen requirements. The inference is reasonable, consistent with existing repository convention,
+   and disclosed rather than hidden — but it is this ADR's own architectural judgment call, not a
+   specification mandate, and a future reviewer should recognize it as such if Gujarat-identifier
+   nullability is ever revisited.
+
+**QA Decision: Approved with comments.** ADR/0025 accurately reflects the governed specification's
+sparse, ED-labeled field content for this cluster without inventing beyond it; composes with
+ADR/0021/0022/0024 without reopening any of them; and explicitly, visibly, and repeatedly discloses
+the #5↔#7 boundary this task's authorization specifically required to remain undecided. No
+implementation code, schema, or governance file was touched. PR #127 remains open and unmerged.
 
 ---
 
