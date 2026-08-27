@@ -318,12 +318,46 @@ coherent" conclusion holds up against §24.4's own explicit TP/FP↔Scheme bound
 ## QA Decision
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
 
 This Software Architect pass does not record, anticipate, or imply any of the three outcomes above
 — per `docs/prompts/SoftwareArchitect.md` §11/§13, this role never renders a QA Decision or
 substitutes for the QA Reviewer. `ADR/0024` and this report are not self-certifying.
+
+**Recorded by the QA Reviewer role (2026-08-27), against this exact commit
+(`9f01016a6d719cf987e7907901c30ba25efb3103`), independently verified, not accepted on this report's
+word.** Diff scope confirmed as exactly `ADR/0024` + this report — `ADR/0021`, `ADR/0022`,
+`ADR/0023`, the specification, `IMPLEMENTATION_QUEUE.md`, and `PROJECT_STATE.json` all absent from
+the diff; no `T91` exists. §24.3 was read directly and independently: it names Land's
+representation strategy as three genuinely open candidates and states the choice "is tightly
+coupled" with the Gujarat-records group and "should be made together" — this ADR satisfies that
+coupling by deciding Land/Property-Unit *through* the already-specified §24.4 entities (existence,
+distinctness, stable identity only), not in isolation from them, and explicitly does not depend on
+Required ADR #5's own field-level content — confirmed by independently tracing the ADR's own
+reasoning against §24.3/§24.4's text rather than accepting the conclusion. Rule 20's "Revenue/Land
+model" phrasing and rule 21's "may identify property units" phrasing were independently re-read and
+found to genuinely support, not merely assert, the Land=RevenueRecord/PropertyUnit=CitySurveyRecord
+reading. §26 item 3's bundling of #3/#4/#6, separate from item 4 (#7) and item 5 (#5), independently
+confirms these are legitimately separable decisions per the specification's own structure. The five
+claimed polymorphic-reference precedents (`ActivityLog`, `AuditLog`, `WorkflowHistory`,
+`QrCodeRecord`, `AiRequest`) and `docs/ERD.md`'s documentation of the convention were independently
+verified directly against the repository — accurate, including the `entity_type`/`entity_id` vs.
+`resource_type`/`resource_id` naming distinction. `Property`/`PropertyOwner`'s claimed current schema
+shape was independently re-verified against `property.py` — accurate. `ADR/0021`/`ADR/0022`/
+`ADR/0023` composition confirmed by direct re-reading of all three — no weakening, reinterpretation,
+or duplication found.
+
+Blocking findings: none.
+
+Non-blocking comment: the Land=RevenueRecord / Property-Unit=CitySurveyRecord conclusion, while
+independently verified as well-grounded in the specification's actual text (not overreach), is a
+textual-interpretation claim rather than an explicit specification statement — the ADR's own
+Trade-offs section already discloses this honestly ("a future architect revisiting this decision
+should re-verify that reading against the frozen text directly"). This QA review endorses that
+self-disclosed caution for the permanent record rather than treating the question as fully closed
+beyond any future reconsideration. This does not block approval — the reading is sound and the ADR
+does not hide its own interpretive basis.
 
 ---
 
