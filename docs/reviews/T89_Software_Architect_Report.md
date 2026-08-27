@@ -323,10 +323,30 @@ established documentation-only-work QA requirement (`T80`/`T81`/`T82`/`T86`/`T87
 ```
 QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
 ```
+
+**Recorded by the QA Reviewer role (2026-08-27), against this exact commit
+(`67b1875628bfb4142d08e646d1d95c06c4ad60cd`), independently verified, not accepted on this report's
+word:** authorization ancestry confirmed (`3b656c6`/merge `48fd8fd` precedes this commit); PR #121
+identity and exact HEAD confirmed via `gh pr view`; diff scope confirmed as exactly `ADR/0023` +
+this report, with `ADR/0021`, `ADR/0022`, `ADR/0001`–`0020`, the specification,
+`IMPLEMENTATION_QUEUE.md`, and `PROJECT_STATE.json` all absent from the diff. The specification was
+read directly (§1.6, §4 rules 8–14, §12, §21, §23, §24.2, §26): §24.2 explicitly and independently
+labels the Party subtype-modeling strategy "Required ADR #2 ('Party vs Client')," corroborated by
+§12 and §26 using the identical framing — confirming this role's §2 disclosure above (that the
+frozen identity question and the genuinely open subtype question are different questions, only the
+latter being this ADR's actual subject) against the specification's own words, not merely accepting
+the judgment call. `ADR/0023`'s specific technical claims (the `Client.client_type` CHECK-constraint
+pattern, zero ORM-inheritance precedent across all twelve model files, JSONB's existing confinement
+to non-identity metadata) were independently re-verified against the actual repository source, not
+assumed. `ADR/0021` and `ADR/0022` composition confirmed by direct re-reading of both — no
+weakening, reinterpretation, or duplication found. No implementation occurred; no `T90` exists; no
+governance file was touched by the reviewed commit.
+
+Blocking findings: none. Non-blocking comments: none.
 
 This Software Architect pass does not record, anticipate, or imply any of the three outcomes above
 — per `docs/prompts/SoftwareArchitect.md` §11/§13, this role never renders a QA Decision or
