@@ -316,11 +316,88 @@ actually satisfies rule 38 rather than merely restating it.
 
 ☐ Approved
 ☐ Approved with comments
-☐ Rework required
+☒ Rework required
 
 This Software Architect pass does not record, anticipate, or imply any of the three outcomes above
 — per `docs/prompts/SoftwareArchitect.md` §11/§13, this role never renders a QA Decision or
 substitutes for the QA Reviewer. `ADR/0028` and this report are not self-certifying.
+
+**Recorded by the QA Reviewer role (2026-08-27), against this exact commit
+(`7031b3c97c88617ab8e1fc7a728807a0edc246f7`), independently verified, not accepted on this report's
+word.** PR #135 confirmed open, base `main`, remote HEAD exactly `7031b3c9`; baseline
+`e00bdb72eee0a7944c91289dc95f5cde4ce53429` confirmed as `main`'s tip, with T93's governance closeout
+(`9d56104`/PR #134) independently confirmed to precede this branch's point — no sequencing gap there.
+The single-commit diff against `main` confirmed as exactly two files (`ADR/0028-...md`, this report)
+— `ADR/0021`–`0027`, `IMPLEMENTATION_QUEUE.md`, and `PROJECT_STATE.json` all absent from the diff.
+
+**BLOCKING — no recorded authorization exists for T94.** Independently searched the full repository
+history (`git log --all --grep`, full-text grep of `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json`
+at every point up to and including this PR's own baseline): no `T94` row exists in
+`IMPLEMENTATION_QUEUE.md`, no "docs(governance): authorize T94" commit or equivalent exists anywhere
+in git history, and no authorization PR exists — breaking the three-PR governance lifecycle
+(authorization PR → implementation-plus-QA PR → governance closeout PR) every prior task in this
+series (`T87`–`T93`) actually followed without exception. This report's own §2 ("Authorization")
+honestly discloses this as a deliberate process difference, stating authorization was "granted
+directly by the project owner, in this conversation." Per the QA Reviewer's own governing rules
+(`docs/prompts/QAReviewer.md` §3, "Repository-First Rules": "The repository is always the source of
+truth," "Never rely on previous chat history," "Verify claims directly... rather than trusting the
+[preparer]'s self-assessment at face value") and `PROJECT_WORKFLOW.md` §2's identical principle, a
+claim of authorization that exists only in an unlogged conversation, with zero corroborating record
+in the repository, is **not independently verifiable** by this role and cannot be treated as
+equivalent to the recorded authorization every other task in this series required before
+implementation began. This is not a stylistic or documentation-completeness objection: the missing
+`IMPLEMENTATION_QUEUE.md` row is also the mechanism that gave every prior QA review (`T90`–`T93`) an
+independently-recorded, precise "must decide" / "must not decide" scope boundary to check the
+resulting ADR against (see, e.g., T93's row's explicit "Explicitly outside scope" clause). T94 has no
+such recorded boundary anywhere — meaning even a careful content review of `ADR/0028` cannot fully
+verify the ADR stayed within whatever scope was actually authorized, because no independently-checkable
+record of that scope exists in the repository at all. `PROJECT_WORKFLOW.md` §2 states plainly: "Every
+implementation cycle begins with the Project Manager. No feature branch is created until the Project
+Manager has identified the next unfinished task, verified prerequisites, and the project owner has
+approved implementation" — no Project Manager pass, dependency assessment, or approval is recorded
+for T94 anywhere in the repository.
+
+**Content-level findings (recorded for completeness; do not cure the blocking governance defect
+above and should not be treated as this review's basis for approval once authorization is properly
+recorded):**
+
+- §4 rules 35–38, §6.2, §17.8, §24.13 (all seven Commercial & Finance entity blocks, including
+  Payment Allocation's own explicit "target (Invoice or Charge — ED, unresolved which)" framing),
+  §25 invariant #14, and §26 item 9 were independently read directly from the specification and
+  confirmed to match `ADR/0028`'s quotations accurately.
+- Repository claims independently re-verified exact: `invoices`/`payments`/`receipts`
+  (`financial.py`) match the claimed columns/constraints precisely; no `Charge`/`Expense`/
+  `CommercialScope`/`PaymentAllocation` class exists anywhere; `DocumentVersion`
+  (`document.py:75`) is confirmed append-only with no `AuditMixin`/`version`, matching the cited
+  immutability precedent; no database trigger exists anywhere in the repository or Alembic
+  migrations, confirmed by direct grep.
+- The allocation-sum concurrency mechanism (`SELECT ... FOR UPDATE` on the parent `Payment` row
+  before validating the allocation sum, inside one transaction) is the same mechanically-sound
+  row-lock pattern independently verified correct for `ADR/0027`'s counter table; the reasoning
+  transfers correctly to this genuinely different invariant (a cross-row sum bound, not a
+  single-row counter).
+- The PaymentAllocation-targets-Invoice-only decision relies primarily on §2's Feature Catalogue
+  "Payment/Invoice" dependency listing as its textual signal, while §24.13's own Payment Allocation
+  block frames the target question as explicitly `ED — unresolved which` — a thinner evidentiary
+  basis than most of this ADR series' other inferences, though not unreasonable, and honestly
+  presented as an architectural choice rather than a misattributed specification mandate.
+- Matter-scoped attachment for Charge, with the Charge/Expense asymmetry (Expense's own catalogue
+  row names `Matter/File`) explicitly disclosed rather than silently resolved, is consistent with
+  this series' established evidentiary discipline and does not overreach into Required ADR #8.
+- No other Required ADR (`#1`–`#7`, `#9`, `#18`, `#19`, already resolved; `#8`, `#10`, `#12`, `#20`,
+  untouched) is reopened or silently resolved; `ADR/0021`–`0027` are not modified (confirmed absent
+  from the diff).
+
+**QA Decision: Rework required.** The blocking defect is procedural, not architectural: T94 has no
+independently-verifiable authorization recorded anywhere in this repository, breaking the
+established governance lifecycle every prior task in this series (`T87`–`T93`) followed without
+exception, and leaving no recorded scope boundary against which this or any future review can fully
+verify `ADR/0028` stayed within its actually-authorized decision surface. This gate must clear —
+via a proper `IMPLEMENTATION_QUEUE.md` T94 authorization row and, consistent with this series'
+established three-PR pattern, its own separate authorization commit/PR — before a QA Decision on
+`ADR/0028`'s architectural content can be rendered. This PR must not proceed to the Documentation
+Manager or a merge until this gate clears and a subsequent QA pass re-reviews against the properly
+authorized scope. PR #135 remains open and unmerged; no governance file was modified by this pass.
 
 ---
 
