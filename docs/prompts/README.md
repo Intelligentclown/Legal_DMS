@@ -1,6 +1,6 @@
 # AI Role Prompts
 
-Reusable, copy-ready prompt templates for the five roles [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md)
+Reusable, copy-ready prompt templates for the six roles [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md)
 defines. Each file in this folder is the standing instruction set for one role — copy it into a new
 session as-is to start that role's work, rather than re-deriving its responsibilities from scratch
 each time.
@@ -34,6 +34,7 @@ workflow gets executed, not a second definition of what it is.
 | Prompt | Used when |
 |---|---|
 | [`ProjectManager.md`](ProjectManager.md) | At the start of a work session — rebuilds repository state and recommends the next implementation batch. |
+| [`SoftwareArchitect.md`](SoftwareArchitect.md) | Once a task whose approved scope is architectural decision work (drafting/resolving an ADR) is approved — a specialist role, not a stage every task passes through. |
 | [`BackendDeveloper.md`](BackendDeveloper.md) | Once a task whose approved scope is backend/Python work is approved — implements it. |
 | [`FrontendDeveloper.md`](FrontendDeveloper.md) | Once a task whose approved scope is frontend/TypeScript/React/Electron-renderer work is approved — implements it. Peer to `BackendDeveloper.md`, not a subordinate or merged variant — see `PROJECT_WORKFLOW.md` §7. |
 | [`QAReviewer.md`](QAReviewer.md) | Once an implementation batch is ready for review — renders the QA Decision. |
@@ -60,6 +61,13 @@ Adopting Frontend Developer (2026-08-22) does not change this lifecycle's shape 
 domain split that already existed at the Developer step (see "Two more roles" below for the
 history), rather than inserting a new stage. QA Reviewer remains the sole independent review gate
 for either Developer role.
+
+Software Architect does not appear in the diagram above because it is not a stage every task
+passes through — it is a specialist role, invoked only when a task's authorized scope is
+architectural decision work (an ADR to draft or resolve), typically ahead of the Developer step
+for the implementation that ADR eventually authorizes. When invoked, its output (a drafted ADR) is
+still reviewed by QA Reviewer — the sole independent review gate — the same as any other role's
+output, before anything downstream treats the decision as settled.
 
 Full detail on every step: [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md), especially
 §3 (Standard Development Lifecycle) and §7 (AI Roles).

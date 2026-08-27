@@ -293,7 +293,7 @@ document in their column looks wrong.
 | Role | Owns (primary editor) |
 |---|---|
 | **Project Manager** | `IMPLEMENTATION_QUEUE.md`; `docs/Roadmap.md`; planning documents generally (scoping, sequencing, acceptance criteria before work starts). |
-| **Software Architect** | ADRs (`/ADR/`); `docs/Architecture.md`; interface/port documentation; architecture decisions generally. |
+| **Software Architect** | ADRs (`/ADR/`); `docs/Architecture.md`; interface/port documentation; architecture decisions generally. Specialist role, not a mandatory lifecycle stage — see [`docs/prompts/SoftwareArchitect.md`](../prompts/SoftwareArchitect.md). |
 | **Backend Developer** | `docs/ImplementationLog/` (its own phase logs, backend/Python-domain tasks); developer notes; technical implementation documentation. |
 | **Frontend Developer** | `docs/ImplementationLog/` (its own phase logs, frontend/TypeScript/React/Electron-renderer-domain tasks); developer notes; technical implementation documentation. Peer role to Backend Developer, not a subordinate or merged variant — see [`docs/prompts/FrontendDeveloper.md`](../prompts/FrontendDeveloper.md), formally adopted 2026-08-22. |
 | **QA Reviewer** | `docs/ArchitectureScorecard.md`; QA reports (`docs/reviews/*_QA_Review.md`); test verification records; the **QA Decision** on each implementation batch (see above). |
