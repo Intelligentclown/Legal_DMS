@@ -341,3 +341,53 @@ this report or by `ADR/0022` itself:
 **This report ends T88's authorized scope at the implementation PR handoff.** Per this task's own
 governing instructions, T88 stops here, awaiting independent QA. No further action (opening/merging
 a PR beyond the point specified below, creating T89, marking T88 Done) is taken by this pass.
+
+---
+
+## T88 QA Decision
+
+**Decision: APPROVED**
+
+**Reviewed PR:** #117 (`docs/t88-adr-0022-authorization-architecture`)
+**Reviewed HEAD:** `0a0a85e21fce4cabe32ce0019a69c11eb07bcfd6`
+
+**Blocking findings:** none.
+**Non-blocking comments:** none.
+
+**Provenance of this record:** this decision was reached and reported by the QA Reviewer role in
+its own independent review session against PR #117's actual head. At the time PR #117 merged, no
+persistent repository record of that decision existed: no GitHub-native PR review or comment was
+posted to PR #117 (confirmed via `gh pr view 117 --json reviews,comments`: both empty), and this
+report's own §14 ("QA Status: Unresolved") was never updated before the merge — a deviation from
+the pre-merge QA-recording norm this repository otherwise follows (`T56` onward), of the same kind
+already recorded as governance history for `T62` ("merged before its QA Decision was recorded in
+the repository"). This section records the QA Reviewer's decision now, as part of T88's post-merge
+governance closeout, following the precedent set by commits `bceff1c` ("docs(qa): record T81
+approval"), `f6974cf` ("docs(qa): record T86 approval with comments"), and `7365ae8` ("docs(qa):
+record T87 approval") — each of which recorded a QA Decision under the identical circumstance of an
+already-reached decision with no persistent repository record. This section does not itself render
+a new QA Decision; it transcribes the one the QA Reviewer role already rendered, and does not
+substitute Project Manager judgment for that independent review.
+
+**Verification performed while persisting this record**, not merely restated from the task's own
+claim:
+
+- **PR #117 state** — `gh pr view 117 --json state,mergeCommit,mergedAt` confirms `MERGED`, merge
+  commit `4e612778c08adef26672bc4cd17915a450406994`, matching the reviewed PR exactly.
+- **Diff scope** — `git diff --stat 388e723b09971a2a94849de8009d2376438f95a5 0a0a85e21fce4cabe32ce0019a69c11eb07bcfd6`:
+  exactly two files, `ADR/0022-authorization-architecture.md` (new, +542) and this report (new,
+  +343). No other file touched.
+- **ADR/0022 immutability** — `git diff 0a0a85e21fce4cabe32ce0019a69c11eb07bcfd6 main --
+  ADR/0022-authorization-architecture.md` is empty: the merged content on `main` is byte-identical
+  to the reviewed PR HEAD.
+- **No other ADR touched** — confirmed `ADR/0001`–`0021` and `ADR/template.md` are absent from PR
+  #117's diff (`git diff --name-only ... -- ADR/` returns only `ADR/0022...`).
+- **Required ADR scope** — `ADR/0022`'s own content references only `Required ADR #1`, `#2`, `#18`,
+  and `#19`: #1/#19 are cited as already resolved by `ADR/0021` (not re-resolved here), #18 is the
+  one this ADR resolves, and #2 appears only as a listed, untouched dependency. No other Required
+  ADR number appears anywhere in the file.
+- **`ADR/0021` untouched** — confirmed absent from PR #117's diff entirely; not modified, reopened,
+  or reinterpreted.
+
+**No rework required.** This QA Decision does not require any change to `ADR/0022`, and none was
+made.
