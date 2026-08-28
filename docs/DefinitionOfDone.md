@@ -41,9 +41,13 @@ filled in — this checklist isn't a substitute for either.
       responsible).
 - [ ] **ADR created if required.** A significant architectural decision has a corresponding ADR in
       [`/ADR`](../ADR/); check this box as N/A (not failed) if this work made no such decision.
-- [ ] **GitHub Actions pass.** All three CI workflows (`backend.yml`, `frontend.yml`,
-      `release.yml`) are green on the commit/PR being closed out — see
-      [ADR/0017](../ADR/0017-github-actions-ci.md).
+- [ ] **GitHub Actions pass.** All four CI workflows (`backend.yml`, `frontend.yml`,
+      `release.yml`, `governance.yml`) are green on the commit/PR being closed out — see
+      [ADR/0017](../ADR/0017-github-actions-ci.md) and
+      [docs/GOVERNANCE_VALIDATION.md](GOVERNANCE_VALIDATION.md) (T95) for what `governance.yml`
+      specifically checks. **A green `governance.yml` run is necessary, not sufficient** — it
+      catches objectively-checkable text inconsistencies only; it is not a substitute for the
+      independent QA Decision this checklist's other boxes still require.
 - [ ] **Pull request merged.** If this project's branch-per-unit-of-work convention was used for
       this work, the PR is actually merged, not just approved and left open.
 - [ ] **Release notes updated (if applicable).** If this work ships as (or as part of) a tagged

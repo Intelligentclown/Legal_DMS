@@ -935,7 +935,14 @@ T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark St
 
 ---
 
-## Documentation Backlog (flagged, not scheduled — unrelated to any single stage)
+## Documentation Backlog & Governance/Required-ADR Tasks
+
+*(Header corrected by T95 — see [`docs/GOVERNANCE_VALIDATION.md`](docs/GOVERNANCE_VALIDATION.md).
+This section's original title, "flagged, not scheduled — unrelated to any single stage," was
+accurate only for its first entry (`T81`) and became stale as `T86`–`T95` were appended below it
+over time — those rows are the actively-authorized, dependency-ordered Required-ADR resolution
+pipeline this repository's governance process tracks in detail, not unscheduled backlog items.
+Check each row's own text for its actual status; do not infer "unscheduled" from this heading.)*
 
 | ID  | Task                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Complexity | Depends on |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
