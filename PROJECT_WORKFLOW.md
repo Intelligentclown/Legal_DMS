@@ -196,8 +196,10 @@ git checkout -b feature/<next-task-name>
 
 - **When PRs are created:** once a task's implementation, tests, and QA Decision (`Approved` or
   `Approved with comments`) are in place — not before QA has reviewed.
-- **Required checks:** all three GitHub Actions workflows —`backend.yml`, `frontend.yml`,
-  `release.yml` — must pass. See [ADR/0017](ADR/0017-github-actions-ci.md) for what each validates.
+- **Required checks:** all four GitHub Actions workflows —`backend.yml`, `frontend.yml`,
+  `release.yml`, `governance.yml` — must pass. See [ADR/0017](ADR/0017-github-actions-ci.md) for
+  what each of the first three validates, and [docs/GOVERNANCE_VALIDATION.md](docs/GOVERNANCE_VALIDATION.md)
+  (added by `T95`) for `governance.yml`.
 - **Review expectations:** the PR description should reference the corresponding
   `ImplementationLog` phase log and its QA Decision, not restate their content.
 - **Merge policy:** standard merge commits (`Merge pull request #N from ...`), preserving the

@@ -3207,3 +3207,75 @@ no such task is created by this pass, and no `docs/ImplementationLog/` entry was
 API, Electron, IPC, or authentication/session code was changed by T82's execution or by this
 documentation closure. No password, password hash, authentication token, or other secret is recorded
 anywhere in this entry.
+
+## Session: 2026-08-22 to 2026-08-28 — T83–T85 (T82 follow-up), T86 Spec Adoption, T87–T96 Governance & Required-ADR Resolution Series, T97 Authorization
+
+**Objectives:** Close out T82's Electron session-restoration finding; adopt the governed domain
+specification as the pre-Stage-4 planning baseline; resolve as many of the specification's twenty
+Required ADRs as dependency ordering allowed; harden the repository's own governance automation and
+process documentation; then authorize a documentation-sync catch-up.
+
+**Completed Tasks:**
+
+1. **T83 (done, merged)** — provisioned a local Administrator test account, unblocking T82 Step 5
+   without touching any application/database code beyond the account itself (provisioned by the
+   project owner, outside this session).
+2. **T84 (done, merged)** — implemented the fix for T82's confirmed Electron session-restoration
+   `FAIL`.
+3. **T85 (done, merged)** — fixed an Electron preload-script load failure that was blocking T84's
+   own native verification.
+4. **T86 (done, merged)** — adopted `docs/Legal_DMS — Domain Model & Functional Specification.md`
+   as the governed pre-Stage-4 planning baseline, committed as-is with its own completed correction
+   pass preserved.
+5. **T87 (done, merged)** — `ADR/0021`, resolving Required ADR #1 (Organization as tenant boundary)
+   and #19 (tenant isolation enforcement mechanism).
+6. **T88 (done, merged)** — `ADR/0022`, resolving Required ADR #18 (authorization architecture —
+   permission granularity and composition with tenant isolation).
+7. **T89 (done, merged)** — `ADR/0023`, resolving Required ADR #2 (Party vs Client subtype-modeling
+   strategy).
+8. **T90 (done, merged)** — `ADR/0024`, resolving Required ADRs #3/#4/#6 (Property/Land/
+   Property-Unit boundary and Property Record Reference architecture).
+9. **T91 (done, merged)** — `ADR/0025`, resolving Required ADR #5 (Revenue/City-Survey/TP-FP field
+   architecture).
+10. **T92 (done, merged)** — `ADR/0026`, resolving Required ADR #7 (Scheme hierarchy storage
+    mechanism and TP/FP↔Scheme conceptual boundary).
+11. **T93 (done, merged)** — `ADR/0027`, resolving Required ADR #9 (File numbering algorithm and
+    concurrency strategy).
+12. **T94 (done, merged)** — `ADR/0028`, resolving Required ADR #13 (Financial ledger boundary —
+    Charge/Expense/Invoice/Payment-Allocation architecture). Notable for its own governance
+    history, recorded in full in `docs/reviews/T94_Software_Architect_Report.md`: an independent
+    QA pass first found the architecture's authorization existed only conversationally, with no
+    repository record; after that was remediated, a Project Manager pre-merge gate then found the
+    architecture branch had not actually incorporated its own later-recorded authorization commit
+    into its own history. Both defects were caught by direct, independent verification against the
+    live repository/GitHub state, not assumed clean, and both were corrected before merge.
+13. **T95 (done, merged)** — Context & Governance Hardening. Added `scripts/governance_validate.py`
+    (a stdlib-only checker for duplicate task IDs, missing authorization/QA evidence, ADR
+    numbering/duplicate-resolution integrity, dangling ADR references, and `PROJECT_STATE.json`
+    `governanceLedger` drift), its 35-test suite, a `governance.yml` CI workflow, the additive
+    `governanceLedger` field, and a new "Governance & Task Authorization Model" section in
+    `AI_BOOTSTRAP.md`. See `docs/GOVERNANCE_VALIDATION.md`.
+14. **T96 (done, merged)** — codified the three-PR governance lifecycle (already in use since T87)
+    into `PROJECT_WORKFLOW.md` §3.1, and extended `docs/prompts/ProjectManager.md` §9's pre-merge
+    gate with a required authorization-commit-ancestry check, grounded explicitly in T94's own
+    incident history above.
+15. **T97 — authorized, not yet Done.** Documentation Manager Sync: this session's own final act is
+    recording T97's authorization (`IMPLEMENTATION_QUEUE.md` row, PR #144) and beginning its
+    implementation — refreshing `PROJECT_STATE.json`, `docs/ProjectStatus.md`, this file, and
+    `docs/AI_HANDOVER.md` through the completed T86–T96 series, plus correcting
+    `PROJECT_WORKFLOW.md` §6's stale CI-workflow count.
+
+**Governance process, observed directly across this series, not asserted:** T87 through T96 each
+followed a three-PR lifecycle — a dedicated authorization PR recording project-owner approval before
+any implementation existed, an architecture/implementation PR carrying its own independently
+re-verified QA Decision, and a separate governance closeout PR marking the task Done only after the
+implementation PR had actually merged. Every merge was independently verified against live
+`git`/`gh` state (SHAs, `git merge-base --is-ancestor` ancestry checks, remote PR HEADs) rather than
+taken from a chat report — this discipline is what caught both of T94's real defects (above) before
+they reached `main` unaddressed.
+
+**Verified:** `python scripts/governance_validate.py` and `python scripts/tests/test_governance_validate.py -v`
+both pass (0 errors, 35/35) as of `T96`'s close and throughout `T97`'s own implementation. No
+application, database, schema, backend, frontend, or Electron code was touched by `T86`–`T97` — all
+nine-plus-one tasks in this entry are documentation/architecture/governance-tooling only. No ADR
+outside `ADR/0021`–`ADR/0028` was created or modified.
