@@ -123,20 +123,51 @@ alone:
   what is actually pushed).
 - That QA commit is a genuine ancestor of the exact remote PR HEAD
   (`git merge-base --is-ancestor <qa-commit> <remote-head>`).
-- The authoritative QA Decision (`docs/ImplementationLog/Stage<N>/Phase<M>.md`) exists on that
+- The authoritative QA Decision (`docs/ImplementationLog/Stage<N>/Phase<M>.md`, or — for a task
+  following the Required-ADR/governance three-PR lifecycle,
+  `PROJECT_WORKFLOW.md` §3.1 — the equivalent `docs/reviews/T<N>_*.md` report) exists on that
   remote HEAD, with exactly one box checked.
 - The checked box is `☑ Approved` or `☑ Approved with comments` — not `Rework required`, and not
   left unchecked.
 - No later commit on that branch has removed, reverted, or reopened the approval.
 - The remote PR HEAD just verified is the exact SHA about to be merged — not an earlier or assumed
   SHA.
+- **For a task whose authorization is itself repository-recorded** (an `IMPLEMENTATION_QUEUE.md` row
+  merged via its own Authorization PR — always true for the Required-ADR/governance three-PR
+  lifecycle, `PROJECT_WORKFLOW.md` §3.1; also verify this for any other task where authorization was
+  recorded as its own commit): **the task's authorization commit is a genuine ancestor of this PR's
+  actual remote HEAD** (`git merge-base --is-ancestor <authorization-commit> <remote-head>`) — not
+  merely present somewhere on `main`. A branch can be based on an older `main` that predates its own
+  authorization commit; `git log`/`gh pr view` on `main` alone will not reveal this, only checking
+  ancestry against the PR's own HEAD will.
 
 `LOCAL QA COMMIT ≠ REMOTE QA APPROVAL`. A QA Decision that exists only in a QA Reviewer's local
 working tree, or that was only reported as "Approved" in chat, is not sufficient for merge — see
 `docs/ImplementationLog/README.md#qa-decision` and `docs/prompts/QAReviewer.md`'s Required Output
-for the corresponding QA-side requirement.
+for the corresponding QA-side requirement. The same principle applies to authorization:
+`AUTHORIZATION ON MAIN ≠ AUTHORIZATION-ANCESTOR OF THIS PR`.
+
+**Why the authorization-ancestry check exists — grounded in an actual incident, not a hypothetical.**
+`T94`'s own governance history (recorded in full in its `IMPLEMENTATION_QUEUE.md` row and in
+`docs/reviews/T94_Software_Architect_Report.md`) exposed two distinct defects this check closes:
+
+1. **Conversational-only authorization.** `T94`'s architecture work began after authorization that
+   existed only in conversation, with no `IMPLEMENTATION_QUEUE.md` row at all — an independent QA
+   pass correctly rejected this as unverifiable, since the repository is the only source of truth
+   this role can check against.
+2. **Authorization not actually incorporated into the branch.** After the authorization row was
+   recorded and merged into `main`, `T94`'s implementation branch was found — by exactly the ancestry
+   check above — to have been built from an older `main` that predated it; the branch had to be
+   merged with the post-authorization `main` before the ancestry check could pass, and QA had to
+   independently re-verify ancestry afterward rather than trust that the reported fix had worked.
+
+Both defects would have passed a review that only checked "does `main` currently contain an
+authorization row" — neither branch's own HEAD actually contained the authorization commit at the
+time it was reviewed. That distinction is the entire reason this check exists.
 
 If any condition above fails: **STOP. Do not merge.** Do not assume the local branch is
 authoritative for what the remote actually contains. Do not accept a chat statement that QA was
-approved in place of this verification. Do not repair or push the missing QA commit yourself unless
-a separate instruction explicitly authorizes that as its own action — report the gap and wait.
+approved, or that authorization was recorded, in place of this verification. Do not repair or push
+the missing QA commit, and do not merge the branch with a later `main` to fix a failed ancestry
+check, yourself unless a separate instruction explicitly authorizes that as its own action — report
+the gap and wait.
