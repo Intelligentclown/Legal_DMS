@@ -1,0 +1,50 @@
+# Governance validation: checks IMPLEMENTATION_QUEUE.md, PROJECT_STATE.json, and ADR/*.md for
+# objectively-checkable text-level inconsistencies (duplicate task IDs, a task marked Done without
+# repository-recorded authorization evidence, ADR numbering/filename integrity, two ADRs claiming
+# to resolve the same Required ADR, dangling ADR references, and PROJECT_STATE.json's
+# governanceLedger drifting from what the ADR files actually declare resolved).
+#
+# See scripts/governance_validate.py's own module docstring and docs/GOVERNANCE_VALIDATION.md for
+# exactly what is and is not checked -- in particular, this does NOT validate git ancestry (whether
+# a PR branch actually contains its authorization commit); that remains a Project Manager
+# pre-merge-verification responsibility, not something this static text check replaces.
+#
+# Deliberately stdlib-only and independent of backend/frontend/uv -- runs on every push/PR
+# regardless of changed paths, same as backend.yml/frontend.yml, so a documentation-only or
+# governance-only change still gets real content validation instead of only a trivially-passing
+# unrelated CI run.
+
+name: Governance
+
+on:
+  push:
+    branches: [main, "feature/**", "hotfix/**", "release/**", "docs/**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Governance consistency validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Run governance validator unit tests
+        run: python scripts/tests/test_governance_validate.py -v
+
+      - name: Validate repository governance state
+        run: python scripts/governance_validate.py
