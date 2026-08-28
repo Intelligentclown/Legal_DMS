@@ -103,6 +103,48 @@ When starting a new AI session:
   time, verify it (tests + a live smoke check where relevant), commit, then move on — don't
   generate everything in one giant diff.
 
+## Governance & Task Authorization Model
+
+*(Added by T95 — Context & Governance Hardening.)* A fresh agent should be able to answer the
+following from repository artifacts alone, without any conversation history:
+
+- **What is authoritative for what?** `IMPLEMENTATION_QUEUE.md` (task backlog, authorization, and
+  completion narrative — Project Manager owned) · `ADR/*.md` (accepted architecture decisions) ·
+  `docs/Legal_DMS — Domain Model & Functional Specification.md` (frozen business/domain baseline,
+  including the §21 Required-ADR planning list) · `docs/reviews/*.md` (per-task architecture
+  self-review and QA Decision history) · `PROJECT_STATE.json` (point-in-time snapshot — its
+  narrative `note` fields are the authoritative history; its optional `governanceLedger` field is a
+  derived, mechanically-validated convenience view, not a second source of truth — see
+  [`docs/GOVERNANCE_VALIDATION.md`](docs/GOVERNANCE_VALIDATION.md)).
+- **"Required ADR #N" vs. `ADR/NNNN`.** These are two different numbering spaces. "Required ADR #N"
+  is a *planning-list position* inside the specification's own §21 (1–20, e.g. "Required ADR #13,
+  Financial boundary") — it is never a repository filename number. `ADR/NNNN-slug.md` is a
+  *repository ADR file number*, assigned sequentially as decisions are actually written, in
+  whatever order they're tackled. The two numbers coinciding (e.g. `ADR/0018` existing and also
+  being unrelated to planning-list item 18) is a coincidence, not a mapping. To see which Required
+  ADRs are currently resolved, by which file, run `python scripts/governance_validate.py --report`
+  rather than grepping ADR files by hand — this is mechanically computed from each ADR's own
+  `**Resolves:**` field, not asserted.
+- **Task lifecycle.** Every task in this series follows the same repository-recorded state machine:
+  *Authorized* (a row exists in `IMPLEMENTATION_QUEUE.md` containing "Authorized by the project
+  owner") → *Architecture/Implementation Drafted* (its own branch/commit/PR) → *QA Decision
+  Persisted* (an independent QA pass, recorded in `docs/reviews/`, re-verified against the PR's
+  actual remote HEAD, not assumed) → *Merged* → *Governance Closeout* (a separate PR marks the task
+  "is now Done" in its own `IMPLEMENTATION_QUEUE.md` row) → *Done*. A step is only real once it is
+  independently verifiable in the repository — an authorization or QA decision that exists only in
+  conversation is not sufficient (this is not hypothetical: it happened during `T94`, was caught,
+  and was remediated as its own repository-recorded governance event — see `T94`'s row for the full,
+  disclosed history).
+- **Mechanically-checkable governance invariants** (duplicate task IDs, a "Done" task missing its
+  authorization phrase, ADR numbering/filename integrity, two ADRs claiming to resolve the same
+  Required ADR, dangling ADR references, `PROJECT_STATE.json`'s `governanceLedger` drifting from the
+  ADR files) are enforced by `scripts/governance_validate.py` in CI
+  (`.github/workflows/governance.yml`) on every push/PR. **This does not replace independent QA, and
+  it does not check git ancestry** (whether a PR branch actually contains its authorization commit —
+  a materially different, unresolved class of check; see
+  [`docs/GOVERNANCE_VALIDATION.md`](docs/GOVERNANCE_VALIDATION.md#what-this-deliberately-does-not-validate)
+  for the full, honest boundary of what this tool does and does not guarantee).
+
 ## Quick facts
 
 - **Stack:** Electron + React/TypeScript/Vite/Tailwind/shadcn (frontend), Python/FastAPI +
