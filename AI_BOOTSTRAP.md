@@ -135,10 +135,20 @@ following from repository artifacts alone, without any conversation history:
   conversation is not sufficient (this is not hypothetical: it happened during `T94`, was caught,
   and was remediated as its own repository-recorded governance event — see `T94`'s row for the full,
   disclosed history).
+- **"What's currently authorized? What's the latest Done task?"** Read
+  `PROJECT_STATE.json`'s `governanceLedger.latestTaskAuthorized` / `.latestTaskDone` — both are
+  mechanically cross-checked by `scripts/governance_validate.py` against `IMPLEMENTATION_QUEUE.md`'s
+  own rows (the highest-numbered task whose row actually contains the authorization phrase / its own
+  "is now Done" claim), so they cannot silently drift out of sync with the rows themselves. A task
+  strictly between the two (authorized but not yet the latest Done) is in progress; do not assume a
+  higher task number is unauthorized just because a nearby section heading says "not scheduled" —
+  headings can go stale (this happened; see the `IMPLEMENTATION_QUEUE.md` section actually containing
+  `T81`, `T86`–`T95`), but each row's own text and the ledger above are load-bearing and validated.
 - **Mechanically-checkable governance invariants** (duplicate task IDs, a "Done" task missing its
-  authorization phrase, ADR numbering/filename integrity, two ADRs claiming to resolve the same
-  Required ADR, dangling ADR references, `PROJECT_STATE.json`'s `governanceLedger` drifting from the
-  ADR files) are enforced by `scripts/governance_validate.py` in CI
+  authorization phrase or its QA Decision mention, ADR numbering/filename integrity, two ADRs
+  claiming to resolve the same Required ADR, dangling ADR references, `PROJECT_STATE.json`'s
+  `governanceLedger` drifting from the ADR files or from the queue's own rows) are enforced by
+  `scripts/governance_validate.py` in CI
   (`.github/workflows/governance.yml`) on every push/PR. **This does not replace independent QA, and
   it does not check git ancestry** (whether a PR branch actually contains its authorization commit —
   a materially different, unresolved class of check; see

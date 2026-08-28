@@ -41,18 +41,32 @@ below failed, with every violation printed, not just the first.
    authorized only conversationally, with no corresponding row at all; this check catches the
    textual shape of that defect (a Done claim with no authorization phrase anywhere in its own row),
    though see the limitation below — it cannot catch every variant of that defect.
-3. **ADR filename/header integrity.** Each `ADR/NNNN-slug.md` file's leading `# ADR-NNNN: ...`
+3. **Done requires a QA Decision mention in the same row.** Same shape as check 2, requiring the
+   phrase `"QA Decision"` (case-insensitive) instead — verified present on the same `T4`–`T94` rows.
+   `docs/DefinitionOfDone.md` already requires a QA Decision before closeout; this makes that
+   requirement mechanically checkable, not just documented.
+4. **ADR filename/header integrity.** Each `ADR/NNNN-slug.md` file's leading `# ADR-NNNN: ...`
    header number must match its filename number, and no two files may share a filename number.
-4. **No duplicate Required-ADR resolution.** Each ADR file's own `**Resolves:**` field is parsed for
+   Non-numbered files (e.g. `ADR/template.md`) are silently skipped, not flagged.
+5. **No duplicate Required-ADR resolution.** Each ADR file's own `**Resolves:**` field is parsed for
    `#N` references (only inside that field, not the whole file, so `**Does not resolve:**` and
    `**Dependencies:**` prose mentioning other Required ADR numbers is never misread as a resolution
-   claim). No two different ADR files may claim to resolve the same Required ADR number.
-5. **No dangling `ADR/NNNN` references.** Every `` `ADR/NNNN...` `` reference inside
+   claim — and an ADR whose *body* extensively discusses a Required ADR's subject matter without
+   naming it in `**Resolves:**` is never inferred to resolve it; see
+   `test_topic_similarity_does_not_imply_resolution`). No two different ADR files may claim to
+   resolve the same Required ADR number.
+6. **No dangling `ADR/NNNN` references.** Every `` `ADR/NNNN...` `` reference inside
    `IMPLEMENTATION_QUEUE.md` must name a file that actually exists in `ADR/`.
-6. **`PROJECT_STATE.json` governance-ledger drift.** If `PROJECT_STATE.json` has a
-   `governanceLedger.resolvedRequiredADRs` / `.unresolvedRequiredADRs` pair, both are cross-checked
-   against what is dynamically computed from the ADR files themselves at validation time. The field
-   is optional — its absence is not an error — but if present, it must stay accurate.
+7. **`PROJECT_STATE.json` governance-ledger drift.** `PROJECT_STATE.json`'s optional
+   `governanceLedger` object has four independently-optional sub-fields, each cross-checked only if
+   present (declaring one does not require declaring the others):
+   - `resolvedRequiredADRs` / `unresolvedRequiredADRs` — checked against what is dynamically computed
+     from the ADR files' own `**Resolves:**` fields.
+   - `latestTaskDone` / `latestTaskAuthorized` — checked against the highest-numbered
+     `IMPLEMENTATION_QUEUE.md` row whose own text actually contains `"TNN is now Done"` /
+     `"Authorized by the project owner"`, respectively — not a hand-maintained guess.
+   The whole `governanceLedger` object is optional; its absence is not an error, but any sub-field
+   present must stay accurate.
 
 Run `python scripts/governance_validate.py --report` for a plain-language "which Required ADRs are
 resolved, by which file" summary — the fast, mechanically-verified answer to a question this
@@ -81,6 +95,13 @@ This is a **text-consistency** checker over the repository's content at a single
   shape described in check 2 above. A row that is Done, contains some other authorization-sounding
   text, but not this exact phrase, would not be flagged; a human/AI reviewer's judgment is still the
   backstop, not a replacement target.
+- **Distinguish an assertion from a narrative mention.** Checks 2 and 3 are pure substring matching
+  — if the authorization phrase or "QA Decision" appears *anywhere* in a Done row's text, even while
+  narrating or quoting a different task's history (the way `T94`'s own row quotes its prior defect),
+  the check passes. It cannot tell "this task IS authorized" apart from "this task discusses what
+  authorization means." See
+  `test_known_limitation_narrative_mention_is_not_distinguished_from_assertion` for the exact
+  accepted behavior — documented as a known limitation, not silently assumed away.
 - **Check implementation-before-authorization ordering**, task-sequencing "depends on" correctness
   beyond what's stated in a row's own text, or any application/business logic. Out of `T95`'s
   authorized scope entirely.
