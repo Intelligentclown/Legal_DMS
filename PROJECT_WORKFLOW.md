@@ -96,6 +96,50 @@ Next Task
 | **Update Local main** | Update the local repository (`git checkout main && git pull`) before beginning new work. |
 | **Next Task** | Start the next cycle by identifying the next unfinished task from `IMPLEMENTATION_QUEUE.md`. Never assume the next task number from previous conversations. |
 
+### 3.1 Required-ADR / Governance-Hardening Lifecycle (Three-PR)
+
+*(Added by T96, documenting a practice already in use since `T87` — not a new process.)*
+
+For tasks whose authorized deliverable is a Required-ADR resolution or a governance/context-hardening
+change tracked directly by its own `IMPLEMENTATION_QUEUE.md` row (rather than a Backend/Frontend
+Developer implementation batch that already has its own `ImplementationLog`-based flow), this
+project's actual practice — every `T87`–`T95` task, without exception, verified directly against
+merged PR history, not asserted from memory — has been a **three-PR lifecycle** instead of the
+single-PR flow in [§3](#3-standard-development-lifecycle):
+
+```text
+1. Authorization PR
+        ↓ (merged into main)
+2. Architecture/Implementation + QA PR
+        ↓ (merged into main)
+3. Governance Closeout PR
+```
+
+| PR | Purpose |
+|---|---|
+| **1. Authorization PR** | A dedicated `IMPLEMENTATION_QUEUE.md` commit, on its own branch, recording the task's identity, project-owner authorization, approved scope, and explicit exclusions — as its own documentation-only commit, before any implementation exists. No implementation branch is created until this PR has merged. Example: `T87`'s PR #113 (`docs(governance): authorize T87`). |
+| **2. Architecture/Implementation + QA PR** | The actual deliverable (an ADR draft, or governance tooling/documentation) plus its formal QA Decision, persisted as a commit on the same branch and independently re-verified against the PR's actual remote HEAD — the same QA remote-publication gate [§6](#6-pull-request-workflow) requires generally. Example: `T87`'s PR #114 (`docs(adr): ADR-0021 -- ...`). |
+| **3. Governance Closeout PR** | Opened only after PR 2 has merged. Updates the task's `IMPLEMENTATION_QUEUE.md` row to record it as Done — citing the implementation PR number, its merge commit, and the QA decision commit — and, where separately authorized, synchronizes any structured governance state (e.g. `PROJECT_STATE.json`'s `governanceLedger`, added by `T95`). Example: `T87`'s PR #115 (`docs(governance): close out T87 as Done after PR #114 merge`). |
+
+**When this applies:** Required-ADR resolution tasks and governance/context-hardening tasks whose
+scope is defined directly in `IMPLEMENTATION_QUEUE.md` rather than an `ImplementationLog` phase.
+`T87`–`T96` are the verified precedent.
+
+**This does not replace or invalidate [§3](#3-standard-development-lifecycle).** Ordinary backend/
+frontend implementation work continues to use the single-PR Standard Development Lifecycle — that
+flow already has its own QA/Documentation-Manager sequencing appropriate to a code change with tests
+and an `ImplementationLog` entry, which most Required-ADR/governance tasks don't produce.
+
+**This is not, by this addition alone, a universal policy for all future work.** It documents an
+already-proven pattern for the specific class of task named above. Broadening it into the mandatory
+process for other task categories is a separate project-owner decision, not implied here.
+
+**Authorization-ancestry verification:** before merging PR 2 (or PR 3) of this lifecycle, the Project
+Manager's pre-merge gate additionally verifies that the task's authorization commit (from PR 1) is a
+genuine git ancestor of the PR's actual remote HEAD — see
+[`docs/prompts/ProjectManager.md`](docs/prompts/ProjectManager.md)'s Pre-Merge Governance Gate for the
+exact mechanism and the incident history that motivated it.
+
 ## 4. Branch Strategy
 
 | Prefix | Use |
