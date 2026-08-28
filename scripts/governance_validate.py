@@ -39,6 +39,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 AUTHORIZATION_PHRASE = "Authorized by the project owner"
+QA_DECISION_PHRASE = "QA Decision"
 REQUIRED_ADR_RANGE = range(1, 21)  # spec section 21 lists planning-list items #1-#20
 
 
@@ -137,6 +138,39 @@ def check_done_requires_authorization(rows: list[TaskRow]) -> list[Violation]:
                 )
             )
     return violations
+
+
+def check_done_requires_qa_evidence(rows: list[TaskRow]) -> list[Violation]:
+    """A row that declares its own task Done must also mention a QA
+    Decision somewhere in the same row -- verified present on every Done
+    row from T4 through T94 when this check was written, mirroring
+    check_done_requires_authorization's discipline. This repository's own
+    process (docs/DefinitionOfDone.md) requires a QA Decision before a
+    task is closed out; 'Rework required' blocks merge entirely."""
+    violations = []
+    for row in rows:
+        done_marker = f"{row.task_id} is now Done"
+        if done_marker in row.text and QA_DECISION_PHRASE.lower() not in row.text.lower():
+            violations.append(
+                Violation(
+                    "done-without-qa-evidence",
+                    f"{row.task_id} (IMPLEMENTATION_QUEUE.md line {row.line_no}) is marked "
+                    f'"{done_marker}" but its own row does not mention a "{QA_DECISION_PHRASE}" '
+                    "-- a task must not be closed out without a recorded QA Decision.",
+                )
+            )
+    return violations
+
+
+def latest_task_number(rows: list[TaskRow], marker_fn) -> str | None:
+    """Highest-numbered task row for which marker_fn(row) is true, or None
+    if no row matches. Used to cross-check governanceLedger's
+    latestTaskAuthorized/latestTaskDone against the rows themselves,
+    instead of trusting a hand-maintained value."""
+    candidates = [row for row in rows if marker_fn(row)]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda r: int(r.task_id[1:])).task_id
 
 
 ADR_REFERENCE_RE = re.compile(r"ADR/(\d{4})\b")
@@ -266,38 +300,64 @@ def compute_resolved_required_adrs(adrs: list[AdrFile]) -> set[int]:
 # ---------------------------------------------------------------------------
 
 
-def check_governance_ledger(project_state: dict, resolved: set[int]) -> list[Violation]:
+def check_governance_ledger(
+    project_state: dict, resolved: set[int], rows: list[TaskRow] | None = None
+) -> list[Violation]:
     violations: list[Violation] = []
     ledger = project_state.get("governanceLedger")
     if ledger is None:
         return violations  # optional field; absence is not itself an error
 
     unresolved = set(REQUIRED_ADR_RANGE) - resolved
-    recorded_resolved = set(ledger.get("resolvedRequiredADRs", []))
-    recorded_unresolved = set(ledger.get("unresolvedRequiredADRs", []))
 
-    if recorded_resolved != resolved:
-        violations.append(
-            Violation(
-                "governance-ledger-drift",
-                "PROJECT_STATE.json governanceLedger.resolvedRequiredADRs "
-                f"{sorted(recorded_resolved)} does not match what the ADR files "
-                f"themselves declare resolved {sorted(resolved)} -- missing: "
-                f"{sorted(resolved - recorded_resolved)}, extra/stale: "
-                f"{sorted(recorded_resolved - resolved)}.",
+    # Each sub-field is independently optional -- a ledger that declares only, say,
+    # latestTaskDone must not be flagged as if it had declared an empty resolved-ADR
+    # list. Only compare a field that is actually present.
+    if "resolvedRequiredADRs" in ledger:
+        recorded_resolved = set(ledger["resolvedRequiredADRs"])
+        if recorded_resolved != resolved:
+            violations.append(
+                Violation(
+                    "governance-ledger-drift",
+                    "PROJECT_STATE.json governanceLedger.resolvedRequiredADRs "
+                    f"{sorted(recorded_resolved)} does not match what the ADR files "
+                    f"themselves declare resolved {sorted(resolved)} -- missing: "
+                    f"{sorted(resolved - recorded_resolved)}, extra/stale: "
+                    f"{sorted(recorded_resolved - resolved)}.",
+                )
             )
-        )
-    if recorded_unresolved != unresolved:
-        violations.append(
-            Violation(
-                "governance-ledger-drift",
-                "PROJECT_STATE.json governanceLedger.unresolvedRequiredADRs "
-                f"{sorted(recorded_unresolved)} does not match the complement of the "
-                f"resolved set {sorted(unresolved)} -- missing: "
-                f"{sorted(unresolved - recorded_unresolved)}, extra/stale: "
-                f"{sorted(recorded_unresolved - unresolved)}.",
+    if "unresolvedRequiredADRs" in ledger:
+        recorded_unresolved = set(ledger["unresolvedRequiredADRs"])
+        if recorded_unresolved != unresolved:
+            violations.append(
+                Violation(
+                    "governance-ledger-drift",
+                    "PROJECT_STATE.json governanceLedger.unresolvedRequiredADRs "
+                    f"{sorted(recorded_unresolved)} does not match the complement of the "
+                    f"resolved set {sorted(unresolved)} -- missing: "
+                    f"{sorted(unresolved - recorded_unresolved)}, extra/stale: "
+                    f"{sorted(recorded_unresolved - unresolved)}.",
+                )
             )
-        )
+
+    if rows is not None:
+        for field_name, marker_fn in (
+            ("latestTaskDone", lambda r: f"{r.task_id} is now Done" in r.text),
+            ("latestTaskAuthorized", lambda r: AUTHORIZATION_PHRASE in r.text),
+        ):
+            if field_name not in ledger:
+                continue  # optional sub-field; absence is not itself an error
+            recorded = ledger[field_name]
+            computed = latest_task_number(rows, marker_fn)
+            if recorded != computed:
+                violations.append(
+                    Violation(
+                        "governance-ledger-drift",
+                        f"PROJECT_STATE.json governanceLedger.{field_name} is {recorded!r} but "
+                        f"IMPLEMENTATION_QUEUE.md's own rows compute {computed!r} -- update the "
+                        "ledger or investigate why they disagree.",
+                    )
+                )
     return violations
 
 
@@ -314,6 +374,7 @@ def validate(root: Path) -> list[Violation]:
     rows = parse_task_rows(queue_text)
     violations += check_duplicate_task_ids(rows)
     violations += check_done_requires_authorization(rows)
+    violations += check_done_requires_qa_evidence(rows)
 
     adr_dir = root / "ADR"
     adrs, adr_violations = parse_adr_files(adr_dir)
@@ -332,7 +393,7 @@ def validate(root: Path) -> list[Violation]:
         )
     else:
         resolved = compute_resolved_required_adrs(adrs)
-        violations += check_governance_ledger(project_state, resolved)
+        violations += check_governance_ledger(project_state, resolved, rows)
 
     return violations
 
