@@ -16,6 +16,13 @@ authoritative list):
   - dangling `ADR/NNNN` references inside IMPLEMENTATION_QUEUE.md
   - PROJECT_STATE.json's `governanceLedger` resolved/unresolved Required-ADR
     lists vs. what is dynamically computed from the ADR files themselves
+  - an optional, structured `governanceLedger.inProgressTransitions` entry
+    (T99) that lets a genuinely authorized, currently-in-progress
+    Required-ADR resolution pass this gate during the deliberate window
+    between its Architecture+QA PR merging (which adds the ADR file) and
+    its own later Governance Closeout PR (which syncs the ledger) -- see
+    "In-progress transition declarations" below. Absent this declaration,
+    behavior is unchanged from T95.
 
 What this deliberately does NOT validate (see docs/GOVERNANCE_VALIDATION.md
 "Deliberately out of scope" section) -- most importantly, git ancestry
@@ -41,6 +48,7 @@ from pathlib import Path
 AUTHORIZATION_PHRASE = "Authorized by the project owner"
 QA_DECISION_PHRASE = "QA Decision"
 REQUIRED_ADR_RANGE = range(1, 21)  # spec section 21 lists planning-list items #1-#20
+TRANSITION_TASK_ID_RE = re.compile(r"^T\d+$")
 
 
 @dataclass
@@ -55,6 +63,16 @@ class TaskRow:
     task_id: str
     line_no: int
     text: str
+
+
+@dataclass
+class TransitionExemption:
+    """A validated, in-progress Required-ADR governance transition. Only ever
+    constructed by validate_in_progress_transition() after every check below
+    has passed -- never assembled or trusted from raw ledger input directly."""
+
+    task: str
+    required_adrs: set[int]
 
 
 @dataclass
@@ -300,6 +318,191 @@ def compute_resolved_required_adrs(adrs: list[AdrFile]) -> set[int]:
 # ---------------------------------------------------------------------------
 
 
+def validate_in_progress_transition(
+    ledger: dict, resolved: set[int], recorded_resolved: set[int], rows: list[TaskRow]
+) -> tuple[list[Violation], TransitionExemption | None]:
+    """Validate an optional `governanceLedger.inProgressTransitions` declaration
+    against authoritative repository evidence already available to this validator
+    (IMPLEMENTATION_QUEUE.md's own rows; the ADR-derived resolved set) -- never
+    against git history, a task/ADR/PR number literal, or anything this validator
+    doesn't already compute for its own, unrelated checks.
+
+    Returns (violations, exemption). `exemption` is non-None only when every check
+    below passes; any failure returns an empty exemption (fail-safe: a malformed,
+    unauthorized, stale, ambiguous, or out-of-scope declaration grants no leniency
+    at all, not partial leniency).
+
+    This function decides one thing only: whether a *specific, currently-declared*
+    ADR-resolution gap is legitimately explained by a named, currently-authorized,
+    not-yet-Done task. It does not, and must not, know about any particular task
+    ID, ADR number, or PR number -- see docs/GOVERNANCE_VALIDATION.md's
+    "In-progress transition declarations" section for the generalization
+    requirement this exists to satisfy."""
+    raw = ledger.get("inProgressTransitions")
+    if raw is None:
+        return [], None  # no declaration at all -- ordinary settled-state validation applies
+
+    if not isinstance(raw, list):
+        return (
+            [
+                Violation(
+                    "governance-transition-malformed",
+                    "PROJECT_STATE.json governanceLedger.inProgressTransitions must be a list "
+                    f"of at most one transition object; got {type(raw).__name__}.",
+                )
+            ],
+            None,
+        )
+
+    if len(raw) == 0:
+        return [], None  # explicitly declared empty -- equivalent to absent
+
+    if len(raw) > 1:
+        return (
+            [
+                Violation(
+                    "governance-transition-ambiguous",
+                    f"PROJECT_STATE.json governanceLedger.inProgressTransitions declares "
+                    f"{len(raw)} simultaneous transitions -- at most one in-progress Required-ADR "
+                    "transition is supported at a time; an ambiguous declaration is treated as "
+                    "granting no exemption, not as if the first/most-plausible entry were chosen.",
+                )
+            ],
+            None,
+        )
+
+    entry = raw[0]
+    if not isinstance(entry, dict) or "task" not in entry or "requiredAdrs" not in entry:
+        return (
+            [
+                Violation(
+                    "governance-transition-malformed",
+                    "PROJECT_STATE.json governanceLedger.inProgressTransitions[0] must be an "
+                    f"object with 'task' and 'requiredAdrs' fields; got {entry!r}.",
+                )
+            ],
+            None,
+        )
+
+    task = entry["task"]
+    declared_raw = entry["requiredAdrs"]
+    if not isinstance(task, str) or not TRANSITION_TASK_ID_RE.match(task):
+        return (
+            [
+                Violation(
+                    "governance-transition-malformed",
+                    f"PROJECT_STATE.json governanceLedger.inProgressTransitions[0].task {task!r} "
+                    "is not a valid task ID (expected the shape 'T' followed by digits).",
+                )
+            ],
+            None,
+        )
+    if (
+        not isinstance(declared_raw, list)
+        or not declared_raw
+        or not all(isinstance(n, int) and not isinstance(n, bool) for n in declared_raw)
+    ):
+        return (
+            [
+                Violation(
+                    "governance-transition-malformed",
+                    "PROJECT_STATE.json governanceLedger.inProgressTransitions[0].requiredAdrs "
+                    f"must be a non-empty list of integers; got {declared_raw!r}.",
+                )
+            ],
+            None,
+        )
+
+    declared_adrs = set(declared_raw)
+    out_of_range = declared_adrs - set(REQUIRED_ADR_RANGE)
+    if out_of_range:
+        return (
+            [
+                Violation(
+                    "governance-transition-invalid-adr-state",
+                    "PROJECT_STATE.json governanceLedger.inProgressTransitions[0].requiredAdrs "
+                    f"names Required-ADR number(s) {sorted(out_of_range)} outside the valid "
+                    f"planning-list range {REQUIRED_ADR_RANGE.start}-{REQUIRED_ADR_RANGE.stop - 1}.",
+                )
+            ],
+            None,
+        )
+
+    # The declared task must correspond to a genuinely authorized row -- not merely
+    # any row that happens to share the ID, and not a fabricated/nonexistent one.
+    task_row = next((r for r in rows if r.task_id == task), None)
+    if task_row is None or AUTHORIZATION_PHRASE not in task_row.text:
+        return (
+            [
+                Violation(
+                    "governance-transition-unauthorized",
+                    f"PROJECT_STATE.json governanceLedger.inProgressTransitions[0] declares task "
+                    f"{task!r}, but IMPLEMENTATION_QUEUE.md has no row for {task!r} carrying the "
+                    f'"{AUTHORIZATION_PHRASE}" phrase -- an in-progress transition must cite a '
+                    "task this repository's own records show as actually authorized.",
+                )
+            ],
+            None,
+        )
+
+    # Only the current frontier task's transition may be exempted -- an old,
+    # superseded, or unrelated authorized task cannot retroactively excuse today's
+    # drift, even if that task itself was once legitimately authorized.
+    computed_latest_authorized = latest_task_number(rows, lambda r: AUTHORIZATION_PHRASE in r.text)
+    if task != computed_latest_authorized:
+        return (
+            [
+                Violation(
+                    "governance-transition-wrong-task",
+                    f"PROJECT_STATE.json governanceLedger.inProgressTransitions[0].task is "
+                    f"{task!r}, but IMPLEMENTATION_QUEUE.md's own rows compute the latest "
+                    f"authorized task as {computed_latest_authorized!r} -- an in-progress "
+                    "transition may only be declared for the current frontier task.",
+                )
+            ],
+            None,
+        )
+
+    # A task already marked Done has no "in-progress" transition left to explain --
+    # that window closes at Governance Closeout, which is expected to remove this
+    # declaration, not leave it lingering as a permanent excuse.
+    if f"{task} is now Done" in task_row.text:
+        return (
+            [
+                Violation(
+                    "governance-transition-already-settled",
+                    f"PROJECT_STATE.json governanceLedger.inProgressTransitions[0] declares "
+                    f"{task!r} as in-progress, but IMPLEMENTATION_QUEUE.md's own row already "
+                    f"marks {task!r} Done -- a settled task must not carry a lingering "
+                    "in-progress transition declaration; Governance Closeout should have removed "
+                    "it.",
+                )
+            ],
+            None,
+        )
+
+    # The declared ADRs must be *exactly* the real, currently-unsynchronized gap --
+    # no more (that would excuse unrelated drift), no fewer (that would leave a
+    # real mismatch this task doesn't actually account for).
+    actual_gap = resolved - recorded_resolved
+    if declared_adrs != actual_gap:
+        return (
+            [
+                Violation(
+                    "governance-transition-scope-mismatch",
+                    "PROJECT_STATE.json governanceLedger.inProgressTransitions[0].requiredAdrs "
+                    f"{sorted(declared_adrs)} does not exactly match the real, "
+                    f"currently-unsynchronized ADR-resolution gap {sorted(actual_gap)} (what the "
+                    "ADR files themselves resolve, minus governanceLedger.resolvedRequiredADRs) "
+                    "-- a legitimate declaration must name exactly the gap it accounts for.",
+                )
+            ],
+            None,
+        )
+
+    return [], TransitionExemption(task=task, required_adrs=declared_adrs)
+
+
 def check_governance_ledger(
     project_state: dict, resolved: set[int], rows: list[TaskRow] | None = None
 ) -> list[Violation]:
@@ -309,13 +512,21 @@ def check_governance_ledger(
         return violations  # optional field; absence is not itself an error
 
     unresolved = set(REQUIRED_ADR_RANGE) - resolved
+    recorded_resolved_for_transition = (
+        set(ledger["resolvedRequiredADRs"]) if "resolvedRequiredADRs" in ledger else set()
+    )
+    transition_violations, exemption = validate_in_progress_transition(
+        ledger, resolved, recorded_resolved_for_transition, rows or []
+    )
+    violations += transition_violations
+    exempt_adrs = exemption.required_adrs if exemption is not None else set()
 
     # Each sub-field is independently optional -- a ledger that declares only, say,
     # latestTaskDone must not be flagged as if it had declared an empty resolved-ADR
     # list. Only compare a field that is actually present.
     if "resolvedRequiredADRs" in ledger:
         recorded_resolved = set(ledger["resolvedRequiredADRs"])
-        if recorded_resolved != resolved:
+        if (recorded_resolved | exempt_adrs) != resolved:
             violations.append(
                 Violation(
                     "governance-ledger-drift",
@@ -328,7 +539,7 @@ def check_governance_ledger(
             )
     if "unresolvedRequiredADRs" in ledger:
         recorded_unresolved = set(ledger["unresolvedRequiredADRs"])
-        if recorded_unresolved != unresolved:
+        if (recorded_unresolved - exempt_adrs) != unresolved:
             violations.append(
                 Violation(
                     "governance-ledger-drift",
@@ -349,15 +560,25 @@ def check_governance_ledger(
                 continue  # optional sub-field; absence is not itself an error
             recorded = ledger[field_name]
             computed = latest_task_number(rows, marker_fn)
-            if recorded != computed:
-                violations.append(
-                    Violation(
-                        "governance-ledger-drift",
-                        f"PROJECT_STATE.json governanceLedger.{field_name} is {recorded!r} but "
-                        f"IMPLEMENTATION_QUEUE.md's own rows compute {computed!r} -- update the "
-                        "ledger or investigate why they disagree.",
-                    )
+            if recorded == computed:
+                continue
+            # latestTaskDone is never exempted -- Closeout's zero-tolerance
+            # requirement for the *settled* state must hold regardless of any
+            # in-progress transition declared for a still-open task.
+            if (
+                field_name == "latestTaskAuthorized"
+                and exemption is not None
+                and exemption.task == computed
+            ):
+                continue  # the same validated transition already explains this exact drift
+            violations.append(
+                Violation(
+                    "governance-ledger-drift",
+                    f"PROJECT_STATE.json governanceLedger.{field_name} is {recorded!r} but "
+                    f"IMPLEMENTATION_QUEUE.md's own rows compute {computed!r} -- update the "
+                    "ledger or investigate why they disagree.",
                 )
+            )
     return violations
 
 
