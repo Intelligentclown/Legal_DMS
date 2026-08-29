@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   validate:
-    name: Lint, format, and test
+    name: Frontend validation
     runs-on: ubuntu-latest
     defaults:
       run:
