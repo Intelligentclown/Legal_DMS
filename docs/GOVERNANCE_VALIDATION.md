@@ -107,9 +107,10 @@ PR number:
   inside the valid planning-list range — otherwise `governance-transition-malformed` /
   `governance-transition-invalid-adr-state`.
 - `task` names a row in `IMPLEMENTATION_QUEUE.md` that actually contains `"Authorized by the project
-  owner"` — otherwise `governance-transition-unauthorized`.
-- `task` **is** the current frontier — equal to what `latestTaskAuthorized` independently computes —
-  not an older or unrelated authorized task; otherwise `governance-transition-wrong-task`.
+  owner"` — otherwise `governance-transition-unauthorized`. `task` need **not** be the single,
+  numerically-highest authorized task ("the frontier") — any authorized, not-yet-Done task qualifies
+  (see "T100: removing the frontier-equality constraint" below for why an equality requirement here
+  was itself a defect, not a safety property).
 - `task`'s own row does **not** already contain `"TNN is now Done"` — a completed task has no
   in-progress transition left to explain, that window closed at its own Closeout; otherwise
   `governance-transition-already-settled`.
@@ -140,6 +141,20 @@ inspects the function's own source to confirm no such literal exists, not merely
 happen to pass. It does not weaken `check_governance_ledger` for any state other than the one, single,
 currently-declared, evidence-backed transition. It does not touch git ancestry verification, which
 remains exactly as out of scope as described below.
+
+### T100: removing the frontier-equality constraint
+
+The mechanism as originally shipped additionally required the declared `task` to equal the single,
+numerically-highest currently-authorized task ("the frontier"), rejecting any other authorized,
+still-open task's declaration as `governance-transition-wrong-task`. This was a defect, not a safety
+property: it silently assumed at most one task can ever be authorized-and-open at a time. In practice
+a later-authorized task can be implemented and fully closed out — becoming simultaneously the new
+frontier *and* already Done — before an earlier task's own PR merges, leaving that earlier task's
+transition declaration unable to satisfy either the frontier check (it is no longer the frontier) or
+the already-settled check (it was never Done itself). `T100` removed the frontier-equality
+requirement entirely; being an authorized, not-yet-Done task is sufficient on its own, exactly as the
+two remaining checks (authorization, not-already-Done) already independently express. No other check
+changed.
 
 ## What this deliberately does not validate
 

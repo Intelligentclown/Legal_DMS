@@ -418,17 +418,58 @@ class TestInProgressTransition(unittest.TestCase):
         # Fail-safe: the real, unexplained drift is still reported, not silently excused.
         self.assertIn("governance-ledger-drift", checks)
 
-    # 9. Transition for the wrong task/ancestry (an older, superseded authorized task) -> FAIL.
-    def test_transition_for_non_latest_authorized_task_fails(self) -> None:
+    # 9 (T100): a transition for a non-frontier task that is still authorized and not
+    # yet Done now PASSES. T99's original mechanism required the declared task to
+    # equal the single, numerically-highest authorized task ("the frontier"), which
+    # wrongly rejected exactly this legitimate case in practice: T99 was authorized
+    # after T98, then fully implemented and closed out (becoming both the new
+    # frontier and "already Done") before T98's own PR could merge, leaving T98 -- an
+    # authorized, still-open task -- unable to satisfy either the old frontier check
+    # (T98 is no longer the frontier once T99 is authorized) or the already-settled
+    # check (T98 itself was never Done). T100 removes the frontier-equality
+    # constraint; being authorized and not-yet-Done is sufficient on its own.
+    def test_transition_for_non_frontier_but_still_open_authorized_task_now_passes(self) -> None:
         rows = [self._authorized_row("T5"), self._authorized_row("T41")]  # T41 is the frontier
         ledger = {
             "resolvedRequiredADRs": [1],
-            "inProgressTransitions": [{"task": "T5", "requiredAdrs": [7]}],  # stale task cited
+            "unresolvedRequiredADRs": sorted(set(gv.REQUIRED_ADR_RANGE) - {1, 7}),
+            # T5 is authorized and still open, but is NOT the frontier (T41 is).
+            "inProgressTransitions": [{"task": "T5", "requiredAdrs": [7]}],
         }
         violations = gv.check_governance_ledger(
             {"governanceLedger": ledger}, resolved={1, 7}, rows=rows
         )
-        self.assertIn("governance-transition-wrong-task", [v.check for v in violations])
+        self.assertEqual(violations, [])
+
+    def test_wrong_task_check_no_longer_exists(self) -> None:
+        """T100 removed the frontier-equality constraint entirely, not merely widened
+        it -- documents that governance-transition-wrong-task can no longer occur,
+        checked structurally (source inspection), not just by absence of a failing
+        test case."""
+        import inspect
+
+        source = inspect.getsource(gv.validate_in_progress_transition)
+        self.assertNotIn("governance-transition-wrong-task", source)
+
+    def test_the_actual_t98_t99_race_scenario_reproduced_and_fixed(self) -> None:
+        """The exact real-world shape T100 exists to fix, using the real task IDs and
+        ADR number involved -- not to hard-code them into the mechanism (the tests
+        above already prove genericity with arbitrary IDs), but to demonstrate this
+        specific, previously-failing case is now resolved."""
+        rows = [
+            self._authorized_row("T98"),  # authorized, implemented, QA-approved, NOT Done
+            self._authorized_row("T99", done=True),  # authorized after T98, closed out first
+        ]
+        ledger = {
+            "resolvedRequiredADRs": [1, 2, 3, 4, 5, 6, 7, 9, 13, 18, 19],
+            "unresolvedRequiredADRs": [8, 10, 11, 12, 15, 16, 17, 20],  # #14 excluded: in-progress
+            "latestTaskDone": "T99",
+            "latestTaskAuthorized": "T99",
+            "inProgressTransitions": [{"task": "T98", "requiredAdrs": [14]}],
+        }
+        resolved = {1, 2, 3, 4, 5, 6, 7, 9, 13, 14, 18, 19}  # ADR-0029 now resolves #14 too
+        violations = gv.check_governance_ledger({"governanceLedger": ledger}, resolved=resolved, rows=rows)
+        self.assertEqual(violations, [])
 
     # 9b. A transition declared for a task that has already reached Done -> FAIL
     # (the "already settled" case -- Closeout should have removed the declaration).

@@ -445,23 +445,18 @@ def validate_in_progress_transition(
             None,
         )
 
-    # Only the current frontier task's transition may be exempted -- an old,
-    # superseded, or unrelated authorized task cannot retroactively excuse today's
-    # drift, even if that task itself was once legitimately authorized.
-    computed_latest_authorized = latest_task_number(rows, lambda r: AUTHORIZATION_PHRASE in r.text)
-    if task != computed_latest_authorized:
-        return (
-            [
-                Violation(
-                    "governance-transition-wrong-task",
-                    f"PROJECT_STATE.json governanceLedger.inProgressTransitions[0].task is "
-                    f"{task!r}, but IMPLEMENTATION_QUEUE.md's own rows compute the latest "
-                    f"authorized task as {computed_latest_authorized!r} -- an in-progress "
-                    "transition may only be declared for the current frontier task.",
-                )
-            ],
-            None,
-        )
+    # The declared task need not be the single, numerically-highest authorized task
+    # ("the frontier") -- only *an* authorized, not-yet-Done task. A frontier-equality
+    # constraint would assume at most one task can ever be authorized-and-open at a
+    # time; in practice a later-authorized task can be implemented and closed out
+    # (becoming both the new frontier and already Done) before an earlier task's own
+    # PR merges, leaving that earlier task's transition declaration unable to satisfy
+    # either a frontier-equality check (it's no longer the frontier) or the
+    # already-Done check below (it was never Done itself) -- rejected by a mechanism
+    # meant to let it pass. The authorized-row check immediately above and the
+    # already-Done check immediately below jointly express the actual requirement
+    # ("authorized and still open") without assuming authorization is exclusive to
+    # one task at a time.
 
     # A task already marked Done has no "in-progress" transition left to explain --
     # that window closes at Governance Closeout, which is expected to remove this
