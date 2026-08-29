@@ -323,12 +323,84 @@ unresolved (not silently fixed) in the branch's actual diff; that the disclosed
 ## QA Decision
 
 ☐ Approved
-☐ Approved with comments
+☒ Approved with comments
 ☐ Rework required
 
-This Software Architect pass does not record, anticipate, or imply any of the three outcomes above —
-per `docs/prompts/SoftwareArchitect.md` §11/§13, this role never renders a QA Decision or substitutes
-for the QA Reviewer. `ADR/0029` and this report are not self-certifying.
+**Recorded by the independent QA Reviewer role (2026-08-29), against PR #148's actual remote HEAD
+at review time (`8958fc12607ff8e635fdaba23209c6b4dede1ecb`), base `10727d64f43c6f8992dbf608efb751d62f1ce9b5`.**
+
+**Remote state independently established (not assumed):** `gh pr view 148` confirmed `state: OPEN`,
+`baseRefOid: 10727d64f43c6f8992dbf608efb751d62f1ce9b5`, `headRefOid:
+8958fc12607ff8e635fdaba23209c6b4dede1ecb`, a single commit. `git diff --stat` against that base shows
+exactly two new files (`ADR/0029-activity-vs-audit-architecture-boundary-and-coverage.md`,
+`docs/reviews/T98_Software_Architect_Report.md`), 668 insertions, 0 deletions, 0 modifications, 0
+deletions of existing files. `git merge-base --is-ancestor f18b68a4e8f0546642190476d716c560cadd9469
+8958fc12607ff8e635fdaba23209c6b4dede1ecb` → true. Authorization ancestry: confirmed.
+
+**Blocking findings: none.**
+
+Confirmed directly against the repository, not taken on the Software Architect's self-assessment
+alone:
+
+- Activity/Audit conceptual separation, Activity's descriptive-visibility definition, and Audit's
+  immutable-accountability definition are all stated clearly and match specification rules 39-42/45-46,
+  §17.9, §21, §24.12, §24.14, and §25 invariant #13 verbatim where quoted — each quotation
+  independently re-read from `docs/Legal_DMS — Domain Model & Functional Specification.md` and found
+  accurate (no paraphrase misrepresented as a quote).
+- The six-category coverage-classification table (creation, modification, status changes,
+  relationship changes, financial changes, access-sensitive events) matches §21's own bullet list
+  exactly (spec lines 1594-1598); every one of the six named entity-group rows cites a specific
+  matching category rather than an unsupported assertion. The "no Activity-only operation found"
+  finding is traceable row-by-row, not an overreach past what the six-category list supports.
+- `AuditLogger` port signature, `LoggingAuditLogger` behavior, the DI container registration
+  (`container.py:127`), the absence of any `SqlAlchemyAuditLogger` implementation (only a docstring
+  mention in `activity.py`), the two existing `record()` call sites (`auth_service.py`,
+  `deps.py`'s `_require_permission`), `ActivityLog`/`AuditLog` schemas, and the absence of
+  `organization_id` on both tables were all independently re-verified by direct inspection/grep
+  against the actual repository, not trusted from the ADR's own narrative — all confirmed accurate,
+  including the ADR's precise (and correct) scoping of its "zero `ActivityLog(` call sites" claim to
+  `backend/src/app` specifically (two additional call sites exist in `backend/tests/`, correctly
+  outside that claim's stated scope).
+- `ADR/0007`/`ADR/0009` are cited and composed with, not reopened — confirmed absent from the PR
+  diff; their `Status:` fields (Superseded / Accepted, respectively) are unchanged.
+- `ADR/0021` through `ADR/0028` are not modified — confirmed absent from the PR diff. `ADR/0021`
+  itself contains no reference to `activity_logs`/`audit_logs` (independently grepped), consistent
+  with the ADR's own disclosed-gap framing.
+- No schema, migration, service, route, or test file appears in the diff — confirmed via `git diff
+  --stat`, matching the ADR's own "Implementation Boundary" and "Consequences" sections.
+- Required ADR #8, #10, #11, #12, #15, #16, #17, #20 are named as explicitly out of scope and are not
+  resolved anywhere in the ADR's Decision, Invariants, or Consequences sections.
+- `ADR/0029` is the correct next-available ADR number — `ADR/0028` was the prior highest file,
+  independently confirmed via directory listing; no gap or duplicate.
+- Scope match against `IMPLEMENTATION_QUEUE.md`'s T98 authorization row: the four approved-scope
+  items (Activity purpose/scope, Audit purpose/scope, coverage expectations, explicit
+  non-implementation statement) are each decided exactly once, with no additional decision made.
+- Governance validator (`python scripts/governance_validate.py`): re-run independently on this
+  branch, exit code 1, exactly the three disclosed `governance-ledger-drift` errors (resolvedRequiredADRs
+  missing 14; unresolvedRequiredADRs stale-containing 14; latestTaskAuthorized still `T97`) and no
+  other error or warning — matches the Software Architect's reported output verbatim. Per the
+  Governance Control Tower's authorization for this review, these three are permitted transitional
+  state under the documented three-PR lifecycle (`PROJECT_WORKFLOW.md` §3.1) and are not treated as a
+  QA blocker; no other governance failure was found.
+- Governance test suite (`pytest scripts/tests/test_governance_validate.py -q`): re-run
+  independently, 34 passed, 1 failed (`test_real_repository_passes`, for the same three disclosed
+  drift messages) — matches the Software Architect's reported result exactly.
+- Markdown/document structure: both files render as well-formed Markdown (headings, tables, and
+  cross-reference links all resolve to existing files); no repository-prescribed markdown linter
+  exists beyond the governance validator itself (ENVIRONMENTAL LIMITATION — none configured in this
+  repository, not a skipped check).
+
+**One non-blocking comment:** none beyond what the ADR already discloses itself (the `organization_id`
+gap and the deferred instrumentation questions are both already named explicitly in the ADR's own
+"Tenant-Isolation Composition" and "Unresolved / Deferred Questions" sections — restated here as
+confirmed-present, not as a new finding requiring action).
+
+**QA Decision: Approved with comments.**
+
+Per `docs/prompts/QAReviewer.md` §7/§8, this decision is recorded and will be pushed to the PR's
+remote branch and independently re-read from that remote HEAD before being reported as complete. No
+merge, governance closeout, `PROJECT_STATE.json` synchronization, `T99` creation, or T98
+Done-marking is performed by this role or this commit.
 
 ---
 
