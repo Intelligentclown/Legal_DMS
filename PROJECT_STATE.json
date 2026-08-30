@@ -21,7 +21,8 @@
     "latestTaskDone": "T99",
     "latestTaskAuthorized": "T100",
     "asOfCommit": "0387440d2e09f25a3c74df3888935f9546d0af06",
-    "validator": "scripts/governance_validate.py"
+    "validator": "scripts/governance_validate.py",
+    "inProgressTransitions": [{"task": "T98", "requiredAdrs": [14]}]
   },
   "documentation": {
     "architectureScorecard": "docs/ArchitectureScorecard.md",
