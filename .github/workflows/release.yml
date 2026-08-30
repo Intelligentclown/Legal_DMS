@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   build:
-    name: Build verification
+    name: Release build verification
     runs-on: ubuntu-latest
 
     steps:

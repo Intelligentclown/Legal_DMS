@@ -297,6 +297,259 @@ class TestGovernanceLedger(unittest.TestCase):
         self.assertEqual(gv.check_governance_ledger(state, resolved={1, 2}), [])
 
 
+class TestInProgressTransition(unittest.TestCase):
+    """T99: an optional governanceLedger.inProgressTransitions declaration that lets a
+    genuinely authorized, currently-in-progress Required-ADR resolution pass this gate
+    during the deliberate window before its own Governance Closeout PR syncs the ledger.
+    No task ID, ADR number, or PR number is hard-coded anywhere in the mechanism under
+    test -- every fixture below uses arbitrary numbers to make that concrete, not just
+    asserted in prose."""
+
+    def _authorized_row(self, task: str, *, done: bool = False) -> gv.TaskRow:
+        text = f"| {task} | Some governance-hardening task. Authorized by the project owner, 2026-01-01."
+        if done:
+            text += f" {task} is now Done -- merged. QA Decision: Approved."
+        text += " |"
+        return gv.TaskRow(task, 1, text)
+
+    def _unauthorized_row(self, task: str) -> gv.TaskRow:
+        return gv.TaskRow(task, 1, f"| {task} | Not yet authorized, no project-owner phrase here. |")
+
+    # 1. Valid authorized in-progress transition -> PASS.
+    def test_valid_in_progress_transition_passes(self) -> None:
+        rows = [self._authorized_row("T41")]  # arbitrary task ID, not T98/T99
+        ledger = {
+            "resolvedRequiredADRs": [1, 2],
+            "unresolvedRequiredADRs": sorted(set(gv.REQUIRED_ADR_RANGE) - {1, 2, 7}),
+            "latestTaskAuthorized": "T41",
+            "inProgressTransitions": [{"task": "T41", "requiredAdrs": [7]}],
+        }
+        state = {"governanceLedger": ledger}
+        # ADR files themselves now resolve {1, 2, 7} -- #7 is the in-progress addition.
+        violations = gv.check_governance_ledger(state, resolved={1, 2, 7}, rows=rows)
+        self.assertEqual(violations, [])
+
+    # 2. Valid settled state -> PASS (no declaration at all -- pre-T99 behavior, unchanged).
+    def test_valid_settled_state_with_no_declaration_passes(self) -> None:
+        rows = [self._authorized_row("T41", done=True)]
+        ledger = {
+            "resolvedRequiredADRs": [1, 2, 7],
+            "unresolvedRequiredADRs": sorted(set(gv.REQUIRED_ADR_RANGE) - {1, 2, 7}),
+            "latestTaskDone": "T41",
+            "latestTaskAuthorized": "T41",
+        }
+        state = {"governanceLedger": ledger}
+        violations = gv.check_governance_ledger(state, resolved={1, 2, 7}, rows=rows)
+        self.assertEqual(violations, [])
+
+    # 3. Ordinary latestTaskAuthorized drift (no transition declared at all) -> FAIL.
+    def test_ordinary_drift_without_any_declaration_still_fails(self) -> None:
+        rows = [self._authorized_row("T41")]
+        state = {"governanceLedger": {"latestTaskAuthorized": "T5"}}  # stale, no declaration
+        violations = gv.check_governance_ledger(state, resolved=set(), rows=rows)
+        checks = [v.check for v in violations]
+        self.assertIn("governance-ledger-drift", checks)
+
+    # 4. Unauthorized transition (declared task has no authorized row at all) -> FAIL.
+    def test_unauthorized_transition_fails(self) -> None:
+        rows = [self._unauthorized_row("T41")]
+        ledger = {
+            "resolvedRequiredADRs": [],
+            "inProgressTransitions": [{"task": "T41", "requiredAdrs": [7]}],
+        }
+        violations = gv.check_governance_ledger({"governanceLedger": ledger}, resolved={7}, rows=rows)
+        checks = [v.check for v in violations]
+        self.assertIn("governance-transition-unauthorized", checks)
+        # No exemption granted -- the underlying drift also still reports.
+        self.assertIn("governance-ledger-drift", checks)
+
+    # 5. Stale/invalid transition declaration (wrong shape) -> FAIL.
+    def test_malformed_transition_declaration_fails(self) -> None:
+        rows = [self._authorized_row("T41")]
+        for bad_entry in (
+            {"task": "T41"},  # missing requiredAdrs
+            {"requiredAdrs": [7]},  # missing task
+            {"task": "not-a-task-id", "requiredAdrs": [7]},
+            {"task": "T41", "requiredAdrs": []},  # empty list
+            {"task": "T41", "requiredAdrs": ["7"]},  # wrong element type
+            {"task": "T41", "requiredAdrs": [7.5]},  # not an int
+        ):
+            with self.subTest(bad_entry=bad_entry):
+                ledger = {"inProgressTransitions": [bad_entry]}
+                violations = gv.check_governance_ledger(
+                    {"governanceLedger": ledger}, resolved={7}, rows=rows
+                )
+                self.assertIn("governance-transition-malformed", [v.check for v in violations])
+
+    # 6. Invalid Required-ADR state (out-of-range number) -> FAIL.
+    def test_out_of_range_required_adr_fails(self) -> None:
+        rows = [self._authorized_row("T41")]
+        ledger = {"inProgressTransitions": [{"task": "T41", "requiredAdrs": [999]}]}
+        violations = gv.check_governance_ledger({"governanceLedger": ledger}, resolved=set(), rows=rows)
+        self.assertIn("governance-transition-invalid-adr-state", [v.check for v in violations])
+
+    # 7. Missing transition evidence (declared ADR isn't actually resolved by any ADR file) -> FAIL.
+    def test_missing_evidence_fails(self) -> None:
+        rows = [self._authorized_row("T41")]
+        ledger = {
+            "resolvedRequiredADRs": [1],
+            "inProgressTransitions": [{"task": "T41", "requiredAdrs": [7]}],
+        }
+        # #7 is claimed in-progress, but no ADR file anywhere actually resolves it --
+        # the ADR-derived `resolved` set below proves it (only {1}, same as recorded).
+        violations = gv.check_governance_ledger({"governanceLedger": ledger}, resolved={1}, rows=rows)
+        self.assertIn("governance-transition-scope-mismatch", [v.check for v in violations])
+
+    # 8. Ambiguous/multiple transition declarations -> FAIL safely (no partial exemption).
+    def test_multiple_simultaneous_transitions_fail_safely(self) -> None:
+        rows = [self._authorized_row("T41")]
+        ledger = {
+            "resolvedRequiredADRs": [1],
+            "inProgressTransitions": [
+                {"task": "T41", "requiredAdrs": [7]},
+                {"task": "T41", "requiredAdrs": [8]},
+            ],
+        }
+        violations = gv.check_governance_ledger(
+            {"governanceLedger": ledger}, resolved={1, 7, 8}, rows=rows
+        )
+        checks = [v.check for v in violations]
+        self.assertIn("governance-transition-ambiguous", checks)
+        # Fail-safe: the real, unexplained drift is still reported, not silently excused.
+        self.assertIn("governance-ledger-drift", checks)
+
+    # 9 (T100): a transition for a non-frontier task that is still authorized and not
+    # yet Done now PASSES. T99's original mechanism required the declared task to
+    # equal the single, numerically-highest authorized task ("the frontier"), which
+    # wrongly rejected exactly this legitimate case in practice: T99 was authorized
+    # after T98, then fully implemented and closed out (becoming both the new
+    # frontier and "already Done") before T98's own PR could merge, leaving T98 -- an
+    # authorized, still-open task -- unable to satisfy either the old frontier check
+    # (T98 is no longer the frontier once T99 is authorized) or the already-settled
+    # check (T98 itself was never Done). T100 removes the frontier-equality
+    # constraint; being authorized and not-yet-Done is sufficient on its own.
+    def test_transition_for_non_frontier_but_still_open_authorized_task_now_passes(self) -> None:
+        rows = [self._authorized_row("T5"), self._authorized_row("T41")]  # T41 is the frontier
+        ledger = {
+            "resolvedRequiredADRs": [1],
+            "unresolvedRequiredADRs": sorted(set(gv.REQUIRED_ADR_RANGE) - {1, 7}),
+            # T5 is authorized and still open, but is NOT the frontier (T41 is).
+            "inProgressTransitions": [{"task": "T5", "requiredAdrs": [7]}],
+        }
+        violations = gv.check_governance_ledger(
+            {"governanceLedger": ledger}, resolved={1, 7}, rows=rows
+        )
+        self.assertEqual(violations, [])
+
+    def test_wrong_task_check_no_longer_exists(self) -> None:
+        """T100 removed the frontier-equality constraint entirely, not merely widened
+        it -- documents that governance-transition-wrong-task can no longer occur,
+        checked structurally (source inspection), not just by absence of a failing
+        test case."""
+        import inspect
+
+        source = inspect.getsource(gv.validate_in_progress_transition)
+        self.assertNotIn("governance-transition-wrong-task", source)
+
+    def test_the_actual_t98_t99_race_scenario_reproduced_and_fixed(self) -> None:
+        """The exact real-world shape T100 exists to fix, using the real task IDs and
+        ADR number involved -- not to hard-code them into the mechanism (the tests
+        above already prove genericity with arbitrary IDs), but to demonstrate this
+        specific, previously-failing case is now resolved."""
+        rows = [
+            self._authorized_row("T98"),  # authorized, implemented, QA-approved, NOT Done
+            self._authorized_row("T99", done=True),  # authorized after T98, closed out first
+        ]
+        ledger = {
+            "resolvedRequiredADRs": [1, 2, 3, 4, 5, 6, 7, 9, 13, 18, 19],
+            "unresolvedRequiredADRs": [8, 10, 11, 12, 15, 16, 17, 20],  # #14 excluded: in-progress
+            "latestTaskDone": "T99",
+            "latestTaskAuthorized": "T99",
+            "inProgressTransitions": [{"task": "T98", "requiredAdrs": [14]}],
+        }
+        resolved = {1, 2, 3, 4, 5, 6, 7, 9, 13, 14, 18, 19}  # ADR-0029 now resolves #14 too
+        violations = gv.check_governance_ledger({"governanceLedger": ledger}, resolved=resolved, rows=rows)
+        self.assertEqual(violations, [])
+
+    # 9b. A transition declared for a task that has already reached Done -> FAIL
+    # (the "already settled" case -- Closeout should have removed the declaration).
+    def test_transition_for_already_done_task_fails(self) -> None:
+        rows = [self._authorized_row("T41", done=True)]
+        ledger = {
+            "resolvedRequiredADRs": [1],
+            "inProgressTransitions": [{"task": "T41", "requiredAdrs": [7]}],
+        }
+        violations = gv.check_governance_ledger(
+            {"governanceLedger": ledger}, resolved={1, 7}, rows=rows
+        )
+        self.assertIn("governance-transition-already-settled", [v.check for v in violations])
+
+    # 10. No hard-coded T98/T99/ADR-0029 exception exists -- the mechanism works
+    # identically for arbitrary task IDs and ADR numbers never seen elsewhere in this
+    # module or its tests, proving nothing is keyed to a literal.
+    def test_mechanism_is_generalized_not_hard_coded_to_any_specific_task_or_adr(self) -> None:
+        rows = [self._authorized_row("T777")]
+        ledger = {
+            "resolvedRequiredADRs": [3],
+            "unresolvedRequiredADRs": sorted(set(gv.REQUIRED_ADR_RANGE) - {3, 19}),
+            "latestTaskAuthorized": "T777",
+            "inProgressTransitions": [{"task": "T777", "requiredAdrs": [19]}],
+        }
+        violations = gv.check_governance_ledger(
+            {"governanceLedger": ledger}, resolved={3, 19}, rows=rows
+        )
+        self.assertEqual(violations, [])
+        # And the source module itself contains no literal reference to T98, T99, or
+        # ADR-0029 anywhere in the transition-validation function -- a structural,
+        # not merely behavioral, proof that no such exception was hard-coded.
+        import inspect
+
+        source = inspect.getsource(gv.validate_in_progress_transition)
+        for literal in ("T98", "T99", "0029", "ADR-0029"):
+            self.assertNotIn(literal, source)
+
+    # 11. Existing governance validation behavior remains intact once the transition
+    # completes -- strict settled-state comparison resumes with zero tolerance, even
+    # though the same task was, until Closeout, legitimately exempted.
+    def test_settled_state_after_transition_completes_is_strict_again(self) -> None:
+        rows = [self._authorized_row("T41", done=True)]  # Closeout has happened
+        # Ledger fully synced, no lingering declaration -- exactly Closeout's job.
+        ledger = {
+            "resolvedRequiredADRs": [1, 2, 7],
+            "unresolvedRequiredADRs": sorted(set(gv.REQUIRED_ADR_RANGE) - {1, 2, 7}),
+            "latestTaskDone": "T41",
+            "latestTaskAuthorized": "T41",
+        }
+        violations = gv.check_governance_ledger({"governanceLedger": ledger}, resolved={1, 2, 7}, rows=rows)
+        self.assertEqual(violations, [])
+
+        # But if Closeout forgot to sync (stale resolved set persists post-Done), that
+        # must still fail -- Done tasks get zero leniency, regardless of any transition
+        # ever having existed for them.
+        stale_ledger = dict(ledger, resolvedRequiredADRs=[1, 2])
+        violations = gv.check_governance_ledger(
+            {"governanceLedger": stale_ledger}, resolved={1, 2, 7}, rows=rows
+        )
+        self.assertIn("governance-ledger-drift", [v.check for v in violations])
+
+    def test_absent_declaration_grants_no_exemption_object(self) -> None:
+        violations, exemption = gv.validate_in_progress_transition(
+            ledger={}, resolved={1}, recorded_resolved=set(), rows=[]
+        )
+        self.assertEqual(violations, [])
+        self.assertIsNone(exemption)
+
+    def test_non_list_declaration_is_malformed(self) -> None:
+        violations, exemption = gv.validate_in_progress_transition(
+            ledger={"inProgressTransitions": {"task": "T1", "requiredAdrs": [1]}},
+            resolved={1},
+            recorded_resolved=set(),
+            rows=[self._authorized_row("T1")],
+        )
+        self.assertIn("governance-transition-malformed", [v.check for v in violations])
+        self.assertIsNone(exemption)
+
+
 class TestValidateAgainstRealRepository(unittest.TestCase):
     """The most important test: the actual repository, as it stands, must
     pass with zero errors. This is what "verify a clean repository passes"

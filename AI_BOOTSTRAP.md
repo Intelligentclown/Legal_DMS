@@ -147,8 +147,11 @@ following from repository artifacts alone, without any conversation history:
 - **Mechanically-checkable governance invariants** (duplicate task IDs, a "Done" task missing its
   authorization phrase or its QA Decision mention, ADR numbering/filename integrity, two ADRs
   claiming to resolve the same Required ADR, dangling ADR references, `PROJECT_STATE.json`'s
-  `governanceLedger` drifting from the ADR files or from the queue's own rows) are enforced by
-  `scripts/governance_validate.py` in CI
+  `governanceLedger` drifting from the ADR files or from the queue's own rows — except for one, single,
+  currently-declared, evidence-backed `governanceLedger.inProgressTransitions` entry describing a
+  genuinely authorized, not-yet-closed-out Required-ADR transition; see
+  [`docs/GOVERNANCE_VALIDATION.md`](docs/GOVERNANCE_VALIDATION.md#in-progress-transition-declarations-t99),
+  added by `T99`) are enforced by `scripts/governance_validate.py` in CI
   (`.github/workflows/governance.yml`) on every push/PR. **This does not replace independent QA, and
   it does not check git ancestry** (whether a PR branch actually contains its authorization commit —
   a materially different, unresolved class of check; see

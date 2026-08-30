@@ -66,11 +66,95 @@ below failed, with every violation printed, not just the first.
      `IMPLEMENTATION_QUEUE.md` row whose own text actually contains `"TNN is now Done"` /
      `"Authorized by the project owner"`, respectively — not a hand-maintained guess.
    The whole `governanceLedger` object is optional; its absence is not an error, but any sub-field
-   present must stay accurate.
+   present must stay accurate. See "In-progress transition declarations" below for the one narrow,
+   mechanically-verified exception to "must stay accurate at all times."
 
 Run `python scripts/governance_validate.py --report` for a plain-language "which Required ADRs are
 resolved, by which file" summary — the fast, mechanically-verified answer to a question this
 repository's own governance history (see `T93`/`T94`) has shown is easy to get wrong by hand.
+
+## In-progress transition declarations (T99)
+
+**The problem this solves.** `PROJECT_WORKFLOW.md` §3.1's three-PR Required-ADR lifecycle
+deliberately synchronizes `governanceLedger` only in the third PR (Governance Closeout), *after* the
+second PR (Architecture+QA) has already merged the new ADR file. Between those two merges, check 7
+above correctly detects a real, mechanical mismatch — the ADR files now resolve one more Required ADR
+than the ledger records — and reports it as an `ERROR`. That mismatch is completely expected and
+intentional under the lifecycle's own design, yet `.github/workflows/governance.yml`'s "Governance
+consistency validation" job is a required status check on protected `main`, so an Architecture+QA PR
+for *any* Required-ADR task fails a required check it can never itself fix (fixing it is explicitly
+the *next* PR's job) — a structural incompatibility between two already-correct mechanisms, first
+named as its own remediation task by `T99`.
+
+**The mechanism.** An Architecture+QA PR may add exactly one object to
+`governanceLedger.inProgressTransitions` (a list, so its cardinality is itself checkable) declaring
+the ADR-resolution gap *that specific PR* introduces:
+
+```json
+"inProgressTransitions": [
+  { "task": "T41", "requiredAdrs": [7] }
+]
+```
+
+`scripts/governance_validate.py`'s `validate_in_progress_transition()` grants no leniency at all
+unless **every** one of the following holds, checked purely against text already parsed from
+`IMPLEMENTATION_QUEUE.md` and the ADR files themselves — never git history, never a literal task/ADR/
+PR number:
+
+- The list has **exactly one** entry — zero means no declaration (ordinary behavior); more than one
+  is `governance-transition-ambiguous` and grants no exemption to either.
+- The entry is well-formed — `task` matches `T\d+`, `requiredAdrs` is a non-empty list of integers
+  inside the valid planning-list range — otherwise `governance-transition-malformed` /
+  `governance-transition-invalid-adr-state`.
+- `task` names a row in `IMPLEMENTATION_QUEUE.md` that actually contains `"Authorized by the project
+  owner"` — otherwise `governance-transition-unauthorized`. `task` need **not** be the single,
+  numerically-highest authorized task ("the frontier") — any authorized, not-yet-Done task qualifies
+  (see "T100: removing the frontier-equality constraint" below for why an equality requirement here
+  was itself a defect, not a safety property).
+- `task`'s own row does **not** already contain `"TNN is now Done"` — a completed task has no
+  in-progress transition left to explain, that window closed at its own Closeout; otherwise
+  `governance-transition-already-settled`.
+- `requiredAdrs` is **exactly** the real gap (`resolved` computed from ADR files, minus the ledger's
+  current `resolvedRequiredADRs`) — not a superset (which would excuse unrelated drift) and not a
+  subset (which would leave a real, unexplained mismatch); otherwise
+  `governance-transition-scope-mismatch`.
+
+Only when all of these hold does check 7 treat the declared `requiredAdrs` as expected, temporary
+drift: `resolvedRequiredADRs`/`unresolvedRequiredADRs` are compared with that gap folded in, and a
+`latestTaskAuthorized` mismatch is excused *only* when it is explained by that same validated
+transition. **`latestTaskDone` is never exempted, under any declaration** — Closeout's own
+zero-tolerance settled-state requirement is unaffected by this mechanism entirely.
+
+**Who adds and removes it.** The Software Architect's Architecture+QA PR adds the single entry
+alongside the ADR file it justifies (this is *not* the "ledger synchronization" `PROJECT_WORKFLOW.md`
+§3.1 reserves for Governance Closeout — it is a distinct, additive, self-justifying declaration of
+*why* synchronization hasn't happened yet, independently checked, not merely asserted). QA
+independently re-verifies the declaration is accurate, the same as any other content in that PR. The
+Governance Closeout PR removes the `inProgressTransitions` entry entirely as part of performing the
+real synchronization — leaving it in place after Closeout is itself now a detected violation
+(`governance-transition-already-settled`).
+
+**What this deliberately does not do.** It does not know about, name, or special-case any specific
+task, ADR, or PR number — `scripts/tests/test_governance_validate.py`'s
+`TestInProgressTransition.test_mechanism_is_generalized_not_hard_coded_to_any_specific_task_or_adr`
+inspects the function's own source to confirm no such literal exists, not merely that a few examples
+happen to pass. It does not weaken `check_governance_ledger` for any state other than the one, single,
+currently-declared, evidence-backed transition. It does not touch git ancestry verification, which
+remains exactly as out of scope as described below.
+
+### T100: removing the frontier-equality constraint
+
+The mechanism as originally shipped additionally required the declared `task` to equal the single,
+numerically-highest currently-authorized task ("the frontier"), rejecting any other authorized,
+still-open task's declaration as `governance-transition-wrong-task`. This was a defect, not a safety
+property: it silently assumed at most one task can ever be authorized-and-open at a time. In practice
+a later-authorized task can be implemented and fully closed out — becoming simultaneously the new
+frontier *and* already Done — before an earlier task's own PR merges, leaving that earlier task's
+transition declaration unable to satisfy either the frontier check (it is no longer the frontier) or
+the already-settled check (it was never Done itself). `T100` removed the frontier-equality
+requirement entirely; being an authorized, not-yet-Done task is sufficient on its own, exactly as the
+two remaining checks (authorization, not-already-Done) already independently express. No other check
+changed.
 
 ## What this deliberately does not validate
 
