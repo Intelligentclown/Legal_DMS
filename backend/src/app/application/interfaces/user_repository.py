@@ -17,6 +17,7 @@ stayed generic because nothing had a concrete entity to plug in yet.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from uuid import UUID
 
 from app.application.interfaces.repository import AbstractRepository
@@ -50,4 +51,50 @@ class UserRepository(AbstractRepository[User], ABC):
         exists. Returns whether a row was actually deleted — the caller
         (T63's `remove_role()` route) is what turns `False` into a `404
         NotFoundError`, not this method."""
+        ...
+
+    @abstractmethod
+    async def set_current_user_context(self, user_id: UUID) -> None:
+        """T105/ADR-0021: sets the `app.current_user_id` Postgres session GUC
+        (transaction-local) on this repository's own session/connection —
+        the self-row RLS carve-out `JwtAuthenticationProvider` needs *before*
+        it can read its own `users` row to resolve an Organization (a
+        chicken-and-egg the plain org-scoped policy alone can't solve). Not
+        an ordinary data-access method — exists solely to propagate tenant
+        context, per `ADR/0021`'s "set once per session, before any
+        tenant-scoped query" requirement."""
+        ...
+
+    @abstractmethod
+    async def set_current_organization_context(self, organization_id: UUID | None) -> None:
+        """T105/ADR-0021: sets the `app.current_organization_id` Postgres
+        session GUC (transaction-local) via a bound `NULL` for a caller with
+        no resolved Organization yet. Fail-closed either way — the RLS
+        policies themselves (not this call) are what guarantee no
+        empty-string cast error, since Postgres does not reliably return
+        true `NULL` from `current_setting()` for a custom GUC that was ever
+        `set_config()`-ed to `NULL` on that connection (verified directly,
+        not assumed — see `SqlAlchemyUserRepository`'s implementation)."""
+        ...
+
+    @abstractmethod
+    async def get_by_id_in_organization(self, user_id: UUID, organization_id: UUID) -> User | None:
+        """T105: the target user, only if it belongs to `organization_id` —
+        used by `users.py`'s org-scoped routes so a cross-Organization
+        request gets the same `404` as a nonexistent id, never a data leak."""
+        ...
+
+    @abstractmethod
+    async def list_in_organization(
+        self, organization_id: UUID, *, limit: int = 100, offset: int = 0
+    ) -> Sequence[User]:
+        """T105: every `User` in `organization_id`, paginated — the
+        org-scoped equivalent of the generic `list()` `GET /users` used
+        before this task."""
+        ...
+
+    @abstractmethod
+    async def count_in_organization(self, organization_id: UUID) -> int:
+        """T105: total `User` count in `organization_id` — the org-scoped
+        equivalent of the generic `count()`, for pagination metadata."""
         ...

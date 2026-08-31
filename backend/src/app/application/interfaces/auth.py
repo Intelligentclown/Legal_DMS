@@ -28,6 +28,12 @@ class CurrentUser:
     display_name: str = "Anonymous"
     roles: frozenset[str] = field(default_factory=frozenset)
     is_authenticated: bool = False
+    # T105/ADR-0031 SS6.6: the caller's resolved Organization (tenant) id, read
+    # live from the database on every request -- never from a JWT claim. None
+    # means either an anonymous caller or an authenticated User who hasn't been
+    # assigned an Organization yet; every tenant-scoped operation must treat
+    # None as fail-closed (ADR/0021), never as "unscoped, proceed anyway."
+    organization_id: str | None = None
 
 
 class AuthenticationProvider(ABC):

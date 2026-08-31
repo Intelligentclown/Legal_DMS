@@ -20,6 +20,7 @@ from app.infrastructure.persistence.models import financial as financial
 from app.infrastructure.persistence.models import geography as geography
 from app.infrastructure.persistence.models import identity as identity
 from app.infrastructure.persistence.models import matter as matter
+from app.infrastructure.persistence.models import organization as organization
 from app.infrastructure.persistence.models import property as property
 from app.infrastructure.persistence.models import scheduling as scheduling
 from app.infrastructure.persistence.models import storage as storage
