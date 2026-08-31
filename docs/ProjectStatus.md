@@ -1,26 +1,35 @@
 # Project Status
 
-**Current Stage:** Backend authentication/authorization (`T41`–`T68`) and frontend/Electron
-fundamentals (`T69`–`T78`) are both done and merged. `PROJECT_STATE.json` labels the latter half
-`stage-4` ("Frontend & Electron Fundamentals"); `IMPLEMENTATION_QUEUE.md`/`docs/Roadmap.md` still
-file the whole `T41`–`T82` range under one "Stage 3 — Authentication & Authorization" heading —
-this is a genuine, disclosed naming inconsistency between Project-Manager-owned planning documents
-and `PROJECT_STATE.json`/`docs/ImplementationLog/`, not resolved by this update (see
-`PROJECT_CHECKPOINT.md` §2 for the full disclosure). `T79`, a verification-only pass intended to
-close this surface out, was **closed by the Project Owner as INCOMPLETE / NOT VERIFIED** — its
-Electron-specific session-persistence requirement (ADR-0018 D6) could not be exercised in this
-environment. `T82` (Electron-runtime live smoke verification, the direct follow-up) is reserved and
-scoped but **not authorized, not started**. See [PROJECT_CHECKPOINT.md](../PROJECT_CHECKPOINT.md)
-for the fullest current-state detail; this file gives the narrative version.
+**Current Stage:** Formally **Stage 3 — Authentication & Authorization** (`T41`–`T85`) — done and
+merged in full, including `T82`'s Electron-runtime live smoke verification (closed **FAIL**,
+QA-Approved-with-comments: the authenticated session did not survive a renderer reload or app
+restart) and its `T83`–`T85` follow-up fix (test-account provisioning, the session-restoration
+implementation, and a preload-script load-failure fix that had been blocking that implementation's
+own native verification). `T86`–`T103` followed as pre-Stage-4 governance/architecture-preparation
+work, not further Stage-3 implementation: `T86` adopted the governed Domain Model & Functional
+Specification; `T87`–`T94`, `T98`, and `T101` each drafted and resolved a Required ADR (ten of the
+specification's twenty planning-list items now resolved — see `PROJECT_STATE.json`'s
+`governanceLedger.resolvedRequiredADRs`); `T102` resolved User↔Organization membership/tenant-context
+semantics (`ADR/0031`), a gap outside that twenty-item list; `T103` resolved the narrow
+pre-existing-data-reconciliation slice of Required ADR #20 that `ADR/0031` itself left open
+(`ADR/0032`); `T95`/`T99`/`T100` built and then twice repaired the governance-validation tooling that
+gates all of the above. See "Completed — Governance & Required-ADR Resolution Series (`T86`–`T103`)"
+below for the full task-by-task record. **No Organization/Tenant Core implementation is authorized —
+`ADR/0031` §15 and `T102`'s own authorization text both require a fresh Project Manager/Control
+Tower re-assessment before any such implementation task can begin, and this file does not perform or
+imply that re-assessment.** See [PROJECT_CHECKPOINT.md](../PROJECT_CHECKPOINT.md) for further
+current-state detail as of its own last update (predates `T81`+ — not resynchronized by this pass,
+out of this task's authorized file scope); this file is the maintained narrative version.
 **Current Version:** 0.3.1 (see [CHANGELOG.md](../CHANGELOG.md)'s versioning note — the `v0.3.0`
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-08-28 (Documentation Manager, `T97` snapshot refresh — this file had gone
-stale again after the 2026-08-21 batch below, thirteen tasks behind: `T83`–`T96` were not reflected
-at all. See "Completed — Governance & Required-ADR Resolution Series (`T86`–`T96`)" below.
-`T97` (this refresh) is authorized, not yet Done — see `PROJECT_STATE.json`'s `governanceLedger` for
-the current, mechanically-validated authorized/Done state rather than re-deriving it here by hand).
+**Last Updated:** 2026-08-31 (Documentation Manager, post-`T103` synchronization, authorized by
+GitHub Issue #167 — a narrow documentation-only pass, not its own numbered task; no `T104` created.
+This file had gone stale at `T97`'s own authorization, six tasks behind: `T97`'s completion and all
+of `T98`–`T103` were not reflected here at all before now. See "Completed — Governance &
+Required-ADR Resolution Series (`T86`–`T103`)" below. `governanceLedger.latestTaskDone` /
+`.latestTaskAuthorized` are both `T103`, mechanically validated, not hand-derived here).
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working
@@ -447,12 +456,13 @@ duplicated here; this section is the status-dashboard-level summary this file ex
 - **`T76`** was formally resolved as **Superseded/Distributed** (its intended test coverage was
   completed cumulatively within `T72`–`T75`), not implemented as its own task.
 
-## Completed — Governance & Required-ADR Resolution Series (T86–T96)
+## Completed — Governance & Required-ADR Resolution Series (T86–T103)
 
-**Added by this Documentation Manager pass (2026-08-28) — this file had never covered `T83`–`T96` at
-all before now.** Full task-by-task detail lives in each task's own `IMPLEMENTATION_QUEUE.md` row
-and, for `T87` onward, in `docs/reviews/T<N>_Software_Architect_Report.md` /
-`T<N>_Implementation_Report.md`; not duplicated here.
+**Added by a Documentation Manager pass (2026-08-28) covering `T83`–`T96`; extended by a further pass
+(2026-08-31, GitHub Issue #167) covering `T97`'s actual completion and `T98`–`T103`, none of which
+had been reflected here before now.** Full task-by-task detail lives in each task's own
+`IMPLEMENTATION_QUEUE.md` row and, for `T87` onward, in `docs/reviews/T<N>_Software_Architect_Report.md` /
+`T<N>_Implementation_Report.md` / `T<N>_QA_Review.md`; not duplicated here.
 
 - **`T83`–`T85`, done and merged.** Closed out `T82`'s live-confirmed Electron session-restoration
   `FAIL` finding: `T83` provisioned a local Administrator test account; `T84` implemented the
@@ -485,27 +495,77 @@ and, for `T87` onward, in `docs/reviews/T<N>_Software_Architect_Report.md` /
   into `PROJECT_WORKFLOW.md` §3.1, and extended `docs/prompts/ProjectManager.md` §9's pre-merge gate
   with a required authorization-commit-ancestry check (`git merge-base --is-ancestor`), grounded
   explicitly in `T94`'s own incident history.
-- **`T97` — Documentation Manager Sync (this task) — authorized, not yet Done.** Refreshes this
-  file, `PROJECT_STATE.json`'s top-level snapshot, `docs/AI_HANDOVER.md`, `docs/SessionReport.md`,
-  and `PROJECT_WORKFLOW.md` §6's stale CI-workflow count through the completed `T86`–`T96` series.
-  Ordinary Documentation Manager maintenance, not a Required-ADR/governance-hardening task — see
-  `PROJECT_WORKFLOW.md` §3.1 for that distinction.
+- **`T97`, done and merged.** Documentation Manager Sync: refreshed this file, `PROJECT_STATE.json`'s
+  top-level snapshot, `docs/AI_HANDOVER.md`, `docs/SessionReport.md`, and `PROJECT_WORKFLOW.md` §6's
+  CI-workflow count through the completed `T86`–`T96` series. Merged same day as authorized: PR #145
+  (merge `c9438de`), QA Approved with comments.
+- **`T98`, done and merged.** Drafted and resolved Required ADR #14 (Activity vs Audit architecture)
+  as `ADR/0029` — `activity_logs` (descriptive business history) and `audit_logs` (immutable
+  accountability) confirmed as two permanently distinct, non-substitutable mechanisms; discloses,
+  without resolving, that neither table carries an `organization_id` column relative to `ADR/0021`'s
+  mandate. QA Approved with comments. Merged PR #148 (merge `acd5125`).
+- **`T99`, done and merged.** Governance Lifecycle / Required-CI Compatibility Remediation — added
+  `governanceLedger.inProgressTransitions`, letting one legitimate, mechanically-verified in-progress
+  Required-ADR transition pass the required Governance CI gate while genuine stale or unauthorized
+  drift still fails it. 14 new validator tests (49 total). QA Approved with comments. Merged PR #151
+  (merge `0387440d`).
+- **`T100`, done and merged.** Generalized `T99`'s own frontier-equality constraint after it was
+  found to wrongly reject `T98`'s still-open PR once `T99` itself closed out first — a design gap in
+  the delivered mechanism, not a defect in `T98`. QA Approved. Merged PR #154 (merge `3768348e`).
+  **Disclosed, unresolved as its own tracked governance item:** this closeout found the
+  `main-required-ci` ruleset's `required_approving_review_count` had drifted from `1` to `0`, and
+  three required status-check names no longer matched the workflows' actual job names — neither
+  change caused by `T100`. `T101`'s and `T102`'s own QA records each independently re-fetched the
+  ruleset and found `required_approving_review_count` back at `1` and the names matching, but no task
+  ever formally closed this out as its own finding — see `PROJECT_STATE.json`'s `currentStage.note`
+  for the fuller, dated disclosure.
+- **`T101`, done and merged.** Drafted and resolved Required ADR #8 (Matter-vs-File lifecycle/identity
+  boundary) as `ADR/0030` — the governed specification's layered Matter→File model confirmed to
+  control over `docs/BusinessRequirementsPlan.md`'s superseded File-Number-as-Matter-identity
+  language; Required ADR #10/#12/#20 disclosed as coupled-but-unresolved. Merged PR #158 (merge
+  `e7a29fae`) on a single collaborator approval **before** a formal QA Decision document existed — a
+  disclosed departure from the required pre-merge QA-persistence discipline every `T80`–`T100` task
+  had followed. QA Decision Approved with comments recorded post-merge, independently re-verified
+  against the actual merged `main` HEAD.
+- **`T102`, done and merged.** Drafted and resolved User↔Organization membership, onboarding, and
+  tenant-context semantics as `ADR/0031` — a gap the specification's own twenty-item Required-ADR list
+  never named (it sits between already-resolved #1 and #18): one-to-one optional cardinality, first-
+  Organization creation folded into the existing `bootstrap-admin` CLI, a nullable
+  `users.organization_id` FK orthogonal to `UserRole`, and tenant-context resolution via a live
+  database read, never a JWT claim. **`ADR/0031` §15 and this task's own authorization both explicitly
+  state that accepting the ADR does not itself authorize Organization/Tenant Core implementation.**
+  Same disclosed post-merge QA-sequencing departure as `T101`. Merged PR #162 (merge `8038e66d`).
+- **`T103`, done and merged.** Drafted and resolved the narrow User/Organization
+  pre-existing-data-reconciliation slice of Required ADR #20 as `ADR/0032` — how the one pre-`ADR-0031`
+  `User` row (the `T83`-bootstrapped Administrator) is reconciled with the new `organization_id`
+  column during migration. Explicitly does **not** claim to resolve the specification's own §21
+  migration-strategy planning-list item as a whole — Required ADR #10, #11, #12, #15, #16, #17, and
+  the general #20 remain unresolved. This task's own authorization required the QA Decision to be
+  persisted and independently re-verified **before** merge, restoring the discipline `T101`/`T102`
+  had departed from — and it was (review submitted 2026-08-31T12:17:44Z, merge 12:24:50Z). QA
+  Decision Accepted with comments. Merged PR #165 (merge `106f2e9`); governance closeout PR #166
+  (merge `d94d219`).
 
 `T82` itself remains exactly as recorded above: closed **`FAIL`**, QA-Approved-with-comments, not
 silently reinterpreted by this pass. No follow-up implementation task beyond `T84`/`T85` has been
-authorized for it.
+authorized for it. **No Organization/Tenant Core implementation task, branch, or PR exists anywhere
+in this repository as of this update** — that slice remains gated behind a fresh Project
+Manager/Control Tower re-assessment against `ADR/0031`/`ADR/0032`, not authorized or implied by any
+task recorded above.
 
 ## Pending
 
-**Update (2026-08-28):** the paragraph below is now itself stale in one respect — see "Completed —
-Governance & Required-ADR Resolution Series (`T86`–`T96`)" above for what happened since. As of this
-update, two items are open, not one: a follow-up implementation task for `T82`'s Electron
-session-restoration finding remains **not authorized** (unchanged since 2026-08-21), and `T97`
-(this Documentation Manager sync) is **authorized, not yet Done** — the difference between the two
-being that `T97` has actual repository-recorded authorization (`IMPLEMENTATION_QUEUE.md`'s `T97`
-row, PR #144) where `T82`'s follow-up has none. Nine Required ADRs (`#8`, `#10`, `#11`, `#12`,
-`#14`–`#17`, `#20`) also remain unresolved, per `PROJECT_STATE.json`'s `governanceLedger` — not
-"pending" in the authorized-task sense, since no task currently targets them.
+**Update (2026-08-31, Documentation Manager, post-`T103` synchronization, GitHub Issue #167):** the
+two paragraphs below are now both stale — see "Completed — Governance & Required-ADR Resolution
+Series (`T86`–`T103`)" above for what happened since. As of this update: `T97` is Done (not merely
+authorized); a follow-up implementation task for `T82`'s Electron session-restoration finding remains
+**not authorized** (unchanged since 2026-08-21 — no task has targeted it since `T84`/`T85` closed the
+finding out); seven Required ADRs (`#10`, `#11`, `#12`, `#15`, `#16`, `#17`, `#20`, down from nine —
+`#8` and `#14` resolved by `T101`/`T98`) remain unresolved per `PROJECT_STATE.json`'s
+`governanceLedger` — not "pending" in the authorized-task sense, since no task currently targets any
+of them; and Organization/Tenant Core implementation remains **not authorized**, gated behind a fresh
+Project Manager/Control Tower re-assessment against `ADR/0031`/`ADR/0032` per `ADR/0031` §15 — no
+such re-assessment, and no `T104`, has been performed or created by this synchronization pass.
 
 **Update (2026-08-21):** Stage 3/4 are no longer undefined — see "Completed — Stage 3 ... and Stage
 4 ..." above. The one genuinely open item is `T82` (Electron-runtime live smoke verification),

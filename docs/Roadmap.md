@@ -405,9 +405,26 @@ recorded, not fixed: `electron/preload.ts`'s `getRefreshToken()` is not surfaced
 **`T82` (Electron-runtime live smoke verification) was opened as the direct follow-up — reserved and
 scoped only. `T82` is NOT authorized and NOT started.** Published via PR #71/#72, merge `95bfae1`.
 
+**Update (2026-08-31, Documentation Manager, post-`T103` synchronization, GitHub Issue #167):** the
+paragraph immediately above is now stale — `T82` was subsequently authorized, executed by the project
+owner against the actual native Electron `BrowserWindow`, and closed **FAIL** (the authenticated
+session did not survive a renderer reload or full app restart), QA-Approved-with-comments. `T83`–`T85`
+then closed that finding out (test-account provisioning; the session-restoration fix; a preload-script
+load-failure fix blocking that fix's own native verification) — all done and merged. Stage 3
+(`T41`–`T85`) is complete in full. `T86`–`T103` followed as pre-Stage-4 governance/architecture
+groundwork, not further Stage 3 implementation: `T86` adopted the governed Domain Model & Functional
+Specification as the Required-ADR planning baseline; `T87`–`T94`, `T98`, and `T101` resolved ten of
+its twenty Required ADRs; `T102`/`T103` resolved User↔Organization membership/tenant-context
+semantics and its narrow pre-existing-data-reconciliation slice — two ADRs outside that original
+twenty-item list; `T95`/`T99`/`T100` built and repaired the governance-validation tooling gating all
+of the above. See `docs/ProjectStatus.md`'s "Completed — Governance & Required-ADR Resolution Series"
+section for the full record; not duplicated here. **Organization/Tenant Core implementation itself
+remains not authorized** — `ADR/0031` §15 requires a fresh Project Manager/Control Tower
+re-assessment before any such implementation task can begin, which this update does not perform.
+
 | Feature | Status |
 |---|---|
-| Authentication / login | Backend + frontend done and merged (`T41`–`T78`); Electron-runtime session persistence unverified (`T79`); `T82` (live smoke verification) reserved, not authorized |
+| Authentication / login | Backend + frontend done and merged (`T41`–`T78`); Electron-runtime session persistence verified and fixed (`T82` FAIL, `T84`/`T85` fix, done and merged) |
 | Authorization (RBAC) | Done and merged (`T41`–`T68`) |
 
 ## Stage 4+ — Not yet planned
@@ -417,6 +434,15 @@ the original project charter named them as the eventual scope; **do not implemen
 without an explicit go-ahead** — see [FutureIdeas.md](FutureIdeas.md) for why Stages 0–2 stayed
 deliberately business-logic-free. The database schema each of these would sit on already exists
 (Stage 2) — the work here is wiring a repository/service/route to it, not schema design.
+
+**Update (2026-08-31, Documentation Manager, GitHub Issue #167):** `T86`–`T103` (see above) did
+pre-implementation architecture groundwork for an Organization/Tenant Core vertical slice — ten of
+the specification's twenty Required ADRs resolved, plus `ADR/0031`/`ADR/0032` deciding
+User↔Organization membership and its pre-existing-data reconciliation — but **no Organization/Tenant
+Core implementation task exists or is authorized**. `ADR/0031` §15 requires a fresh Project
+Manager/Control Tower re-assessment against the now-resolved ADR set before any such task can be
+authorized; this table is not being reordered or re-prioritized by this update to anticipate that
+outcome.
 
 | Feature | Status |
 |---|---|
