@@ -3279,3 +3279,100 @@ both pass (0 errors, 35/35) as of `T96`'s close and throughout `T97`'s own imple
 application, database, schema, backend, frontend, or Electron code was touched by `T86`–`T97` — all
 nine-plus-one tasks in this entry are documentation/architecture/governance-tooling only. No ADR
 outside `ADR/0021`–`ADR/0028` was created or modified.
+
+## Session: 2026-08-28 to 2026-08-31 — T97 Closeout, T98–T100 Governance/Required-ADR Series, T101–T103 Required ADR #8/User-Organization Series
+
+**Objectives:** Close out T97 (authorized at the end of the prior session); resolve further Required
+ADRs where dependency ordering allowed; repair a structural incompatibility between the three-PR
+Required-ADR lifecycle and the governance validator's strict-drift detection, twice; resolve the
+previously-unnamed User↔Organization membership gap; resolve the narrow pre-existing-data slice of
+Required ADR #20 that resolution immediately exposed.
+
+**Completed Tasks:**
+
+1. **T97 (done, merged)** — the prior session's own final act was authorizing this task; it completed
+   the same day: refreshed `PROJECT_STATE.json`, `docs/ProjectStatus.md`, `docs/AI_HANDOVER.md`, and
+   this file through the `T86`–`T96` series, and corrected `PROJECT_WORKFLOW.md` §6's stale
+   CI-workflow count. QA Approved with comments. Merged PR #145 (merge `c9438de`).
+2. **T98 (done, merged)** — `ADR/0029`, resolving Required ADR #14 (Activity vs Audit architecture).
+   `activity_logs`/`audit_logs` confirmed as two permanently distinct mechanisms; discloses, without
+   resolving, that neither carries `organization_id`. QA Approved with comments. Merged PR #148
+   (merge `acd5125`).
+3. **T99 (done, merged)** — Governance Lifecycle / Required-CI Compatibility Remediation. The
+   three-PR Required-ADR lifecycle intentionally defers `governanceLedger` synchronization to the
+   Governance Closeout step, but the validator's strict drift-detection (`T95`) correctly flagged that
+   deferred state as an `ERROR`, blocking the required Governance CI check — a structural
+   incompatibility between two already-adopted, already-correct mechanisms, first surfaced directly
+   against `T98`'s own branch. Added `governanceLedger.inProgressTransitions`: an optional,
+   mechanically-verified declaration letting one legitimate, currently-authorized, not-yet-Done
+   transition pass, while genuine stale or unauthorized drift still fails. 14 new tests (49 total). QA
+   Approved with comments. Merged PR #151 (merge `0387440d`).
+4. **T100 (done, merged)** — `T99`'s own delivered mechanism required the declared transition's task
+   to equal the single numerically-highest authorized task; because `T99` itself was authorized,
+   implemented, and closed before `T98`'s own PR could merge, `T98` became simultaneously "not the
+   frontier" and, once `T99` closed, at risk of being read as settled — neither of the two candidate
+   declarations validated. Removed the now-redundant frontier-equality constraint; the existing
+   authorized/not-yet-Done checks already express the real requirement. 51 tests total. QA Approved.
+   Merged PR #154 (merge `3768348e`). **Disclosed by this closeout's own verification, not concealed:**
+   the `main-required-ci` ruleset's `required_approving_review_count` had drifted from `1` to `0`, and
+   three required status-check contexts no longer matched the workflows' actual job names — neither
+   change caused by `T100`. Recorded as a live, unresolved governance-control gap at the time; see
+   item 5 below for what the subsequent record shows.
+5. **T101 (done, merged)** — `ADR/0030`, resolving Required ADR #8 (Matter-vs-File lifecycle/identity
+   boundary): `docs/BusinessRequirementsPlan.md`'s superseded File-Number-as-Matter-identity language
+   is confirmed to yield to the governed specification's layered Matter→File model, consistent with
+   `ADR/0027`'s already-accepted per-File numbering. Required ADR #10/#12/#20 disclosed as
+   coupled-but-unresolved. Merged PR #158 (merge `e7a29fae`) on a single collaborator approval
+   **before** a formal QA Decision document existed — a disclosed departure from the pre-merge
+   QA-persistence discipline every `T80`–`T100` task had actually followed. QA Decision Approved with
+   comments recorded post-merge, independently re-verified against the merged `main` HEAD; that
+   re-verification independently re-fetched the `main-required-ci` ruleset and found
+   `required_approving_review_count` back at `1`, genuinely satisfied at the actual merge instant —
+   the item 4 drift window had already closed by this point, per `docs/reviews/T99_Governance_Closeout_Correction.md`'s
+   own disclosed ruleset-version timing.
+6. **T102 (done, merged)** — `ADR/0031`, resolving User↔Organization membership, onboarding, and
+   tenant-context semantics — a gap the specification's own twenty-item Required-ADR list never named
+   (it sits in the seam between already-resolved #1 and #18). Decides one-to-one optional cardinality;
+   first-Organization creation folded into `bootstrap-admin`; a nullable `users.organization_id` FK
+   orthogonal to `UserRole`; tenant-context resolution via a live database read, never a JWT claim; one
+   new `CurrentUser` field. **Explicitly does not authorize Organization/Tenant Core implementation**
+   (`ADR/0031` §15). Same disclosed post-merge QA-sequencing departure as `T101`. Merged PR #162
+   (merge `8038e66d`).
+7. **T103 (done, merged)** — `ADR/0032`, resolving the narrow slice of Required ADR #20 that
+   `ADR/0031` §6.7/§12 named and declined to design: how the one pre-`ADR-0031` `User` row (the
+   `T83`-bootstrapped Administrator) is reconciled with the new `organization_id` column during
+   migration. Does not claim to resolve the specification's own §21 migration-strategy item as a
+   whole — Required ADR #10, #11, #12, #15, #16, #17, and the general #20 remain unresolved. This
+   task's own authorization required the QA Decision persisted and independently re-verified
+   **before** merge, restoring the discipline `T101`/`T102` had departed from, and it was (review
+   2026-08-31T12:17:44Z, merge 12:24:50Z). QA Decision Accepted with comments. Merged PR #165 (merge
+   `106f2e9`); governance closeout PR #166 (merge `d94d219`).
+
+**Governance-control gap, tracked across this entry (items 4–5):** `T100`'s own closeout found the
+`main-required-ci` ruleset weakened outside any task's own diff; `T101`'s and `T102`'s independent
+re-fetches each found it restored by the time of their own merges, and `T99`'s own PR #150
+(`ci/t99-required-check-naming`) is the disclosed source of the required-check-name fix. No task has
+formally adopted closing this specific finding as its own scope — carried forward, not silently
+absorbed.
+
+**Post-session synchronization (2026-08-31, Documentation Manager, GitHub Issue #167):** the
+documentation pass recording this session's own entry above is itself a narrow, documentation-only
+task authorized by GitHub Issue #167 rather than a numbered `IMPLEMENTATION_QUEUE.md` task — no
+`T104` was created or authorized by it, matching that issue's own explicit exclusion. It also
+synchronized `PROJECT_STATE.json` (top-level `lastUpdated`, `currentStage.note`, `completion.note`,
+and the previously-stale `adrs` array, which had listed only `0001`–`0020` since before `ADR/0021`
+existed — a drift `T98`'s own row had already flagged and explicitly left uncorrected),
+`docs/ProjectStatus.md`, and `docs/AI_HANDOVER.md` through `T103`. `docs/Roadmap.md` and
+`docs/ArchitectureScorecard.md` were assessed and corrected only where demonstrably stale — see each
+file's own edit history for what changed and why; no new architectural assessment was performed. No
+application, database, schema, ADR, `scripts/governance_validate.py`, or governance-validator test
+file was touched by this synchronization pass. **No Organization/Tenant Core implementation task,
+branch, or PR exists anywhere in this repository as of this update** — that slice remains gated
+behind a fresh Project Manager/Control Tower re-assessment against `ADR/0031`/`ADR/0032`, per
+`ADR/0031` §15, not authorized or performed by this pass.
+
+**Verified:** `python scripts/governance_validate.py` and the governance test suite (51 tests as of
+`T100`) reported 0 errors / all passing at each task's own closeout, per that task's own record above
+— not independently re-run by this documentation-only synchronization pass, which touched no
+application, test, or governance-validator file. No ADR outside `ADR/0029`–`ADR/0032` was created or
+modified this session.

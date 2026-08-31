@@ -1,15 +1,38 @@
 # Architecture Scorecard
 
-**Last Updated:** 2026-08-22
+**Last Updated:** 2026-08-22 (capability rows below) — see the 2026-08-31 staleness disclosure
+immediately following this header block for what has changed since and has **not** been reassessed.
 **Current Project Version:** 0.3.1 (see [docs/CHANGELOG.md](CHANGELOG.md)'s versioning note — not
 bumped as part of this reassessment; CHANGELOG/release-note sync remains deferred, see T80's
 narrowed scope below)
-**Current Stage:** Stage 3 — Authentication & Authorization (in progress). `T41`–`T78` are Done and
+**Current Stage:** Stage 3 — Authentication & Authorization (in progress as of 2026-08-22; see the
+staleness disclosure below for its current status). `T41`–`T78` are Done and
 merged; `T79` (verification-only) is closed as **INCOMPLETE / NOT VERIFIED**, explicitly not a PASS;
 `T80` (this reassessment) is in progress; `T81` (unrelated README cleanup) and `T82` (Electron-runtime
 live smoke verification) are reserved task IDs, **not authorized**. See
 [PROJECT_STATE.json](../PROJECT_STATE.json) for the machine-readable snapshot and
 [IMPLEMENTATION_QUEUE.md](../IMPLEMENTATION_QUEUE.md) for the full task-by-task record.
+
+**Staleness disclosure (2026-08-31, Documentation Manager, post-`T103` synchronization, GitHub Issue
+#167):** the header block above is demonstrably stale relative to the current repository and is
+corrected here at the pointer level only — **no capability row below has been reassessed by this
+pass**, and no new architectural assessment is authorized or performed by it (that remains a
+Software-Architect/QA-gated exercise, as `T80` itself was). What has actually happened since
+2026-08-22: `T80` (this reassessment) completed and merged; `T81` (README cleanup) completed and
+merged; `T82` was authorized, executed against the actual native Electron runtime, and closed
+**FAIL** (session did not survive reload/restart), QA-Approved-with-comments; `T83`–`T85` closed
+that finding out (test-account provisioning, the session-restoration fix, and a preload-script fix
+blocking that fix's own verification) — Stage 3 (`T41`–`T85`) is now complete in full, not merely
+`T41`–`T78`. `T86`–`T103` then performed pre-Stage-4 governance/architecture groundwork, not further
+Stage 3 implementation: ten of the specification's twenty Required ADRs are now resolved (up from
+zero at this file's last reassessment), plus two ADRs outside that original list (`ADR/0031`,
+`ADR/0032`) deciding User↔Organization membership/tenant-context semantics and its pre-existing-data
+reconciliation. See `docs/ProjectStatus.md`'s "Completed — Governance & Required-ADR Resolution
+Series" section for the full record. **Whether any of this changes a capability row's status,
+maturity symbol, or the Overall Architecture Health rating below is exactly the kind of judgment a
+full reassessment makes — this disclosure does not make that judgment, and a fresh reassessment pass
+(the next natural candidate being one gated on the eventual Organization/Tenant Core re-authorization
+this ADR series feeds into) remains a separate, not-yet-authorized task.**
 
 **Terminology note (corrects this file's prior revision):** `docs/ImplementationLog/Stage4/` names
 its own directory "Stage 4," and this file's 2026-08-06 revision (and other documents) previously

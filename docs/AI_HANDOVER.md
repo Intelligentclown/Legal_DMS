@@ -672,23 +672,105 @@ series:
   [`/PROJECT_WORKFLOW.md`](../PROJECT_WORKFLOW.md) §3.1 and extended
   [`/docs/prompts/ProjectManager.md`](prompts/ProjectManager.md) §9 with a required
   authorization-commit-ancestry pre-merge check, grounded explicitly in `T94`'s incident history.
-- **`T97` (this update) — authorized, not yet Done.** Documentation Manager Sync: refreshing this
-  file, `docs/ProjectStatus.md`, `docs/SessionReport.md`, `PROJECT_STATE.json`'s top-level
-  snapshot, and `PROJECT_WORKFLOW.md` §6's CI-workflow count through the completed `T86`–`T96`
-  series. Ordinary Documentation Manager maintenance, not a Required-ADR/governance-hardening task.
+- **`T97`, done and merged.** Documentation Manager Sync: refreshed this file, `docs/ProjectStatus.md`,
+  `docs/SessionReport.md`, `PROJECT_STATE.json`'s top-level snapshot, and `PROJECT_WORKFLOW.md` §6's
+  CI-workflow count through the completed `T86`–`T96` series. Merged same day as authorized: PR #145
+  (merge `c9438de`), QA Approved with comments.
 
-`T86`–`T96` was pre-Stage-4 governance/architecture-preparation work, not Stage-3 implementation —
+`T86`–`T97` was pre-Stage-4 governance/architecture-preparation work, not Stage-3 implementation —
 `PROJECT_STATE.json`'s `currentStage` is not being reinterpreted to claim Stage 3 status changed.
+
+**Update (2026-08-31, Documentation Manager, post-`T103` synchronization, authorized by GitHub Issue
+#167 — a narrow documentation-only pass, not its own numbered task; no `T104` created).** This section
+had gone stale again at `T97`'s own authorization — its actual completion and all of `T98`–`T103` were
+not reflected here before now:
+
+- **`T98`, done and merged.** Drafted and resolved Required ADR #14 (Activity vs Audit architecture)
+  as [`ADR/0029`](../ADR/0029-activity-vs-audit-architecture-boundary-and-coverage.md) — `activity_logs`
+  (descriptive) and `audit_logs` (accountability) confirmed as two permanently distinct mechanisms,
+  composed with, not modified by, `ADR/0007`/`ADR/0009`; discloses, without resolving, that neither
+  table carries `organization_id` relative to `ADR/0021`'s mandate. QA Approved with comments
+  (`docs/reviews/T98_Software_Architect_Report.md`; a later delta re-review independently reconfirmed
+  the merged content byte-identical). Merged PR #148 (merge `acd5125`).
+- **`T99`, done and merged.** Governance Lifecycle / Required-CI Compatibility Remediation — added
+  `governanceLedger.inProgressTransitions` to `scripts/governance_validate.py`, letting one legitimate,
+  mechanically-verified in-progress Required-ADR transition pass Governance CI while genuine stale or
+  unauthorized drift still fails it (14 new tests, 49 total). QA Approved with comments
+  (`docs/reviews/T99_Governance_Transition_Mechanism_QA_Review.md`). Merged PR #151 (merge `0387440d`).
+- **`T100`, done and merged.** Generalized `T99`'s own frontier-equality constraint after direct
+  reproduction showed it wrongly rejected `T98`'s still-open PR once `T99` itself closed out first — a
+  design gap in the delivered mechanism, not in `T98`. 51 tests total. QA Approved
+  (`docs/reviews/T100_Frontier_Generalization_QA_Review.md`). Merged PR #154 (merge `3768348e`).
+  **Disclosed, not concealed, and not yet closed out as its own governance item:** this closeout found
+  the `main-required-ci` ruleset's `required_approving_review_count` had drifted from `1` to `0`, and
+  three required status-check contexts no longer matched the workflows' actual job names — neither
+  change caused or authorized by `T100`. `T101`'s and `T102`'s own QA records each independently
+  re-fetched the ruleset afterward and found `required_approving_review_count` back at `1` and the
+  names matching (`T99`'s own PR #150, `ci/t99-required-check-naming`, is the disclosed source of the
+  naming fix) — but no task has ever formally adopted closing this specific finding as its own scope.
+- **`T101`, done and merged.** Drafted and resolved Required ADR #8 (Matter-vs-File lifecycle/identity
+  boundary) as [`ADR/0030`](../ADR/0030-matter-file-lifecycle-and-identity-boundary.md) — the governed
+  specification's layered Matter→File model confirmed to control over
+  `docs/BusinessRequirementsPlan.md`'s superseded File-Number-as-Matter-identity language; Required
+  ADR #10/#12/#20 disclosed as coupled-but-unresolved. Merged PR #158 (merge `e7a29fae`) on a single
+  collaborator approval **before** a formal QA Decision document existed — a disclosed departure from
+  the pre-merge QA-persistence discipline every `T80`–`T100` task had actually followed. QA Decision
+  Approved with comments recorded post-merge (`docs/reviews/T101_QA_Review.md`), independently
+  re-verified against the actual merged `main` HEAD, not accepted from any prior report.
+- **`T102`, done and merged.** Drafted and resolved User↔Organization membership, onboarding, and
+  tenant-context semantics as [`ADR/0031`](../ADR/0031-user-organization-membership-onboarding-tenant-context.md)
+  — a gap the specification's own twenty-item Required-ADR list never named (it sits between
+  already-resolved #1 and #18): one-to-one optional cardinality; first-Organization creation folded
+  into the existing `bootstrap-admin` CLI; a nullable `users.organization_id` FK orthogonal to
+  `UserRole` (Roles/Permissions stay global); active tenant-context resolution via a live database
+  read in `JwtAuthenticationProvider`, never a JWT claim; one new `CurrentUser.organization_id` field.
+  **`ADR/0031` §15, and this task's own authorization text, both explicitly state that accepting the
+  ADR does not itself authorize Organization/Tenant Core implementation.** Same disclosed post-merge
+  QA-sequencing departure as `T101`. Merged PR #162 (merge `8038e66d`).
+- **`T103`, done and merged.** Drafted and resolved the narrow User/Organization
+  pre-existing-data-reconciliation slice of Required ADR #20 as
+  [`ADR/0032`](../ADR/0032-user-organization-pre-existing-data-reconciliation.md) — how the one
+  pre-`ADR-0031` `User` row (the `T83`-bootstrapped Administrator) is reconciled with the new
+  `organization_id` column during migration. Explicitly does **not** claim to resolve the
+  specification's own §21 migration-strategy planning-list item as a whole — Required ADR #10, #11,
+  #12, #15, #16, #17, and the general #20 remain unresolved. This task's own authorization required
+  the QA Decision to be persisted and independently re-verified **before** merge, restoring the
+  discipline `T101`/`T102` had departed from — and it was (review submitted
+  2026-08-31T12:17:44Z, merge 12:24:50Z). QA Decision Accepted with comments
+  (`docs/reviews/T103_QA_Review.md`). Merged PR #165 (merge `106f2e9`); governance closeout PR #166
+  (merge `d94d219`).
+
+Current settled governance state, per `PROJECT_STATE.json`'s `governanceLedger` (mechanically
+validated, not hand-derived): `latestTaskDone`/`latestTaskAuthorized` both `T103`; ten of the
+specification's twenty Required ADRs resolved (`#1`–`#9`, `#13`, `#14`, `#18`, `#19` — the exact set
+is `resolvedRequiredADRs`); seven unresolved (`#10`, `#11`, `#12`, `#15`, `#16`, `#17`, `#20`). **No
+Organization/Tenant Core implementation task, branch, or PR exists anywhere in this repository** —
+that slice remains gated behind a fresh Project Manager/Control Tower re-assessment against
+`ADR/0031`/`ADR/0032`, per `ADR/0031` §15 and `T102`'s own "crucial control" clause; this
+synchronization pass (GitHub Issue #167, documentation-only, no `T104` created) does not perform or
+imply that re-assessment. `T86`–`T103` was pre-Stage-4 governance/architecture-preparation work, not
+Stage-3 implementation — `PROJECT_STATE.json`'s `currentStage` is not reinterpreted to claim Stage 3
+status changed by any of it.
 
 ## Pending Work
 
-**Update (2026-08-28, Documentation Manager, `T97` sync):** the 2026-08-21 paragraph below is itself
-now stale in one respect — a follow-up implementation task for `T82`'s Electron session-restoration
-finding remains **not authorized** (unchanged), but it is no longer the only open item: `T97` (this
-sync) is **authorized, not yet Done** (`IMPLEMENTATION_QUEUE.md`'s `T97` row, PR #144), and nine
-Required ADRs (`#8`, `#10`, `#11`, `#12`, `#14`–`#17`, `#20`) remain unresolved per
-`PROJECT_STATE.json`'s `governanceLedger` — see "Current Stage" above for the full `T83`–`T96`
-record.
+**Update (2026-08-31, Documentation Manager, post-`T103` synchronization, GitHub Issue #167):** the
+2026-08-28 paragraph immediately below is itself now stale — `T97` is Done (not merely authorized),
+and `T98`–`T103` have all since completed (see "Current Stage" above for the full record). As of this
+update: a follow-up implementation task for `T82`'s Electron session-restoration finding remains
+**not authorized** (unchanged since 2026-08-21); seven Required ADRs (`#10`, `#11`, `#12`, `#15`,
+`#16`, `#17`, `#20`) remain unresolved per `PROJECT_STATE.json`'s `governanceLedger`; and
+Organization/Tenant Core implementation remains **not authorized**, gated behind a fresh Project
+Manager/Control Tower re-assessment against `ADR/0031`/`ADR/0032` — that is the next governance gate,
+not performed or implied by this synchronization pass.
+
+**Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
+paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
+Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the
+only open item: `T97` (this sync) is **authorized, not yet Done** (`IMPLEMENTATION_QUEUE.md`'s `T97`
+row, PR #144), and nine Required ADRs (`#8`, `#10`, `#11`, `#12`, `#14`–`#17`, `#20`) remain
+unresolved per `PROJECT_STATE.json`'s `governanceLedger` — see "Current Stage" above for the full
+`T83`–`T96` record.
 
 **Update (2026-08-21, Documentation Manager catch-up):** the paragraph below describes the state as
 of Stage 2's close and is preserved as historical context, not current reality — see the `T70`–`T82`
