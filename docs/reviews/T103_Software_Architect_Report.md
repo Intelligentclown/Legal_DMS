@@ -10,6 +10,49 @@ commit ancestry via PR #164, merge `e9550ae2a4322ee9da69e6fa4b24e2f76b9573ba`, h
 
 ---
 
+## Rework (2026-08-31) — read this first
+
+**Before any QA review occurred**, the Control Tower identified a defect in the original `ADR/0032`
+(commit `4fb36c874a76941cad0d94e2704d56a84d085612`, PR #165): its Decision section assumed every
+deployment serves exactly one legal practice, and on that basis had the reconciliation mechanism
+*automatically* create one Organization and assign every pre-existing `NULL`-organization `User` row
+to it. That assumption was wrong, for two reasons independently verified before reworking, not merely
+accepted on the Control Tower's word:
+
+1. `docs/BusinessRequirementsPlan.md`'s own status note states, in full: *"the system is not scoped to a
+   single practitioner and is intended for use by multiple users/practices once complete"* — the
+   original ADR's citation of this same document captured its general single-practice framing but
+   missed this specific, directly on-point sentence.
+2. `ADR/0021`'s own architecture is itself evidence against single-Organization-per-database: it builds
+   a genuinely multi-tenant enforcement mechanism (mandatory `organization_id`, `FORCE`d RLS, schema-
+   per-tenant explicitly rejected on cost grounds — a rejection that presupposes multiple tenants exist
+   to isolate). A product where every deployment serves only one Organization would need none of this.
+
+The corrected mechanism now requires the deployment operator to explicitly map every pre-existing
+`NULL`-organization `User` row to an Organization (creating one or more as the operator's actual data
+requires), rather than presuming a single Organization for all of them — eliminating the silent
+cross-practice-merge risk the original version carried. `ADR/0031`'s own cardinality decision (a User
+belongs to at most one Organization) is unaffected and not reopened: it is orthogonal to how many
+Organizations exist in total, which is the question that was actually wrong.
+
+`ADR/0032` itself was revised in place (its withdrawn Decision text is preserved, marked, and explained
+in a "REWORK NOTICE" at the top of its own §3, rather than silently deleted) — see the new §3a "Corrected
+Multi-Practice Analysis" and §3b "Corrected Decision" there for the full architectural reasoning. **No
+STOP condition was triggered by this rework**: the one genuinely unresolved fact (which real-world Users
+belong to which real-world practice) remains, as it always was, explicitly deferred to operator input at
+run time — not decided as business policy by this ADR either before or after the correction. What
+changed is that the *architecture* no longer presumes an answer to that question on the operator's
+behalf.
+
+Sections 1–8 below, and the Reviewer Checklist, describe the original pass and are **preserved
+unmodified** as the historical record of what was originally verified — they remain accurate as
+descriptions of the authorization/evidence-gathering process, which the rework did not need to redo.
+Where a claim in those original sections describes ADR content that has since changed (e.g. "one
+Organization" language in the original §3/§4 summaries below), the rework above and `ADR/0032`'s own
+current text are authoritative, not the original section's summary.
+
+---
+
 ## 1. Verified Baseline and Authorization
 
 - `git fetch origin` + `git rev-parse origin/main`: `e9550ae2a4322ee9da69e6fa4b24e2f76b9573ba` —
@@ -194,12 +237,19 @@ Reviewer Checklist
 independent QA Decision must be **rendered and persisted on this PR's actual remote HEAD before this
 PR is merged** — not after, reversing the sequencing gap `T101` (PR #158) and `T102` (PR #162) both
 disclosed. This report does **not** say "QA passed" and does not substitute for that independent
-review. The QA Reviewer is specifically asked to independently verify: that `ADR/0032`'s reasoning for
-"the auto-created Organization represents the real practice, not a placeholder" genuinely traces to
-existing evidence rather than being asserted; that the selected mechanism (dedicated CLI, not an
-embedded data migration) is the right read of this repository's own established conventions; that the
-alternatives table is genuine, not a strawman; that no accepted ADR (`ADR/0018`–`ADR/0031`) is
-reopened; that Required ADR #20 is resolved only for this narrow slice, not in general; and that the
+review. **This PR has been reworked once already, before any QA review occurred** — see the "Rework
+(2026-08-31)" section at the top of this report for the full account of the correction (the original
+version's single-practice assumption was withdrawn and replaced with an explicit-operator-mapping
+mechanism). The QA Reviewer is specifically asked to independently verify: that `ADR/0032` §3a's
+multi-practice analysis genuinely traces to existing evidence (the `BusinessRequirementsPlan.md` quote
+and `ADR/0021`'s own multi-tenant architecture) rather than being asserted; that the corrected mechanism
+(§3b) genuinely eliminates the cross-practice-merge risk rather than merely relocating it; that
+`ADR/0031`'s cardinality decision is genuinely not reopened by this correction (it is orthogonal, per
+§3a's own argument — QA should independently confirm that orthogonality holds, not accept it asserted);
+that the selected mechanism (dedicated CLI, not an embedded data migration) is the right read of this
+repository's own established conventions; that the alternatives table is genuine, not a strawman; that
+no accepted ADR (`ADR/0018`–`ADR/0031`) is reopened; that Required ADR #20 is resolved only for this
+narrow slice, not in general; and that the
 changed-file scope is exactly the two files named above. **This PR must not be merged until that QA
 Decision exists on its actual remote HEAD.**
 

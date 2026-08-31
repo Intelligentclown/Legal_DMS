@@ -57,60 +57,135 @@ ad hoc workaround" `T103`'s own authorization named as the risk this task exists
 
 ## 3. Decision
 
-**A dedicated, one-time, interactive CLI command — mirroring `bootstrap-admin`'s own established shape
-exactly — reconciles pre-existing `User` rows by creating exactly one Organization (if any
-`organization_id IS NULL` row exists) and assigning every such row to it, atomically, in a single
-transaction.** This is a **mechanism decision**, not a data-migration-embedded-in-Alembic decision:
-schema change (adding the nullable column) and data reconciliation (populating it for legacy rows)
-are kept as two separate concerns, exactly as this repository already separates "seed lookup data via
-Alembic" from "create the first identity-bearing business row via an interactive CLI" (T67's own
-precedent).
+**REWORK NOTICE (2026-08-31):** this section originally decided that the reconciliation mechanism
+should *automatically* create exactly one Organization and assign every pre-existing `NULL`-
+organization `User` row to it, reasoning that the product is a single-practice-per-deployment tool.
+That reasoning was wrong and has been withdrawn — see "3a. Corrected Multi-Practice Analysis" below
+for why, and "3b. Corrected Decision" for the replacement. The withdrawn reasoning is not deleted from
+this ADR's history; it is superseded in place, consistent with this repository's own practice of
+recording a defect and its correction rather than silently rewriting history (`docs/reviews/
+T103_Software_Architect_Report.md`'s own Rework section carries the full account).
 
-**What the auto-created Organization represents — resolved from existing evidence, not invented:** it
-represents **the actual, real legal practice operating this deployment** — not a throwaway "legacy"
-placeholder, not an arbitrarily-chosen tenant, and not a synthetic "System" account. This follows
-directly from evidence already established, not newly asserted here: `docs/BusinessRequirementsPlan.md`
-describes a single-practice internal tool throughout (no multi-firm/client-facing scenario named
-anywhere); `ADR/0021`'s own deployment-scale assumption is explicitly "a single legal-documentation
-office's internal tool"; `ADR/0031`'s own cardinality decision (one-to-one) rests on the same
-single-practice premise. Given a deployment has, by this already-established assumption, exactly one
-real practice using it, every pre-existing `User` row in that deployment's database necessarily
-belongs to that same one, real Organization — there is no second candidate Organization to choose
-among, so this is a mechanical consequence of already-accepted evidence, not a new business choice.
+### 3a. Corrected Multi-Practice Analysis
 
-**What remains genuinely unresolved by this ADR, and is not invented here:** the Organization's actual
-identifying content (its name/legal-name, per `ADR/0031` §1's own `DERIVED` "near-certainly required"
-field) is real business data only the deployment operator knows — this ADR does not hardcode, default,
-or guess it. The command prompts for it interactively at the point of reconciliation, mirroring
-`ADR/0018` D4's own reasoning for why first-admin credentials are never accepted via argv/env/config:
-identity-bearing business data belongs to an interactive prompt, not a script default.
+The withdrawn reasoning rested on an inference — "this deployment serves exactly one practice" — drawn
+from `ADR/0021`'s stated *deployment-scale assumption* ("a single legal-documentation office's internal
+tool," used there only to justify shared-schema over schema-per-tenant on operational-cost grounds) and
+from an incomplete reading of `docs/BusinessRequirementsPlan.md`. That inference does not survive
+closer inspection of either source:
 
-**Idempotency:** the command checks for any `organization_id IS NULL` `User` row before doing anything.
-If none exist (a fresh, post-`ADR/0031` deployment, or a database already reconciled), it prints a
-message and exits cleanly — no error, no duplicate Organization, mirroring `bootstrap-admin`'s own
-idempotency check exactly.
+- **`docs/BusinessRequirementsPlan.md`'s own status note, quoted verbatim and in full this time:** *"the
+  system is not scoped to a single practitioner and is intended for use by multiple users/practices once
+  complete."* The withdrawn reasoning cited this document's general single-practice framing while missing
+  this specific, directly on-point sentence.
+- **`ADR/0021`'s own architecture is itself first-party evidence against single-Organization-per-database.**
+  `ADR/0021` did not merely permit tenant isolation as a defensive nicety — it built a genuinely
+  multi-tenant enforcement mechanism: mandatory, non-nullable `organization_id` on every tenant-scoped
+  table, `FORCE`d default-deny Row-Level Security, and an explicit rejection of schema-per-tenant/
+  database-per-tenant *on cost grounds*, which presupposes multiple tenants actually need isolating within
+  one shared database. A product where every deployment genuinely serves only one Organization would need
+  none of this — a single-tenant deployment has nothing to isolate from. The existence of `ADR/0021`'s
+  entire hybrid enforcement design is direct evidence that this repository's own architecture already
+  expects multiple Organizations to coexist within one database.
+- **This does not reopen `ADR/0031`.** `ADR/0031`'s actual decision — a given `User` belongs to at most
+  one Organization (cardinality) — is a separate, orthogonal question from "how many Organizations exist
+  in total in one database," and is fully compatible with many Organizations coexisting: a standard
+  multi-tenant shape has exactly this property (each user in exactly one org; many orgs total). Nothing
+  about the corrected analysis below requires touching `ADR/0031`'s cardinality decision, and it is not
+  reopened here.
+
+**Consequence for reconciliation:** a mechanism that automatically groups *every* pre-existing
+`NULL`-organization `User` row into one auto-created Organization is not a safe product-wide migration
+rule. If a given deployment's legacy data in fact spans more than one practice — which the repository's
+own architecture is built to support and the product's own requirements document says is the intended
+target market — that mechanism would silently merge distinct practices' Users into a single tenant, a
+genuine tenant-isolation/confidentiality failure of exactly the kind `ADR/0021` exists to prevent.
+
+**What is, and is not, safely inferable from `T83`'s evidence.** `T83`'s record — `legal_dms_dev` has
+exactly one pre-existing `User` row — is real, valid evidence that the reconciliation *problem* exists
+(a working reconciliation mechanism is genuinely needed). It is *not* valid evidence for a *universal
+migration rule* that every deployment's legacy data belongs to one practice; one observed database
+proves the problem is real, not that every future case has the same shape. Conversely, this correction
+does not invent an opposite universal rule ("legacy data always spans multiple practices") either —
+that would be equally unsupported. Neither shape is assumed; the mechanism itself must not presume
+either one.
+
+### 3b. Corrected Decision
+
+**A dedicated, interactive CLI command — still mirroring `bootstrap-admin`'s own established shape,
+still separate from Alembic, still atomic, still idempotent, still free of any hardcoded/placeholder
+Organization identity — reconciles pre-existing `User` rows by requiring the deployment operator to
+explicitly map each `organization_id IS NULL` `User` row to an Organization, creating one or more
+Organizations as the operator specifies, rather than presuming a single Organization for all of
+them.** The command supports creating however many Organizations the operator's actual legacy data
+requires (one, in the common single-practice case this repository has direct evidence for via `T83`;
+more, if the operator's data genuinely spans multiple practices) — but the *number* and the *mapping*
+are operator-supplied facts about real-world data the architecture cannot see, never an architectural
+default.
+
+**The distinction this correction preserves, stated explicitly per this task's own governing
+instruction:** a deployment operator who already knows their own legacy data (which existing Users
+belong to which practice) *entering that mapping* is fundamentally different from *the architecture
+deciding, as a rule, that all Users necessarily belong to one Organization*. The corrected mechanism
+requires the former and forbids the latter. In the common case where the operator's answer genuinely is
+"one Organization, all existing Users" (as `legal_dms_dev` most likely is, per `T83`), the interactive
+flow is short — but that outcome is reached because the operator said so, not because the mechanism
+assumed it.
+
+**What the mechanism must not do, restated as an explicit safety constraint:** it must never produce an
+Organization-to-User assignment without the operator having explicitly confirmed which Users belong to
+which Organization. There is no code path in this design that infers a grouping from existing data —
+today's pre-`ADR/0031` schema has no field anywhere that could distinguish "practice A's User" from
+"practice B's User" (confirmed: no tenant-adjacent column exists on `users` prior to this reconciliation
+column itself), so no automatic grouping heuristic is even technically possible without inventing
+unevidenced data; requiring explicit operator input is not merely the safer choice, it is the only
+choice consistent with what the data actually contains.
+
+**Organization identity remains operator-supplied, as originally decided and unchanged by this rework:**
+each Organization's name is entered interactively at the point of creation — never hardcoded, never
+defaulted, never inferred — mirroring `ADR/0018` D4's reasoning for why identity-bearing data belongs to
+an interactive prompt, exactly as the withdrawn version of this section already correctly established
+for the single-Organization case; the correction is to how many Organizations and which Users go where,
+not to how each Organization's identity is captured.
+
+**Idempotency, preserved:** the command checks for any `organization_id IS NULL` `User` row before doing
+anything. If none exist (a fresh, post-`ADR/0031` deployment, or a database already fully reconciled —
+every existing User assigned to some Organization by a prior run), it prints a message and exits
+cleanly. A partially-completed prior run (some Users mapped, others still `NULL`, only possible if a
+prior attempt was interrupted before its own commit — see §8) is not a distinct idempotent state; §8's
+atomicity guarantee means a prior run either fully committed (leaving no `NULL` rows) or fully rolled
+back (leaving the pre-run state exactly, including all rows still `NULL`) — the command has no
+in-between state to special-case.
 
 ## 4. Alternatives Considered
 
 | Alternative | Assessment against the stated criteria |
 |---|---|
-| **A dedicated, interactive, idempotent CLI command creating one Organization and backfilling every `NULL`-organization `User` row to it (selected)** | **Tenant isolation:** satisfies `ADR/0021`'s fail-closed principle by eliminating the `NULL` state rather than tolerating it. **Data integrity/deterministic behavior:** exactly one Organization created, deterministic assignment (every `NULL` row, not a subset). **Bootstrap-admin continuity:** directly extends an already-proven, already-accepted pattern — same interactive-only discipline, same idempotency shape. **Repeatability/idempotency:** a second run is a safe no-op. **Operational safety:** no destructive operation; additive only. **Auditability:** composes with `ADR/0029`'s existing "creation" coverage category (disclosed, not designed, in §7). **Future migration compatibility:** does not touch or conflict with `ADR/0031`'s own bootstrap-extension path for fresh deployments — the two are mutually exclusive by construction (a fresh deployment never has a `NULL`-organization row to reconcile). |
-| **A data-migration step embedded directly in the Alembic migration that adds the column** | Rejected — this repository's own migrations are non-interactive by convention (run in CI/deployment pipelines); prompting for a real Organization name mid-migration would be a genuinely new, unevidenced pattern this repository has never used, and risks the migration blocking or failing in a non-interactive deployment context. Schema change and data reconciliation are kept as two separably-runnable steps instead, matching T67's own precedent for exactly this reason. |
-| **Explicit/manual reconciliation only — no automatic default, an operator manually assigns each `User` individually** | Rejected as the *default* mechanism — for the actual evidenced case (a single bootstrapped Administrator, single practice), forcing a per-row manual assignment step solves a multi-candidate-Organization problem that does not exist for this product's evidenced deployment shape, adding operational burden with no corresponding benefit. Not designed as a formal alternative path here since no evidence names a database with more than one candidate Organization to choose among; if one is ever discovered, that is new evidence warranting a superseding decision, not something to design speculatively now. |
-| **Leave `organization_id` `NULL` indefinitely for legacy Users; treat "no Organization" as a permanently valid state** | Rejected outright — directly contradicts `ADR/0021`'s fail-closed principle and would permanently strand the bootstrapped Administrator, a pure regression with no offsetting benefit. |
-| **Silently default all `NULL`-organization Users into a synthetic, unnamed "Legacy"/"Default" Organization with a hardcoded placeholder name** | Rejected — this is precisely the "unapproved tenant identity" / "silently invented business assumption" this task's own authorization warned against. A hardcoded placeholder misrepresents the real practice's own Organization record and would need a real, undecided rename/re-identification event later to correct — deferring a problem this ADR can resolve now by simply asking the operator once, at reconciliation time. |
+| **Automatic single-Organization backfill — create exactly one Organization, assign every `NULL`-organization `User` to it (the withdrawn original decision)** | **Rejected on rework.** Fails **tenant isolation** and **multi-practice semantics** — the two highest-priority criteria per this task's own safety requirement: if a deployment's legacy data spans more than one practice, this silently merges them into one tenant, exactly the confidentiality failure `ADR/0021`'s entire enforcement design exists to prevent. Scored well on **determinism**/**operational simplicity** in isolation, but those do not outweigh a tenant-isolation failure mode. |
+| **Explicit operator mapping — the operator maps each `NULL`-organization `User` to an Organization (creating one or more as needed), no automatic grouping (selected)** | **Tenant isolation:** no code path can produce a cross-practice assignment, since no assignment happens without operator confirmation. **Data integrity:** atomic per §8, unchanged. **Bootstrap-admin continuity:** still a dedicated interactive CLI, still separate from Alembic, still mirroring the same precedent — only the *shape* of the interaction (mapping, not a single default) changes. **Repeatability/idempotency:** unchanged — a second run against a fully-reconciled database is a no-op. **Operational safety:** additive only, unchanged; a genuinely single-practice deployment still completes in a short interactive flow. **Failure behavior:** unchanged, §8. **Auditability:** unchanged, composes with `ADR/0029`. **Multi-practice semantics:** now genuinely supported — this is the corrected criterion this rework exists to satisfy. **Future migration compatibility:** unchanged — still mutually exclusive with `ADR/0031`'s fresh-bootstrap path by construction. |
+| **A data-migration step embedded directly in the Alembic migration that adds the column** | Still rejected, unchanged from the original analysis — this repository's own migrations are non-interactive by convention; an interactive step (whether prompting for one Organization's name or for a full multi-Organization mapping) does not belong embedded in Alembic DDL, only more so now that the interaction is richer, not simpler. |
+| **An automatic heuristic that attempts to infer practice groupings from existing data (e.g. by role, creation date, or another existing column)** | Rejected — no column on today's pre-`ADR/0031` schema encodes practice membership in any form (confirmed: no tenant-adjacent field exists on `users` prior to this reconciliation column); any such heuristic would be inventing a grouping signal the data does not actually contain, precisely the "silently invented business assumption" this task's own authorization and this rework's own governing instruction both prohibit. |
+| **Leave `organization_id` `NULL` indefinitely for legacy Users; treat "no Organization" as a permanently valid state** | Still rejected, unchanged — directly contradicts `ADR/0021`'s fail-closed principle and would permanently strand every legacy User, a pure regression with no offsetting benefit. |
+| **Silently default all `NULL`-organization Users into a synthetic, unnamed "Legacy"/"Default" Organization with a hardcoded placeholder name** | Still rejected, unchanged — remains exactly the "unapproved tenant identity" this task's own authorization warned against, now doubly so since it would also risk merging distinct practices into that one placeholder. |
 
 ## 5. Consequences
 
 - A future implementer building the reconciliation command has an unambiguous mechanism to build
-  against: interactive CLI, idempotent, one atomic transaction, one Organization, every `NULL`-
-  organization `User` row reconciled to it.
+  against: interactive CLI, idempotent, one atomic transaction, one-or-more Organizations per the
+  operator's own explicit mapping, every `NULL`-organization `User` row reconciled to whichever
+  Organization the operator assigned it to.
 - The command's own registration (a new `[project.scripts]` entry in `backend/pyproject.toml`,
   mirroring `bootstrap-admin`'s exact registration shape) is a concrete, checkable implementation
-  consequence — not designed further here (no script content, no CLI flag surface decided).
+  consequence — not designed further here (no script content, no CLI flag surface, no exact prompt
+  sequence decided).
 - Every fresh, post-`ADR/0031` deployment never triggers this command's reconciliation branch at all
   (no `NULL`-organization row ever exists for it) — this ADR adds no new obligation to the already-
   decided fresh-bootstrap path.
+- The interactive surface is necessarily larger than the withdrawn single-Organization version (the
+  operator must be walked through a mapping, not just a single name prompt) — an accepted operational
+  cost of correctness, not a defect; the common single-practice case (per `T83`'s evidence) still
+  resolves in a short flow, since the operator's own answer in that case is simply "one Organization,
+  all of them."
 
 ## 6. Migration/Reconciliation Semantics
 
@@ -119,27 +194,35 @@ Two, mutually-exclusive scenarios, distinguished purely by whether any `organiza
 
 1. **Fresh deployment, or already-reconciled database:** no `NULL` rows exist → no-op, exits cleanly.
 2. **Legacy, pre-`ADR/0031` deployment (e.g. `legal_dms_dev`, per `T83`):** one or more `NULL` rows
-   exist → the operator is prompted for the real Organization's name, exactly one Organization row is
-   created, and every `NULL`-organization `User` row is updated to reference it, all within one
-   transaction (`ADR/0020`).
+   exist → the operator is walked through mapping every such `User` row to an Organization — creating
+   one or more Organizations, each with an operator-supplied name, as the operator's own mapping
+   requires — and every `NULL`-organization `User` row is updated to reference the Organization the
+   operator assigned it to, all within one transaction (`ADR/0020`). The number of Organizations
+   created is whatever the operator's mapping produces (one, in the common case this repository has
+   direct evidence for; more, if warranted) — never a number this ADR presumes in advance.
 
 ## 7. Existing-User Handling
 
-Every existing `User` row with `organization_id IS NULL` at reconciliation time is treated identically
-— assigned to the single, newly-created Organization. No row is skipped, no row is treated specially by
-role, `is_active` status, or any other field; the specification's own single-practice-per-deployment
-assumption (§3 above) gives no basis for differential treatment, and inventing one here would itself be
-an unevidenced business rule.
+Every existing `User` row with `organization_id IS NULL` at reconciliation time must be explicitly
+accounted for by the operator's mapping before the transaction commits — none may be silently defaulted,
+silently skipped, or silently grouped by an inferred heuristic. No row is treated specially by role,
+`is_active` status, or any other field beyond the operator's own explicit Organization assignment; the
+mechanism has no basis — and, per §3a, no data — for inferring differential treatment on its own.
 
 ## 8. Failure/Rollback Implications
 
 Per `ADR/0020`'s existing one-request-one-commit-boundary discipline, extended here to this
-command's own transaction: if the reconciliation fails partway (Organization created but not all
-`User` rows updated, or vice versa), the whole operation must roll back, leaving the database exactly
-as it was before the command ran — never a partially-reconciled state where some `User` rows reference
-the new Organization and others remain `NULL`. Re-running the (idempotent) command after a failed
-attempt is the recovery path — no separate rollback procedure is designed here, since the atomicity
-requirement itself is what makes a clean re-run always safe.
+command's own transaction: if the reconciliation fails partway (some Organizations created but not all
+mapped `User` rows updated, an operator abort mid-mapping, or any other interruption), the whole
+operation must roll back, leaving the database exactly as it was before the command ran — never a
+partially-reconciled state where some `User` rows reference a newly-created Organization and others
+remain `NULL`, and never a state with an Organization created but no Users actually assigned to it.
+This matters more, not less, than in the withdrawn single-Organization version: a partial multi-
+Organization mapping left uncommitted could otherwise leave some Users correctly isolated and others
+not, a strictly worse failure mode than the single-Organization case's simpler partial state. Re-running
+the (idempotent) command after a failed or aborted attempt is the recovery path — the operator simply
+re-enters the mapping; no separate rollback procedure is designed here, since the atomicity requirement
+itself is what makes a clean re-run always safe.
 
 ## 9. Relationship to `ADR/0021`
 
@@ -161,10 +244,11 @@ narrowed.
 ## 11. Explicit Scope Boundary
 
 This ADR decides only the reconciliation *mechanism* for pre-`ADR/0031` `User` rows: that it is a
-dedicated interactive CLI command (not an embedded data migration), that it creates exactly one
-Organization representing the deployment's real practice (not a placeholder), that the Organization's
-identifying content is operator-supplied at run time (not invented), and that the operation is
-idempotent and atomic. Nothing else.
+dedicated interactive CLI command (not an embedded data migration), that it requires an explicit
+operator-supplied mapping of existing Users to Organizations rather than presuming a single-Organization
+default, that each Organization's identifying content is operator-supplied at run time (not invented),
+and that the operation is idempotent and atomic regardless of how many Organizations the operator's
+mapping produces. Nothing else.
 
 ## 12. What This ADR Does NOT Decide
 
@@ -188,12 +272,15 @@ A future, separately-authorized implementation task building the Organization/Te
 need to: register a new `[project.scripts]` entry in `backend/pyproject.toml` (mirroring
 `bootstrap-admin = "app.infrastructure.cli.bootstrap:main"`'s exact shape) for this reconciliation
 command; implement its idempotency check (`SELECT` for any `organization_id IS NULL` `User` row,
-mirroring `bootstrap.py`'s own `_any_user_exists()` shape); implement the interactive prompt for the
-Organization's name (mirroring `bootstrap.py`'s `input()`/`getpass()` split, though no credential is
-involved here — a plain `input()` is sufficient); and implement the atomic Organization-creation-plus-
-User-update transaction (mirroring `run_bootstrap()`'s own `flush()`-then-caller-commits shape,
-composing with `ADR/0020`). None of this is implemented by this ADR — stated as the concrete shape a
-future task should build against, per §16's acceptance criteria.
+mirroring `bootstrap.py`'s own `_any_user_exists()` shape); implement an interactive flow that lists the
+unassigned Users and walks the operator through creating one or more Organizations and mapping each
+User to one of them (no exact UI/prompt sequence decided here — a per-User prompt, a batch-selection
+prompt, or another interaction shape are all consistent with this ADR; only the *requirement* that every
+User be explicitly mapped, never defaulted, is decided); and implement the atomic multi-Organization-
+creation-plus-User-update transaction (mirroring `run_bootstrap()`'s own `flush()`-then-caller-commits
+shape, composing with `ADR/0020`, generalized from one Organization to however many the mapping
+produces). None of this is implemented by this ADR — stated as the concrete shape a future task should
+build against, per §14's acceptance criteria.
 
 ## 14. Acceptance Criteria for Future Implementation
 
@@ -201,16 +288,24 @@ A future implementation task, once separately authorized, should be verifiable a
 
 - **No-op on a clean database:** running the command against a database with zero `organization_id
   IS NULL` `User` rows creates no Organization and modifies no row.
-- **Deterministic single-Organization backfill:** running the command against a database with N
-  `organization_id IS NULL` `User` rows creates exactly one Organization and updates all N rows to
-  reference it — never zero, never more than one Organization created.
-- **Atomicity:** a simulated failure partway through (mirroring `ADR/0020`'s own
-  `test_get_db_transaction_policy.py` pattern) leaves no partially-reconciled state — either the
-  Organization and all row updates exist, or none of them do.
-- **Idempotency:** running the command twice in succession is safe — the second run is a no-op,
-  producing no second Organization and no error.
+- **No assignment without explicit operator mapping:** a test confirming the command cannot complete
+  without the operator explicitly mapping every `NULL`-organization `User` row to an Organization —
+  no code path produces an assignment the operator did not confirm.
+- **Multi-Organization support:** a test confirming the command can produce more than one Organization
+  in a single reconciliation run when the operator's mapping calls for it — the mechanism must not be
+  hardcoded to a single-Organization outcome.
+- **Single-Organization case still works simply:** a test confirming the common case (all existing
+  Users mapped to one, newly-created Organization — the shape `T83`'s own evidence suggests for
+  `legal_dms_dev`) completes correctly and without unnecessary friction.
+- **Atomicity:** a simulated failure or operator abort partway through (mirroring `ADR/0020`'s own
+  `test_get_db_transaction_policy.py` pattern) leaves no partially-reconciled state — either every
+  Organization and every mapped row update exist, or none of them do.
+- **Idempotency:** running the command twice in succession is safe — the second run (against a fully-
+  reconciled database) is a no-op, producing no additional Organization and no error.
 - **No hardcoded/placeholder Organization name:** a test confirming the command requires and uses
-  operator-supplied input for the Organization's name, never a default/placeholder string.
+  operator-supplied input for every Organization's name, never a default/placeholder string.
+- **No inferred grouping:** a test confirming the command never groups Users by role, creation date, or
+  any other existing column as a substitute for explicit operator mapping.
 - **Interoperability with `ADR/0031`'s bootstrap path:** a test confirming a *fresh* deployment (one
   that runs the `ADR/0031`-extended `bootstrap-admin` first) never has a `NULL`-organization `User`
   row for this command to act on — the two mechanisms are mutually exclusive in practice, not merely
@@ -229,6 +324,9 @@ adds — no test file, script, or application code is created or modified by thi
   events, cited for §5's disclosure only)
 - `backend/src/app/infrastructure/cli/bootstrap.py` (the extended precedent this mechanism mirrors)
 - `backend/pyproject.toml` (`[project.scripts]` registration convention)
-- `docs/BusinessRequirementsPlan.md` (single-practice deployment context)
+- `docs/BusinessRequirementsPlan.md` (its own status note: *"the system is not scoped to a single
+  practitioner and is intended for use by multiple users/practices once complete"* — the evidence this
+  rework is built on)
 - `IMPLEMENTATION_QUEUE.md`'s `T83` row (the concrete, non-theoretical evidence this reconciliation
-  is needed against a real, existing database)
+  is needed against a real, existing database — evidence that the problem is real, not evidence for a
+  universal single-Organization migration rule; see §3a)
