@@ -22,7 +22,7 @@
     "latestTaskAuthorized": "T101",
     "asOfCommit": "e7a29fae2af28d68bd691b218efa617d63a42ed1",
     "validator": "scripts/governance_validate.py",
-    "inProgressTransitions": []
+    "inProgressTransitions": [{"task": "T98", "requiredAdrs": [14]}]
   },
   "documentation": {
     "architectureScorecard": "docs/ArchitectureScorecard.md",
