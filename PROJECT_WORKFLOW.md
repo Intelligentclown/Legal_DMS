@@ -140,6 +140,82 @@ genuine git ancestor of the PR's actual remote HEAD — see
 [`docs/prompts/ProjectManager.md`](docs/prompts/ProjectManager.md)'s Pre-Merge Governance Gate for the
 exact mechanism and the incident history that motivated it.
 
+### 3.2 Non-Task Documentation/Governance Action Exception ("Option A")
+
+*(Added by `T104`. Prospective only — see "History" below.)*
+
+**What this is.** A narrow exception to this project's default that every unit of work consumes a
+`T##` number. A directly Project-Owner-authorized, documentation-only synchronization action — e.g.
+bringing status/handover documentation into alignment with already-completed, already-merged work
+— may be tracked entirely by its own GitHub Issue/PR references, without a corresponding
+`IMPLEMENTATION_QUEUE.md` row.
+
+**Qualifying conditions — ALL of the following must hold, or the action does not qualify:**
+
+1. The Project Owner explicitly authorized the action before work began.
+2. That authorization is recorded in a durable repository/project governance mechanism (typically a
+   GitHub Issue) before implementation begins — see "Minimum authorization record" below.
+3. The work is strictly documentation/status/handover synchronization.
+4. The work does not change application behavior.
+5. The work does not change database schema, models, or migrations.
+6. The work does not create, modify, or resolve an ADR decision.
+7. The work does not authorize implementation or change implementation sequencing.
+8. The work does not constitute Required-ADR resolution.
+9. The work does not constitute governance/process hardening itself — see "Not a backdoor" below.
+10. A formal, independent QA Decision is persisted **before merge** — the same requirement
+    [§6](#6-pull-request-workflow) imposes on every other change; there is no documentation-only QA
+    exemption.
+11. Normal collaborator review and protected-branch CI requirements remain mandatory, exactly as
+    [§6](#6-pull-request-workflow) requires generally.
+12. The completed action is traceable through its Issue/PR references and final merge state.
+13. The action does not create, reserve, imply, or consume a `T##` number.
+14. The action does not alter the meaning, scope, or identity of any existing `T`-series task.
+
+An action failing any condition above is not eligible for this section — it is governed by the
+normal numbered-task lifecycle ([§3](#3-standard-development-lifecycle) or
+[§3.1](#31-required-adr--governance-hardening-lifecycle-three-pr), whichever actually fits its
+nature), full stop.
+
+**Minimum authorization record.** The durable record required by condition 2 must identify, at
+minimum: that the Project Owner is the authorizer; the date; the documentation-only objective; the
+bounded scope (files/categories covered); explicit exclusions; an explicit statement that no `T##`
+number is being created, reserved, or implied; an explicit statement that no implementation is
+authorized; the requirement for independent QA before merge; the requirement for normal
+review/CI gates; and the requirement that the completed action later be recorded, honestly, with
+its Issue/PR references and final outcome.
+
+**A GitHub Issue is not implementation authorization.** This section does not make a GitHub Issue
+equivalent to an `IMPLEMENTATION_QUEUE.md` authorization row. A durable, owner-authorized
+governance record is sufficient authorization *only* for the narrow documentation-only class of
+action defined above. Any numbered task — implementation, architecture, database/schema/migration
+work, Required-ADR resolution, or governance/process hardening — continues to require the
+established numbered-task lifecycle ([§3](#3-standard-development-lifecycle)/
+[§3.1](#31-required-adr--governance-hardening-lifecycle-three-pr)) and its own
+`IMPLEMENTATION_QUEUE.md` row. `IMPLEMENTATION_QUEUE.md` remains the sole authoritative ledger for
+numbered tasks; nothing here weakens that.
+
+**Not a backdoor (anti-loophole rule).** If a documentation-synchronization action expands beyond
+purely documentation/status/handover synchronization at any point — or touches authorization state,
+architecture, implementation, schema, ADR state, CI/ruleset configuration, or any other substantive
+project behavior — it immediately ceases to qualify for this exception and must be governed by the
+normal numbered-task lifecycle from that point forward. This exception may never be used to split
+substantive work into a series of apparently-documentation-only actions. In particular, **changing
+this governance process itself is never eligible for this exception** — that is precisely why
+`T104`, which formalizes this very rule, is itself a numbered governance-hardening task under
+[§3.1](#31-required-adr--governance-hardening-lifecycle-three-pr), not an Option-A action.
+
+**History — this is prospective, not retroactive.** This section exists because the post-`T103`
+documentation synchronization (`GitHub Issue #167`, `PR #168`, merge `1872de1`) was owner-authorized
+before work began, implemented within its authorized scope, independently QA-approved, and merged —
+but had no `IMPLEMENTATION_QUEUE.md` row before implementation began, because until now this
+document did not yet distinguish a narrow, directly-authorized documentation-sync action from a task
+requiring its own row. `T104` formalizes, prospectively, the rule that gap exposed. It does not, and
+cannot, retroactively authorize that already-completed event or assign it a `T##` number. `Issue
+#167` and `PR #168` remain non-task historical work, governed by whatever rules were actually in
+force when they happened, not by this section. `PR #169` separately, non-numerically reconciles
+`IMPLEMENTATION_QUEUE.md`'s own record with that history — it does not renumber, supersede, or
+convert that history into a task, and this section does not alter its own scope or effect either.
+
 ## 4. Branch Strategy
 
 | Prefix | Use |
