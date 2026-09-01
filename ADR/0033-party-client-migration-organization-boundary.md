@@ -34,7 +34,8 @@ This is not a rename. Direct repository inspection on `298fb3e02862f9bd426681beb
 confirms that:
 
 - `clients` is a real legacy master table (`client.py`, migration `ac077004afeb`) with its own
-  address link and subtype discriminator.
+  address link and subtype discriminator. Its `Address` target stores concrete, audited street and
+  postal-address data and is also referenced by `properties`; it is not a geography lookup table.
 - `matters.client_id` is a mandatory one-client FK, directly contradicting the finalized
   many-party-per-Matter model.
 - Other live tables still depend directly on `clients.id`: `property_owners.client_id`,
@@ -59,6 +60,8 @@ exists to prevent.
 ### 2.1 Repository facts established by inspection
 
 - `backend/src/app/infrastructure/persistence/models/client.py`
+  - `Address`: audited concrete address data (`line1`, `line2`, geographic FKs, `postal_code`, and
+    `address_type`), with no `organization_id` today.
   - `Client`: `id`, `client_type`, `full_name`, `primary_phone`, `primary_email`,
     `pan_number`, `aadhaar_number`, `address_id`, `notes`.
   - `ClientContact`: `client_id`, `contact_name`, `relationship_type`, `phone`, `email`,
@@ -66,6 +69,7 @@ exists to prevent.
 - `backend/src/app/infrastructure/persistence/models/matter.py`
   - `Matter.client_id` is non-nullable and directly points to `clients.id`.
 - `backend/src/app/infrastructure/persistence/models/property.py`
+  - `Property.address_id` is nullable and directly points to `addresses.id`.
   - `PropertyOwner.client_id` is non-nullable and directly points to `clients.id`.
 - `backend/src/app/infrastructure/persistence/models/scheduling.py`
   - `Appointment.client_id` is nullable and directly points to `clients.id`.
@@ -125,6 +129,7 @@ review/log prose that does not define a live dependency.
 
 | Current dependency | Target dependency | Migration treatment | `organization_id` treatment | Retirement point |
 |---|---|---|---|---|
+| `addresses` / `Address` ORM, referenced by `clients.address_id` and `properties.address_id` | Retained `addresses` table as an Organization-scoped concrete-address record | Add/backfill direct ownership before Party backfill; preserve an address ID only where every resolved inbound Client/Property reference agrees. Do not auto-clone or cross-tenant share. | `addresses.organization_id` is reconciled under §6, then `NOT NULL`, FK-enforced, scoped, and RLS-protected. | Not retired by this ADR; it remains the Party/Property address table. |
 | `clients` master table / `Client` ORM | `parties` / `Party` ORM | One legacy Client row becomes exactly one Party row; see §5.1 and §5.3. | `parties.organization_id` is populated by §6 and `NOT NULL` on insert. `clients.organization_id` is bridge-only. | Drop `clients` only after every row and dependency below has cut over. |
 | `client_contacts.client_id` / `ClientContact` ORM | Retained legacy contact record with `party_id`; no Representative target is decided. | Add/backfill `party_id`; retain all contact fields read-only through the explicit compatibility period in §5.4. | Add, backfill from resolved Party/client ownership, then `NOT NULL`; enforce directly. | Only after a separately governed contact/Representative decision has made its information accessible elsewhere and the compatibility period has ended. |
 | `matters.client_id` / `Matter` ORM | `matter_parties.party_id` with role `client` | Retain the old FK only as a bridge; create one `matter_parties` row per legacy Matter; then drop `matters.client_id`. | `matters` and `matter_parties` both receive a directly carried, resolved, final `NOT NULL` Organization FK. | After parity validation and all Matter code/tests use `matter_parties`. |
@@ -240,6 +245,30 @@ The Organization backfill rule is:
 This follows `ADR/0032`'s principle: when legacy data predates tenancy and the repository contains no
 authoritative tenant marker, operator-confirmed reconciliation is required rather than invented logic.
 
+### 3.6 `addresses` is tenant-scoped concrete data, not globally reusable reference data
+
+**Architectural decision made here:** `addresses` is an Organization-scoped business-record table.
+The live model contains street-address and postal data, has `AuditMixin`, and is referenced by Client
+and Property. Its geographic foreign keys point to reusable lookup/reference data; they do not make
+the concrete address row globally reusable. Therefore it must carry its own `organization_id`, rather
+than rely on a Party or Property join as its only tenancy boundary.
+
+This preserves the existing Address table and the Party/Property `address_id` relationship; it does
+not redesign the geography hierarchy or create a new address model. It narrows the earlier
+ADR/0023 statement that Address is reused by Party: the table is reused, but its direct tenancy
+enforcement is required by ADR/0021 before Party implementation.
+
+At final cutover, an Address may be reused by Party and Property records only within one Organization.
+If one legacy Address has resolved inbound references from more than one Organization, it is an
+ambiguous cross-tenant address set. No automatic clone, reassignment, or presumed shared-address rule
+is allowed: explicit reconciliation must supply and retain a per-reference target mapping before
+cutover. If that mapping requires copied Address rows, each copy and source-to-target decision must
+be explicit and auditable; the migration must never create it by heuristic. Final Party, Property,
+and bridge Client address links must enforce Organization equality at the database relationship
+boundary, using a composite foreign key on `(organization_id, address_id)` to a corresponding unique
+Address key or an equivalently strong declarative constraint. A physical location is not evidence
+that its record may be shared across tenants.
+
 ## 4. Migration Strategy
 
 The migration is **staged, compatibility-first, and backfill-first**. The conceptual sequence is:
@@ -257,13 +286,15 @@ The migration is **staged, compatibility-first, and backfill-first**. The concep
    - add nullable `party_id` bridge columns to `property_owners`, `appointments`, `invoices`,
      `payments`, and `client_contacts`;
     - add nullable `organization_id` columns to every legacy tenant-scoped table in this slice that
-      lacks one today: at minimum `clients`, `client_contacts`, `matters`, `property_owners`,
-      `appointments`, `invoices`, `payments`, and any new Party-side tables created in this phase;
+      lacks one today: at minimum `addresses`, `clients`, `client_contacts`, `matters`, `properties`,
+      `property_owners`, `appointments`, `invoices`, `payments`, and any new Party-side tables
+      created in this phase;
    - `properties` also requires `organization_id` before any Party-linked ownership row can become
      tenant-safe, because `property_owners` cannot be the only tenant-carrying property-side table.
 
 3. **Reconcile Organization ownership for legacy data**
-   - establish the Organization assignment for each legacy client anchor;
+    - establish the Organization assignment for each legacy client anchor and every Address it or a
+      Property references;
    - propagate that assignment to the directly dependent rows in this slice;
    - fail closed on any conflict or ambiguity.
 
@@ -309,7 +340,7 @@ does not silently invent fields or subtype meanings.
 | `primary_email` | Copy unchanged to Party's universal primary-email field, including `NULL`. | ADR/0023 universal field. |
 | `pan_number` | Copy unchanged into Party only if the accepted Party schema includes a corresponding Party attribute; preserve existing format validation. It must not be discarded. | ADR/0023 names PAN as a searchable, format-validated Party attribute but leaves exact subtype field lists open. The applicable subtype semantic is not governed here. |
 | `aadhaar_number` | Copy unchanged into Party only if the accepted Party schema includes a corresponding Party attribute; preserve existing format validation. It must not be discarded. | ADR/0023 names Aadhaar as a searchable, format-validated Party attribute but leaves exact subtype field lists open. The applicable subtype semantic is not governed here. |
-| `address_id` | Copy unchanged to Party's universal nullable address FK; do not clone or reassign `Address`. | ADR/0023 expressly reuses Address unchanged. |
+| `address_id` | Copy the existing nullable FK value to Party only after the referenced Address is reconciled to the same Organization. Preserve the address ID for an unambiguous same-Organization record; do not auto-clone or reassign a cross-tenant/ambiguous Address. | This ADR keeps ADR/0023's Address reuse but makes direct Address tenancy explicit under ADR/0021. |
 | `notes` | Copy unchanged to Party's universal nullable notes field. | ADR/0023 universal field. |
 
 `organization_id` is new, not a legacy Client field, and is assigned only through §6. Audit columns
@@ -411,15 +442,17 @@ replacing, or deleting this information.
 
 ### 6.2 Deterministic reconciliation algorithm
 
-The reconciliation anchor is each legacy `clients.id`; every dependent record receives the anchor's
-Organization unless it has an independently resolved Organization that must agree.
+The primary reconciliation anchor is each legacy `clients.id`; every dependent record receives the
+anchor's Organization unless it has an independently resolved Organization that must agree. Address
+is also independently reconciled because it is a concrete tenant-scoped record with inbound Client
+and Property references.
 
 1. Build an evidence set for each Client from only these authoritative sources:
    - a non-null `created_by` or `updated_by` whose `users.organization_id` is already non-null and
      reconciled under ADR/0032;
-   - a directly linked record in this migration slice whose `organization_id` was already resolved
-     by this same algorithm and whose FK path is explicit: Matter, PropertyOwner/Property,
-     Appointment, Invoice, Payment, or ClientContact;
+    - a directly linked record in this migration slice whose `organization_id` was already resolved
+      by this same algorithm and whose FK path is explicit: Matter, PropertyOwner/Property,
+      Appointment, Invoice, Payment, ClientContact, or Address;
    - an explicit, previously committed reconciliation-ledger assignment for the exact Client ID,
      source-row fingerprint, and migration version.
 2. Discard null and un-reconciled user evidence. Collect distinct candidate Organization UUIDs from
@@ -432,8 +465,16 @@ Organization unless it has an independently resolved Organization that must agre
    **ambiguous**. Creation time, record order, names, contact details, geography, inferred practice,
    and a database-wide single-Organization assumption are not evidence.
 5. Every unmappable or ambiguous Client forms an unresolved reconciliation set with all directly
-   dependent rows. No Party row, Party FK, final `organization_id`, or RLS-protected cutover is
-   performed for that set until an explicit mapping exists.
+    dependent rows. No Party row, Party FK, final `organization_id`, or RLS-protected cutover is
+    performed for that set until an explicit mapping exists.
+
+For each Address, collect candidate Organizations only from its reconciled `created_by`/`updated_by`,
+matching prior ledger evidence, and explicit inbound `clients.address_id` or `properties.address_id`
+paths whose source rows are already resolved. Exactly one candidate is deterministic; zero is
+unmappable; two or more, or a disagreement with an inbound row, is ambiguous. An Address with
+resolved inbound rows from different Organizations is specifically a cross-tenant conflict, not
+evidence of a globally shared record. The affected Address and every inbound dependent row form one
+unresolved set and follow §6.3; no implicit ownership propagation through a join is permitted.
 
 ### 6.3 Explicit operator reconciliation and unresolved records
 
@@ -457,6 +498,7 @@ may not proceed.
 
 | Table | Required final `organization_id` | Population | Final enforcement |
 |---|---|---|---|
+| `addresses` | Yes, `NOT NULL` | Reconciled from its own permitted evidence and resolved inbound Client/Property paths, all of which must agree. | FK to `organizations`; ADR/0021 scoped repository/service access and forced default-deny RLS. Party/Property references must match the Address Organization. |
 | `parties` | Yes, `NOT NULL` | Client-anchor reconciliation. | FK to `organizations`; ADR/0021 scoped repository/service access and forced default-deny RLS. |
 | `matter_parties` | Yes, `NOT NULL` | Resolved Matter/Party ownership, which must agree. | Same direct FK, scope, and RLS; no inference solely through joins. |
 | `matters` | Yes, `NOT NULL` | Resolved legacy Matter/client graph. | Same direct FK, scope, and RLS. |
@@ -477,6 +519,9 @@ from a join.
 ### 7.1 During transition
 
 - `clients` is retained as a **deprecated, read-only compatibility table**.
+- `addresses` remains the canonical, Organization-scoped address table throughout; compatibility
+  reads must be tenant-scoped directly on `addresses`, not authorized solely through Client/Party or
+  Property joins.
 - direct-reference tables gain `party_id` bridge columns before `client_id` is removed.
 - `matters.client_id` is retained only long enough to backfill and cut over to `matter_parties`.
 - Party creation and Party writes remain disabled until all Client rows, required Party FKs, and
@@ -505,12 +550,20 @@ A future Backend Developer may not be authorized to implement Party until all of
 accepted and then followed:
 
 - `parties.organization_id` must be mandatory, directly carried, and tenant-enforced per `ADR/0021`.
+- `addresses.organization_id` must be mandatory at final cutover, directly carried, FK-enforced,
+  tenant-scoped, and protected by forced default-deny RLS. Geography lookup FKs do not exempt the
+  concrete Address row from this requirement.
+- Every final `Party.address_id`, `Property.address_id`, and bridge `Client.address_id` reference
+  must be database-constrained to an Address of the same `organization_id` (a composite FK using a
+  unique `(organization_id, id)` Address key, or an equivalently strong declarative constraint).
+  RLS and application scoping are not substitutes for relationship-integrity enforcement.
 - `matter_parties.organization_id` must also be directly carried; tenant scope may not be inferred
   only by joining through `matters` or `parties`.
 - `matters`, `properties`, `property_owners`, `appointments`, `invoices`, `payments`, and retained
   `client_contacts` must each end with their own `organization_id NOT NULL`, Organization FK, scoped
-  data access, and forced default-deny RLS policy. Every linked row's Organization must match; a
-  mismatched relationship is rejected rather than repaired by inference.
+  data access, and forced default-deny RLS policy. Every linked row's Organization, including an
+  Address referenced by Party or Property, must match; a mismatched relationship is rejected rather
+  than repaired by inference or automatic cloning.
 - `matters.client_id` must be migrated to `matter_parties`, not renamed to `party_id`.
 - `property_owners`, `invoices`, and `payments` must end in a `party_id NOT NULL` state because the
   legacy schema already required a client there.
@@ -557,6 +610,10 @@ accepted and then followed:
   can split. Mitigation: bridge period must be short and canonical write target must be explicit.
 - **Tenancy risk:** incorrect Organization reconciliation would create cross-tenant leaks. Mitigation:
   fail closed on ambiguity; require explicit operator reconciliation.
+- **Address-sharing risk:** legacy concrete-address rows may be referenced by Client and Property
+  records that reconcile to different Organizations. Mitigation: classify that as an unresolved
+  cross-tenant set; retain the audit evidence and require explicit reconciliation rather than sharing
+  or cloning by heuristic.
 - **Compatibility risk:** lingering code or tests may keep creating `Client` rows as masters after
   Party cutover. Mitigation: Party implementation is not complete until those call sites are removed.
 - **Operational risk:** a partially applied migration could strand rows between old and new models.
@@ -582,6 +639,8 @@ unestablished business approver.
 - Its foreign key retargets from Client to Party.
 - `properties.organization_id` must exist before Property ownership can be tenant-safe under
   `ADR/0021`.
+- `addresses` is directly Organization-scoped and may be referenced by Property only when both rows
+  have the same resolved Organization; it remains reusable within, never across, that boundary.
 - This ADR does not redesign Property↔Party ownership semantics beyond that retargeting.
 
 ### Matter

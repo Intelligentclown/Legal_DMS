@@ -7,8 +7,29 @@ Organization-Boundary Reconciliation.
 
 **Artifact under review:** `ADR/0033-party-client-migration-organization-boundary.md`.
 
-**Status:** Architecture draft and self-assessment complete; independent QA is pending. This report
-does not mark ADR-0033 accepted, authorize implementation, or perform governance closeout.
+**Status:** Reworked after independent QA's recorded finding; independent QA re-review is pending.
+This report does not mark ADR-0033 accepted, authorize implementation, or perform governance closeout.
+
+## Rework After Independent QA
+
+The independent QA record at `docs/reviews/T106_QA_Review.md` found that ADR-0033 omitted the live
+`addresses` table from the direct tenant-boundary design. That record is preserved unchanged. This
+architect rework re-inspected the Address model, migrations, consumers, tests, ERD, database
+documentation, ADR/0021, ADR/0023, and ADR/0024. `Address` stores audited concrete street/postal
+data and is referenced by both Client and Property; it is not a geography lookup table. ADR-0033 now
+classifies it as an Organization-scoped table with its own reconciled `organization_id NOT NULL`,
+Organization FK, scoped access, forced default-deny RLS, and same-Organization reference rule.
+
+An Address can be reused within one Organization. Conflicting resolved inbound Client/Property
+references are an ambiguous cross-tenant address set, not proof of globally shared reference data.
+They require the same explicit, auditable reconciliation and block cutover; no automatic clone or
+reassignment is allowed. This is a tenancy refinement required by ADR/0021, not a redesign of the
+existing Address table, geography hierarchy, Party relation, or Property model.
+
+At final cutover, Party, Property, and bridge Client address links must also enforce Organization
+equality at the database relationship boundary, using a composite FK to an Address
+`(organization_id, id)` key or an equivalently strong declarative constraint. RLS and scoped access
+are not substitutes for that relationship-integrity rule.
 
 ## 1. Authorization and Baseline
 
@@ -34,7 +55,8 @@ T106 authorization row, `PROJECT_STATE.json`, `ADR/template.md`, ADRs `0021`, `0
 The live persistence model and migration history were rechecked in `client.py`, `matter.py`,
 `property.py`, `financial.py`, `scheduling.py`, and the corresponding Alembic revisions. Repository-
 wide searches rechecked Client models, direct `client_id` dependencies, permission seeds, tests,
-current ERD/database documentation, and the absence of Client repositories, services, API routes,
+Address's concrete fields and Client/Property foreign-key consumers, current ERD/database
+documentation, and the absence of Client repositories, services, API routes,
 schemas, production factories, and client-record seed data.
 
 ## 3. Current Client Dependency Graph
@@ -47,6 +69,11 @@ The canonical direct `clients.id` consumers are:
 - nullable `appointments.client_id`;
 - mandatory `invoices.client_id`; and
 - mandatory `payments.client_id`.
+
+`addresses` is a related canonical dependency rather than a `clients.id` consumer: Client and
+Property each reference it through nullable `address_id`. It stores concrete street/postal data and
+is an audited business record, so ADR-0033 now retains it as a directly Organization-scoped table,
+not globally reusable reference data.
 
 The full inventory, including immutable historic migrations, `clients:*` permission grants and their
 tests, model registration, transitive model-test setup, and ERD/schema/specification documentation,
@@ -64,7 +91,9 @@ collisions abort rather than remap or overwrite data.
 The ADR maps Client fields explicitly: ID, discriminator, universal name/contact/notes/address
 fields, PAN, and Aadhaar are preserved; subtype semantics beyond the accepted Party discriminator
 remain governed only to the degree ADR-0023 already establishes. `organization_id` is new and is
-assigned through the reconciliation rule, not fabricated from a Client field.
+assigned through the reconciliation rule, not fabricated from a Client field. `address_id` is copied
+only after its Address resolves to the same Organization; a conflict blocks reconciliation rather
+than being auto-shared, cloned, or reassigned.
 
 ## 5. Relationship and Migration Decisions
 
@@ -94,9 +123,10 @@ classification, selected Organization, migration-run identity, timestamp, and av
 process reference.
 
 At final cutover, Parties, MatterParties, Matters, Properties, PropertyOwners, Appointments,
-Invoices, Payments, and retained ClientContacts each carry `organization_id NOT NULL`, an FK to
-`organizations`, ADR-0021 application-layer tenant scoping, and forced default-deny RLS. Tenant
-ownership is never inferred solely through a join.
+Invoices, Payments, retained ClientContacts, and Addresses each carry `organization_id NOT NULL`,
+an FK to `organizations`, ADR-0021 application-layer tenant scoping, and forced default-deny RLS.
+Tenant ownership is never inferred solely through a join. Address reuse is permitted only when the
+referencing Party/Property and Address have the same Organization.
 
 ## 7. Composition Check
 
@@ -104,6 +134,8 @@ ownership is never inferred solely through a join.
   RLS requirements to every affected Party-side table.
 - **ADR-0023:** preserved. Party remains the master record and Client remains a Matter role;
   `matter_parties` realizes that accepted direction without a Party subtype or a one-party shortcut.
+  Its existing Address-table reuse is retained, while ADR-0033 supplies the direct tenancy enforcement
+  the concrete Address record requires under ADR-0021.
 - **ADR-0024:** preserved. Property remains independent of Matter, while the existing ownership
   history structure changes only its Client reference to Party.
 - **ADR-0028:** preserved. Invoice and Payment remain real Finance entities; their Party redirect is
