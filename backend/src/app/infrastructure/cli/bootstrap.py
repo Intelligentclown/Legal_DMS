@@ -11,6 +11,20 @@ password with the existing `hash_password()` (T46), and creates exactly one
 `User` assigned the `Administrator` role -- the exact role name seeded by
 `9963e15f2752_seed_lookup_data.py`.
 
+T105/ADR-0031 SS6.2/SS6.3: in the same idempotency check and the same
+transaction, also creates exactly one `Organization` and links the new
+`User` to it -- so a deployment can never reach a state with a User but no
+Organization, or vice versa. Organization identity (name/legal name) is
+always operator-supplied at the interactive prompt, never hardcoded or
+defaulted (mirroring D4's reasoning for why identity-bearing data belongs
+to an interactive prompt, not argv/env/config). Ordering mirrors this
+file's own pre-existing `UserRole.assigned_by=user.id` self-attribution
+precedent ("no other actor exists at bootstrap time"): the `User` is
+created and flushed first (so its id exists), then the `Organization` is
+created with `created_by`/`updated_by` attributed to that same user (which
+now legally satisfies `AuditMixin`'s FK), then the user's own
+`organization_id` is set to point at it.
+
 `run_bootstrap()` is the testable core (takes an already-open session,
 never touches `input()`/`getpass()`, never commits -- mirrors this
 codebase's `get_db()`/repository-layer split, where the caller owns the
@@ -29,6 +43,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database.session import get_session_factory
 from app.infrastructure.persistence.models.identity import Role, User, UserRole
+from app.infrastructure.persistence.models.organization import Organization
 from app.infrastructure.security.password_hasher import hash_password
 
 ADMINISTRATOR_ROLE_NAME = "Administrator"
@@ -39,10 +54,18 @@ async def _any_user_exists(session: AsyncSession) -> bool:
     return result.scalar_one() > 0
 
 
-async def run_bootstrap(session: AsyncSession, *, email: str, password: str) -> User | None:
-    """Creates the first admin `User` and assigns it the `Administrator`
-    role, or returns `None` without touching the session if a `User` row
-    already exists. Doesn't commit -- `main()` owns that."""
+async def run_bootstrap(
+    session: AsyncSession,
+    *,
+    email: str,
+    password: str,
+    organization_name: str,
+    organization_legal_name: str | None = None,
+) -> User | None:
+    """Creates the first admin `User`, the first `Organization`, links the
+    two, and assigns the `Administrator` role -- one atomic unit (T105/
+    ADR-0031 SS6.2/SS6.3) -- or returns `None` without touching the session
+    if a `User` row already exists. Doesn't commit -- `main()` owns that."""
     if await _any_user_exists(session):
         return None
 
@@ -62,6 +85,17 @@ async def run_bootstrap(session: AsyncSession, *, email: str, password: str) -> 
     session.add(user)
     await session.flush()
 
+    organization = Organization(
+        name=organization_name,
+        legal_name=organization_legal_name,
+        created_by=user.id,
+        updated_by=user.id,
+    )
+    session.add(organization)
+    await session.flush()
+
+    user.organization_id = organization.id
+
     session.add(UserRole(user_id=user.id, role_id=admin_role.id, assigned_by=user.id))
     await session.flush()
 
@@ -80,14 +114,22 @@ async def _async_main() -> None:
 
         email = input("Administrator email: ").strip()
         password = getpass("Administrator password: ")
+        organization_name = input("Organization name: ").strip()
+        organization_legal_name = input("Organization legal name (optional): ").strip() or None
 
-        user = await run_bootstrap(session, email=email, password=password)
+        user = await run_bootstrap(
+            session,
+            email=email,
+            password=password,
+            organization_name=organization_name,
+            organization_legal_name=organization_legal_name,
+        )
         if user is None:
             print("A user already exists -- skipping first-admin bootstrap.")
             return
 
         await session.commit()
-        print(f"Created administrator {user.email!r}.")
+        print(f"Created administrator {user.email!r} and its Organization {organization_name!r}.")
 
 
 def main() -> None:

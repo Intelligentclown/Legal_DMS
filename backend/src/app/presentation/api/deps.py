@@ -43,7 +43,7 @@ from app.application.interfaces.auth import (
 from app.infrastructure.auth.jwt_authentication_provider import JwtAuthenticationProvider
 from app.infrastructure.auth.rbac_authorization_service import RbacAuthorizationService
 from app.infrastructure.config import Settings
-from app.infrastructure.database.session import get_db
+from app.infrastructure.database.session import get_admin_db, get_db
 from app.infrastructure.di.container import container
 from app.infrastructure.persistence.sqlalchemy_refresh_token_repository import (
     SqlAlchemyRefreshTokenRepository,
@@ -65,6 +65,9 @@ def get_audit_logger_dependency() -> AuditLogger:
 SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
 AuditLoggerDep = Annotated[AuditLogger, Depends(get_audit_logger_dependency)]
 DBSessionDep = Annotated[AsyncSession, Depends(get_db)]
+# T105: the admin/owning-role session -- see get_admin_db()'s own docstring
+# for why AuthService specifically needs this instead of DBSessionDep.
+AdminDBSessionDep = Annotated[AsyncSession, Depends(get_admin_db)]
 
 
 async def get_authentication_provider(
@@ -89,14 +92,21 @@ async def get_authorization_service(session: DBSessionDep) -> AuthorizationServi
 
 
 async def get_auth_service(
-    session: DBSessionDep, settings: SettingsDep, audit_logger: AuditLoggerDep
+    session: AdminDBSessionDep, settings: SettingsDep, audit_logger: AuditLoggerDep
 ) -> AuthService:
     """Built fresh per request (T58, mirrors `get_authentication_provider()`/
     `get_authorization_service()`, T55) — `AuthService`'s two repositories
     both need *this* request's session, not a cached/shared one.
     `audit_logger` (T65) is the one dependency here that isn't session-bound
     -- resolved straight from the container via `AuditLoggerDep`, the same
-    singleton `RequirePermission` below also reaches for."""
+    singleton `RequirePermission` below also reaches for.
+
+    T105: `AdminDBSessionDep`, not `DBSessionDep` -- see `get_admin_db()`'s
+    docstring. Login/refresh/logout look up a `User`/`RefreshToken` before
+    any tenant context can exist, which the RLS-restricted `legal_dms_app`
+    role (used by `DBSessionDep`/`get_db()`) would otherwise deny outright.
+    `AuthService`'s own code is unchanged -- only which session constructs
+    its repositories."""
     return AuthService(
         SqlAlchemyUserRepository(session),
         SqlAlchemyRefreshTokenRepository(session),

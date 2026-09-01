@@ -40,14 +40,34 @@ class JwtAuthenticationProvider(AuthenticationProvider):
         except (KeyError, ValueError, TypeError):
             return CurrentUser()
 
+        # T105/ADR-0021: set app.current_user_id *before* the self-lookup below --
+        # this is the RLS self-row carve-out that lets a caller read its own
+        # `users` row before any Organization context is known (chicken-and-egg
+        # a plain org-scoped policy alone can't solve). Runs on this provider's
+        # own repository's session, the same DBSessionDep-yielded session every
+        # other dependent of this request also receives (see get_db()/deps.py) --
+        # so this GUC is visible to every later query in the same request.
+        await self._user_repository.set_current_user_context(user_id)
+
         user = await self._user_repository.get_by_id(user_id)
         if user is None or not user.is_active:
             return CurrentUser()
 
         roles = await self._user_repository.get_role_names(user.id)
+
+        # T105/ADR-0031 SS6.5: live, per-request rederivation from the database,
+        # mirroring the roles lookup above exactly -- never a JWT claim. Fail-
+        # closed either way (never a cast error): the RLS policies themselves
+        # NULLIF() every current_setting() read before casting to ::uuid, since
+        # a bound None here doesn't reliably read back as true SQL NULL once
+        # this GUC has ever been set on the underlying pooled connection (see
+        # SqlAlchemyUserRepository.set_current_organization_context()).
+        await self._user_repository.set_current_organization_context(user.organization_id)
+
         return CurrentUser(
             id=str(user.id),
             display_name=user.full_name,
             roles=roles,
             is_authenticated=True,
+            organization_id=str(user.organization_id) if user.organization_id else None,
         )
