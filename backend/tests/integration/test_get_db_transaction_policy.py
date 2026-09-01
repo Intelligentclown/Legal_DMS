@@ -25,7 +25,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.infrastructure.config import get_settings
-from app.infrastructure.database.session import get_db, get_engine
+from app.infrastructure.database.session import get_app_engine, get_db, get_engine
 
 
 class _Base(DeclarativeBase):
@@ -41,12 +41,17 @@ class _Widget(_Base):
 
 @pytest.fixture
 async def _schema() -> AsyncGenerator[None, None]:
-    # get_db() uses the app's cached get_engine() singleton, not a
-    # per-test engine -- clear the lru_cache so a fresh engine gets built
+    # get_db() uses the app's cached get_engine()/get_app_engine() singletons,
+    # not per-test engines -- clear both lru_caches so fresh engines get built
     # bound to *this* test's event loop (see AI_HANDOVER.md's "patterns
     # worth knowing" #3: a cached engine can't outlive the event loop it
     # was created on, and pytest-asyncio gives each test its own loop).
+    # T105: get_db() itself now runs through get_app_engine() (the restricted
+    # legal_dms_app role) -- this fixture still creates the throwaway table
+    # via the unchanged get_engine() (admin role); legal_dms_app sees it
+    # automatically via the RLS migration's ALTER DEFAULT PRIVILEGES.
     get_engine.cache_clear()
+    get_app_engine.cache_clear()
     engine = get_engine()
     try:
         async with engine.begin() as conn:
@@ -57,12 +62,30 @@ async def _schema() -> AsyncGenerator[None, None]:
         pytest.skip("Postgres is not reachable — start it with `docker compose up -d`.")
         return
 
+    try:
+        async with get_app_engine().connect():
+            pass
+    except Exception:
+        async with engine.begin() as conn:
+            await conn.run_sync(_Base.metadata.drop_all)
+        await engine.dispose()
+        await get_app_engine().dispose()
+        get_engine.cache_clear()
+        get_app_engine.cache_clear()
+        pytest.skip(
+            "legal_dms_app is not reachable/provisioned — run `uv run provision-app-role` "
+            "then `uv run alembic upgrade head`."
+        )
+        return
+
     yield
 
     async with engine.begin() as conn:
         await conn.run_sync(_Base.metadata.drop_all)
     await engine.dispose()
+    await get_app_engine().dispose()
     get_engine.cache_clear()
+    get_app_engine.cache_clear()
 
 
 async def _read_independently(widget_id: UUID) -> _Widget | None:

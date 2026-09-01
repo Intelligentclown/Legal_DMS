@@ -34,6 +34,14 @@ class User(Base, AuditMixin):
     password_hash: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # T105/ADR-0031 SS6.4: nullable, direct FK -- at most one Organization per User
+    # (optional one-to-one). Nullable because a User row must be representable
+    # before onboarding is complete (ADR/0031 SS6.4, SS6.7) -- fail-closed on
+    # None everywhere it matters (ADR/0021), never backfilled by this column
+    # itself. See RLS policies added by the T105 migration for the database-level
+    # backstop; POST /users (create_user) deliberately continues to produce NULL
+    # here -- see T105's own authorization row and users.py's create_user docstring.
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
 
 
 class Role(Base, AuditMixin):

@@ -17,6 +17,8 @@ dependencies = [
 
 [project.scripts]
 bootstrap-admin = "app.infrastructure.cli.bootstrap:main"
+provision-app-role = "app.infrastructure.cli.provision_app_role:main"
+reconcile-organizations = "app.infrastructure.cli.reconcile_organizations:main"
 
 [dependency-groups]
 dev = [

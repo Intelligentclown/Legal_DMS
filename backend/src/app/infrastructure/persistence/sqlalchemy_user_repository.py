@@ -4,9 +4,10 @@ plus the lookups/mutations the port adds.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -64,3 +65,49 @@ class SqlAlchemyUserRepository(SqlAlchemyRepository[User], UserRepository):
         await self._session.delete(user_role)
         await self._session.flush()
         return True
+
+    async def set_current_user_context(self, user_id: UUID) -> None:
+        # set_config(..., true) is transaction-local (PostgreSQL docs) --
+        # bound parameter, never string-interpolated, so this can never
+        # produce an empty-string-cast error and never a SQL-injection
+        # surface.
+        await self._session.execute(
+            text("SELECT set_config('app.current_user_id', :user_id, true)").bindparams(
+                user_id=str(user_id)
+            )
+        )
+
+    async def set_current_organization_context(self, organization_id: UUID | None) -> None:
+        # A None value binds SQL NULL as set_config()'s new_value. Verified
+        # directly against Postgres (not merely assumed from docs): for a
+        # custom/unregistered GUC that has already been set at least once on
+        # this session/connection, set_config(name, NULL, true) leaves
+        # current_setting(name, true) returning an *empty string*, not a
+        # true-NULL reset -- so the RLS policies themselves wrap every
+        # current_setting(...) in NULLIF(..., '') before casting to ::uuid
+        # (see migration 7192e84e9a2f), which is what actually prevents the
+        # empty-string cast error, not this call's NULL argument alone.
+        await self._session.execute(
+            text("SELECT set_config('app.current_organization_id', :org_id, true)").bindparams(
+                org_id=str(organization_id) if organization_id is not None else None
+            )
+        )
+
+    async def get_by_id_in_organization(self, user_id: UUID, organization_id: UUID) -> User | None:
+        stmt = select(User).where(User.id == user_id, User.organization_id == organization_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list_in_organization(
+        self, organization_id: UUID, *, limit: int = 100, offset: int = 0
+    ) -> Sequence[User]:
+        stmt = (
+            select(User).where(User.organization_id == organization_id).limit(limit).offset(offset)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
+
+    async def count_in_organization(self, organization_id: UUID) -> int:
+        stmt = select(func.count()).select_from(User).where(User.organization_id == organization_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one()

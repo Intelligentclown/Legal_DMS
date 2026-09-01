@@ -27,7 +27,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.config import get_settings
-from app.infrastructure.database.session import get_db
+from app.infrastructure.database.session import get_admin_db, get_db
 from app.infrastructure.persistence.models.identity import RefreshToken, User
 from app.infrastructure.security.jwt_service import create_refresh_token
 from app.infrastructure.security.password_hasher import hash_password
@@ -42,13 +42,19 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
 
+    # T105: AuthService (login/refresh/logout) now uses get_admin_db(), not
+    # get_db() -- override both to the same db_session, or a row created
+    # here via db_session (uncommitted) would be invisible to get_admin_db()'s
+    # own, independent real connection.
     app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_admin_db] = _override_get_db
     try:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://testserver") as test_client:
             yield test_client
     finally:
         app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(get_admin_db, None)
 
 
 async def _make_user(db_session: AsyncSession, **overrides: object) -> User:

@@ -31,6 +31,16 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://legal_dms:legal_dms@localhost:5432/legal_dms_dev"
 
+    # T105/ADR-0021: the live app's request-serving get_db() connects through this
+    # distinct, non-table-owning role instead of database_url's admin/owning role,
+    # so FORCE'd RLS on organizations/users is a genuine backstop rather than a
+    # no-op for the table owner. Alembic, bootstrap-admin, the reconciliation CLI,
+    # and the test suite's db_session fixture all keep using database_url unchanged
+    # -- see infrastructure/cli/provision_app_role.py for how this role is created.
+    app_database_url: str = (
+        "postgresql+asyncpg://legal_dms_app:legal_dms_app@localhost:5432/legal_dms_dev"
+    )
+
     log_level: str = "INFO"
     log_dir: str = "logs"
     storage_root: str = "storage"

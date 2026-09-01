@@ -57,8 +57,9 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 
 from app.application.common.base_service import BaseService
-from app.application.common.pagination import DEFAULT_PAGE_SIZE, PageRequest
-from app.application.errors.exceptions import ConflictError, NotFoundError
+from app.application.common.pagination import DEFAULT_PAGE_SIZE, PageRequest, PageResult
+from app.application.errors.exceptions import ConflictError, ForbiddenError, NotFoundError
+from app.application.interfaces.auth import CurrentUser
 from app.infrastructure.persistence.models.identity import Role, User
 from app.infrastructure.persistence.sqlalchemy_repository import SqlAlchemyRepository
 from app.infrastructure.persistence.sqlalchemy_user_repository import SqlAlchemyUserRepository
@@ -112,11 +113,31 @@ def _to_read(user: User) -> UserRead:
     return UserRead.model_validate(user, from_attributes=True)
 
 
+def _require_organization(current_user: CurrentUser) -> UUID:
+    """T105/ADR-0021: fail-closed if the caller has no resolved Organization
+    -- an authenticated, `users:manage`-holding Administrator with no
+    Organization (e.g. an org-unassigned user created via `create_user`,
+    see its own docstring below) still cannot operate on any of these
+    six routes. Never proceeds "unscoped" -- raises before any lookup."""
+    if current_user.organization_id is None:
+        raise ForbiddenError("No Organization context is resolved for this caller")
+    return UUID(current_user.organization_id)
+
+
 @router.get("", summary="List users")
 async def list_users(
-    service: UserServiceDep, page: int = 1, page_size: int = DEFAULT_PAGE_SIZE
+    current_user: CurrentUserDep,
+    repository: UserRepositoryDep,
+    page: int = 1,
+    page_size: int = DEFAULT_PAGE_SIZE,
 ) -> ApiResponse[list[UserRead]]:
-    page_result = await service.list_page(PageRequest(page=page, page_size=page_size))
+    organization_id = _require_organization(current_user)
+    request = PageRequest(page=page, page_size=page_size)
+    items = await repository.list_in_organization(
+        organization_id, limit=request.limit, offset=request.offset
+    )
+    total = await repository.count_in_organization(organization_id)
+    page_result = PageResult.create(list(items), total=total, request=request)
     entity_response = paginated_response(page_result)
     return ApiResponse(
         data=[_to_read(user) for user in entity_response.data], meta=entity_response.meta
@@ -124,8 +145,13 @@ async def list_users(
 
 
 @router.get("/{user_id}", summary="Get a user by id")
-async def get_user(user_id: UUID, service: UserServiceDep) -> ApiResponse[UserRead]:
-    user = await service.get_by_id_or_raise(user_id)
+async def get_user(
+    user_id: UUID, current_user: CurrentUserDep, repository: UserRepositoryDep
+) -> ApiResponse[UserRead]:
+    organization_id = _require_organization(current_user)
+    user = await repository.get_by_id_in_organization(user_id, organization_id)
+    if user is None:
+        raise NotFoundError(f"User with id {user_id} was not found")
     return ApiResponse(data=_to_read(user))
 
 
@@ -140,6 +166,33 @@ class UserCreate(BaseModel):
     "", status_code=status.HTTP_201_CREATED, summary="Create a user with a hashed password"
 )
 async def create_user(payload: UserCreate, repository: UserRepositoryDep) -> ApiResponse[UserRead]:
+    """**Deliberately, verifiably unchanged by T105** -- not touched at the
+    route, schema, or repository-call level. `UserCreate` has no
+    `organization_id` field, so a client cannot use this route to assign a
+    User to any Organization, arbitrary or otherwise; even a smuggled extra
+    `organization_id` field in the request body has no code path to reach
+    the database here (Pydantic ignores unknown fields by default, and this
+    handler never reads one). Six things worth stating explicitly, per
+    T105's own authorization row and its Project Owner confirmation:
+
+    1. This remains an intentionally org-unassigned legacy/admin workflow --
+       not silently deprecated, not silently repurposed.
+    2. The created `User` always gets `organization_id = NULL`. That is
+       permitted at the database layer (see the `users_insert` RLS policy in
+       migration `7192e84e9a2f`) only because `ADR/0031` SS6.4 already makes
+       the FK nullable for exactly this "not yet onboarded" state -- this
+       route preserves that behavior, it doesn't newly decide it.
+    3. A client cannot use this route to assign a User to an arbitrary
+       Organization -- there is no field for it, by construction.
+    4. The org-scoped `GET`/`PUT`/deactivate/role routes below (see
+       `_require_organization()`) remain fail-closed and can never operate
+       on a User created here through any Organization context, until that
+       User is separately assigned one.
+    5. The eventual policy for assigning newly-created Users to an
+       Organization is **not** decided by T105 and remains a future,
+       separately-authorized architecture/business decision -- this route
+       does not narrow or presuppose an answer to it.
+    """
     if await repository.get_by_email(payload.email) is not None:
         raise ConflictError(f"A user with email {payload.email} already exists")
 
@@ -161,9 +214,16 @@ class UserUpdate(BaseModel):
 
 @router.put("/{user_id}", summary="Replace a user's email/full_name/phone")
 async def update_user(
-    user_id: UUID, payload: UserUpdate, service: UserServiceDep, repository: UserRepositoryDep
+    user_id: UUID,
+    payload: UserUpdate,
+    current_user: CurrentUserDep,
+    service: UserServiceDep,
+    repository: UserRepositoryDep,
 ) -> ApiResponse[UserRead]:
-    user = await service.get_by_id_or_raise(user_id)
+    organization_id = _require_organization(current_user)
+    user = await repository.get_by_id_in_organization(user_id, organization_id)
+    if user is None:
+        raise NotFoundError(f"User with id {user_id} was not found")
 
     existing = await repository.get_by_email(payload.email)
     if existing is not None and existing.id != user.id:
@@ -177,8 +237,16 @@ async def update_user(
 
 
 @router.post("/{user_id}/deactivate", summary="Deactivate a user")
-async def deactivate_user(user_id: UUID, service: UserServiceDep) -> ApiResponse[UserRead]:
-    user = await service.get_by_id_or_raise(user_id)
+async def deactivate_user(
+    user_id: UUID,
+    current_user: CurrentUserDep,
+    service: UserServiceDep,
+    repository: UserRepositoryDep,
+) -> ApiResponse[UserRead]:
+    organization_id = _require_organization(current_user)
+    user = await repository.get_by_id_in_organization(user_id, organization_id)
+    if user is None:
+        raise NotFoundError(f"User with id {user_id} was not found")
     user.is_active = False
     updated = await service.update(user)
     return ApiResponse(data=_to_read(updated))
@@ -204,11 +272,12 @@ async def assign_role(
     user_id: UUID,
     payload: RoleAssignmentCreate,
     current_user: CurrentUserDep,
-    service: UserServiceDep,
     repository: UserRepositoryDep,
     role_repository: RoleRepositoryDep,
 ) -> ApiResponse[RoleAssignmentRead]:
-    await service.get_by_id_or_raise(user_id)
+    organization_id = _require_organization(current_user)
+    if await repository.get_by_id_in_organization(user_id, organization_id) is None:
+        raise NotFoundError(f"User with id {user_id} was not found")
     if await role_repository.get_by_id(payload.role_id) is None:
         raise NotFoundError(f"Role with id {payload.role_id} was not found")
 
@@ -232,11 +301,13 @@ async def assign_role(
 async def remove_role(
     user_id: UUID,
     role_id: UUID,
-    service: UserServiceDep,
+    current_user: CurrentUserDep,
     repository: UserRepositoryDep,
     role_repository: RoleRepositoryDep,
 ) -> None:
-    await service.get_by_id_or_raise(user_id)
+    organization_id = _require_organization(current_user)
+    if await repository.get_by_id_in_organization(user_id, organization_id) is None:
+        raise NotFoundError(f"User with id {user_id} was not found")
     if await role_repository.get_by_id(role_id) is None:
         raise NotFoundError(f"Role with id {role_id} was not found")
 
