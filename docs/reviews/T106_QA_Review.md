@@ -108,3 +108,69 @@ governance-validator unit suite is unavailable in the root interpreter.
 
 ADR-0033 requires Software Architect rework before QA can clear PR #177. This record does not merge
 the PR, perform Governance Closeout, authorize implementation, or create a follow-up task.
+
+## QA Re-Review
+
+**Remote head reviewed before this re-review decision:**
+`45416155fae45c5cde37c768c481470b2d5b7a72`.
+
+The prior blocking finding is resolved. The revised ADR independently classifies `addresses` as
+Organization-scoped concrete business data, while retaining its geographic foreign keys as reusable
+reference data. Repository inspection confirms that Client and Property are the only direct Address
+consumers.
+
+The rework requires `addresses.organization_id`, an Organization FK, reconciliation/backfill,
+final `NOT NULL`, scoped access, and forced default-deny RLS. It also requires Party, Property, and
+bridge Client address links to enforce Organization equality at the database relationship boundary
+through a composite `(organization_id, address_id)` foreign key to a corresponding unique Address
+key or an equivalently strong declarative constraint. This prevents a Party or Property from
+crossing tenants through an Address reference; joins are not the sole security boundary.
+
+Address reconciliation is coherent with the existing Client/Party process. Resolved inbound Client
+and Property references must agree; zero evidence is unmappable, disagreement is ambiguous, and
+cross-tenant reuse is never inferred. Operator-supplied per-reference mapping, durable audit data,
+and cutover blocking are required before a conflicting Address can be copied or retargeted. This
+preserves ADR-0024's Matter-independent Property boundary and introduces no Organization lifecycle,
+onboarding, or other unsupported business policy.
+
+No new blocking findings or non-blocking comments were identified. The authorization remains an
+ancestor; ADR-0033 remains `Proposed`; `latestTaskAuthorized` is `T106`;
+`latestTaskDone` is `T105`; Required ADR #20 remains unresolved; `inProgressTransitions` remains
+empty; and the PR contains no Party implementation, T107, or Governance Closeout.
+
+Validation independently completed: `python scripts/governance_validate.py` passed; the governance
+validator suite passed `51/51`; `git diff --check` passed; and GitHub's Backend, Frontend, Release,
+and Governance validations are passing on PR #177.
+
+## Re-Review Checklist
+
+```text
+Reviewer Checklist
+
+☑ Architecture preserved
+☑ Existing design patterns followed
+□ Tests added
+☑ Existing tests pass
+☑ Documentation updated
+☑ ADR updated (if required)
+□ AI_BOOTSTRAP updated (if required)
+□ PROJECT_STATE updated (if required)
+☑ No unrelated refactoring
+☑ No scope creep
+☑ Ready for QA
+```
+
+No implementation tests were added because this is an architecture-only rework. The passing
+governance suite and all required CI checks were independently verified.
+
+## QA Re-Review Decision
+
+```text
+☑ Approved
+□ Approved with comments
+□ Rework required
+```
+
+This supersedes the prior `Rework required` decision for the current reviewed PR head. It does not
+merge the PR, perform Governance Closeout, authorize Party implementation, or create a follow-up
+task.
