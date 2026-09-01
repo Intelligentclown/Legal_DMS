@@ -18,9 +18,9 @@
     "requiredADRPlanningListTotal": 20,
     "resolvedRequiredADRs": [1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 18, 19],
     "unresolvedRequiredADRs": [10, 11, 12, 15, 16, 17, 20],
-    "latestTaskDone": "T104",
+    "latestTaskDone": "T105",
     "latestTaskAuthorized": "T105",
-    "asOfCommit": "a5c415d9b186ebe0e87d659ca0e6fdc09616d6f1",
+    "asOfCommit": "6b55d5c33c4b54e404d84567a090269127ac13a4",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
