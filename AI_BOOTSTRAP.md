@@ -18,25 +18,56 @@ the full picture — follow the links in the order given.*
 7. **[IMPLEMENTATION_QUEUE.md](IMPLEMENTATION_QUEUE.md)** — the actionable task backlog for the
    current stage (granular, dependency-ordered), including any pending QA review findings and their
    classification/resolution status.
+8. **[docs/AI_EXECUTION_ROUTING.md](docs/AI_EXECUTION_ROUTING.md)** — how repository roles map to
+   executors, when to use broad vs. task-scoped bootstrap, and why role is not the same thing as
+   product.
 
 If anything in `PROJECT_STATE.json` or `docs/ProjectStatus.md` disagrees with what you find in the
 actual code (`git log`, file contents), **trust the code and report the discrepancy** — don't
 silently proceed on stale documentation.
 
-## New Session Protocol
+## Bootstrap Modes
 
-When starting a new AI session:
+This repository supports two bootstrap modes. Both remain repository-first and both preserve every
+existing authorization, QA, CI, and merge gate.
 
-1. Ignore previous chat history.
+### Control Tower Bootstrap
+
+Use this when acting in a broad-context planning or merge-gate role, especially Project Manager /
+Control Tower work.
+
+1. Ignore previous chat history as a source of truth.
 2. Read [`AI_BOOTSTRAP.md`](AI_BOOTSTRAP.md) first.
-3. Read [`PROJECT_STATE.json`](PROJECT_STATE.json).
-4. Read the relevant handoff document (e.g. [`docs/Stage3_Backend_Handoff.md`](docs/Stage3_Backend_Handoff.md)).
-5. Read the active [`ImplementationLog`](docs/ImplementationLog/).
-6. Read related ADRs.
-7. Use the repository as the source of truth.
-8. Do not infer project state from previous conversations.
+3. Read [`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md).
+4. Read [`PROJECT_WORKFLOW.md`](PROJECT_WORKFLOW.md).
+5. Read [`PROJECT_STATE.json`](PROJECT_STATE.json).
+6. Read [`IMPLEMENTATION_QUEUE.md`](IMPLEMENTATION_QUEUE.md).
+7. Read the relevant handoff/review/ImplementationLog/ADR material needed for the current decision.
+8. Use the repository as the source of truth.
 9. Summarize understanding before making changes.
-10. Wait for approval before implementation.
+10. Wait for approval before implementation or merge action.
+
+### Authorized Task Bootstrap
+
+Use this when a Project Manager / Control Tower has already selected an explicitly authorized task
+and passed that bounded task to an executor.
+
+1. Ignore previous chat history as a source of truth.
+2. Read [`AI_BOOTSTRAP.md`](AI_BOOTSTRAP.md) first.
+3. Read [`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md).
+4. Read [`PROJECT_WORKFLOW.md`](PROJECT_WORKFLOW.md).
+5. Read the authorized task's own row in [`IMPLEMENTATION_QUEUE.md`](IMPLEMENTATION_QUEUE.md).
+6. Read the prompt for the repository role being executed.
+7. Read only the direct dependencies, touched files, ADRs, handoff notes, or review records the
+   task actually needs at first.
+8. Expand outward only when a discrepancy, missing dependency, or scope question requires broader
+   context.
+9. Use the repository as the source of truth.
+10. Summarize understanding before making changes.
+11. Wait for approval before implementation if the task has not already been explicitly approved for
+    execution.
+
+Task-scoped bootstrap is a context-efficiency rule, not a permission to skip verification.
 
 ## Non-negotiable rules for this project
 
@@ -50,6 +81,10 @@ When starting a new AI session:
 - **Before writing any code**, read the docs listed above, verify the current project status
   against the actual code (run the tests, check `git log`), and report any inconsistency you find
   before proceeding.
+- **Role is not executor.** Repository roles are defined by this repository's own governance
+  documents; the product/session carrying out a role is an executor choice, routed by
+  [`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md), not a redefinition of the role
+  itself.
 - **Documentation is part of the codebase.** A stage isn't done until `docs/`, `ADR/`,
   `PROJECT_STATE.json`, and this file (if it needs updating) all reflect reality. See
   `docs/DevelopmentGuide.md`'s "Documentation discipline" section.
@@ -92,6 +127,9 @@ When starting a new AI session:
   commonly plays every role in sequence (implement, self-assess, render the QA Decision, then
   synchronize documentation) — do these steps in that order, don't skip the QA Decision step just
   because one session is doing all of them.
+- **Different-executor QA is the default when practical.** The repository's formal independent gate
+  is still the QA Reviewer role; using a different executor from implementation is the default
+  routing expectation, not a replacement for the existing verification and remote-publication rules.
 - **Documents have a primary owner, not an exclusive one.** See
   [`docs/ImplementationLog/README.md`](docs/ImplementationLog/README.md#documentation-ownership)
   for the full assignment (Project Manager → planning docs, Software Architect → ADRs/Architecture.md,

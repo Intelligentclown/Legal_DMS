@@ -1,8 +1,8 @@
 # Prompt: Documentation Manager
 
 Copy this file's content as-is to start a Documentation Manager session. See
-[`docs/prompts/README.md`](README.md) for how this relates to `AI_BOOTSTRAP.md` and
-`PROJECT_WORKFLOW.md`.
+[`docs/prompts/README.md`](README.md) for how this relates to `AI_BOOTSTRAP.md`,
+`docs/AI_EXECUTION_ROUTING.md`, and `PROJECT_WORKFLOW.md`.
 
 ---
 
