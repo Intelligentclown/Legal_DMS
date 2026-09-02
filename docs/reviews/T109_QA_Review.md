@@ -123,3 +123,52 @@ The branch stays correctly within T109's documentation-only scope, but the contr
 truthful about what T108 actually emits or what can be mechanically revalidated from that output.
 That incompatibility is blocking, so PR #186 is **Rework required** at reviewed head
 `9e1760f858675677007d7fda013fc81709b90eef`.
+
+---
+
+# T109 Independent QA Re-Review (Post-Rework)
+
+**Task:** T109 -- Party/Client Migration Reconciliation Contract & Operator Workflow
+**Role:** Independent QA Reviewer
+**PR reviewed:** #186
+**Authoritative architect rework head reviewed:** bf82f9f18e3d7ece3759681a6413d6db537f310
+
+## Re-Review Findings
+
+The Software Architect has corrected the contract to accurately reflect the actual outputs of the T108 preflight and preserve ADR-0033 limits.
+
+### 1. Verification of T108 Compatibility (Previously Blocking)
+- **Resolved:** The contract now exclusively requires fields actually emitted by T108 for the 	108_snapshot (classification, candidate_organization_ids, evidence, and note).
+- **Resolved:** Fingerprints, graph closures, and other unsupported metadata have been removed from the claimed T108 output and are explicitly designated as absent or relegated to future executor logic. 
+- **Resolved:** Stale detection is now mechanically implementable and explicitly relies on authoritative inputs like matching the 
+eport_sha256 of a rerun and exact JSON canonicalization, not on fictional fields. No silent T108 implementation changes are required.
+
+### 2. Verification of ADR-0033 Organization Creation (Previously Blocking)
+- **Resolved:** The contract restores ADR-0033's allowance for an unresolved Client graph to resolve to an existing *or operator-created* Organization.
+- **Resolved:** It makes clear that the reconciliation artifact itself does not create Organizations, nor does it mandate a new UI/API. Instead, an operator-created Organization must be pre-created through an already-governed capability (such as the precedent in ADR-0032), and the artifact merely references its resulting valid UUID with the operator_created source flag. This avoids sneaking in an unapproved architectural decision.
+
+### 3. Additional Required Verifications
+- **Deterministic Entries:** Verified that deterministic states cannot be operator-overridden.
+- **Ambiguous/Unmappable:** Verified that they require explicit operator resolution and forbid heuristic inference.
+- **Invalid/Duplicate Entries:** Verified that missing, duplicate, conflicting, malformed, or nonexistent Organization IDs explicitly fail closed.
+- **Stale Protection:** Verified as coherent and relying on actual authoritative T108/graph inputs.
+- **Provenance/Audit:** Provenance requirements are robust and sufficient without relying on fictional T108 data.
+- **Resumability/Idempotency:** Verified that it explicitly refuses to silently require a durable reconciliation ledger/table. 
+- **Required ADR #20:** Explicitly excluded in Section 14 (Non-Scope), meaning it is not falsely treated as globally resolved.
+- **Scope:** PR diff verified cleanly as documentation/architecture-only. No unrelated scope expansion.
+- **SA Report:** The SA report faithfully and accurately records the Rework Required cycle, the findings, and the steps taken to fix them.
+
+## Validation Results
+- python scripts/governance_validate.py ran cleanly (0 errors, 0 warnings).
+- python scripts/tests/test_governance_validate.py -v ran cleanly (51 tests passed).
+- git diff --check passed cleanly.
+
+## QA Decision
+
+`	ext
+☑ Approved
+□ Approved with comments
+□ Rework required
+`
+
+The contract accurately aligns with T108 capabilities and ADR constraints. PR #186 is Approved at the reviewed rework head.
