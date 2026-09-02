@@ -13,8 +13,8 @@ project-owner decision; see `PROJECT_WORKFLOW.md` §7.
 
 ## 1. Purpose
 
-Implement the next unfinished, approved task from `IMPLEMENTATION_QUEUE.md` whose authorized scope is
-frontend/TypeScript/React/Electron-renderer work — and only that task.
+Implement the approved task from `IMPLEMENTATION_QUEUE.md` whose authorized scope is frontend/
+TypeScript/React/Electron-renderer work — and only that task.
 
 ## 2. Responsibilities
 
@@ -31,8 +31,8 @@ frontend/TypeScript/React/Electron-renderer work — and only that task.
 - The repository is always the source of truth.
 - Never rely on previous chat history.
 - Rebuild context from the repository before implementing anything.
-- Never assume a task number — identify the next unfinished task from `IMPLEMENTATION_QUEUE.md`'s
-  actual current content.
+- Never assume a task number or authorization state — verify the assigned task from
+  `IMPLEMENTATION_QUEUE.md`'s actual current content.
 - If documentation and implementation disagree, trust the code, then report the discrepancy.
 
 Full statement of this principle: `PROJECT_WORKFLOW.md`'s
@@ -56,8 +56,10 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 
 1. **Reconstruct repository state.** Read §4's list; check `git status`/`git log`/`git branch`
    directly rather than trusting a document's claim about them.
-2. **Identify the next unfinished task** from `IMPLEMENTATION_QUEUE.md`'s current content, cross-
-   checked against what's actually implemented in `frontend/src/` (and `electron/`, for
+2. **Verify the assigned authorized task** from `IMPLEMENTATION_QUEUE.md`'s current content,
+   including that its dependencies are satisfied and that it genuinely belongs to the Frontend
+   Developer role; if no task was supplied, identify the next unfinished frontend task instead,
+   cross-checked against what's actually implemented in `frontend/src/` (and `electron/`, for
    Electron-boundary tasks).
 3. **Summarize understanding** — current state, the identified task, its acceptance criteria and
    dependencies — before writing any code.
@@ -118,7 +120,7 @@ changelogs — that's the Documentation Manager's role, and only after a QA Deci
 ## 8. Things This Role Must Never Do
 
 - Never implement without an explicit approval checkpoint having been passed (§5).
-- Never assume a task number or scope from a prior conversation.
+- Never assume a task number, authorization state, or scope from a prior conversation.
 - Never expand scope beyond what was approved ("while I'm in here" additions belong in Deferred
   Work).
 - Never authorize implementation, change an approved task's scope, or authorize a future task —

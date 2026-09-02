@@ -34,12 +34,15 @@ These hold regardless of who (or what) is doing the work:
 - **The repository is the single source of truth.** Not chat history, not memory, not assumption.
 - **Never rely on previous chat history.** Every new unit of work starts by rebuilding
   understanding from the repository itself.
-- **Rebuild context before implementation.** Read `AI_BOOTSTRAP.md`, `PROJECT_STATE.json`, the
-  relevant `IMPLEMENTATION_QUEUE.md` section, and the active `ImplementationLog` phase before
-  writing anything.
+- **Rebuild context before implementation.** Use the bootstrap mode in `AI_BOOTSTRAP.md` that fits
+  the role: broad Control Tower reconstruction when selecting work or verifying merges; authorized
+  task-scoped reconstruction when an already-authorized task has been handed to an executor. In
+  both cases, verify from repository artifacts rather than prior chat.
 - **Never assume task numbers.** Identify the next unfinished task from
   `IMPLEMENTATION_QUEUE.md`'s actual current content, not from a prior conversation or a guess.
-- **Every implementation cycle begins with the Project Manager.** No feature branch is created until the Project Manager has identified the next unfinished task, verified prerequisites, and the project owner has approved implementation.
+- **Every implementation cycle begins with the Project Manager / Control Tower.** No feature branch
+  is created until that role has identified the next unfinished task or confirmed the supplied task
+  is already authorized, verified prerequisites, and the project owner has approved implementation.
 - **Trust code over documentation if they disagree.** Report the discrepancy, then fix the
   documentation — don't silently proceed on stale docs, and don't silently let the mismatch stand.
 - **Documentation must be synchronized after implementation.** A task isn't done when the code
@@ -82,8 +85,7 @@ Next Task
 
 | Step | Purpose |
 |---|---|
-| **Project Manager** | Rebuilds repository state, identifies the next unfinished task from
-`IMPLEMENTATION_QUEUE.md`, verifies dependencies, phase gates,documentation consistency, implementation status, and blockers, then waits for explicit project-owner approval before implementation begins. |
+| **Project Manager** | Rebuilds repository state, identifies the next unfinished task from `IMPLEMENTATION_QUEUE.md` or confirms an already-supplied task is the intended authorized task, verifies dependencies, phase gates, documentation consistency, implementation status, and blockers, then waits for explicit project-owner approval before implementation begins. |
 | **Backend Developer** | Implements the approved task, writes or extends tests, records the work in an `ImplementationLog` phase log, and self-assesses against the Reviewer Checklist. |
 | **QA Reviewer** | Independently reviews the implementation against the Reviewer Checklist and renders a QA Decision (`Approved` / `Approved with comments` / `Rework required`). `Rework required` sends the work back to the Developer — nothing downstream happens until it clears this gate. |
 | **Documentation Manager** | Once QA approves, synchronizes the project-wide documents this task affects (`PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs, release notes, etc.) without duplicating what the `ImplementationLog` already records. |
@@ -297,6 +299,10 @@ git checkout -b feature/<next-task-name>
 
 ## 7. AI Roles
 
+Repository roles are governance concepts. The product or session performing a role is an **executor**
+choice, not a new role. Default executor routing and bootstrap guidance live in
+[`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md).
+
 The project defines six standard AI roles. One development session may perform all six
 sequentially, but each role has distinct responsibilities and boundaries. Backend Developer and
 Frontend Developer are peer roles occupying the same lifecycle position — a task is assigned to
@@ -310,11 +316,11 @@ task; see [`docs/prompts/SoftwareArchitect.md`](docs/prompts/SoftwareArchitect.m
 
 | Role | Owns | Must never |
 |---|---|---|
-| **Project Manager** | Repository state, implementation planning, dependency validation, task sequencing, stage gates, documentation consistency checks, pre-merge QA-remote verification, and merging approved implementation PRs. | Implement code, review implementation, bypass stage gates, assume task numbers, approve implementation, or merge a PR without independently verifying its QA Decision on the actual remote PR HEAD. |
+| **Project Manager** | Repository state, implementation planning, broad-context task selection, dependency validation, stage gates, documentation consistency checks, pre-merge QA-remote verification, and merging approved implementation PRs. | Implement code, review implementation, bypass stage gates, assume task numbers, approve implementation, or merge a PR without independently verifying its QA Decision on the actual remote PR HEAD. |
 | **Software Architect** | Architectural investigation, ADR drafting and ownership (`/ADR/`), architectural alternatives analysis, architectural decisions, trade-offs, dependencies, and future impact, for a task whose authorized scope is architectural decision work. | Authorize implementation, determine project priority, act as Project Manager, merge PRs, render a QA Decision, implement production code merely because an ADR exists, modify a frozen business rule, reopen an accepted ADR without explicit scope/authorization, or synchronize project-wide documentation. |
-| **Backend Developer** | Implementation, unit/integration tests, `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for backend/Python-domain tasks. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, render a QA Decision, or act as a merge gate. |
-| **Frontend Developer** | Implementation, unit/integration tests (RTL/Vitest), `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for frontend/TypeScript/React/Electron-renderer-domain tasks. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, change an approved task's scope, render a QA Decision, act as a merge gate, or weaken Electron's `sandbox`/`contextIsolation`/`nodeIntegration` posture without separate explicit authorization. |
-| **QA Reviewer** | Independent implementation review, QA Decision, architecture validation, regression review, documentation impact review — the sole independent review gate for both Developer roles (and for Software Architect's ADR output). | Implement features, redesign architecture during review, or approve without verification. |
+| **Backend Developer** | Implementation, unit/integration tests, `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for backend/Python-domain tasks. When handed an already-authorized task, verifies that task's authorization, dependencies, and role fit before implementing it. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, render a QA Decision, or act as a merge gate. |
+| **Frontend Developer** | Implementation, unit/integration tests (RTL/Vitest), `ImplementationLog` phase entries, Reviewer Checklist self-assessment — for frontend/TypeScript/React/Electron-renderer-domain tasks. When handed an already-authorized task, verifies that task's authorization, dependencies, and role fit before implementing it. | Skip tests, expand scope, perform unrelated refactoring, continue automatically to the next task, authorize implementation, change an approved task's scope, render a QA Decision, act as a merge gate, or weaken Electron's `sandbox`/`contextIsolation`/`nodeIntegration` posture without separate explicit authorization. |
+| **QA Reviewer** | Independent implementation review, QA Decision, architecture validation, regression review, documentation impact review — the sole independent review gate for both Developer roles (and for Software Architect's ADR output). Different-executor QA is the default when practical. | Implement features, redesign architecture during review, or approve without verification. |
 | **Documentation Manager** | Synchronization of `PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs, release notes, and other project documentation after QA approval. | Duplicate `ImplementationLog` content, synchronize documentation before QA approval, or rewrite historical records instead of appending updates when required. |
 
 An "Independent Technical Verifier" role has operated informally in this project's history (see
@@ -427,7 +433,9 @@ The canonical AI role prompts are maintained under:
 
 `docs/prompts/`
 
-These prompts are version-controlled alongside the repository and are the canonical instructions for each AI role.
+These prompts are version-controlled alongside the repository and are the canonical instructions for
+each AI role. They define repository roles, not product branding; executor routing lives in
+`docs/AI_EXECUTION_ROUTING.md`.
 
 Current standard prompts:
 

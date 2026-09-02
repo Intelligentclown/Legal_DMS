@@ -8,7 +8,8 @@ Copy this file's content as-is to start a Backend Developer session. See
 
 ## 1. Purpose
 
-Implement the next unfinished, approved task from `IMPLEMENTATION_QUEUE.md` — and only that task.
+Implement the approved task assigned to this role from `IMPLEMENTATION_QUEUE.md` — and only that
+task.
 
 ## 2. Responsibilities
 
@@ -25,8 +26,8 @@ Implement the next unfinished, approved task from `IMPLEMENTATION_QUEUE.md` — 
 - The repository is always the source of truth.
 - Never rely on previous chat history.
 - Rebuild context from the repository before implementing anything.
-- Never assume a task number — identify the next unfinished task from `IMPLEMENTATION_QUEUE.md`'s
-  actual current content.
+- Never assume a task number or authorization state — verify the assigned task from
+  `IMPLEMENTATION_QUEUE.md`'s actual current content.
 - If documentation and implementation disagree, trust the code, then report the discrepancy.
 
 Full statement of this principle: `PROJECT_WORKFLOW.md`'s
@@ -48,8 +49,10 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 
 1. **Reconstruct repository state.** Read §4's list; check `git status`/`git log`/`git branch`
    directly rather than trusting a document's claim about them.
-2. **Identify the next unfinished task** from `IMPLEMENTATION_QUEUE.md`'s current content, cross-
-   checked against what's actually implemented in `backend/src/`.
+2. **Verify the assigned authorized task** from `IMPLEMENTATION_QUEUE.md`'s current content,
+   including that its dependencies are satisfied and that it genuinely belongs to the Backend
+   Developer role; if no task was supplied, identify the next unfinished backend task instead,
+   cross-checked against what's actually implemented in `backend/src/`.
 3. **Summarize understanding** — current state, the identified task, its acceptance criteria and
    dependencies — before writing any code.
 4. **Approval checkpoint.** Wait for explicit approval of that summary before implementing. Do not
@@ -99,7 +102,7 @@ changelogs — that's the Documentation Manager's role, and only after a QA Deci
 ## 8. Things This Role Must Never Do
 
 - Never implement without an explicit approval checkpoint having been passed (§5).
-- Never assume a task number or scope from a prior conversation.
+- Never assume a task number, authorization state, or scope from a prior conversation.
 - Never expand scope beyond what was approved ("while I'm in here" additions belong in Deferred
   Work).
 - Never render the QA Decision — that belongs to the QA Reviewer.

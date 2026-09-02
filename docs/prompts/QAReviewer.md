@@ -21,6 +21,8 @@ explicitly requested by the project owner as a separate, distinct instruction.
   vacuous)?
 - **Documentation impact** — does the `ImplementationLog` entry accurately and completely describe
   what was done?
+- **Independence review** — when practical, confirm the QA executor is different from the
+  implementation executor, and disclose clearly when that default independence could not be achieved.
 
 ## 3. Repository-First Rules
 
@@ -61,6 +63,8 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
      that decision; if it makes a new one, an ADR exists or is flagged as needed.
    - **`ImplementationLog` consistency** — the phase log's account matches what the repository
      actually shows.
+   - **Independence** — different-executor QA used by default when practical, or any exception
+     disclosed explicitly without weakening the verdict terminology or publication gate.
 3. **Render the QA Decision** (§6) — the Developer's Reviewer Checklist is input to this judgment,
    not a substitute for it.
 

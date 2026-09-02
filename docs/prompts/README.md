@@ -1,9 +1,9 @@
 # AI Role Prompts
 
-Reusable, copy-ready prompt templates for the six roles [`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md)
-defines. Each file in this folder is the standing instruction set for one role — copy it into a new
-session as-is to start that role's work, rather than re-deriving its responsibilities from scratch
-each time.
+Reusable, copy-ready prompt templates for the six repository roles
+[`PROJECT_WORKFLOW.md`](../../PROJECT_WORKFLOW.md) defines. Each file in this folder is the
+standing instruction set for one role — copy it into a new session as-is to start that role's work,
+rather than re-deriving its responsibilities from scratch each time.
 
 ## Why these exist
 
@@ -16,10 +16,13 @@ to do.
 
 ## How this relates to `AI_BOOTSTRAP.md`
 
-`AI_BOOTSTRAP.md` is session-level: the New Session Protocol and non-negotiable rules every session
+`AI_BOOTSTRAP.md` is session-level: the bootstrap modes and non-negotiable rules every session
 follows regardless of role. These prompts don't replace or restate it — every prompt in this folder
 assumes `AI_BOOTSTRAP.md` has already been read and its rules are already in effect, then adds only
 what's specific to one role on top.
+
+`docs/AI_EXECUTION_ROUTING.md` separately explains executor routing. These prompts define roles, not
+which product must perform them.
 
 ## How this relates to `PROJECT_WORKFLOW.md`
 
