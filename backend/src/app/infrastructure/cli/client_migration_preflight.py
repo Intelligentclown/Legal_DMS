@@ -401,16 +401,21 @@ class _PreflightContext:
         self, node_type: str, node_id: UUID, path: str
     ) -> list[EvidencePath]:
         resolved = self.resolved.get((node_type, node_id))
-        if resolved is None or resolved.classification != "deterministic":
+        if resolved is None or not resolved.candidates:
             return []
-        assert len(resolved.candidates) == 1
+
+        # An ambiguous linked node cannot be assigned an Organization, but its
+        # independently discovered candidates must propagate through the
+        # explicit graph path. Otherwise a conflict can disappear from the
+        # Client anchor after fixed-point reclassification.
         return [
             EvidencePath(
                 source_type=node_type,
                 source_id=str(node_id),
                 path=path,
-                organization_id=str(next(iter(resolved.candidates))),
+                organization_id=str(candidate),
             )
+            for candidate in resolved.candidates
         ]
 
     def build_report(self) -> ClientPreflightReport:
