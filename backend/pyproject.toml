@@ -20,6 +20,7 @@ bootstrap-admin = "app.infrastructure.cli.bootstrap:main"
 provision-app-role = "app.infrastructure.cli.provision_app_role:main"
 reconcile-organizations = "app.infrastructure.cli.reconcile_organizations:main"
 client-migration-preflight = "app.infrastructure.cli.client_migration_preflight:main"
+validate-client-reconciliation-artifact = "app.infrastructure.cli.client_reconciliation_artifact_validator:main"
 
 [dependency-groups]
 dev = [
