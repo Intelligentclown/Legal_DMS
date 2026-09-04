@@ -83,6 +83,6 @@ Observe the first documentation/governance-only pull request after this workflow
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required

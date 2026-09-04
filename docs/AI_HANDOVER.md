@@ -764,6 +764,19 @@ Organization/Tenant Core implementation remains **not authorized**, gated behind
 Manager/Control Tower re-assessment against `ADR/0031`/`ADR/0032` — that is the next governance gate,
 not performed or implied by this synchronization pass.
 
+**Update (2026-09-04, Documentation Manager, same-PR T113 synchronization on PR #195):** fresh
+remote verification before editing confirmed PR #195 (`ci/t113-optimize-release-build-verification`)
+remained open and unmerged at head `08e9d3e7d4b2e79e5f3339e652dac421cc22709c`, based on
+`98cb4b383c58e61f0d99521fa9046840c1366633`; QA Approved evidence exists in
+`docs/reviews/T113_QA_Review.md`; reviewed implementation head
+`2e27f1baa043e4a4359fd032cf4b82dbad058875` and authorization commit
+`3845a8975219b6b3efc1b2a05928e06e9dd13f19` both remain genuine ancestors of that current branch head;
+and the only post-QA branch change before this pass was the QA evidence file itself. T113's bounded
+CI optimization is now implemented and QA-approved but **not Done** pending this synchronization
+commit, push, and a fresh CI run on the resulting exact head. `latestTaskDone` remains `T111`;
+`latestTaskAuthorized` remains `T113`; `T112` remains authorized but untouched with no
+Architecture+QA work started; `T114` remains unauthorized; and Required ADR #20 remains unresolved.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the
