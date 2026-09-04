@@ -25,6 +25,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   build:
@@ -35,29 +36,67 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # Keep this a single, required job. A skipped job can be ambiguous to branch protection,
+      # whereas skipped expensive steps still leave Release build verification successful.
+      - name: Classify Release build relevance
+        id: classify
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { isReleaseBuildRelevant } = require(
+              `${process.env.GITHUB_WORKSPACE}/scripts/release_build_relevance.cjs`,
+            );
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            const changedFiles = files.map(({ filename }) => filename);
+            const buildRelevant = isReleaseBuildRelevant(changedFiles);
+            core.setOutput("build_relevant", String(buildRelevant));
+            core.info(
+              `Release build relevance: ${buildRelevant}; changed files: ${changedFiles.join(", ")}`,
+            );
+
+      - name: Release build fast path
+        if: github.event_name == 'pull_request' && steps.classify.outcome == 'success' && steps.classify.outputs.build_relevant == 'false'
+        run: echo "Documentation/governance-only pull request; Release dependency installation and build are not required."
+
       # Pinned to the project's actual current development version (confirmed via `node
       # --version` / `npm --version`), matching the engines field added to both package.json
       # files in this same stage — see ADR/0017.
       - name: Set up Node
+        if: github.event_name != 'pull_request' || steps.classify.outcome != 'success' || steps.classify.outputs.build_relevant == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: "24.13.1"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
 
       # Root (Electron orchestration) and frontend/ are two independent npm projects with their
       # own lockfiles — see docs/FolderStructure.md — both need their own install.
       - name: Install root dependencies
+        if: github.event_name != 'pull_request' || steps.classify.outcome != 'success' || steps.classify.outputs.build_relevant == 'true'
         run: npm ci
 
       - name: Install frontend dependencies
+        if: github.event_name != 'pull_request' || steps.classify.outcome != 'success' || steps.classify.outputs.build_relevant == 'true'
         working-directory: frontend
         run: npm ci
 
       # Runs `electron:build` (tsc -p electron/tsconfig.json) then the frontend's own `build`
       # (tsc -b && vite build) — see package.json's `build` script.
       - name: Build (Electron TS + frontend)
+        if: github.event_name != 'pull_request' || steps.classify.outcome != 'success' || steps.classify.outputs.build_relevant == 'true'
         run: npm run build
 
       - name: Upload frontend build output
+        if: (github.event_name != 'pull_request' || steps.classify.outcome != 'success' || steps.classify.outputs.build_relevant == 'true') && success()
         uses: actions/upload-artifact@v7
         with:
           name: frontend-dist
@@ -65,6 +104,7 @@ jobs:
           retention-days: 7
 
       - name: Upload compiled Electron output
+        if: (github.event_name != 'pull_request' || steps.classify.outcome != 'success' || steps.classify.outputs.build_relevant == 'true') && success()
         uses: actions/upload-artifact@v7
         with:
           name: dist-electron
