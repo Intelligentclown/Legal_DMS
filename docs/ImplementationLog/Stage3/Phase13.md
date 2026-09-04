@@ -2,11 +2,11 @@
 
 # Stage 3 - Phase 13
 
-Status: In Progress
+Status: Done
 
 Started: 2026-09-04
 
-Completed:
+Completed: 2026-09-04
 
 Related Tasks: T113
 
@@ -14,7 +14,7 @@ Related ADRs: [ADR-0017](../../../ADR/0017-github-actions-ci.md)
 
 Git Commit: `066e5565b82d8ec9831f31907875bd378ad53781`
 
-Pull Request:
+Pull Request: #195 (merged as `cbef9307484b8792899e090705a8610c76453bf2`)
 
 Release:
 
@@ -28,7 +28,7 @@ Reduce unnecessary Release verification work for clearly documentation/governanc
 
 ## Tasks Implemented
 
-T113 authorization was recorded before this phase. The Release workflow now classifies pull-request changes before dependency installation and conditionally runs the existing reproducible build path.
+T113 authorization was recorded before this phase. The Release workflow now classifies pull-request changes before dependency installation and conditionally runs the existing reproducible build path. T113 is Done and merged through PR #195 (merge `cbef9307484b8792899e090705a8610c76453bf2`); QA Approved evidence was recorded at `08e9d3e7d4b2e79e5f3339e652dac421cc22709c`, and the final documentation synchronization head `2dc15bd631239e3d72233779f67b0c39b0974c9d` is the second parent of that merge.
 
 ## Files Modified
 
