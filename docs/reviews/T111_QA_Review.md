@@ -38,7 +38,7 @@ The authorization merge commit `5107217eabba932cccc4e6e9ede7cf281c1a94d2` is an 
 
 ## Validation Results
 - `uv run pytest tests/unit/test_client_reconciliation_staleness_preflight.py tests/unit/test_client_reconciliation_artifact_validator.py tests/integration/test_client_migration_preflight.py -q`: Passed cleanly (25 tests).
-- `uv run pytest -q`: Passed cleanly (full suite: 569 tests passed, 21 skipped).
+- `uv run pytest -q`: Passed cleanly (full suite: 577 tests passed, 21 skipped).
 - `python scripts/governance_validate.py`: Passed cleanly.
 - `python -m unittest scripts.tests.test_governance_validate -v`: Passed cleanly (51 tests).
 - `uv run ruff check src tests alembic`: Passed cleanly.
