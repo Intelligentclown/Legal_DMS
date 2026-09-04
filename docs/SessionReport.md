@@ -3437,3 +3437,45 @@ implementation, CI configuration, T112, T114, or Required ADR #20.
 updated `governanceLedger.latestTaskDone` to `T113`, and appended the factual post-merge handover.
 `latestTaskAuthorized` remains `T113`; `inProgressTransitions` remains empty. T112 remains authorized
 but not Done and untouched; T114 remains unauthorized; Required ADR #20 remains unresolved.
+
+## Session: 2026-09-04 — T112 Governance Closeout
+
+**Objective:** Record T112 as Done only after PR #197 actually merged, without changing ADR-0034
+content, QA evidence content, T113's completed status, T114's unauthorized state, or the unresolved
+global remainder of Required ADR #20.
+
+**Verified Before Editing:** fresh `git fetch origin` updated `origin/main` to
+`534e469d67ffad0b255903762cd166dcc401a4cd`, the merge commit for PR #197, with parents
+`2f27712109753fce0cd83ad4b8b5b397d11fec66` and final PR head
+`44e2b1eaade649d2eeead93ecd34680ca9d56a4a`. `git merge-base --is-ancestor` confirmed that the
+reviewed architecture commit `f68e8e3d5e47435a032ae5b32ec5961ba2ee4b6a`, the final QA evidence
+commit/head `44e2b1eaade649d2eeead93ecd34680ca9d56a4a`, and the authorization commit
+`63251e4210bc5d97e739d570d8d614941eca08e6` all remain in ancestry on current `origin/main`.
+
+**Documentation Updated:**
+- `IMPLEMENTATION_QUEUE.md` — marked T112 Done and merged after PR #197, citing ADR-0034, the
+  reviewed architecture commit, the QA evidence head, and the surviving authorization ancestry via
+  PR #194.
+- `PROJECT_STATE.json` — current-stage narrative synchronized to carry the T112 closeout fact while
+  leaving `governanceLedger.latestTaskDone` and `latestTaskAuthorized` at `T113`, because that
+  remains the validator-derived frontier after T112's lower-numbered closeout.
+- `docs/ProjectStatus.md` and `docs/AI_HANDOVER.md` — updated the top-level current-status summary to
+  state that T112 is now Done/merged, T113 remains the latest Done/authorized task, T114 remains
+  unauthorized, `inProgressTransitions` remains empty, and Required ADR #20 remains unresolved.
+- `docs/SessionReport.md` — appended this entry.
+
+**Deliberately Not Touched:** `ADR/0034-party-client-migration-persistence-and-execution-ledger.md`,
+`docs/reviews/T112_QA_Review.md`, application code, schema or Alembic files, CI workflows, Party or
+`MatterParty` implementation, and any T114 authorization record. `governanceLedger` frontier values
+remain unchanged because the validator-computed highest authorized and highest Done task is still
+T113.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T112 is now represented as Done and merged in the proposed closeout,
+while T113 remains Done and the latest authorized/latest Done task, T114 remains unauthorized,
+`inProgressTransitions` remains empty, and Required ADR #20 remains unresolved globally except for
+already-bounded prior slices.
