@@ -12,7 +12,7 @@ Related Tasks: T113
 
 Related ADRs: [ADR-0017](../../../ADR/0017-github-actions-ci.md)
 
-Git Commit:
+Git Commit: `066e5565b82d8ec9831f31907875bd378ad53781`
 
 Pull Request:
 
