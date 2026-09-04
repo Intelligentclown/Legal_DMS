@@ -786,6 +786,18 @@ merged; `governanceLedger.latestTaskDone` and `latestTaskAuthorized` are both `T
 `inProgressTransitions` remains empty. T112 remains authorized but not Done, with no architecture work
 started; T114 remains unauthorized; Required ADR #20 remains unresolved.
 
+**Update (2026-09-04, Documentation Manager, T112 governance closeout):** fresh remote verification
+confirmed `origin/main` at `534e469d67ffad0b255903762cd166dcc401a4cd`, the merge commit for PR #197,
+with parents `2f27712109753fce0cd83ad4b8b5b397d11fec66` and final PR head
+`44e2b1eaade649d2eeead93ecd34680ca9d56a4a`. T112's reviewed architecture commit
+`f68e8e3d5e47435a032ae5b32ec5961ba2ee4b6a`, QA Approved evidence commit/head
+`44e2b1eaade649d2eeead93ecd34680ca9d56a4a`, and authorization commit
+`63251e4210bc5d97e739d570d8d614941eca08e6` via PR #194 all remain in ancestry. T112 is now Done and
+merged as the ADR-0034 architecture-only outcome. `governanceLedger.latestTaskDone` and
+`latestTaskAuthorized` correctly remain `T113` by validator semantics because T113 is already the
+higher-numbered Done/authorized task. T114 remains unauthorized, `inProgressTransitions` remains
+empty, and Required ADR #20 remains unresolved globally except for already-bounded prior slices.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the
