@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.cli.client_migration_preflight import run_client_migration_preflight
@@ -19,7 +20,11 @@ from app.infrastructure.persistence.models.scheduling import Appointment
 
 
 async def _make_country(session: AsyncSession) -> Country:
-    country = Country(name=f"Country-{uuid4()}", iso_code=f"{str(uuid4())[:2].upper()}")
+    existing_codes = set((await session.execute(select(Country.iso_code))).scalars())
+    iso_code = f"{str(uuid4())[:2].upper()}"
+    while iso_code in existing_codes:
+        iso_code = f"{str(uuid4())[:2].upper()}"
+    country = Country(name=f"Country-{uuid4()}", iso_code=iso_code)
     session.add(country)
     await session.flush()
     return country
