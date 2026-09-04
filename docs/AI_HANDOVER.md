@@ -777,6 +777,15 @@ commit, push, and a fresh CI run on the resulting exact head. `latestTaskDone` r
 `latestTaskAuthorized` remains `T113`; `T112` remains authorized but untouched with no
 Architecture+QA work started; `T114` remains unauthorized; and Required ADR #20 remains unresolved.
 
+**Update (2026-09-04, Documentation Manager, T113 post-merge completion):** fresh remote verification
+confirms PR #195 merged to `main` as `cbef9307484b8792899e090705a8610c76453bf2`, with parents
+`98cb4b383c58e61f0d99521fa9046840c1366633` and final PR head
+`2dc15bd631239e3d72233779f67b0c39b0974c9d`. The QA Approved commit
+`08e9d3e7d4b2e79e5f3339e652dac421cc22709c` remains in that merge's ancestry. T113 is Done and
+merged; `governanceLedger.latestTaskDone` and `latestTaskAuthorized` are both `T113`, and
+`inProgressTransitions` remains empty. T112 remains authorized but not Done, with no architecture work
+started; T114 remains unauthorized; Required ADR #20 remains unresolved.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the

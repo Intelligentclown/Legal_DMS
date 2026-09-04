@@ -3421,3 +3421,19 @@ ADR, or T112/T114 file was changed.
 **State After Synchronization:** T113 remains implemented and QA-approved on PR #195, but still not
 Done and not merged. The next gate is pushing this documentation synchronization to the same PR
 branch and letting GitHub Actions run on the resulting exact head.
+
+## Session: 2026-09-04 — T113 Post-Merge Completion Synchronization
+
+**Objective:** Record the already-merged ordinary §3 T113 lifecycle as Done without changing
+implementation, CI configuration, T112, T114, or Required ADR #20.
+
+**Verified Before Editing:** `origin/main` is
+`cbef9307484b8792899e090705a8610c76453bf2`, the merge commit for PR #195, with parents
+`98cb4b383c58e61f0d99521fa9046840c1366633` and final PR head
+`2dc15bd631239e3d72233779f67b0c39b0974c9d`. QA Approved evidence commit
+`08e9d3e7d4b2e79e5f3339e652dac421cc22709c` remains an ancestor of the merge.
+
+**Documentation Updated:** Marked T113 Done in its phase log and canonical project status records,
+updated `governanceLedger.latestTaskDone` to `T113`, and appended the factual post-merge handover.
+`latestTaskAuthorized` remains `T113`; `inProgressTransitions` remains empty. T112 remains authorized
+but not Done and untouched; T114 remains unauthorized; Required ADR #20 remains unresolved.

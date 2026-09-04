@@ -24,18 +24,14 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-04 (Documentation Manager, same-PR T113 synchronization on PR #195,
-branch `ci/t113-optimize-release-build-verification`). Fresh remote verification before this update
-confirmed PR #195 remained open and unmerged at head `08e9d3e7d4b2e79e5f3339e652dac421cc22709c`, with
-base `98cb4b383c58e61f0d99521fa9046840c1366633`; QA Approved evidence exists in
-`docs/reviews/T113_QA_Review.md`; reviewed implementation head
-`2e27f1baa043e4a4359fd032cf4b82dbad058875` and authorization commit
-`3845a8975219b6b3efc1b2a05928e06e9dd13f19` both remain genuine ancestors of the current PR head; and
-the only post-QA change on the branch before this synchronization pass was the QA evidence file
-itself. `governanceLedger.latestTaskDone` remains `T111`; `latestTaskAuthorized` remains `T113`.
-`T112` stays authorized but untouched, `T114` remains unauthorized, and Required ADR #20 remains
-unresolved. T113 itself is implemented and QA-approved but not Done or merged; this pass records only
-the normal post-QA documentation synchronization required by `PROJECT_WORKFLOW.md` §3.
+**Last Updated:** 2026-09-04 (Documentation Manager, T113 post-merge completion synchronization).
+Fresh remote verification confirms PR #195 merged to `main` as
+`cbef9307484b8792899e090705a8610c76453bf2`, with parents
+`98cb4b383c58e61f0d99521fa9046840c1366633` and final PR head
+`2dc15bd631239e3d72233779f67b0c39b0974c9d`. QA Approved evidence remains in ancestry at
+`08e9d3e7d4b2e79e5f3339e652dac421cc22709c`. T113 is Done and merged; the governance ledger now
+records `latestTaskDone` and `latestTaskAuthorized` as `T113`. `T112` stays authorized but untouched,
+`T114` remains unauthorized, and Required ADR #20 remains unresolved.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working
