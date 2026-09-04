@@ -65,7 +65,8 @@ class ValidationResult:
     issues: tuple[ValidationIssue, ...]
 
 
-def _canonical(value: Any) -> str:
+def canonical_json(value: Any) -> str:
+    """Return the canonical JSON form governed by the T109 contract."""
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
@@ -335,7 +336,7 @@ async def validate_client_reconciliation_artifact(
             executable = False
             continue
         expected_snapshot = {key: client[key] for key in _SNAPSHOT_KEYS}
-        if _canonical(snapshot) != _canonical(expected_snapshot):
+        if canonical_json(snapshot) != canonical_json(expected_snapshot):
             issues.append(
                 ValidationIssue(
                     "stale_snapshot",
