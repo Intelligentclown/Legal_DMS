@@ -798,6 +798,17 @@ merged as the ADR-0034 architecture-only outcome. `governanceLedger.latestTaskDo
 higher-numbered Done/authorized task. T114 remains unauthorized, `inProgressTransitions` remains
 empty, and Required ADR #20 remains unresolved globally except for already-bounded prior slices.
 
+**Update (2026-09-05, Documentation Manager, T114 governance closeout):** fresh remote verification
+confirmed `origin/main` at `663dba0ef3cb85b9e517e23f218696536783da8f`, the merge commit for PR #200,
+with parents `ff9deacfbb7125ed47866a1e564442bfe5edb98b` and final QA-approved PR head
+`3b287b37b503f9be4e6f1265b76d751d8f2f5ec5`. PR #199 authorization commit
+`855aec1afb07f56ac26c18f5804191f49bfe494f` and the final QA head remain in merge ancestry. T114 is
+now Done as the ADR-0035 architecture-only outcome; ADR-0035 remains `Proposed`, unchanged by this
+closeout. `governanceLedger.latestTaskDone` and `latestTaskAuthorized` are both `T114`,
+`inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally, and T115+ is
+not authorized. No implementation, schema, migration, RLS, backfill, API, frontend, Electron, or
+future-task work was performed.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the
