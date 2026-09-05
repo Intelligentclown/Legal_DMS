@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, ForeignKey, String
+from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -30,9 +30,11 @@ class Address(Base, AuditMixin):
             "address_type IN ('registered', 'mailing', 'property', 'other')",
             name="address_type",
         ),
+        UniqueConstraint("organization_id", "id", name="uq_addresses_organization_id_id"),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     line1: Mapped[str] = mapped_column(String(255))
     line2: Mapped[str | None] = mapped_column(String(255))
     # Partial granularity is intentional: not every address has village-level
@@ -74,8 +76,12 @@ class Client(Base, AuditMixin, OptimisticLockMixin):
 
 class ClientContact(Base, AuditMixin):
     __tablename__ = "client_contacts"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id", name="uq_client_contacts_organization_id_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
     contact_name: Mapped[str] = mapped_column(String(255))
     relationship_type: Mapped[str] = mapped_column(String(100))

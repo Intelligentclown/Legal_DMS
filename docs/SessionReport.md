@@ -3508,3 +3508,34 @@ status, and any T115+ authorization or work.
 **State After Synchronization:** T114 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
 T114; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; and T115+ is
 unauthorized.
+
+## Session: 2026-09-05 — T115 Post-QA Documentation Synchronization on PR #202
+
+**Objective:** Synchronize only the ordinary T115 post-QA documentation state on its existing PR
+branch, without merging PR #202 or changing implementation, ADR-0035, Required ADR #20, or T116+.
+
+**Verified Before Editing:** PR #202 remains open at `5209c11404cb7ba61aa12485b8aa66aff72f369c`, based
+on `3cd7addcf77a3f8fb65846da3f3aa8272567bc6a`. The QA review exists at
+`docs/reviews/T115_QA_Review.md`, records Approved, and covers the implementation commit
+`4aca7d9b944067423faf3dd4585183b95f14e9d8`; authorization commit
+`7fe941548de8263df8bda76b8170be8b54736b4a` precedes it. All current PR-head CI checks succeeded.
+
+**Documentation Updated:** synchronized the Phase14 QA checkbox, T115 completion state, governance
+frontier, and current status/handover summaries. The implementation detail remains canonical in
+`docs/ImplementationLog/Stage3/Phase14.md`.
+
+**Verification Limitation Preserved:** live PostgreSQL/Docker verification was unavailable to both
+Developer and QA. The Approved decision reflects SQLite/offline migration verification and passing
+CI; this synchronization does not imply a successful live PostgreSQL test.
+
+**Deliberately Not Touched:** application code, ORM models, Alembic migration, tests, ADR-0035, QA
+review content, CI/workflows, Party or ledger architecture, Required ADR #20 status, and T116+.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T115 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T115; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; and T116+
+remains unauthorized. PR #202 remains unmerged.

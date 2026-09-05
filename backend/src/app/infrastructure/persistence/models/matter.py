@@ -9,7 +9,15 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -43,9 +51,11 @@ class Matter(Base, AuditMixin, OptimisticLockMixin):
         CheckConstraint(
             "closed_at IS NULL OR closed_at >= opened_at", name="closed_at_after_opened_at"
         ),
+        UniqueConstraint("organization_id", "id", name="uq_matters_organization_id_id"),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     matter_number: Mapped[str] = mapped_column(String(50), unique=True)
     matter_type_id: Mapped[UUID] = mapped_column(ForeignKey("matter_types.id"), index=True)
     matter_status_id: Mapped[UUID] = mapped_column(ForeignKey("matter_statuses.id"), index=True)

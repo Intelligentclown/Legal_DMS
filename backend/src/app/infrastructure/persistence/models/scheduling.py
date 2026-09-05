@@ -28,9 +28,13 @@ class Task(Base, AuditMixin):
 
 class Appointment(Base, AuditMixin):
     __tablename__ = "appointments"
-    __table_args__ = (CheckConstraint("ends_at > starts_at", name="ends_at_after_starts_at"),)
+    __table_args__ = (
+        CheckConstraint("ends_at > starts_at", name="ends_at_after_starts_at"),
+        UniqueConstraint("organization_id", "id", name="uq_appointments_organization_id_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     matter_id: Mapped[UUID | None] = mapped_column(ForeignKey("matters.id"), index=True)
     client_id: Mapped[UUID | None] = mapped_column(ForeignKey("clients.id"), index=True)
     title: Mapped[str] = mapped_column(String(255))
