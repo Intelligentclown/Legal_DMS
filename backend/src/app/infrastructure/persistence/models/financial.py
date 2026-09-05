@@ -6,7 +6,15 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -28,9 +36,11 @@ class Invoice(Base, AuditMixin):
         CheckConstraint("amount >= 0", name="amount_non_negative"),
         CheckConstraint("tax_amount >= 0", name="tax_amount_non_negative"),
         CheckConstraint("total_amount >= 0", name="total_amount_non_negative"),
+        UniqueConstraint("organization_id", "id", name="uq_invoices_organization_id_id"),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     invoice_number: Mapped[str] = mapped_column(String(50), unique=True)
     matter_id: Mapped[UUID] = mapped_column(ForeignKey("matters.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
@@ -44,9 +54,13 @@ class Invoice(Base, AuditMixin):
 
 class Payment(Base, AuditMixin):
     __tablename__ = "payments"
-    __table_args__ = (CheckConstraint("amount > 0", name="amount_positive"),)
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="amount_positive"),
+        UniqueConstraint("organization_id", "id", name="uq_payments_organization_id_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     invoice_id: Mapped[UUID | None] = mapped_column(ForeignKey("invoices.id"), index=True)
     matter_id: Mapped[UUID] = mapped_column(ForeignKey("matters.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
