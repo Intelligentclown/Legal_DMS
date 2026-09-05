@@ -809,6 +809,19 @@ closeout. `governanceLedger.latestTaskDone` and `latestTaskAuthorized` are both 
 not authorized. No implementation, schema, migration, RLS, backfill, API, frontend, Electron, or
 future-task work was performed.
 
+**Update (2026-09-05, Documentation Manager, T115 post-QA synchronization on PR #202):** PR #202
+remains open at its final QA-approved head `5209c11404cb7ba61aa12485b8aa66aff72f369c`, based on
+merged `main` `3cd7addcf77a3f8fb65846da3f3aa8272567bc6a`. Authorization commit
+`7fe941548de8263df8bda76b8170be8b54736b4a` precedes implementation commit
+`4aca7d9b944067423faf3dd4585183b95f14e9d8`; both remain in the QA-head ancestry. T115 is now Done
+and QA-approved: nullable Organization support, Organization FK/index/composite-key support, ORM
+alignment, and one reversible migration landed only for the eight governed tables. No data backfill,
+`NOT NULL`, Party/bridge/ledger schema, `matter_parties`, RLS, write-capable executor, or cutover was
+performed. Live PostgreSQL/Docker verification was unavailable to Developer and QA; the Approved QA
+record relies on SQLite/offline migration verification and passing CI. `latestTaskDone` and
+`latestTaskAuthorized` are both `T115`, `inProgressTransitions` remains empty, Required ADR #20
+remains unresolved globally, T116+ remains unauthorized, and PR #202 remains unmerged.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the

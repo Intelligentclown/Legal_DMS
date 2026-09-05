@@ -86,6 +86,6 @@ Establish only the first ADR-0035 tenant-supporting schema foundation for Addres
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required

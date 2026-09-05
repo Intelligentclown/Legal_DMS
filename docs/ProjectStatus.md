@@ -24,16 +24,19 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-05 (Documentation Manager, T114 governance closeout).
-Fresh remote verification confirms `origin/main` at
-`663dba0ef3cb85b9e517e23f218696536783da8f`, the merge commit for PR #200, with parents
-`ff9deacfbb7125ed47866a1e564442bfe5edb98b` and final QA-approved PR head
-`3b287b37b503f9be4e6f1265b76d751d8f2f5ec5`. PR #199 authorization commit
-`855aec1afb07f56ac26c18f5804191f49bfe494f` and the QA-approved head remain in merge ancestry.
-T114 is now Done and merged as the ADR-0035 architecture-only outcome. ADR-0035 remains `Proposed`;
-this closeout does not alter its lifecycle status. `latestTaskDone` and `latestTaskAuthorized` are
-both `T114`, `inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally,
-and T115+ remains unauthorized.
+**Last Updated:** 2026-09-05 (Documentation Manager, T115 post-QA synchronization on PR #202).
+Fresh remote verification confirms PR #202 remains open at QA-approved head
+`5209c11404cb7ba61aa12485b8aa66aff72f369c`, based on merged `main`
+`3cd7addcf77a3f8fb65846da3f3aa8272567bc6a`. Authorization commit
+`7fe941548de8263df8bda76b8170be8b54736b4a` precedes implementation commit
+`4aca7d9b944067423faf3dd4585183b95f14e9d8`; both are ancestors of the QA head. T115 is now Done
+and QA-approved within its ordinary lifecycle: its eight governed tables received staged nullable
+`organization_id` support, aligned ORM metadata, and a reversible migration, without backfill,
+non-null enforcement, Party/bridge/ledger schema, `matter_parties`, RLS, write-capable migration, or
+cutover. QA records that live PostgreSQL/Docker verification was unavailable; SQLite/offline
+migration verification and CI passed. `latestTaskDone` and `latestTaskAuthorized` are both `T115`,
+`inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally, and T116+
+remains unauthorized. PR #202 is not merged by this synchronization.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working
