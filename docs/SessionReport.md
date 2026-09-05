@@ -3479,3 +3479,32 @@ T113.
 while T113 remains Done and the latest authorized/latest Done task, T114 remains unauthorized,
 `inProgressTransitions` remains empty, and Required ADR #20 remains unresolved globally except for
 already-bounded prior slices.
+
+## Session: 2026-09-05 — T114 Governance Closeout
+
+**Objective:** Record T114 as Done only after PR #200 merged, without altering ADR-0035, its QA
+evidence, implementation boundaries, Required ADR #20's unresolved global status, or T115+.
+
+**Verified Before Editing:** fresh remote verification confirmed PR #199 merged as
+`ff9deacfbb7125ed47866a1e564442bfe5edb98b` and PR #200 merged as
+`663dba0ef3cb85b9e517e23f218696536783da8f`, with final QA-approved head
+`3b287b37b503f9be4e6f1265b76d751d8f2f5ec5`. The independent QA record is Approved. The authorization
+commit `855aec1afb07f56ac26c18f5804191f49bfe494f` and final QA head were confirmed as ancestors of the
+merged baseline.
+
+**Documentation Updated:** marked T114 Done in `IMPLEMENTATION_QUEUE.md`, synchronized the governance
+frontier in `PROJECT_STATE.json`, and updated the project-status and handover summaries. ADR-0035
+remains `Proposed` because closeout precedent does not change ADR lifecycle status.
+
+**Deliberately Not Touched:** ADR-0035, T114 architecture and QA reports, application code, schema,
+Alembic migrations, RLS, backfill, migration execution, API, frontend, Electron, CI, Required ADR #20
+status, and any T115+ authorization or work.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T114 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T114; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; and T115+ is
+unauthorized.
