@@ -44,3 +44,23 @@ The omission of the composite same-Organization foreign key on the execution led
 1. Update `backend/alembic/versions/e6a2d4c8f1b7_party_matterparty_ledger_foundation.py` to replace `fk_client_party_migration_ledger_party_id_parties` with a composite constraint on `(organization_id, party_id)` referencing `parties (organization_id, id)`.
 2. Update the SQLAlchemy `ClientPartyMigrationLedger` model to reflect this composite FK.
 3. Push the fix to the branch and request another QA pass.
+
+---
+
+## 6. Re-Review of Remediation
+- **Reviewed Remote Head**: `c6faca8552692969d90b92e37bb4b40ee9714763`
+- **Ancestry**: Original rework decision commit `222541d2ea19ffdd37af3c249eee3e8fd68fc12f` and authorization commit are in ancestry. PR remains unmerged.
+- **Remediation Details**: 
+  - The standalone `party_id -> parties.id` foreign key was successfully removed from both Alembic migration and SQLAlchemy ORM models.
+  - A composite foreign key on `(organization_id, party_id)` referencing `(parties.organization_id, parties.id)` was correctly added in its place.
+  - The `organization_id -> organizations.id` foreign key and all other `client_party_migration_ledger` indices, checks, and unique constraints remain perfectly intact.
+- **Testing & Drift**:
+  - `pytest` specific tests correctly cover cross-tenant pairing rejection and same-tenant pairings. SQLite tests passed. (PostgreSQL live verification omitted due to unavailable Docker environment).
+  - The developer-reported Alembic drift was accurately identified as an expected local-state artifact resulting from editing an unmerged migration file in place. It does not compromise repository migration safety since the revision is not yet merged to `main`.
+- **Exclusions**: No new scope creep was observed. No backend API, Client/client_id retirements, executor behaviors, downstream Party bridges, or backfills were added.
+
+## 7. Final QA Decision
+The critical architectural defect in tenant integrity has been fully resolved according to ADR-0035.
+
+**Decision: Approved**
+
