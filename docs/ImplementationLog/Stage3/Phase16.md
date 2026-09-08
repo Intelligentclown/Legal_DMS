@@ -2,19 +2,19 @@
 
 # Stage 3 - Phase 16
 
-Status: In Progress
+Status: Done
 
 Started: 2026-09-08
 
-Completed:
+Completed: 2026-09-08
 
 Related Tasks: T117
 
 Related ADRs: [ADR-0034](../../../ADR/0034-party-client-and-representative-migration-architecture.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md)
 
-Git Commit: authorization `755eb49`; implementation `5bee607`
+Git Commit: implementation `5bee607ed6835165bb94507610d6b3d3a21eeeda`; implementation-log follow-up `179a568ccf8e0f869116cd2f426fa21b70584d80`
 
-Pull Request: #204 (open; stopping boundary applies - no merge, no QA, no Done marking)
+Pull Request: #204 (open; documentation synchronization head pending PM pre-merge gate)
 
 Release:
 
@@ -64,7 +64,7 @@ Establish only ADR-0035 sequence step 3: nullable direct `party_id` compatibilit
 
 ## Problems Encountered
 
-- `alembic check` detects a remaining diff on `client_party_migration_ledger` (`remove_fk fk_client_party_migration_ledger_party_id_parties` / `add_fk fk_client_party_migration_ledger_organization_id_parties`). This is the pre-existing, disclosed T116 local-dev schema drift from the pre-remediation revision that was already applied to the shared development database; it was not mutated in place then and is not touched by T117. The five T117 tables produce no autogenerate diff.
+- `alembic check` detects a remaining diff on `client_party_migration_ledger` (`remove_fk fk_client_party_migration_ledger_party_id_parties` / `add_fk fk_client_party_migration_ledger_organization_id_parties`). The shared local database had the original pre-remediation form of T116 revision `e6a2d4c8f1b7` applied before that file was corrected in place while T116 was unmerged; it therefore differs from the finalized repository definition. T116 subsequently merged in corrected form through PR #203. This is a stale local-environment artifact, not a T117 schema defect or repository migration defect; the five T117 tables produce no autogenerate diff.
 - Ruff flagged import wrapping, one over-length docstring, and missing trailing newlines on first pass; these were resolved with Black, `ruff check --fix`, and a docstring shortening. No test or migration behavior changed.
 
 ## Deferred Work
@@ -74,7 +74,7 @@ Establish only ADR-0035 sequence step 3: nullable direct `party_id` compatibilit
 ## Future Considerations
 
 - The composite bridge foreign key only enforces tenant equality when both columns are non-null; while `organization_id` and `party_id` remain nullable for legacy rows, a row with one set and the other null bypasses `MATCH FULL`-style enforcement by design (per ADR-0035 staging).
-- The independent QA Reviewer should re-run the live PostgreSQL cross-tenant probe (and the full unit suite) from the exact remote PR head, and Documentation Manager synchronization must follow only after a QA Decision exists.
+- Developer live PostgreSQL verification completed upgrade/downgrade/re-upgrade, bridge reflection, and rollback-only tenant-integrity probes. QA independently reran the full pytest suite, Ruff, Black, and governance checks but did not have live PostgreSQL available, relying on SQLite plus code/schema inspection. Final QA evidence is Approved; this is a documented verification-scope distinction, not an outstanding pre-merge requirement.
 
 ## Reviewer Checklist
 
@@ -85,15 +85,15 @@ Establish only ADR-0035 sequence step 3: nullable direct `party_id` compatibilit
 ☑ Documentation updated - this phase log, plus the T117 authorization record and `PROJECT_STATE.json` `latestTaskAuthorized`.
 □ ADR updated (if required) - no new architecture decision was made; ADR-0035 step 3 is implemented as governed.
 □ AI_BOOTSTRAP updated (if required) - no standing convention changed.
-□ PROJECT_STATE updated (if required) - T117 authorization is recorded; the Done synchronization is Documentation Manager work, after QA.
+☑ PROJECT_STATE updated (if required) - Documentation Manager synchronization records T117 as Done.
 ☑ No unrelated refactoring
 ☑ No scope creep
-☑ Ready for QA - an independent QA Reviewer can verify this batch from the log and the remote PR head alone.
+☑ Ready for PM pre-merge gate - independent QA Approved and documentation synchronization completed.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
 
-QA pending: independent QA Reviewer review is the next lifecycle step. Per the T117 authorization's stopping boundary, this implementation is not to be merged, self-QA'd, marked Done, or proceeded-from into T118. Required ADR #20 remains unresolved globally, and T118+ remains unauthorized.
+QA evidence: reviewed remote implementation head `179a568ccf8e0f869116cd2f426fa21b70584d80`; Approved evidence commit `c661c721e730f08d96f8cc6dc7953f626a6a6258`. Required ADR #20 remains unresolved globally, and T118+ remains unauthorized.
