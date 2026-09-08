@@ -856,6 +856,24 @@ repository migration defect. `latestTaskDone` and `latestTaskAuthorized` are bot
 `inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally, ADR-0035 is
 unchanged, T118+ remains unauthorized, and PR #204 remains unmerged.
 
+**Update (2026-09-08, Documentation Manager, T118 post-QA synchronization on PR #205):** Fresh
+remote verification confirmed PR #205 is open and unmerged at QA-approved head
+`7b3db8ee0f813058726a2bcbab47db339959754e`, based on `main`
+`32e5ea960f2d0a614d0e5867704d3cb1cfeab559`. Authorization `8e32d9625d3f1e4eaa0138fa42d9b34fa9714753`,
+implementation `cf9726e4fdecfcbd0fd3fabab803b6add6cb2e85`, initial QA Rework-required evidence
+`b65f5b96439572079203b134c2b89a6decdd90f0`, and remediation target
+`090c0d26c1dbc83e63de673751c4002efa8e1a03` are ancestors. T118 is now Done: the bounded executor
+uses T108-T111 gating, explicit write mode, per-Client-anchor atomic Party/MatterParty/bridge/staging/
+ledger work, and fail-closed ledger replay. The initial defect remains visible: frozen artifact state
+could mask a changed live Client on replay. Remediation binds the completion proof to the live
+`Client ID + version + canonicalized updated_at` and adds mutation replay regression coverage; final
+independent QA Approved. Developer reported live PostgreSQL validation, while QA did not independently
+run live PostgreSQL and relied on its available environment, code, and tests. Required ADR #20 remains
+unresolved globally; ADR-0034/0035 remain unchanged; `latestTaskDone` and `latestTaskAuthorized` are
+both `T118`; `inProgressTransitions` is empty; T119+ remains unauthorized; and this synchronization
+does not merge PR #205 or authorize cutover, CRUD/API, `NOT NULL`, RLS, Client retirement, or other
+future work.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the

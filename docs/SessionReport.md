@@ -3607,3 +3607,36 @@ CI/workflows, backfill/executor/cutover work, Required ADR #20, and T118+.
 **State After Synchronization:** T117 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
 T117; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; ADR-0035 is
 unchanged; T118+ remains unauthorized; and PR #204 remains unmerged.
+
+## Session: 2026-09-08 — T118 Post-QA Documentation Synchronization on PR #205
+
+**Objective:** Synchronize the ordinary T118 post-QA state on its existing PR branch without merging
+PR #205 or changing implementation, schema, ADRs, QA evidence, or T119+.
+
+**Verified Before Editing:** PR #205 remains open at final QA-approved head
+`7b3db8ee0f813058726a2bcbab47db339959754e`, based on
+`32e5ea960f2d0a614d0e5867704d3cb1cfeab559`. Authorization, implementation, initial Rework-required
+QA evidence, and remediation target are all ancestors. The QA history is preserved: frozen-artifact
+fingerprinting could replay a mutated Client, remediation adopted the live `Client ID + version +
+canonicalized updated_at` fingerprint, mutation replay coverage was added, and final independent QA
+Approved.
+
+**Documentation Updated:** synchronized Phase17 status and the canonical governance, project-status,
+and handover records. Implementation and QA detail remain canonical in
+`docs/ImplementationLog/Stage3/Phase17.md` and `docs/reviews/T118_QA_Review.md`.
+
+**Verification Nuance Preserved:** Developer reported live PostgreSQL validation; QA did not
+independently perform live PostgreSQL verification and used its available environment, code, and
+tests. This synchronization does not conflate those evidence scopes.
+
+**Deliberately Not Touched:** executor code, tests, schema, migrations, ADRs, QA review content,
+CI/workflows, application cutover, normal Party CRUD/API, Required ADR #20, and T119+.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T118 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T118; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; ADR-0034 and
+ADR-0035 are unchanged; T119+ remains unauthorized; and PR #205 remains unmerged.

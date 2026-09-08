@@ -2,7 +2,7 @@
 
 # Stage 3 - Phase 17
 
-Status: Ready for QA re-review (QA rework required at `b65f5b9`; remediation committed, awaiting re-review)
+Status: Done (QA Approved; ready for PM pre-merge gate)
 
 Started: 2026-09-08
 
@@ -12,9 +12,9 @@ Related Tasks: T118
 
 Related ADRs: [ADR-0034](../../../ADR/0034-party-client-migration-persistence-and-execution-ledger.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md)
 
-Git Commit: implementation `cf9726e4fdecfcbd0fd3fabab803b6add6cb2e85`; QA decision (Rework required) `b65f5b96439572079203b134c2b89a6decdd90f0`; remediation `93c2f51e3d8df2d80dced1cb15e7c312e2e1d3b2d`; this Phase17 update (documentation-only)
+Git Commit: implementation `cf9726e4fdecfcbd0fd3fabab803b6add6cb2e85`; QA decision (Rework required) `b65f5b96439572079203b134c2b89a6decdd90f0`; remediation `93c2f51e3d8df2d80dced1cb15e7c312e2e1d3b2d`; QA re-review target `090c0d26c1dbc83e63de673751c4002efa8e1a03`; QA approval evidence `7b3db8ee0f813058726a2bcbab47db339959754e`
 
-Pull Request: #205 (open; QA re-review pending)
+Pull Request: #205 (open; QA Approved; ready for PM pre-merge gate)
 
 Release:
 
@@ -166,7 +166,7 @@ decisions, stale artifacts, or dependency churn — without any schema change.
 - Party business CRUD/API/RLS, final bridge `NOT NULL` enforcement, Organization backfill, cutover,
   and T109 execution remain deferred to separately authorized work per the T118 authorization
   record and ADR-0035 sequencing.
-- QA review of this batch and PM pre-merge gate placement for PR #205.
+- PM pre-merge gate placement for PR #205 remains pending; the final QA re-review is Approved.
 
 ## Future Considerations
 
@@ -186,13 +186,13 @@ decisions, stale artifacts, or dependency churn — without any schema change.
 ☑ Documentation updated - this phase log incl. the b65f5b9 QA rework record.
 □ ADR updated (if required) - no new architecture decision; ADR-0034/0035 step implemented as governed.
 □ AI_BOOTSTRAP updated (if required) - no standing convention changed.
-□ PROJECT_STATE updated (if required) - pending Documentation Manager synchronization at batch review.
+☑ PROJECT_STATE updated (if required) - synchronized after final independent QA approval.
 ☑ No unrelated refactoring
 ☑ No scope creep - only T118-scope executor, tests, and its console-script entry.
-☑ Ready for QA - resubmitted for re-review after b65f5b9 remediation (93c2f51).
+☑ Ready for QA - final independent QA re-review Approved at 7b3db8e after b65f5b9 remediation.
 
 ## QA Decision
 
-□ Approved
+☑ Approved (`7b3db8e`) — final independent re-review of remediation target `090c0d2`.
 □ Approved with comments
-☑ Rework required (`b65f5b9`, live-anchor fingerprint) — remediation committed (`93c2f51`); pending re-review.
+□ Rework required — historical initial decision at `b65f5b9` identified the live-anchor fingerprint defect; remediation `93c2f51` and final re-review are recorded above.
