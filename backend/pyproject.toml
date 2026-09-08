@@ -22,6 +22,7 @@ reconcile-organizations = "app.infrastructure.cli.reconcile_organizations:main"
 client-migration-preflight = "app.infrastructure.cli.client_migration_preflight:main"
 validate-client-reconciliation-artifact = "app.infrastructure.cli.client_reconciliation_artifact_validator:main"
 client-reconciliation-staleness-preflight = "app.infrastructure.cli.client_reconciliation_staleness_preflight:main"
+client-migration-executor = "app.infrastructure.cli.client_migration_executor:main"
 
 [dependency-groups]
 dev = [
