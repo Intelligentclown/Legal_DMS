@@ -2,19 +2,19 @@
 
 # Stage 3 - Phase 15
 
-Status: In Progress
+Status: Done
 
 Started: 2026-09-05
 
-Completed:
+Completed: 2026-09-08
 
 Related Tasks: T116
 
 Related ADRs: [ADR-0034](../../../ADR/0034-party-client-and-representative-migration-architecture.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md)
 
-Git Commit:
+Git Commit: `4ab657dc860c716438f5b58872ec7aa284efd37c`; remediation `c6faca8552692969d90b92e37bb4b40ee9714763`
 
-Pull Request:
+Pull Request: #203 (open; documentation synchronization head pending PM pre-merge gate)
 
 Release:
 
@@ -70,7 +70,7 @@ Establish only ADR-0035 sequence step 2: the Party, bounded MatterParty, and Cli
 
 ## Future Considerations
 
-- A PostgreSQL-backed environment should run the online Alembic and integration checks during independent QA or CI before merge.
+- Developer performed a rollback-only PostgreSQL temporary-table probe demonstrating cross-tenant ledger/Party pairing rejection and matching-Organization acceptance. QA did not perform live PostgreSQL verification because its Docker/environment was unavailable. The `alembic check` drift against the Developer's pre-existing local database is expected local-state drift from editing an unmerged revision already applied there, not a product or production-migration failure. Offline Alembic SQL, focused tests, and exact QA-head CI passed.
 
 ## Reviewer Checklist
 
@@ -81,15 +81,19 @@ Establish only ADR-0035 sequence step 2: the Party, bounded MatterParty, and Cli
 ☑ Documentation updated
 □ ADR updated (if required) - no new architecture decision was made.
 □ AI_BOOTSTRAP updated (if required) - no standing convention changed.
-□ PROJECT_STATE updated (if required) - task remains authorized but not Done pending independent QA and documentation synchronization.
+☑ PROJECT_STATE updated (if required) - Documentation Manager synchronization records T116 as Done.
 ☑ No unrelated refactoring
 ☑ No scope creep
-□ Ready for PM pre-merge gate - pending independent QA and documentation synchronization.
+☑ Ready for PM pre-merge gate - final independent QA Approved and documentation synchronization completed.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
-☑ Rework required
+□ Rework required
 
-QA evidence: `222541d2ea19ffdd37af3c249eee3e8fd68fc12f` recorded Rework required for the ledger Party foreign key. The remediation commit remains pending independent QA re-review. Required ADR #20 remains unresolved, and T117+ remains unauthorized.
+QA history: initial evidence `222541d2ea19ffdd37af3c249eee3e8fd68fc12f` recorded **Rework required** because
+the ledger `organization_id` was not structurally tied to its referenced Party. Remediation
+`c6faca8552692969d90b92e37bb4b40ee9714763` added the composite same-Organization ledger-to-Party
+foreign key. Final QA re-review evidence `a3b5388c48e29e4fc0ff6f0a50792e89835cfc83` is **Approved**.
+Required ADR #20 remains unresolved, and T117+ remains unauthorized.

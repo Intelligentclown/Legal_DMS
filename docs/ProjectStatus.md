@@ -24,19 +24,25 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-05 (Documentation Manager, T115 post-QA synchronization on PR #202).
-Fresh remote verification confirms PR #202 remains open at QA-approved head
-`5209c11404cb7ba61aa12485b8aa66aff72f369c`, based on merged `main`
-`3cd7addcf77a3f8fb65846da3f3aa8272567bc6a`. Authorization commit
-`7fe941548de8263df8bda76b8170be8b54736b4a` precedes implementation commit
-`4aca7d9b944067423faf3dd4585183b95f14e9d8`; both are ancestors of the QA head. T115 is now Done
-and QA-approved within its ordinary lifecycle: its eight governed tables received staged nullable
-`organization_id` support, aligned ORM metadata, and a reversible migration, without backfill,
-non-null enforcement, Party/bridge/ledger schema, `matter_parties`, RLS, write-capable migration, or
-cutover. QA records that live PostgreSQL/Docker verification was unavailable; SQLite/offline
-migration verification and CI passed. `latestTaskDone` and `latestTaskAuthorized` are both `T115`,
-`inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally, and T116+
-remains unauthorized. PR #202 is not merged by this synchronization.
+**Last Updated:** 2026-09-08 (Documentation Manager, T116 post-QA synchronization on PR #203).
+Fresh remote verification confirms PR #203 remains open at final QA-approved head
+`a3b5388c48e29e4fc0ff6f0a50792e89835cfc83`, based on merged `main`
+`9d326263188e919e0c76dd969610c55560d65775`. Authorization commit
+`45ffe353c521245ed9db1fd7e24689394c59f53f`, initial Rework-required QA evidence
+`222541d2ea19ffdd37af3c249eee3e8fd68fc12f`, and remediation
+`c6faca8552692969d90b92e37bb4b40ee9714763` remain in the final QA-head ancestry. T116 is now Done
+and QA-approved within its ordinary lifecycle: it delivers the bounded Party, MatterParty, and
+execution-ledger schema foundation, including governed same-Organization composite foreign keys and
+the ledger-to-Party remediation, without business-data migration or any excluded cutover/executor
+work. QA's initial tenant-boundary finding is retained in the QA history; its final re-review is
+Approved. Developer performed the limited PostgreSQL temporary-table probe; QA did not run live
+PostgreSQL because its Docker/environment was unavailable. Local `alembic check` drift was reviewed
+as expected state from editing an unmerged locally applied revision, not a product defect. The final
+QA head reports 589 pytest cases, while Developer remediation results separately record 33 focused
+regressions and 297 backend-unit tests; exact-head Backend, Frontend, Governance, and Release checks
+passed. `latestTaskDone` and `latestTaskAuthorized` are both `T116`, `inProgressTransitions` remains
+empty, Required ADR #20 remains unresolved globally, T117+ remains unauthorized, ADR-0035 remains
+unchanged, and PR #203 is not merged by this synchronization.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working

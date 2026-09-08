@@ -3539,3 +3539,37 @@ review content, CI/workflows, Party or ledger architecture, Required ADR #20 sta
 **State After Synchronization:** T115 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
 T115; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; and T116+
 remains unauthorized. PR #202 remains unmerged.
+
+## Session: 2026-09-08 — T116 Post-QA Documentation Synchronization on PR #203
+
+**Objective:** Synchronize only the ordinary T116 post-QA documentation state on its existing PR
+branch, preserving its rework and final-approval history without merging PR #203.
+
+**Verified Before Editing:** PR #203 remains open at final QA-approved head
+`a3b5388c48e29e4fc0ff6f0a50792e89835cfc83`. Authorization commit
+`45ffe353c521245ed9db1fd7e24689394c59f53f`, initial Rework-required evidence
+`222541d2ea19ffdd37af3c249eee3e8fd68fc12f`, and remediation
+`c6faca8552692969d90b92e37bb4b40ee9714763` are all ancestors. Final QA Decision is Approved; its
+exact-head Backend, Frontend, Governance, and Release checks passed.
+
+**Documentation Updated:** synchronized Phase15's final QA state and project-wide governance/status
+records. Detailed implementation and test facts remain canonical in
+`docs/ImplementationLog/Stage3/Phase15.md` and `docs/reviews/T116_QA_Review.md`.
+
+**Verification Nuance Preserved:** Developer's limited PostgreSQL temporary-table probe demonstrated
+the composite ledger tenant boundary. QA did not run live PostgreSQL because its Docker/environment
+was unavailable. The local `alembic check` drift was expected unmerged-revision local state, not a
+product defect; offline Alembic SQL, scoped tests, and CI passed.
+
+**Deliberately Not Touched:** implementation, schema, ORM, migrations, tests, ADRs, QA evidence,
+CI/workflows, direct downstream Party bridges, backfill/executor/cutover work, Required ADR #20, and
+T117+.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T116 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T116; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; T117+ remains
+unauthorized; and PR #203 remains unmerged.
