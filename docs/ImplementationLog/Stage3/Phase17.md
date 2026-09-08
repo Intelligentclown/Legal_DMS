@@ -2,19 +2,19 @@
 
 # Stage 3 - Phase 17
 
-Status: Done
+Status: Ready for QA re-review (QA rework required at `b65f5b9`; remediation committed, awaiting re-review)
 
 Started: 2026-09-08
 
-Completed: 2026-09-08
+Completed: 2026-09-08 (remediation: 2026-09-08)
 
 Related Tasks: T118
 
-Related ADRs: [ADR-0034](../../../ADR/0034-party-client-and-representative-migration-architecture.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md)
+Related ADRs: [ADR-0034](../../../ADR/0034-party-client-migration-persistence-and-execution-ledger.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md)
 
-Git Commit: implementation `cf9726e4fdecfcbd0fd3fabab803b6add6cb2e85`
+Git Commit: implementation `cf9726e4fdecfcbd0fd3fabab803b6add6cb2e85`; QA decision (Rework required) `b65f5b96439572079203b134c2b89a6decdd90f0`; remediation `93c2f51e3d8df2d80dced1cb15e7c312e2e1d3b2d`; this Phase17 update (documentation-only)
 
-Pull Request: #205 (open; QA/documentation gates pending)
+Pull Request: #205 (open; QA re-review pending)
 
 Release:
 
@@ -57,34 +57,77 @@ decisions, stale artifacts, or dependency churn — without any schema change.
 
 ## Tests Added
 
-- `test_client_migration_executor.py` (23 integration tests) covers: dry-run plans the write-set and
+- `test_client_migration_executor.py` (27 integration tests) covers: dry-run plans the write-set and
   rolls everything back; write mode commits one anchor and leaves the legacy graph untouched;
   re-running after a commit is an append-only noop; non-executable decisions gate the whole run;
   stale/errored artifacts gate with no writes; unmappable decisions fail closed with rolled-back
-  writes; changed source fingerprint rejects as basis collision; missing-organization decision
+  writes; changed live anchor state rejects as basis collision; missing-organization decision
   gates all writes; conflicting Matter-Party closes fails closed; the ledger is append-only with no
   duplicate basis; anchor additions during the run are rejected as dependency churn.
+- QA-rework additions (2026-09-08): `test_live_client_mutation_after_commit_fails_closed`
+  (write-mode commit followed by a live legacy-Client mutation must never replay as
+  `already_completed` — it gates on the staleness preflight or fails as `basis_collision`, keeps
+  exactly one ledger row, and leaves the Party and legacy Client unchanged);
+  `test_changed_live_anchor_state_rejects_as_basis_collision` (apply_anchor's own identical-completion
+  check rejects a mutated live anchor even without a gating preflight);
+  `test_committed_ledger_source_fingerprint_matches_live_anchor` (the committed `source_fingerprint`,
+  `source_client_version`, `source_client_updated_at` equal the live-computed fingerprint and anchor
+  state); `test_two_live_client_versions_produce_different_fingerprints`;
+  `test_client_source_fingerprint_timestamp_canonicalization_is_timezone_safe`.
+- Seed-data reference suite: 5 passed.
 
 ## Test Results
 
 - Focused executor suite on live PostgreSQL (dockerized `postgres:16-alpine`, healthy on `:5433`),
-  disposable data only: 23 passed. Seed-data reference suite re-run: 5 passed.
-- Full backend suite from a pristine dev DB: 616 passed, 21 skipped.
+  disposable data only: 27 passed. Seed-data reference suite re-run: 5 passed.
+- T108/T109/T110/T111 preflight/gating/integrity and T115/T116/T117 schema/bridge regression suites
+  re-run: 43 passed.
+- Full backend suite from a pristine dev DB: 620 passed, 21 skipped.
+- Governance validator: `governance_validate: OK (0 warning(s), 0 errors)`; governance test suite:
+  51 passed, 6 subtests passed.
 - Post-run DB hygiene verified: all business/test tables back at 0 rows and reference/seed data at
   expected counts (`matter_types` 8, `matter_statuses` 6, `payment_methods` 6, `document_types` 10,
   `workflow_definitions` 1, `workflow_states` 6) — no residue.
 - Ruff and Black passed on both changed Python files (`2 files would be left unchanged`);
   `git diff --check` passed.
 
+## QA Rework Record (2026-09-08)
+
+- QA decision `b65f5b9` (docs(qa): record T118 QA decision, Rework required) on reviewed HEAD
+  `5f85bf2` was not approved: the original `source_fingerprint` was derived only from the frozen
+  T108/artifact snapshot, so a legacy `clients` row mutated *after* a committed migration could be
+  replayed as `already_completed` instead of failing closed. The requirement: identical-completion
+  must be proven against the **live execution-time anchor state** of the legacy Client.
+- Remediated (commit `93c2f51`): `client_source_fingerprint()` now computes the canonical
+  live-anchor fingerprint `Client:<id>:<version>:<canonical-UTC-updated_at>` from the freshly read
+  `clients` row (same `<Model>:<id>:<version>:<updated_at>` shape as T108
+  `_fingerprint_for_record`, literal string, no hashing). `apply_anchor` reads the live row before
+  the ledger replay loop and declares `already_completed` only when the committed ledger proves
+  every governed identity dimension still matches (`party_id`, `organization_id`, `resolution_mode`,
+  `source_client_version`, canonical `source_client_updated_at`, `source_fingerprint`) — any drift
+  returns `basis_collision` (fail-closed, zero writes, no overwrite, no replacement ledger row).
+  The executor's replay is therefore independent of any upstream preflight gate. No schema, model,
+  ADR, or `VARCHAR(255)` change was required (`source_client_version` /
+  `source_client_updated_at` / `source_fingerprint` columns already exist per ADR-0035 §8).
+- Reproduction evidence: the write-mode regression test commits a migration to live PostgreSQL,
+  mutates the legacy Client row (bumps `version` via OptimisticLockMixin and `updated_at` via
+  `onupdate=func.now()`), re-runs, and asserts `summary["already_completed"] == 0` with the stale-run
+  gated or `basis_collision` — never `already_completed`; the single ledger row, the Party, and the
+  legacy Client are asserted unchanged.
+- Scope preserved: the remediation touched only `client_migration_executor.py`, its integration test
+  suite, and this phase log; QA review evidence, schema, models, ADR files, and upstream gates were
+  left untouched.
+
 ## Design Decisions
 
-- `source_fingerprint` is a canonical SHA-256 hex digest of the report snapshot
-  (`hashlib.sha256(canonical_json(snapshot).encode("utf-8")).hexdigest()`, 64 chars, fits the
-  existing `VARCHAR(255)`). No schema change is needed because ADR-0034 §4's "exact legacy anchor
-  version" burden is already carried by the separate `source_client_version`,
-  `source_client_updated_at`, and `source_report_sha256` columns; the fingerprint proves exact
-  snapshot equality, and the test `test_changed_source_fingerprint_rejects_as_basis_collision`
-  pins that contract.
+- `source_fingerprint` is the canonical **live-anchor fingerprint**
+  `Client:<id>:<version>:<canonical-UTC-updated_at>` derived from the execution-time `clients` row,
+  mirroring the T108 `<Model>:<id>:<version>:<updated_at>` shape (`_fingerprint_for_record` in
+  `client_migration_preflight.py`). It fits the existing `VARCHAR(255)` with no schema change and
+  proves the exact legacy anchor version observed at execution time (ADR-0034 §4); the
+  `test_changed_live_anchor_state_rejects_as_basis_collision` suite pins that contract. *(Original
+  approach was a SHA-256 of the frozen report snapshot; the b65f5b9 QA rework rejected it as
+  insufficient against post-commit Client mutation and replaced it with the live-anchor form.)*
 - Executability is decided at the artifact level: the T118 validator sets `executable=False` for any
   non-executable decision state, and T111 (run gating) therefore produces `gated=True` with a single
   `P1002`-style failed gate and no per-anchor work. This matches ADR-0035 §13 ("proceed only when
@@ -92,10 +135,14 @@ decisions, stale artifacts, or dependency churn — without any schema change.
 - Legacy `clients` rows are never modified or deleted by the executor; backfills write only to
   governed bridge columns and Party-adjacent tables, so a failed/rolled-back run leaves the legacy
   graph byte-identical.
-- Audit ledger rows are the single source of replay truth: `source_fingerprint`
-  (`sha256(fingerprint(source_client_version, source_client_updated_at, source_report_sha256))` at
-  the ledger row) is also checked via the replay-comparison codepath so a touched `clients` row or
-  changed report bytes trip basis-collision rather than silent divergence.
+- Audit ledger rows are the single source of replay truth, and `apply_anchor` re-reads the live
+  legacy Client and recomputes its fingerprint before each replay decision; identical completion is
+  declared only when the committed ledger still matches the live anchor state (`party_id`,
+  `organization_id`, `resolution_mode`, `source_client_version`, canonical
+  `source_client_updated_at`, `source_fingerprint`) alongside the reconciliation basis. Any drift —
+  a mutated `clients` row, changed report bytes, or different resolution settings — trips
+  `basis_collision` rather than silent divergence, and the executor's check does not depend on any
+  upstream preflight.
 
 ## Problems Encountered
 
@@ -134,18 +181,18 @@ decisions, stale artifacts, or dependency churn — without any schema change.
 
 ☑ Architecture preserved - Clean Architecture; CLI consumer of the existing validator/preflight infrastructure.
 ☑ Existing design patterns followed - mirrors Phase12-16 CLI/test conventions; no schema or model change.
-☑ Tests added - 23 integration tests exercises the full gate/plan/apply/replay matrix.
-☑ Existing tests pass - 616 passed, 21 skipped on live PostgreSQL; DB left pristine.
-☑ Documentation updated - this phase log.
+☑ Tests added - 27 integration tests (incl. QA-rework live-mutation regressions) exercise the full gate/plan/apply/replay matrix.
+☑ Existing tests pass - 620 passed, 21 skipped on live PostgreSQL; DB left pristine. Governance + regression suites green.
+☑ Documentation updated - this phase log incl. the b65f5b9 QA rework record.
 □ ADR updated (if required) - no new architecture decision; ADR-0034/0035 step implemented as governed.
 □ AI_BOOTSTRAP updated (if required) - no standing convention changed.
 □ PROJECT_STATE updated (if required) - pending Documentation Manager synchronization at batch review.
 ☑ No unrelated refactoring
 ☑ No scope creep - only T118-scope executor, tests, and its console-script entry.
-☑ Ready for QA
+☑ Ready for QA - resubmitted for re-review after b65f5b9 remediation (93c2f51).
 
 ## QA Decision
 
 □ Approved
 □ Approved with comments
-□ Rework required
+☑ Rework required (`b65f5b9`, live-anchor fingerprint) — remediation committed (`93c2f51`); pending re-review.
