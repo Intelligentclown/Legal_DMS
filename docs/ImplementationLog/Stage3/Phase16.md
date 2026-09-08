@@ -12,9 +12,9 @@ Related Tasks: T117
 
 Related ADRs: [ADR-0034](../../../ADR/0034-party-client-and-representative-migration-architecture.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md)
 
-Git Commit:
+Git Commit: authorization `755eb49`; implementation `5bee607`
 
-Pull Request: (implementation PR opened after this commit; number recorded once created)
+Pull Request: #204 (open; stopping boundary applies - no merge, no QA, no Done marking)
 
 Release:
 
