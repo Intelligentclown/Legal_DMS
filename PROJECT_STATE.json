@@ -19,7 +19,7 @@
     "resolvedRequiredADRs": [1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 18, 19],
     "unresolvedRequiredADRs": [10, 11, 12, 15, 16, 17, 20],
     "latestTaskDone": "T116",
-    "latestTaskAuthorized": "T116",
+    "latestTaskAuthorized": "T117",
     "asOfCommit": "a3b5388c48e29e4fc0ff6f0a50792e89835cfc83",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
