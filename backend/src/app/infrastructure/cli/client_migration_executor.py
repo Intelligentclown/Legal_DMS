@@ -21,10 +21,14 @@ unambiguous `organization_id` staging backfills, the bounded
 bridge backfills, and one immutable `client_party_migration_ledger`
 completion row -- all committed or all rolled back together (ADR-0020).
 
-Idempotency and retry safety are ledger-driven: a retry that finds an
-identical previously committed ledger entry (same basis, same Organization,
-same source fingerprint) is a true no-op; any meaningful difference fails
-closed without overwriting, heuristically repairing, or deleting anything.
+Idempotency and retry safety are ledger-driven: a retry is a true no-op
+only when the committed ledger proves every governed identity dimension
+still matches, including the execution-time legacy anchor state (`client_id`,
+`version`, canonical `updated_at` via the live-derived `source_fingerprint`).
+A legacy Client that changed after a completed migration therefore fails
+closed as a stale basis collision instead of being replayed as
+`already_completed`; any other meaningful difference also fails closed
+without overwriting, heuristically repairing, or deleting anything.
 
 `run_migration_executor()` is the testable core (per-anchor transactions;
 the caller never commits -- it commits/rolls back each unit itself).
@@ -39,6 +43,7 @@ import asyncio
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -46,10 +51,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.cli.client_reconciliation_artifact_validator import (
-    ValidationIssue,
-    canonical_json,
-)
+from app.infrastructure.cli.client_reconciliation_artifact_validator import ValidationIssue
 from app.infrastructure.cli.client_reconciliation_staleness_preflight import (
     run_live_reconciliation_staleness_preflight,
 )
@@ -69,6 +71,31 @@ from app.infrastructure.persistence.models.scheduling import Appointment
 EXECUTOR_SCHEMA_VERSION = "t118.client-migration-executor.v1"
 TASK = "T118"
 EXECUTABLE_STATES = {"deterministic", "operator_reconciled"}
+
+
+def _canonical_updated_at(value: Any) -> str:
+    """Deterministic, timezone-safe canonical form for the `updated_at`
+    component of a source fingerprint: always UTC, microsecond precision,
+    `YYYY-MM-DDTHH:MM:SS.ffffffZ`. Naive datetimes are treated as UTC."""
+    if value is None:
+        return "None"
+    if value.tzinfo is None or value.utcoffset() is None:
+        value = value.replace(tzinfo=UTC)
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def client_source_fingerprint(*, client_id: UUID, version: int, updated_at: Any) -> str:
+    """Canonical live-anchor source fingerprint for identical-completion.
+
+    Mirrors the T108 `<ModelName>:<id>:<version>:<updated_at>` shape
+    (`_fingerprint_for_record` in `client_migration_preflight.py`) but is
+    derived from the **execution-time legacy `clients` row** -- id, version,
+    and the canonicalized `updated_at` -- not from the frozen artifact
+    snapshot. A legacy Client that mutates after a committed completion
+    therefore produces a different fingerprint and can never be replayed as
+    `already_completed` (ADR-0034 §4/§7, ADR-0035 §8).
+    """
+    return f"Client:{client_id}:{version}:{_canonical_updated_at(updated_at)}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -257,8 +284,6 @@ async def apply_anchor(
     set_id = entry["set_id"]
     decision = entry["decision"]
     state = decision["state"]
-    snapshot = entry["t108_snapshot"]
-    fingerprint = hashlib.sha256(canonical_json(snapshot).encode("utf-8")).hexdigest()
     organization_id = UUID(decision["selected_organization_id"])
     operator_note = decision.get("operator_note") or None
 
@@ -273,6 +298,12 @@ async def apply_anchor(
             "organization_not_found",
             "selected Organization does not exist",
         )
+
+    live_fingerprint = client_source_fingerprint(
+        client_id=client.id,
+        version=client.version,
+        updated_at=client.updated_at,
+    )
 
     stored = list(
         (
@@ -291,7 +322,16 @@ async def apply_anchor(
         )
         if not same_basis:
             continue
-        if ledger.organization_id == organization_id and ledger.source_fingerprint == fingerprint:
+        identical = (
+            ledger.party_id == client_uuid
+            and ledger.organization_id == organization_id
+            and ledger.resolution_mode == state
+            and ledger.source_client_version == client.version
+            and _canonical_updated_at(ledger.source_client_updated_at)
+            == _canonical_updated_at(client.updated_at)
+            and ledger.source_fingerprint == live_fingerprint
+        )
+        if identical:
             return AnchorExecutionResult(
                 anchor_id=anchor_id,
                 set_id=set_id,
@@ -309,7 +349,8 @@ async def apply_anchor(
             state,
             "basis_collision",
             "same reconciliation basis is already completed with a different "
-            f"Organization or source fingerprint (ledger {ledger.id})",
+            "Organization, resolution mode, or live anchor state "
+            f"(fingerprint/version/updated_at) (ledger {ledger.id})",
         )
     if stored:
         return _failed(
@@ -498,7 +539,7 @@ async def apply_anchor(
         resolution_mode=state,
         source_client_version=client.version,
         source_client_updated_at=client.updated_at,
-        source_fingerprint=fingerprint,
+        source_fingerprint=live_fingerprint,
         artifact_actor_type=artifact_payload["generated_by"].get("actor_type"),
         artifact_actor_id=artifact_payload["generated_by"].get("actor_id"),
         operator_note=operator_note,

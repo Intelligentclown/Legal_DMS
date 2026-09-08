@@ -7,8 +7,13 @@ Coverage mirrors the T118 authorization contract:
   write unit (parties row, ADR-0033 Organization staging backfills, bounded
   matter_parties `role = 'client'` rows, T117 `party_id` bridges, and one
   immutable migration-ledger completion row);
-- retry/idempotency is ledger-driven (identical replay is a no-op; any
-  change of fingerprint, Organization, or basis fails closed);
+- retry/idempotency is ledger-driven: identical replay is a true no-op only
+  when the committed ledger proves the live legacy-anchor identity still
+  matches (id, version, canonical updated_at via the live-derived source
+  fingerprint); a legacy Client mutated after a committed completion fails
+  closed as a stale basis collision rather than being replayed as
+  `already_completed`, and any change of Organization or basis also fails
+  closed;
 - fail-closed guards: missing anchor, missing Organization, pre-existing
   Party without a ledger, partial bridge state, conflicting MatterParty,
   cross-tenant Organization disagreement, and Organization-typed Clients
@@ -29,7 +34,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID, uuid4
 
@@ -47,6 +52,7 @@ from app.infrastructure.cli.client_migration_executor import (
     EXECUTOR_SCHEMA_VERSION,
     TASK,
     apply_anchor,
+    client_source_fingerprint,
     run_migration_executor,
 )
 from app.infrastructure.cli.client_migration_preflight import run_client_migration_preflight
@@ -596,7 +602,7 @@ async def test_identical_replay_is_a_noop(db_session: AsyncSession) -> None:
     assert count is not None
 
 
-async def test_changed_source_fingerprint_rejects_as_basis_collision(
+async def test_changed_live_anchor_state_rejects_as_basis_collision(
     db_session: AsyncSession,
 ) -> None:
     organization = await _make_org(db_session)
@@ -604,21 +610,21 @@ async def test_changed_source_fingerprint_rejects_as_basis_collision(
     client, _rows = await _seed_client_graph(db_session, organization=organization, user=user)
 
     first = await _apply(db_session, client, organization)
-    altered = _make_entry(
-        client,
-        organization,
-        snapshot={
-            "classification": "deterministic",
-            "candidate_organization_ids": [str(organization.id)],
-            "evidence": [],
-            "note": "different frozen note",
-        },
-    )
-    second = await _apply(db_session, client, organization, entry=altered)
-
     assert first.status == "applied"
+
+    before_version = client.version
+    before_updated_at = client.updated_at
+    client.notes = "legacy client mutated after the first application"
+    await db_session.flush()
+    await db_session.refresh(client)
+    assert (client.version, client.updated_at) != (before_version, before_updated_at)
+    assert client.version > before_version
+
+    second = await _apply(db_session, client, organization)
+
     assert second.status == "failed"
     assert second.failure_code == "basis_collision"
+    assert second.status != "already_completed"
 
 
 async def test_changed_organization_rejects_as_basis_collision(db_session: AsyncSession) -> None:
@@ -1082,6 +1088,149 @@ async def test_rerun_after_commit_is_append_only_noop() -> None:
             await session.commit()
         await session.close()
         await engine.dispose()
+
+
+async def test_live_client_mutation_after_commit_fails_closed() -> None:
+    engine, session = await _make_isolated_session()
+    client: Client | None = None
+    organization: Organization | None = None
+    ids: dict[str, UUID] | None = None
+    try:
+        organization = await _make_org(session)
+        user = await _make_user(session, organization)
+        client, rows = await _seed_client_graph(
+            session,
+            organization=organization,
+            user=user,
+            pan_number=_PAN,
+            aadhaar_number=_AADHAAR,
+        )
+        ids = _seed_ids(client, organization, rows)
+        client_uuid = ids["client"]
+        report_bytes, artifact_bytes = await _freeze_basis(session)
+
+        first = await run_migration_executor(
+            session,
+            source_report_bytes=report_bytes,
+            artifact_bytes=artifact_bytes,
+            executor_version=EXECUTOR_VERSION,
+            dry_run=False,
+        )
+        assert first.anchors[0].status == "committed"
+        committed_ledger_id = first.anchors[0].contents["ledger_entry"]
+
+        live_before = await session.get(Client, client.id)
+        assert live_before is not None
+        before_version = live_before.version
+        before_updated_at = live_before.updated_at
+
+        live_before.notes = "legacy client mutated a time after migration"
+        await session.commit()
+        await session.refresh(live_before)
+
+        live_after = live_before
+        assert (live_after.version, live_after.updated_at) != (before_version, before_updated_at)
+        assert live_after.version > before_version
+
+        party = await session.get(Party, client.id)
+        assert party is not None
+        party_display_before = party.display_name
+        party_organization_before = party.organization_id
+
+        second = await run_migration_executor(
+            session,
+            source_report_bytes=report_bytes,
+            artifact_bytes=artifact_bytes,
+            executor_version=EXECUTOR_VERSION,
+            dry_run=False,
+        )
+
+        assert second.summary["already_completed"] == 0
+        if second.gated:
+            assert second.summary["total"] == 0
+        else:
+            assert second.anchors[0].status == "failed"
+            assert second.anchors[0].failure_code == "basis_collision"
+
+        ledger_rows = list(
+            (
+                await session.execute(
+                    select(ClientPartyMigrationLedger).where(
+                        ClientPartyMigrationLedger.legacy_client_id == client_uuid
+                    )
+                )
+            ).scalars()
+        )
+        assert len(ledger_rows) == 1
+        assert str(ledger_rows[0].id) == committed_ledger_id
+
+        party_after = await session.get(Party, client_uuid)
+        assert party_after is not None
+        assert party_after.display_name == party_display_before
+        assert party_after.organization_id == party_organization_before
+
+        legacy = await session.get(Client, client_uuid)
+        assert legacy is not None
+        assert legacy.full_name == "Test Client"
+        assert legacy.address_id == ids["address"]
+    finally:
+        if ids is not None:
+            await _cleanup_committed(session, ids)
+            await session.commit()
+        await session.close()
+        await engine.dispose()
+
+
+async def test_committed_ledger_source_fingerprint_matches_live_anchor(
+    db_session: AsyncSession,
+) -> None:
+    organization = await _make_org(db_session)
+    user = await _make_user(db_session, organization)
+    client, _rows = await _seed_client_graph(db_session, organization=organization, user=user)
+    live = await db_session.get(Client, client.id)
+    assert live is not None
+
+    result = await _apply(db_session, client, organization)
+    assert result.status == "applied"
+
+    ledger = (
+        await db_session.execute(
+            select(ClientPartyMigrationLedger).where(
+                ClientPartyMigrationLedger.legacy_client_id == client.id
+            )
+        )
+    ).scalar_one()
+    expected = client_source_fingerprint(
+        client_id=client.id,
+        version=live.version,
+        updated_at=live.updated_at,
+    )
+    assert ledger.source_fingerprint == expected
+    assert ledger.source_client_version == live.version
+    assert ledger.source_client_updated_at == live.updated_at
+
+
+def test_two_live_client_versions_produce_different_fingerprints() -> None:
+    client_id = uuid4()
+    updated_at = datetime(2026, 9, 8, 10, 0, 0, 0, tzinfo=UTC)
+    assert client_source_fingerprint(
+        client_id=client_id, version=1, updated_at=updated_at
+    ) != client_source_fingerprint(client_id=client_id, version=2, updated_at=updated_at)
+
+
+def test_client_source_fingerprint_timestamp_canonicalization_is_timezone_safe() -> None:
+    client_id = uuid4()
+    utc_instant = datetime(2026, 9, 8, 10, 0, 0, 0, tzinfo=UTC)
+    shifted_instant = datetime(
+        2026, 9, 8, 15, 30, 0, 0, tzinfo=timezone(timedelta(hours=5, minutes=30))
+    )
+    assert utc_instant.timestamp() == shifted_instant.timestamp()
+    first = client_source_fingerprint(client_id=client_id, version=1, updated_at=utc_instant)
+    second = client_source_fingerprint(client_id=client_id, version=1, updated_at=shifted_instant)
+    assert first == second
+    assert first == client_source_fingerprint(
+        client_id=client_id, version=1, updated_at=utc_instant
+    )
 
 
 async def test_no_party_crud_is_exposed_through_the_api() -> None:
