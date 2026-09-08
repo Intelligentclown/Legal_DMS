@@ -14,7 +14,14 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -53,12 +60,18 @@ class PropertyOwner(Base, AuditMixin):
         ),
         CheckConstraint("to_date IS NULL OR to_date >= from_date", name="to_date_after_from_date"),
         UniqueConstraint("organization_id", "id", name="uq_property_owners_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_property_owners_organization_id_parties",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     property_id: Mapped[UUID] = mapped_column(ForeignKey("properties.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
+    party_id: Mapped[UUID | None] = mapped_column(index=True)
     ownership_share: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     ownership_type: Mapped[str] = mapped_column(String(50), default="owner")
     from_date: Mapped[date] = mapped_column()

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, ForeignKeyConstraint, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -78,11 +78,17 @@ class ClientContact(Base, AuditMixin):
     __tablename__ = "client_contacts"
     __table_args__ = (
         UniqueConstraint("organization_id", "id", name="uq_client_contacts_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_client_contacts_organization_id_parties",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
+    party_id: Mapped[UUID | None] = mapped_column(index=True)
     contact_name: Mapped[str] = mapped_column(String(255))
     relationship_type: Mapped[str] = mapped_column(String(100))
     phone: Mapped[str | None] = mapped_column(String(20))

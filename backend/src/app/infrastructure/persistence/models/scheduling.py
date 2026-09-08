@@ -5,7 +5,14 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -31,12 +38,18 @@ class Appointment(Base, AuditMixin):
     __table_args__ = (
         CheckConstraint("ends_at > starts_at", name="ends_at_after_starts_at"),
         UniqueConstraint("organization_id", "id", name="uq_appointments_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_appointments_organization_id_parties",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     matter_id: Mapped[UUID | None] = mapped_column(ForeignKey("matters.id"), index=True)
     client_id: Mapped[UUID | None] = mapped_column(ForeignKey("clients.id"), index=True)
+    party_id: Mapped[UUID | None] = mapped_column(index=True)
     title: Mapped[str] = mapped_column(String(255))
     location: Mapped[str | None] = mapped_column(String(255))
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
