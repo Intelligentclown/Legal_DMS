@@ -822,6 +822,23 @@ record relies on SQLite/offline migration verification and passing CI. `latestTa
 `latestTaskAuthorized` are both `T115`, `inProgressTransitions` remains empty, Required ADR #20
 remains unresolved globally, T116+ remains unauthorized, and PR #202 remains unmerged.
 
+**Update (2026-09-08, Documentation Manager, T116 post-QA synchronization on PR #203):** PR #203
+remains open at final QA-approved head `a3b5388c48e29e4fc0ff6f0a50792e89835cfc83`, based on merged
+`main` `9d326263188e919e0c76dd969610c55560d65775`. Authorization commit
+`45ffe353c521245ed9db1fd7e24689394c59f53f`, initial Rework-required evidence
+`222541d2ea19ffdd37af3c249eee3e8fd68fc12f`, and remediation
+`c6faca8552692969d90b92e37bb4b40ee9714763` are ancestors of the final QA head. T116 is now Done:
+the bounded Party, MatterParty, and immutable migration-ledger schema foundation includes the
+required composite tenant-integrity relationships, including ledger-to-Party after rework, but no
+business-data migration or excluded executor/cutover work. QA's initial finding was that ledger
+`organization_id` was not tied to its Party; final re-review Approved the composite-FK remediation.
+Developer's rollback-only PostgreSQL probe demonstrated the ledger tenant boundary, while QA did not
+perform live PostgreSQL verification because of Docker/environment limits. The `alembic check` drift
+was expected local state from editing an unmerged locally applied revision, not a product defect.
+`latestTaskDone` and `latestTaskAuthorized` are both `T116`, `inProgressTransitions` remains empty,
+Required ADR #20 remains unresolved globally, ADR-0035 is unchanged, T117+ remains unauthorized,
+and PR #203 remains unmerged.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the
