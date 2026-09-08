@@ -261,9 +261,9 @@ def upgrade() -> None:
             name=op.f("fk_client_party_migration_ledger_legacy_client_id_clients"),
         ),
         sa.ForeignKeyConstraint(
-            ["party_id"],
-            ["parties.id"],
-            name=op.f("fk_client_party_migration_ledger_party_id_parties"),
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_client_party_migration_ledger_organization_id_parties",
         ),
         sa.ForeignKeyConstraint(
             ["organization_id"],

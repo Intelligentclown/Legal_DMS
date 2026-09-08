@@ -28,7 +28,7 @@ Establish only ADR-0035 sequence step 2: the Party, bounded MatterParty, and Cli
 
 - Added the tenant-scoped `parties` table and ORM model with the governed Party fields, checks, tenant-leading indexes, and nullable same-Organization Address reference.
 - Added only the bounded migration-era `matter_parties` contract needed for the legacy Matter client relationship, with composite same-Organization Matter and Party foreign keys.
-- Added the immutable `client_party_migration_ledger` persistence shape, its provenance fields, governed identity and resolution checks, uniqueness constraints, and lookup indexes.
+- Added the immutable `client_party_migration_ledger` persistence shape, its provenance fields, governed identity and resolution checks, uniqueness constraints, lookup indexes, and composite same-Organization Party foreign key.
 - Added a reversible Alembic migration and focused structural tests. No rows are created, reconciled, or backfilled.
 
 ## Files Modified
@@ -45,11 +45,12 @@ Establish only ADR-0035 sequence step 2: the Party, bounded MatterParty, and Cli
 
 ## Test Results
 
-- Focused T116 plus T110/T111/T115 regressions: 30 passed.
-- Full backend unit suite: 294 passed.
+- Focused T116 plus T110/T111/T115 regressions: 33 passed, including the ledger cross-tenant rejection and same-Organization acceptance checks.
+- Full backend unit suite: 297 passed.
 - Ruff and Black passed.
 - `alembic heads` reports only `e6a2d4c8f1b7`.
 - Offline PostgreSQL SQL generation passed for both `alembic upgrade d8f4a6c9b3e1:head --sql` and `alembic downgrade head:d8f4a6c9b3e1 --sql`.
+- A rollback-only PostgreSQL temporary-table probe rejected a cross-tenant ledger Party pairing and accepted the matching Organization pairing.
 - Governance validation passed, including 51 governance tests. `git diff --check` passed.
 
 ## Design Decisions
@@ -57,10 +58,11 @@ Establish only ADR-0035 sequence step 2: the Party, bounded MatterParty, and Cli
 - The pre-existing T115 `organization_id` staging columns remain nullable. This migration does not infer Organization ownership or make staged legacy data non-null.
 - Party-to-Address, MatterParty-to-Matter, and MatterParty-to-Party tenant safety is enforced through composite Organization-leading foreign keys supported by the T115 and T116 composite unique keys.
 - The ledger deliberately has no audit mixin, version column, soft deletion, or application write path, preserving its append-only execution-record shape without implementing an executor.
+- The QA-identified ledger tenant-boundary defect is remediated by `(organization_id, party_id) -> parties(organization_id, id)` while retaining the direct Organization foreign key and all original ledger identity constraints.
 
 ## Problems Encountered
 
-- Local PostgreSQL was unavailable and Docker Desktop was not running, preventing online Alembic upgrade/downgrade and database-backed integration verification. Offline PostgreSQL SQL generation and structural tests passed; no test or fixture was weakened.
+- Docker Desktop's daemon is not running, but the configured PostgreSQL server was available for a rollback-only temporary-table probe of the composite FK. `alembic check` correctly detected the pre-remediation Party-only FK in the already-applied local development schema; it was not mutated in place because this unmerged PR deliberately corrects its original migration. Offline PostgreSQL SQL generation and structural tests passed without weakening tests.
 
 ## Deferred Work
 
@@ -88,6 +90,6 @@ Establish only ADR-0035 sequence step 2: the Party, bounded MatterParty, and Cli
 
 □ Approved
 □ Approved with comments
-□ Rework required
+☑ Rework required
 
-QA evidence: Pending independent QA review of the pushed implementation PR head. Required ADR #20 remains unresolved, and T117+ remains unauthorized.
+QA evidence: `222541d2ea19ffdd37af3c249eee3e8fd68fc12f` recorded Rework required for the ledger Party foreign key. The remediation commit remains pending independent QA re-review. Required ADR #20 remains unresolved, and T117+ remains unauthorized.

@@ -142,6 +142,11 @@ class MatterParty(Base, AuditMixin):
 class ClientPartyMigrationLedger(Base):
     __tablename__ = "client_party_migration_ledger"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_client_party_migration_ledger_organization_id_parties",
+        ),
         CheckConstraint("party_id = legacy_client_id", name="party_id_matches_legacy_client_id"),
         CheckConstraint(
             "resolution_mode IN ('deterministic', 'operator_reconciled')", name="resolution_mode"
@@ -171,7 +176,7 @@ class ClientPartyMigrationLedger(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     legacy_client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"))
-    party_id: Mapped[UUID] = mapped_column(ForeignKey("parties.id"))
+    party_id: Mapped[UUID] = mapped_column()
     organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"))
     executor_version: Mapped[str] = mapped_column(String(100))
     reconciliation_set_id: Mapped[str] = mapped_column(String(255))

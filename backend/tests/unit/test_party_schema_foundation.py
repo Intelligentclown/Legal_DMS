@@ -5,7 +5,9 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 from types import ModuleType
+from uuid import uuid4
 
+import pytest
 import sqlalchemy as sa
 
 from app.infrastructure.persistence.models.party import (
@@ -141,6 +143,98 @@ class TestMatterPartySchema:
 
 
 class TestLedgerSchema:
+    @staticmethod
+    def _party_foreign_key() -> sa.ForeignKeyConstraint:
+        return next(
+            constraint
+            for constraint in ClientPartyMigrationLedger.__table__.constraints
+            if isinstance(constraint, sa.ForeignKeyConstraint)
+            and tuple(constraint.columns.keys()) == ("organization_id", "party_id")
+        )
+
+    def test_ledger_uses_a_same_organization_party_foreign_key(self) -> None:
+        table = ClientPartyMigrationLedger.__table__
+        party_constraints = [
+            constraint
+            for constraint in table.constraints
+            if isinstance(constraint, sa.ForeignKeyConstraint)
+            and tuple(constraint.columns.keys()) == ("organization_id", "party_id")
+        ]
+
+        assert len(party_constraints) == 1
+        assert tuple(element.target_fullname for element in party_constraints[0].elements) == (
+            "parties.organization_id",
+            "parties.id",
+        )
+        assert not any(
+            isinstance(constraint, sa.ForeignKeyConstraint)
+            and tuple(constraint.columns.keys()) == ("party_id",)
+            and tuple(element.target_fullname for element in constraint.elements) == ("parties.id",)
+            for constraint in table.constraints
+        )
+
+    def test_ledger_party_fk_rejects_cross_tenant_pairing_and_accepts_same_tenant_pairing(
+        self,
+    ) -> None:
+        party_foreign_key = self._party_foreign_key()
+        metadata = sa.MetaData()
+        organizations = sa.Table(
+            "organizations", metadata, sa.Column("id", sa.Uuid(), primary_key=True)
+        )
+        clients = sa.Table("clients", metadata, sa.Column("id", sa.Uuid(), primary_key=True))
+        parties = sa.Table(
+            "parties",
+            metadata,
+            sa.Column("organization_id", sa.Uuid(), nullable=False),
+            sa.Column("id", sa.Uuid(), primary_key=True),
+            sa.UniqueConstraint("organization_id", "id"),
+        )
+        ledger = sa.Table(
+            "client_party_migration_ledger",
+            metadata,
+            sa.Column("organization_id", sa.Uuid(), nullable=False),
+            sa.Column("party_id", sa.Uuid(), nullable=False),
+            sa.Column("legacy_client_id", sa.Uuid(), nullable=False),
+            sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),
+            sa.ForeignKeyConstraint(["legacy_client_id"], ["clients.id"]),
+            sa.ForeignKeyConstraint(
+                party_foreign_key.column_keys,
+                [element.target_fullname for element in party_foreign_key.elements],
+            ),
+        )
+        engine = sa.create_engine("sqlite://")
+
+        with engine.begin() as connection:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            metadata.create_all(connection)
+            organization_a, organization_b, party_id = uuid4(), uuid4(), uuid4()
+            connection.execute(
+                organizations.insert(), [{"id": organization_a}, {"id": organization_b}]
+            )
+            connection.execute(
+                parties.insert(), {"organization_id": organization_a, "id": party_id}
+            )
+            connection.execute(clients.insert(), {"id": party_id})
+
+            with pytest.raises(sa.exc.IntegrityError):
+                connection.execute(
+                    ledger.insert(),
+                    {
+                        "organization_id": organization_b,
+                        "party_id": party_id,
+                        "legacy_client_id": party_id,
+                    },
+                )
+
+            connection.execute(
+                ledger.insert(),
+                {
+                    "organization_id": organization_a,
+                    "party_id": party_id,
+                    "legacy_client_id": party_id,
+                },
+            )
+
     def test_ledger_is_immutable_and_has_the_governed_identity_keys(self) -> None:
         table = ClientPartyMigrationLedger.__table__
         assert set(table.c.keys()) >= {
@@ -203,6 +297,31 @@ class TestPartySchemaMigration:
             "client_party_migration_ledger",
         ]
         assert not {"execute", "bulk_insert", "add_column"} & {call[0] for call in operations.calls}
+
+    def test_upgrade_uses_the_same_organization_ledger_party_foreign_key(self) -> None:
+        module = _migration_module()
+        operations = RecordingOperations()
+        module.op = operations
+
+        module.upgrade()
+
+        ledger_call = next(
+            call
+            for call in operations.calls
+            if call[0] == "create_table" and call[1][0] == "client_party_migration_ledger"
+        )
+        party_constraints = [
+            argument
+            for argument in ledger_call[1]
+            if isinstance(argument, sa.ForeignKeyConstraint)
+            and tuple(argument.column_keys) == ("organization_id", "party_id")
+        ]
+
+        assert len(party_constraints) == 1
+        assert tuple(element.target_fullname for element in party_constraints[0].elements) == (
+            "parties.organization_id",
+            "parties.id",
+        )
 
     def test_downgrade_drops_dependents_before_parties(self) -> None:
         module = _migration_module()
