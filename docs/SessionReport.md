@@ -3573,3 +3573,37 @@ T117+.
 **State After Synchronization:** T116 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
 T116; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; T117+ remains
 unauthorized; and PR #203 remains unmerged.
+
+## Session: 2026-09-08 — T117 Post-QA Documentation Synchronization on PR #204
+
+**Objective:** Synchronize the ordinary T117 post-QA state on its existing PR branch without
+merging PR #204 or changing implementation, ADR architecture, QA evidence, or T118+.
+
+**Verified Before Editing:** PR #204 remains open at final QA-approved head
+`c661c721e730f08d96f8cc6dc7953f626a6a6258`. Authorization
+`755eb4936b38da7d79d6a1a57d98d75117ca82a6`, implementation
+`5bee607ed6835165bb94507610d6b3d3a21eeeda`, and reviewed head
+`179a568ccf8e0f869116cd2f426fa21b70584d80` are ancestors. QA Decision is Approved and the exact QA
+head's Backend, Frontend, Governance, and Release checks passed.
+
+**Documentation Updated:** synchronized Phase16's final QA state and the canonical governance,
+project-status, and handover records. Implementation detail remains canonical in
+`docs/ImplementationLog/Stage3/Phase16.md` and `docs/reviews/T117_QA_Review.md`.
+
+**Verification Nuance Preserved:** Developer's PostgreSQL checks proved migration reversibility and
+bridge tenant boundaries. QA did not independently reproduce them because live PostgreSQL was
+unavailable, using SQLite plus code/schema inspection instead. Local Alembic drift is an old local
+database artifact from the pre-remediation T116 revision applied before its correction and later PR
+#203 merge, not a T117 or repository migration defect.
+
+**Deliberately Not Touched:** implementation, schema, ORM, migrations, tests, ADRs, QA evidence,
+CI/workflows, backfill/executor/cutover work, Required ADR #20, and T118+.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T117 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T117; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; ADR-0035 is
+unchanged; T118+ remains unauthorized; and PR #204 remains unmerged.

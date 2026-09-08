@@ -839,6 +839,23 @@ was expected local state from editing an unmerged locally applied revision, not 
 Required ADR #20 remains unresolved globally, ADR-0035 is unchanged, T117+ remains unauthorized,
 and PR #203 remains unmerged.
 
+**Update (2026-09-08, Documentation Manager, T117 post-QA synchronization on PR #204):** PR #204
+remains open at final QA-approved head `c661c721e730f08d96f8cc6dc7953f626a6a6258`, based on merged
+`main` `d65ad42f2eff25440b8aebe27b8005d227986d66`. Authorization
+`755eb4936b38da7d79d6a1a57d98d75117ca82a6`, implementation
+`5bee607ed6835165bb94507610d6b3d3a21eeeda`, and reviewed head
+`179a568ccf8e0f869116cd2f426fa21b70584d80` remain in ancestry. T117 is now Done: it provides only
+the five nullable direct Party compatibility bridges with retained legacy `client_id`, composite
+same-Organization Party FKs, indexes, ORM parity, and reversible revision `b7e8a4f2c6d0`; no
+backfill, executor, Party CRUD, cutover, retirement, normalization, or broader migration work was
+performed. Developer completed live PostgreSQL migration and tenant-integrity probes; QA did not have
+live PostgreSQL and independently used SQLite plus code/schema inspection. The local Alembic drift is
+from the original pre-remediation T116 revision applied locally before its in-place correction; T116
+later merged corrected via PR #203, so this remains a stale local-environment artifact, not a T117 or
+repository migration defect. `latestTaskDone` and `latestTaskAuthorized` are both `T117`,
+`inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally, ADR-0035 is
+unchanged, T118+ remains unauthorized, and PR #204 remains unmerged.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the

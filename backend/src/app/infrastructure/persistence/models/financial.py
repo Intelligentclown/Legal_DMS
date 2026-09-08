@@ -11,6 +11,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Numeric,
     String,
     UniqueConstraint,
@@ -37,6 +38,11 @@ class Invoice(Base, AuditMixin):
         CheckConstraint("tax_amount >= 0", name="tax_amount_non_negative"),
         CheckConstraint("total_amount >= 0", name="total_amount_non_negative"),
         UniqueConstraint("organization_id", "id", name="uq_invoices_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_invoices_organization_id_parties",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -44,6 +50,7 @@ class Invoice(Base, AuditMixin):
     invoice_number: Mapped[str] = mapped_column(String(50), unique=True)
     matter_id: Mapped[UUID] = mapped_column(ForeignKey("matters.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
+    party_id: Mapped[UUID | None] = mapped_column(index=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     tax_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, server_default="0")
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
@@ -57,6 +64,11 @@ class Payment(Base, AuditMixin):
     __table_args__ = (
         CheckConstraint("amount > 0", name="amount_positive"),
         UniqueConstraint("organization_id", "id", name="uq_payments_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "party_id"],
+            ["parties.organization_id", "parties.id"],
+            name="fk_payments_organization_id_parties",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -64,6 +76,7 @@ class Payment(Base, AuditMixin):
     invoice_id: Mapped[UUID | None] = mapped_column(ForeignKey("invoices.id"), index=True)
     matter_id: Mapped[UUID] = mapped_column(ForeignKey("matters.id"), index=True)
     client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
+    party_id: Mapped[UUID | None] = mapped_column(index=True)
     payment_method_id: Mapped[UUID] = mapped_column(ForeignKey("payment_methods.id"), index=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     paid_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
