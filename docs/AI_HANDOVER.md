@@ -890,6 +890,17 @@ ADR #20 remains unresolved; ADR-0033/0034/0035 are unchanged; `latestTaskDone` a
 `latestTaskAuthorized` are both `T119`; `inProgressTransitions` is empty; T120+ remains unauthorized;
 and no merge or future-task work is authorized by this synchronization.
 
+**Update (2026-09-09, Documentation Manager, T120 post-QA synchronization on PR #209):** T120
+authorization merged at `d14347df5cc8d78481c3af79f3516bc42472128b`; PR #209 remains open at corrected
+QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`. Authorization
+`772e91f22be78f57970be867258d354c81024118` and implementation `48c8f7c5c87a9a1c0bc2ce92827e4f0a43c4672a`
+are ancestors; the QA-only corrected evidence is Approved. T120 is now Done with nullable Client tenant
+staging, same-Organization graph integrity, dependency-safe executor staging, and synthetic rollback/
+retry/replay coverage. QA reports 630 backend passed/21 skipped and successful PostgreSQL, Alembic,
+formatting, governance, and CI validation. No real-data execution, cutover, RLS, ADR change, or Client
+retirement occurred. Required ADR #20 remains unresolved; ADR-0033/0034/0035 are unchanged;
+`latestTaskDone`/`latestTaskAuthorized` are `T120`; transitions are empty; T121+ is unauthorized.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the

@@ -37,6 +37,11 @@ class Property(Base, AuditMixin, OptimisticLockMixin):
         ),
         CheckConstraint("area_value IS NULL OR area_value > 0", name="area_value_positive"),
         UniqueConstraint("organization_id", "id", name="uq_properties_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "address_id"],
+            ["addresses.organization_id", "addresses.id"],
+            name="fk_properties_organization_id_addresses",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -64,6 +69,16 @@ class PropertyOwner(Base, AuditMixin):
             ["organization_id", "party_id"],
             ["parties.organization_id", "parties.id"],
             name="fk_property_owners_organization_id_parties",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "property_id"],
+            ["properties.organization_id", "properties.id"],
+            name="fk_property_owners_organization_id_properties",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "client_id"],
+            ["clients.organization_id", "clients.id"],
+            name="fk_property_owners_organization_id_clients",
         ),
     )
 

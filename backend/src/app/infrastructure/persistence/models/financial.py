@@ -43,6 +43,16 @@ class Invoice(Base, AuditMixin):
             ["parties.organization_id", "parties.id"],
             name="fk_invoices_organization_id_parties",
         ),
+        ForeignKeyConstraint(
+            ["organization_id", "matter_id"],
+            ["matters.organization_id", "matters.id"],
+            name="fk_invoices_organization_id_matters",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "client_id"],
+            ["clients.organization_id", "clients.id"],
+            name="fk_invoices_organization_id_clients",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -68,6 +78,21 @@ class Payment(Base, AuditMixin):
             ["organization_id", "party_id"],
             ["parties.organization_id", "parties.id"],
             name="fk_payments_organization_id_parties",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "invoice_id"],
+            ["invoices.organization_id", "invoices.id"],
+            name="fk_payments_organization_id_invoices",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "matter_id"],
+            ["matters.organization_id", "matters.id"],
+            name="fk_payments_organization_id_matters",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "client_id"],
+            ["clients.organization_id", "clients.id"],
+            name="fk_payments_organization_id_clients",
         ),
     )
 

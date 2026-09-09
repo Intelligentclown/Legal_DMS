@@ -35,7 +35,9 @@ import json
 from datetime import UTC, datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
+import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.cli.client_migration_executor import (
@@ -64,7 +66,6 @@ from tests.support.synthetic_migration import (
     cleanup_committed,
     freeze_basis,
     make_entry,
-    make_isolated_session,
     make_org,
     make_user,
     seed_client_graph,
@@ -232,7 +233,7 @@ async def test_changed_organization_rejects_as_basis_collision(db_session: Async
 
     assert first.status == "applied"
     assert second.status == "failed"
-    assert second.failure_code == "basis_collision"
+    assert second.failure_code == "client_tenant_disagreement"
 
 
 async def test_changed_reconciliation_basis_rejects(db_session: AsyncSession) -> None:
@@ -335,34 +336,12 @@ async def test_partial_bridge_state_without_ledger_fails_closed(db_session: Asyn
 async def test_conflicting_matter_party_fails_closed(db_session: AsyncSession) -> None:
     organization = await make_org(db_session)
     user = await make_user(db_session, organization)
-    client, rows = await seed_client_graph(db_session, organization=organization, user=user)
+    _client, rows = await seed_client_graph(db_session, organization=organization, user=user)
     matter = await db_session.get(Matter, rows["matter"].id)
     assert matter is not None
     matter.organization_id = organization.id
-    await db_session.flush()
-    other_party = Party(
-        id=uuid4(),
-        organization_id=organization.id,
-        party_type="individual",
-        display_name="Other Client",
-        primary_phone="1234567",
-    )
-    db_session.add(other_party)
-    await db_session.flush()
-    db_session.add(
-        MatterParty(
-            organization_id=organization.id,
-            matter_id=rows["matter"].id,
-            party_id=other_party.id,
-            role="client",
-        )
-    )
-    await db_session.flush()
-
-    result = await apply_anchor_against(db_session, client, organization)
-
-    assert result.status == "failed"
-    assert result.failure_code == "matter_party_conflict"
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
 
 
 async def test_cross_tenant_organization_disagreement_fails_closed(
@@ -371,16 +350,12 @@ async def test_cross_tenant_organization_disagreement_fails_closed(
     organization_a = await make_org(db_session)
     organization_b = await make_org(db_session)
     user = await make_user(db_session, organization_a)
-    client, rows = await seed_client_graph(db_session, organization=organization_a, user=user)
+    _client, rows = await seed_client_graph(db_session, organization=organization_a, user=user)
     appointment = await db_session.get(Appointment, rows["appointment"].id)
     assert appointment is not None
     appointment.organization_id = organization_b.id
-    await db_session.flush()
-
-    result = await apply_anchor_against(db_session, client, organization_a)
-
-    assert result.status == "failed"
-    assert result.failure_code == "tenant_disagreement"
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
 
 
 async def test_client_address_cross_tenant_fails_closed(db_session: AsyncSession) -> None:
@@ -549,8 +524,10 @@ async def test_missing_organization_decision_gates_all_writes(db_session: AsyncS
     assert await db_session.get(Party, client.id) is None
 
 
-async def test_write_mode_commits_and_leaves_legacy_graph_untouched() -> None:
-    engine, session = await make_isolated_session()
+async def test_write_mode_commits_and_leaves_legacy_graph_untouched(
+    db_session: AsyncSession,
+) -> None:
+    session = db_session
     client: Client | None = None
     organization: Organization | None = None
     ids: dict[str, UUID] | None = None
@@ -623,12 +600,10 @@ async def test_write_mode_commits_and_leaves_legacy_graph_untouched() -> None:
         if ids is not None:
             await cleanup_committed(session, ids)
             await session.commit()
-        await session.close()
-        await engine.dispose()
 
 
-async def test_rerun_after_commit_is_append_only_noop() -> None:
-    engine, session = await make_isolated_session()
+async def test_rerun_after_commit_is_append_only_noop(db_session: AsyncSession) -> None:
+    session = db_session
     client: Client | None = None
     organization: Organization | None = None
     ids: dict[str, UUID] | None = None
@@ -679,12 +654,10 @@ async def test_rerun_after_commit_is_append_only_noop() -> None:
         if ids is not None:
             await cleanup_committed(session, ids)
             await session.commit()
-        await session.close()
-        await engine.dispose()
 
 
-async def test_live_client_mutation_after_commit_fails_closed() -> None:
-    engine, session = await make_isolated_session()
+async def test_live_client_mutation_after_commit_fails_closed(db_session: AsyncSession) -> None:
+    session = db_session
     client: Client | None = None
     organization: Organization | None = None
     ids: dict[str, UUID] | None = None
@@ -770,8 +743,6 @@ async def test_live_client_mutation_after_commit_fails_closed() -> None:
         if ids is not None:
             await cleanup_committed(session, ids)
             await session.commit()
-        await session.close()
-        await engine.dispose()
 
 
 async def test_committed_ledger_source_fingerprint_matches_live_anchor(

@@ -59,7 +59,7 @@ from app.infrastructure.persistence.models.party import (
     MatterParty,
     Party,
 )
-from app.infrastructure.persistence.models.property import PropertyOwner
+from app.infrastructure.persistence.models.property import Property, PropertyOwner
 from app.infrastructure.persistence.models.scheduling import Appointment
 from tests.support.synthetic_migration import (
     EXECUTOR_VERSION,
@@ -78,7 +78,7 @@ from tests.support.synthetic_migration import (
     sha256_of,
 )
 
-ALEMBIC_HEAD = "b7e8a4f2c6d0"
+ALEMBIC_HEAD = "f3b7c9d1e2a4"
 
 
 @pytest.fixture(scope="session")
@@ -110,7 +110,12 @@ async def _freeze_and_validate(session: AsyncSession) -> tuple[bytes, bytes]:
     return report_bytes, artifact_bytes
 
 
-async def _assert_no_partial_residue(session: AsyncSession, client_id) -> None:
+async def _assert_no_partial_residue(
+    session: AsyncSession,
+    client_id,
+    *,
+    preserve_preexisting_address_tenant: bool = False,
+) -> None:
     """Asserts that no Party/MatterParty/bridge/staging residue survived a
     rolled-back unit and that the source legacy graph is still valid."""
     party = await session.get(Party, client_id)
@@ -141,6 +146,54 @@ async def _assert_no_partial_residue(session: AsyncSession, client_id) -> None:
     assert bridged == 0
     legacy = await session.get(Client, client_id)
     assert legacy is not None
+    assert legacy.organization_id is None
+    legacy_address = await session.get(Address, legacy.address_id)
+    assert legacy_address is not None
+    if preserve_preexisting_address_tenant:
+        assert legacy_address.organization_id is not None
+    else:
+        assert legacy_address.organization_id is None
+    related_matters = (
+        (await session.execute(select(Matter).where(Matter.client_id == client_id))).scalars().all()
+    )
+    related_owners = (
+        (await session.execute(select(PropertyOwner).where(PropertyOwner.client_id == client_id)))
+        .scalars()
+        .all()
+    )
+    related_appointments = (
+        (await session.execute(select(Appointment).where(Appointment.client_id == client_id)))
+        .scalars()
+        .all()
+    )
+    related_invoices = (
+        (await session.execute(select(Invoice).where(Invoice.client_id == client_id)))
+        .scalars()
+        .all()
+    )
+    related_payments = (
+        (await session.execute(select(Payment).where(Payment.client_id == client_id)))
+        .scalars()
+        .all()
+    )
+    related_contacts = (
+        (await session.execute(select(ClientContact).where(ClientContact.client_id == client_id)))
+        .scalars()
+        .all()
+    )
+    assert all(row.organization_id is None for row in related_matters + related_owners)
+    assert all(row.organization_id is None for row in related_appointments + related_invoices)
+    assert all(row.organization_id is None for row in related_payments + related_contacts)
+    for owner in related_owners:
+        property_row = await session.get(Property, owner.property_id)
+        assert property_row is not None
+        assert property_row.organization_id is None
+        property_address = await session.get(Address, property_row.address_id)
+        assert property_address is not None
+        if preserve_preexisting_address_tenant:
+            assert property_address.organization_id is not None
+        else:
+            assert property_address.organization_id is None
 
 
 async def test_rehearsal_is_disposable_and_at_migration_head(disposable_db) -> None:
@@ -244,6 +297,7 @@ async def test_end_to_end_rehearsal_complete_anchor_graph(disposable_db) -> None
         assert legacy.full_name == "Test Client"
         assert legacy.address_id == ids["address"]
         assert legacy.version is not None
+        assert legacy.organization_id == organization.id
 
         ledger = (
             await session.execute(
@@ -505,7 +559,11 @@ async def test_cross_organization_disagreement_rejected_zero_writes(disposable_d
         await session.rollback()
         assert result.status == "failed"
         assert result.failure_code == "tenant_disagreement"
-        await _assert_no_partial_residue(session, client_id)
+        await _assert_no_partial_residue(
+            session,
+            client_id,
+            preserve_preexisting_address_tenant=True,
+        )
     finally:
         if client is not None:
             await cleanup_committed(session, ids)

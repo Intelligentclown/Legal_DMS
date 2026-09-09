@@ -48,7 +48,7 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.cli.client_reconciliation_artifact_validator import ValidationIssue
@@ -298,12 +298,22 @@ async def apply_anchor(
             "organization_not_found",
             "selected Organization does not exist",
         )
+    if client.organization_id is not None and client.organization_id != organization_id:
+        return _failed(
+            anchor_id,
+            set_id,
+            state,
+            "client_tenant_disagreement",
+            "legacy Client already belongs to another Organization",
+        )
 
     live_fingerprint = client_source_fingerprint(
         client_id=client.id,
         version=client.version,
         updated_at=client.updated_at,
     )
+    source_client_version = client.version
+    source_client_updated_at = client.updated_at
 
     stored = list(
         (
@@ -326,12 +336,21 @@ async def apply_anchor(
             ledger.party_id == client_uuid
             and ledger.organization_id == organization_id
             and ledger.resolution_mode == state
-            and ledger.source_client_version == client.version
+            and ledger.source_client_version == source_client_version
             and _canonical_updated_at(ledger.source_client_updated_at)
-            == _canonical_updated_at(client.updated_at)
+            == _canonical_updated_at(source_client_updated_at)
             and ledger.source_fingerprint == live_fingerprint
         )
         if identical:
+            if client.organization_id != organization_id:
+                return _failed(
+                    anchor_id,
+                    set_id,
+                    state,
+                    "client_tenant_not_staged",
+                    "a completed ledger entry cannot repair a missing or conflicting "
+                    "legacy Client Organization value",
+                )
             return AnchorExecutionResult(
                 anchor_id=anchor_id,
                 set_id=set_id,
@@ -500,10 +519,44 @@ async def apply_anchor(
         backfill_organization(row)
         row.party_id = client_uuid
 
+    # Flush each parent tier before assigning dependent tenant keys. PostgreSQL
+    # evaluates the new same-Organization FKs immediately, even during staging.
     if client_address is not None:
         backfill_organization(client_address)
+    for address in property_addresses:
+        backfill_organization(address)
+    await session.flush()
+
+    if client.organization_id is None:
+        # Client staging is migration metadata, not a source-business edit.
+        # Preserve the frozen version/timestamp fingerprint required for an
+        # identical replay while atomically attaching the tenant boundary.
+        await session.execute(
+            update(Client)
+            .where(Client.id == client_uuid, Client.version == source_client_version)
+            .values(
+                organization_id=organization_id,
+                version=source_client_version,
+                updated_at=source_client_updated_at,
+            )
+            .execution_options(synchronize_session="fetch")
+        )
+        await session.refresh(client)
+    await session.flush()
+
+    for property_row in properties.values():
+        backfill_organization(property_row)
+    await session.flush()
+
     for matter in related["matters"]:
         backfill_organization(matter)
+    await session.flush()
+
+    for owner in related["owners"]:
+        bridge(owner)
+    await session.flush()
+
+    for matter in related["matters"]:
         session.add(
             MatterParty(
                 organization_id=organization_id,
@@ -512,22 +565,25 @@ async def apply_anchor(
                 role="client",
             )
         )
-    for owner in related["owners"]:
-        bridge(owner)
-    for property_row in properties.values():
-        backfill_organization(property_row)
-    for address in property_addresses:
-        backfill_organization(address)
+    await session.flush()
+
     for appointment in related["appointments"]:
         bridge(appointment)
     for appointment in related["matter_linked_appointments"]:
         backfill_organization(appointment)
+    await session.flush()
+
     for invoice in related["invoices"]:
         bridge(invoice)
+    await session.flush()
+
     for payment in related["payments"]:
         bridge(payment)
+    await session.flush()
+
     for contact in related["contacts"]:
         bridge(contact)
+    await session.flush()
 
     ledger = ClientPartyMigrationLedger(
         legacy_client_id=client_uuid,
@@ -537,8 +593,8 @@ async def apply_anchor(
         reconciliation_set_id=set_id,
         source_report_sha256=source_report_sha256,
         resolution_mode=state,
-        source_client_version=client.version,
-        source_client_updated_at=client.updated_at,
+        source_client_version=source_client_version,
+        source_client_updated_at=source_client_updated_at,
         source_fingerprint=live_fingerprint,
         artifact_actor_type=artifact_payload["generated_by"].get("actor_type"),
         artifact_actor_id=artifact_payload["generated_by"].get("actor_id"),

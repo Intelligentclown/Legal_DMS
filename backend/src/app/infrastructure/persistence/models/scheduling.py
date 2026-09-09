@@ -43,6 +43,16 @@ class Appointment(Base, AuditMixin):
             ["parties.organization_id", "parties.id"],
             name="fk_appointments_organization_id_parties",
         ),
+        ForeignKeyConstraint(
+            ["organization_id", "matter_id"],
+            ["matters.organization_id", "matters.id"],
+            name="fk_appointments_organization_id_matters",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "client_id"],
+            ["clients.organization_id", "clients.id"],
+            name="fk_appointments_organization_id_clients",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
