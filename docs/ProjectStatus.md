@@ -24,23 +24,17 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-09 (Documentation Manager, T119 post-QA synchronization on PR #207).
-Fresh remote verification confirms PR #206 authorization is merged at `main`
-`03b4529f37efa06c3bcd6656679461a3d4efdd26`; PR #207 remains open at corrected QA-approved head
-`7728b56973ef58e328d2c30ee9a509d808ca0f89`. Authorization `6db7c7de74eeb4be8b36b0b2e4c494cf4a984277`,
-harness implementation `9cf8e3d`, and reviewed implementation-log head
-`5f31b1f9fbf17dee7d6e9543039e31385ddbf2c3` are ancestors. The formal independent QA decision is
-Approved at `7728b569`; it is the corrected T119 evidence commit and changes only the QA review, while
-the initially reported SHA belonged to T118 and is not T119 evidence. T119 is now Done and QA-approved
-within its ordinary lifecycle: a test-only shared support module and seven-scenario rehearsal suite
-exercise the public T108-T118 path on a disposable PostgreSQL 16.15 database migrated to Alembic head
-`b7e8a4f2c6d0` and then dropped. The mandatory injected mid-unit fault proved full rollback, a clean
-retry committed one complete unit, and identical replay was a no-op. Developer evidence records 627
-passed/21 skipped full backend tests, 59 migration regressions, governance validation and 51 tests,
-Ruff, Black, and diff checks; exact-head CI passed. No production code, schema, ADR, or cutover changed.
-`latestTaskDone` and `latestTaskAuthorized` are both `T119`, `inProgressTransitions` remains empty,
-Required ADR #20 remains unresolved globally, ADR-0033/0034/0035 remain unchanged, T120+ remains
-unauthorized, and PR #207 is not merged by this synchronization.
+**Last Updated:** 2026-09-09 (Documentation Manager, T120 post-QA synchronization on PR #209).
+Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
+PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
+Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
+`48c8f7c5c87a9a1c0bc2ce92827e4f0a43c4672a` are ancestors. The QA-only evidence commit is Approved.
+T120 is now Done: nullable Client tenant staging, composite same-Organization integrity constraints,
+executor dependency-safe Client staging, and synthetic rollback/retry/replay coverage landed. QA records
+630 backend passed/21 skipped plus structural, PostgreSQL, Alembic, formatting, governance, and CI success.
+No real-data execution, cutover, RLS, ADR change, or Client retirement occurred. `latestTaskDone` and
+`latestTaskAuthorized` are both `T120`; `inProgressTransitions` is empty; Required ADR #20 remains
+unresolved; ADR-0033/0034/0035 are unchanged; T121+ remains unauthorized; PR #209 is unmerged.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working
