@@ -14,6 +14,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     String,
     UniqueConstraint,
@@ -52,6 +53,16 @@ class Matter(Base, AuditMixin, OptimisticLockMixin):
             "closed_at IS NULL OR closed_at >= opened_at", name="closed_at_after_opened_at"
         ),
         UniqueConstraint("organization_id", "id", name="uq_matters_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "client_id"],
+            ["clients.organization_id", "clients.id"],
+            name="fk_matters_organization_id_clients",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "property_id"],
+            ["properties.organization_id", "properties.id"],
+            name="fk_matters_organization_id_properties",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)

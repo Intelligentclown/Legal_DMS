@@ -61,9 +61,16 @@ class Client(Base, AuditMixin, OptimisticLockMixin):
             "aadhaar_number IS NULL OR aadhaar_number ~ '^[0-9]{12}$'",
             name="aadhaar_number_format",
         ),
+        UniqueConstraint("organization_id", "id", name="uq_clients_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "address_id"],
+            ["addresses.organization_id", "addresses.id"],
+            name="fk_clients_organization_id_addresses",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     client_type: Mapped[str] = mapped_column(String(20), default="individual")
     full_name: Mapped[str] = mapped_column(String(255), index=True)
     primary_phone: Mapped[str] = mapped_column(String(20), index=True)
@@ -82,6 +89,11 @@ class ClientContact(Base, AuditMixin):
             ["organization_id", "party_id"],
             ["parties.organization_id", "parties.id"],
             name="fk_client_contacts_organization_id_parties",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "client_id"],
+            ["clients.organization_id", "clients.id"],
+            name="fk_client_contacts_organization_id_clients",
         ),
     )
 
