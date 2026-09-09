@@ -3640,3 +3640,35 @@ CI/workflows, application cutover, normal Party CRUD/API, Required ADR #20, and 
 **State After Synchronization:** T118 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
 T118; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; ADR-0034 and
 ADR-0035 are unchanged; T119+ remains unauthorized; and PR #205 remains unmerged.
+
+## Session: 2026-09-09 — T119 Post-QA Documentation Synchronization on PR #207
+
+**Objective:** Synchronize the ordinary T119 post-QA state on its existing PR branch without merging
+PR #207 or changing the rehearsal harness, tests, schema, ADRs, QA review, or T120+.
+
+**Verified Before Editing:** PR #206 authorization merged at
+`03b4529f37efa06c3bcd6656679461a3d4efdd26`; PR #207 is open at corrected QA-approved head
+`7728b56973ef58e328d2c30ee9a509d808ca0f89`. Authorization and reviewed implementation head
+`5f31b1f9fbf17dee7d6e9543039e31385ddbf2c3` are ancestors. The corrected QA evidence is one commit
+ahead and changes only `docs/reviews/T119_QA_Review.md`; the earlier reported SHA belonged to T118,
+not T119.
+
+**Documentation Updated:** synchronized Phase18 and canonical governance, project-status, and
+handover records. Detailed implementation and QA evidence remain canonical in
+`docs/ImplementationLog/Stage3/Phase18.md` and `docs/reviews/T119_QA_Review.md`.
+
+**Evidence Preserved:** the test-only seven-scenario rehearsal used a disposable PostgreSQL 16.15
+database migrated to Alembic head and dropped it after verification. It proved fault-injection rollback,
+clean retry, and identical replay no-op; no production code or data was changed.
+
+**Deliberately Not Touched:** harness code, tests, migrations, schema, ADRs, QA evidence, CI/workflows,
+production migration, application cutover, Required ADR #20, and T120+.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T119 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T119; `inProgressTransitions` is empty; Required ADR #20 remains unresolved globally; ADR-0033/0034/
+0035 are unchanged; T120+ remains unauthorized; and PR #207 remains unmerged.
