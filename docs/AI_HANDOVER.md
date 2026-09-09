@@ -874,6 +874,22 @@ both `T118`; `inProgressTransitions` is empty; T119+ remains unauthorized; and t
 does not merge PR #205 or authorize cutover, CRUD/API, `NOT NULL`, RLS, Client retirement, or other
 future work.
 
+**Update (2026-09-09, Documentation Manager, T119 post-QA synchronization on PR #207):** PR #206
+authorization merged at `03b4529f37efa06c3bcd6656679461a3d4efdd26`; PR #207 remains open and
+unmerged at corrected QA-approved head `7728b56973ef58e328d2c30ee9a509d808ca0f89`. The reviewed
+implementation head is `5f31b1f9fbf17dee7d6e9543039e31385ddbf2c3`; its harness commit `9cf8e3d` and
+authorization `6db7c7de74eeb4be8b36b0b2e4c494cf4a984277` are ancestors. The corrected evidence commit
+is one commit after the reviewed head and changes only `docs/reviews/T119_QA_Review.md`; a previously
+reported SHA belonged to T118 and is not T119 QA evidence. T119 is now Done: the test-only shared
+support module and seven-scenario rehearsal suite used a disposable PostgreSQL 16.15 database at
+Alembic head `b7e8a4f2c6d0`, then confirmed disposal. The mandatory injected fault demonstrated
+complete unit rollback, clean retry, and identical replay no-op. Evidence records 627 passed/21
+skipped backend tests, 59 migration regressions, governance validation plus 51 tests, Ruff, Black,
+diff check, and exact-head CI green. No production code, schema, ADR, or cutover changed. Required
+ADR #20 remains unresolved; ADR-0033/0034/0035 are unchanged; `latestTaskDone` and
+`latestTaskAuthorized` are both `T119`; `inProgressTransitions` is empty; T120+ remains unauthorized;
+and no merge or future-task work is authorized by this synchronization.
+
 **Update (2026-08-28, Documentation Manager, `T97` sync), preserved for continuity:** the 2026-08-21
 paragraph below is itself now stale in one respect — a follow-up implementation task for `T82`'s
 Electron session-restoration finding remains **not authorized** (unchanged), but it is no longer the

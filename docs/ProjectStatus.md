@@ -24,26 +24,23 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-08 (Documentation Manager, T118 post-QA synchronization on PR #205).
-Fresh remote verification confirms PR #205 remains open at final QA-approved head
-`7b3db8ee0f813058726a2bcbab47db339959754e`, based on merged `main`
-`32e5ea960f2d0a614d0e5867704d3cb1cfeab559`. Authorization
-`8e32d9625d3f1e4eaa0138fa42d9b34fa9714753`, implementation
-`cf9726e4fdecfcbd0fd3fabab803b6add6cb2e85`, initial QA Rework-required evidence
-`b65f5b96439572079203b134c2b89a6decdd90f0`, remediation target
-`090c0d26c1dbc83e63de673751c4002efa8e1a03`, and final QA evidence are in the PR history. T118 is
-now Done and QA-approved within its ordinary lifecycle: its governed write-capable executor enforces
-the T108-T111 gates, defaults to dry-run, commits each Client anchor atomically with its Party,
-bounded MatterParty, five bridges, Organization staging, and immutable ledger completion, and returns
-machine-readable results without normal Party CRUD/API or cutover. The initial QA finding remains
-permanent history: frozen-artifact fingerprinting could replay a mutated Client; the bounded
-remediation uses `Client ID + version + canonicalized updated_at` from the live anchor and regression
-coverage to fail closed as `basis_collision`. Developer reports live PostgreSQL validation; QA did
-not independently perform live PostgreSQL validation, instead verifying through its available
-environment, code, and tests. Exact-head CI passed. `latestTaskDone` and `latestTaskAuthorized` are
-both `T118`, `inProgressTransitions` remains empty, Required ADR #20 remains unresolved globally,
-ADR-0034 and ADR-0035 remain unchanged, T119+ remains unauthorized, and PR #205 is not merged by
-this synchronization.
+**Last Updated:** 2026-09-09 (Documentation Manager, T119 post-QA synchronization on PR #207).
+Fresh remote verification confirms PR #206 authorization is merged at `main`
+`03b4529f37efa06c3bcd6656679461a3d4efdd26`; PR #207 remains open at corrected QA-approved head
+`7728b56973ef58e328d2c30ee9a509d808ca0f89`. Authorization `6db7c7de74eeb4be8b36b0b2e4c494cf4a984277`,
+harness implementation `9cf8e3d`, and reviewed implementation-log head
+`5f31b1f9fbf17dee7d6e9543039e31385ddbf2c3` are ancestors. The formal independent QA decision is
+Approved at `7728b569`; it is the corrected T119 evidence commit and changes only the QA review, while
+the initially reported SHA belonged to T118 and is not T119 evidence. T119 is now Done and QA-approved
+within its ordinary lifecycle: a test-only shared support module and seven-scenario rehearsal suite
+exercise the public T108-T118 path on a disposable PostgreSQL 16.15 database migrated to Alembic head
+`b7e8a4f2c6d0` and then dropped. The mandatory injected mid-unit fault proved full rollback, a clean
+retry committed one complete unit, and identical replay was a no-op. Developer evidence records 627
+passed/21 skipped full backend tests, 59 migration regressions, governance validation and 51 tests,
+Ruff, Black, and diff checks; exact-head CI passed. No production code, schema, ADR, or cutover changed.
+`latestTaskDone` and `latestTaskAuthorized` are both `T119`, `inProgressTransitions` remains empty,
+Required ADR #20 remains unresolved globally, ADR-0033/0034/0035 remain unchanged, T120+ remains
+unauthorized, and PR #207 is not merged by this synchronization.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working
