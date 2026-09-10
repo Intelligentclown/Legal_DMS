@@ -24,7 +24,7 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-10 (Documentation Manager, T122 post-QA synchronization on PR #213).
+**Last Updated:** 2026-09-10 (Documentation Manager, T123 post-QA synchronization on PR #215).
 Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
 PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
 Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
@@ -54,6 +54,24 @@ outside T122; the T122 migration range renders correctly. PR #213 remains open p
 pre-merge gate, not merged. `latestTaskDone` and `latestTaskAuthorized` are both `T122` and
 transitions are empty; ADR-0036 remains Proposed, Required ADR #20 remains unresolved,
 ADR-0033/0034/0035 are unchanged, and T123+ remains unauthorized.
+T123 is now Done after independent QA Approved on open PR #215 at QA evidence head
+`d0b9636782c22fa68ceb90c7b4e72ed1d7cf8263`, which reviewed implementation head
+`4e7615b7544da7f3503e126137414076dca8491e` and confirmed authorization ancestry.
+The bounded result is the Party database RLS backstop: migration `62cadaff2571`
+(parent `9c4a7e2d1b5f`) enabling and forcing RLS on `parties` with exactly four
+Organization-scoped default-deny policies (`parties_select`/`parties_insert`/
+`parties_update`/`parties_delete`) enforced through the non-owning `NOBYPASSRLS`
+`legal_dms_app` role, with default-deny behavior, cross-Organization denial,
+Party-to-Address same-Organization integrity, T118 owning/admin-path compatibility,
+and a symmetric downgrade restoring the pre-T123 no-RLS state. No data migration,
+backfill, reset, or destructive operation occurred; the shared development database
+remained at `f3b7c9d1e2a4`. QA accepted the T122 fixture pin to `9c4a7e2d1b5f` as
+legitimate historical-era testing. The full-history Alembic offline JSONB rendering
+limitation (around `9963e15f2752`) remains pre-existing and outside T123; the T123
+range is valid. PR #215 remains open pending the PM pre-merge gate, not merged.
+`latestTaskDone` and `latestTaskAuthorized` are both `T123` and transitions are
+empty; ADR-0036 remains Proposed, Required ADR #20 remains unresolved,
+ADR-0033/0034/0035 are unchanged, and T124+ remains unauthorized.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working

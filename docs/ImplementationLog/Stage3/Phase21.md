@@ -1,18 +1,18 @@
 # Stage 3 - Phase 21
 
-Status: In Progress (implementation complete; ready for independent QA)
+Status: Done (QA Approved; ready for PM pre-merge gate)
 
 Started: 2026-09-10
 
-Completed:
+Completed: 2026-09-10
 
 Related Tasks: [T123](IMPLEMENTATION_QUEUE.md) (Party Row-Level-Security Backstop)
 
 Related ADRs: [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md) (Organization is the tenant boundary), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md) (§ Decision 5: Party must have forced default-deny RLS before it becomes a normal application-visible table), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md) (Proposed; T123 does not alter its status)
 
-Git Commit: implementation `c200871`; implementation-log commit `43b1651`; PR-number sync commit `4fac2b9`
+Git Commit: implementation `c2008718db8f6c4a85943274662b0fbed522697f`; reviewed implementation head `4e7615b7544da7f3503e126137414076dca8491e`; QA approval evidence `d0b9636782c22fa68ceb90c7b4e72ed1d7cf8263`
 
-Pull Request: #215 (open; ready for independent QA)
+Pull Request: #215 (open; QA Approved; ready for PM pre-merge gate)
 
 Release:
 
@@ -159,11 +159,10 @@ independent step; none of this substitutes for it):
 
 ## Deferred Work
 
-- Independent QA of this implementation PR, and the PM pre-merge gate +
-  merge — pending, not performed by the implementer (`docs/ImplementationLog/README.md`
-  QA Decision). Once QA approves, the Documentation Manager performs final
-  synchronization (`PROJECT_STATE.json`, session report, changelogs) and the
-  merge.
+The PM pre-merge gate and merge of PR #215 remain pending. The full-history
+Alembic offline SQL JSONB literal-rendering failure (around the pre-existing
+`9963e15f2752` seed migration) remains a pre-existing limitation outside T123;
+the T123 migration range and disposable-PostgreSQL behavior are valid.
 - ADR-0036 remains **Proposed**; T123 implements its Decision 5 prerequisite
   but does not accept the ADR itself.
 - Required ADR **#20** remains unresolved — unrelated to and unaffected by
@@ -206,8 +205,14 @@ Manager's responsibility after QA, per `docs/ImplementationLog/README.md`.
 
 ## QA Decision
 
-- □ Approved
-- □ Approved with comments
-- □ Rework required
-
-(Left blank intentionally: filled by the QA Reviewer, not the implementer.)
+Approved. Independent QA reviewed implementation head
+`4e7615b7544da7f3503e126137414076dca8491e` against authorization baseline
+`33536b0c9ef20fbdf7d86a0ec92750b5a644b873`; QA-only evidence
+`d0b9636782c22fa68ceb90c7b4e72ed1d7cf8263` (which changed only
+`docs/reviews/T123_QA_Review.md`) is on the remote PR head. The review
+confirms enabled/forced Party RLS with exactly the four intended
+Organization-scoped default-deny policies, no-GUC and cross-Organization
+denial, tenant-GUC isolation, Party-to-Address same-Organization integrity,
+T118 owning/admin-path compatibility, the T122 era-pin to `9c4a7e2d1b5f` as
+legitimate historical-era testing, range-scoped offline downgrade SQL, and
+exact-head CI green. PR #215 remains open and is not recorded as merged.

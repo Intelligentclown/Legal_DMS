@@ -3709,3 +3709,19 @@ QA Approved ADR-0036 on PR #211 was synchronized without changing the ADR, imple
 **Validation:** governance validator, all governance tests, and `git diff --check`.
 
 **State After Synchronization:** T122 Done; latest Done/authorized `T122`; empty transitions; ADR-0036 Proposed; Required ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T123+ unauthorized; PR #213 open/unmerged.
+
+## Session: 2026-09-10 — T123 Post-QA Documentation Synchronization on PR #215
+
+**Objective:** Synchronize the QA-approved T123 status without merging PR #215 or changing implementation, QA evidence, ADRs, or future-task authorization.
+
+**Verified Before Editing:** PR #215 is open (base `main`) at QA evidence head `d0b9636782c22fa68ceb90c7b4e72ed1d7cf8263`; reviewed implementation `4e7615b7544da7f3503e126137414076dca8491e` and authorization baseline `33536b0c9ef20fbdf7d86a0ec92750b5a644b873` are ancestors. The QA commit descends directly from the reviewed head and changed only `docs/reviews/T123_QA_Review.md`; no implementation changed after QA. The QA verdict is Approved.
+
+**Documentation Updated:** synchronized Phase21 and canonical governance, project-status, and handover records. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase21.md` and `docs/reviews/T123_QA_Review.md`.
+
+**Evidence Preserved:** T123 installed only the Party RLS backstop (migration `62cadaff2571`, parent `9c4a7e2d1b5f`): enabled/forced RLS on `parties` with exactly four Organization-scoped default-deny policies, verified under the non-owning `NOBYPASSRLS` runtime role with Party-to-Address integrity, T118 owning/admin compatibility, and a symmetric downgrade; no data migration, backfill, reset, or destructive operation. QA accepted the T122 fixture pin to `9c4a7e2d1b5f` as historical-era testing. The full-history Alembic offline JSONB literal-rendering limitation (around `9963e15f2752`) is pre-existing; the T123 range is valid.
+
+**Deliberately Not Touched:** implementation, migrations, models, tests, QA evidence, ADRs, CI, database operations, Party API/scoping/permissions, cutover, retirement, Required ADR #20, and T124+.
+
+**Validation:** governance validator, all governance tests, and `git diff --check`.
+
+**State After Synchronization:** T123 Done; latest Done/authorized `T123`; empty transitions; ADR-0036 Proposed; Required ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T124+ unauthorized; PR #215 open/unmerged.
