@@ -10,9 +10,9 @@ Related Tasks: [T123](IMPLEMENTATION_QUEUE.md) (Party Row-Level-Security Backsto
 
 Related ADRs: [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md) (Organization is the tenant boundary), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md) (§ Decision 5: Party must have forced default-deny RLS before it becomes a normal application-visible table), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md) (Proposed; T123 does not alter its status)
 
-Git Commit: implementation `c200871`; implementation-log commit (this file) to be recorded once pushed
+Git Commit: implementation `c200871`; implementation-log commit `43b1651` (this file); PR-number sync commit (below, once pushed)
 
-Pull Request:
+Pull Request: #215 (open; ready for independent QA)
 
 Release:
 
