@@ -77,9 +77,16 @@ BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 @pytest.fixture(scope="session")
 def disposable_db() -> Iterator[tuple[str, str]]:
-    """One disposable PostgreSQL database migrated to the repository head,
-    created on first use and destroyed + disposal-confirmed in teardown."""
-    url, db_name = provision_disposable_database_with("legal_dms_t122_rls")
+    """One disposable PostgreSQL database migrated to the T122 head, created
+    on first use and destroyed + disposal-confirmed in teardown.
+
+    Pinned to the T122 migration (`NEW_HEAD`) rather than the moving
+    repository `head`: T123 and later RLS eras add more tenant tables, and
+    this module's catalog assertions ("exactly three tenant tables with
+    RLS", "pg_policies covers exactly three tables") are era-correct only
+    at this module's own migration head (same era-split discipline T122
+    itself applied by pinning T119/T120-era suites to their legacy heads)."""
+    url, db_name = provision_disposable_database_with("legal_dms_t122_rls", upgrade_target=NEW_HEAD)
     try:
         yield url, db_name
     finally:
