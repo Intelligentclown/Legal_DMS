@@ -530,12 +530,12 @@ async def _admin_execute(sql: str) -> None:
         await engine.dispose()
 
 
-def _run_alembic_upgrade(disposable_url: str, db_name: str) -> None:
+def _run_alembic(disposable_url: str, db_name: str, target: str) -> None:
     env = dict(os.environ)
     env["DATABASE_URL"] = disposable_url
     env["PYTHONPATH"] = str(BACKEND_DIR / "src")
     proc = subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        [sys.executable, "-m", "alembic", "upgrade", target],
         cwd=str(BACKEND_DIR),
         env=env,
         capture_output=True,
@@ -543,7 +543,7 @@ def _run_alembic_upgrade(disposable_url: str, db_name: str) -> None:
     )
     if proc.returncode != 0:
         raise RuntimeError(
-            f"alembic upgrade head failed for disposable DB {db_name}:\n"
+            f"alembic upgrade {target} failed for disposable DB {db_name}:\n"
             f"{proc.stdout}\n{proc.stderr}"
         )
 
@@ -560,13 +560,28 @@ def provision_disposable_database() -> tuple[str, str]:
     regardless of the configured default. Deliberately synchronous so it can be
     driven by a plain pytest fixture without async loop-scope complications.
     """
+    return provision_disposable_database_with("legal_dms_t119")
+
+
+def provision_disposable_database_with(
+    prefix: str, *, upgrade_target: str = "head"
+) -> tuple[str, str]:
+    """Parameterized variant of :func:`provision_disposable_database`: the
+    caller chooses the database-name prefix and the Alembic target to migrate
+    the fresh database to, instead of always moving it to the repository head.
+
+    T122's era-split validation uses this to pin legacy-path suites to the
+    pre-address-finalization head (`f3b7c9d1e2a4`, which is also the exact
+    contract the T122 downgrade restores) while the new address-finalization
+    tests migrate a fresh disposable database to `head`.
+    """
     base_url = get_settings().database_url
-    db_name = f"legal_dms_t119_{uuid4().hex[:12]}"
+    db_name = f"{prefix}_{uuid4().hex[:12]}"
     disposable_url = _disposable_branch_url(base_url, db_name)
 
     asyncio.run(_admin_execute(f'CREATE DATABASE "{db_name}"'))
     try:
-        _run_alembic_upgrade(disposable_url, db_name)
+        _run_alembic(disposable_url, db_name, upgrade_target)
     except BaseException:
         asyncio.run(_admin_execute(f'DROP DATABASE IF EXISTS "{db_name}" WITH (FORCE)'))
         raise

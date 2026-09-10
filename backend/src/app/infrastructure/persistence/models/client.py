@@ -34,7 +34,12 @@ class Address(Base, AuditMixin):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
+    # T122/ADR-0021/ADR-0036: finalized tenant ownership — every Address must
+    # belong to exactly one Organization; `organization_id` is the RLS boundary
+    # (see the addresses_* default-deny policies). The same-Org
+    # (`organization_id`, `id`) support key keeps the composite Address
+    # relationships (Client/Party/Property) working unchanged.
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     line1: Mapped[str] = mapped_column(String(255))
     line2: Mapped[str | None] = mapped_column(String(255))
     # Partial granularity is intentional: not every address has village-level

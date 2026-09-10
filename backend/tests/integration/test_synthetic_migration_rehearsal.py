@@ -8,8 +8,16 @@ disposable PostgreSQL database.
 Hard guarantees exercised here:
 
 - the committed rehearsal runs against a disposable database (provisioned,
-  migrated to the repository Alembic head, then destroyed) -- never the shared
-  development database;
+  migrated to the repository's *pre-address-finalization* head
+  ``f3b7c9d1e2a4``, then destroyed) -- never the shared development database.
+  It deliberately does not run on the T122 head: the rehearsal simulates a
+  legacy pre-migration database whose `addresses` rows carry no Organization,
+  which T122's migration makes structurally impossible on a fresh database
+  (fail-closed NOT NULL; see `tests/integration/
+  test_address_null_legacy_upgrade_fails_closed.py`). ``f3b7c9d1e2a4`` is
+  exactly the contract T122's downgrade restores, so running the legacy-path
+  suites on a database pinned at that revision is equivalent to exercising the
+  downgraded state;
 - one complete deterministic legacy anchor proves every migration dimension:
   Client, Address, Property, PropertyOwner, Matter, client-linked Appointment,
   matter-linked Appointment, Invoice, Payment, ClientContact; UUID-preserving
@@ -72,21 +80,27 @@ from tests.support.synthetic_migration import (
     make_entry,
     make_org,
     make_user,
-    provision_disposable_database,
+    provision_disposable_database_with,
     seed_client_graph,
     seed_ids,
     sha256_of,
 )
 
+# T120 head = the pre-T122 era (nullable `addresses.organization_id`, no
+# Address RLS). This rehearsal simulates a legacy pre-finalization database, so
+# it pins this revision rather than the T122 repository head -- see this file's
+# module docstring for the reasoning.
 ALEMBIC_HEAD = "f3b7c9d1e2a4"
 
 
 @pytest.fixture(scope="session")
 def disposable_db() -> Iterator[tuple[str, str]]:
     """One disposable, migrated PostgreSQL database for the whole rehearsal
-    session. Created + migrated to head on first use, destroyed + disposal
-    confirmed in teardown."""
-    url, db_name = provision_disposable_database()
+    session. Created + migrated to the pinned pre-T122 legacy head on first
+    use, destroyed + disposal confirmed in teardown."""
+    url, db_name = provision_disposable_database_with(
+        "legal_dms_t119_legacy", upgrade_target=ALEMBIC_HEAD
+    )
     try:
         yield url, db_name
     finally:
