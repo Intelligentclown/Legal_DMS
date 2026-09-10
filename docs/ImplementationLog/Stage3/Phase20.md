@@ -1,18 +1,18 @@
 # Stage 3 - Phase 20
 
-Status: Progress
+Status: Done (QA Approved; ready for PM pre-merge gate)
 
 Started: 2026-09-10
 
-Completed:
+Completed: 2026-09-10
 
 Related Tasks: T122
 
 Related ADRs: [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md) (§6 Address finalization), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md) (Decision 4 = this task)
 
-Git Commit: 5518e1e (branch `feature/t122-address-tenant-finalization-rls`)
+Git Commit: implementation `5518e1e`; implementation-log update `443655fc899b19abee76e9fd12e29bc4eb9be146`; QA approval evidence `0bbf9b4f69d007fe2c0cb3255bd58892a086dd16`
 
-Pull Request: https://github.com/Intelligentclown/Legal_DMS/pull/213 (base `main`; exact-head CI green)
+Pull Request: #213 (open; QA Approved; ready for PM pre-merge gate)
 
 Release:
 
@@ -144,10 +144,21 @@ QA is a separate independent step and none of this substitutes for it):
 No real-data execution or writes against the shared development database, no
 backfill/reset/deletion of retained data, no Party/permission/API/frontend
 changes, no `clients`/other-table NOT NULL finalization, no T118-semantics
-changes, no future-task authorization use, Required ADR #20 resolution, T121+
-work, or independent QA occurred in this implementation phase.
+changes, no future-task authorization use, Required ADR #20 resolution, T123+
+work, or implementation beyond the Address tenant-finalization/RLS prerequisite.
 
 ## Deferred Work
 
-Independent QA review, QA-approved implementation/evidence commits, PM pre-merge
-gate, and merge of the T122 PR remain pending.
+The PM pre-merge gate and merge of PR #213 remain pending. The full-history
+Alembic offline SQL JSONB literal-rendering failure remains a pre-existing
+limitation outside T122; the T122 migration range renders successfully.
+
+## QA Decision
+
+Approved. Independent QA reviewed implementation head
+`443655fc899b19abee76e9fd12e29bc4eb9be146`; QA-only evidence
+`0bbf9b4f69d007fe2c0cb3255bd58892a086dd16` is on the remote PR head. The
+review confirms the fail-closed null-Address upgrade, forced default-deny
+Address RLS under `legal_dms_app`, same-Organization integrity, tenant-GUC
+isolation, range-scoped offline SQL, and preserved T119/T115 semantics. PR #213
+remains open and is not recorded as merged.
