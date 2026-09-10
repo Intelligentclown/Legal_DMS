@@ -3693,3 +3693,19 @@ ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T121+ unauthorized; PR #209 un
 ## Session: 2026-09-10 — T121 Architecture Synchronization
 
 QA Approved ADR-0036 on PR #211 was synchronized without changing the ADR, implementation, or QA evidence. T121 Done; Required ADR #20 unresolved; T122+ unauthorized; PR unmerged.
+
+## Session: 2026-09-10 — T122 Post-QA Documentation Synchronization on PR #213
+
+**Objective:** Synchronize the QA-approved T122 status without merging PR #213 or changing implementation, QA evidence, ADRs, or future-task authorization.
+
+**Verified Before Editing:** PR #213 is open at QA evidence head `0bbf9b4f69d007fe2c0cb3255bd58892a086dd16`; reviewed implementation `443655fc899b19abee76e9fd12e29bc4eb9be146` and authorization are ancestors. The QA-only evidence is Approved.
+
+**Documentation Updated:** synchronized Phase20 and canonical governance, project-status, and handover records. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase20.md` and `docs/reviews/T122_QA_Review.md`.
+
+**Evidence Preserved:** T122 finalized Address tenant ownership and forced Address RLS without a data backfill; the full-history Alembic offline JSONB rendering issue is pre-existing, while the T122 migration range renders correctly.
+
+**Deliberately Not Touched:** implementation, migrations, models, tests, QA evidence, ADRs, CI, database reset/backfill, Party functionality, cutover, Required ADR #20, and T123+.
+
+**Validation:** governance validator, all governance tests, and `git diff --check`.
+
+**State After Synchronization:** T122 Done; latest Done/authorized `T122`; empty transitions; ADR-0036 Proposed; Required ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T123+ unauthorized; PR #213 open/unmerged.

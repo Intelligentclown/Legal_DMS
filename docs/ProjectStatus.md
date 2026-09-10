@@ -24,7 +24,7 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-10 (Documentation Manager, T121 architecture post-QA synchronization on PR #211).
+**Last Updated:** 2026-09-10 (Documentation Manager, T122 post-QA synchronization on PR #213).
 Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
 PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
 Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
@@ -43,6 +43,17 @@ remains blocked until Address finalization/RLS, Party Organization scoping/defau
 runtime role, and Party authorization capabilities exist. Required ADR #20 still governs legacy cutover
 and retirement. `latestTaskDone` and `latestTaskAuthorized` are `T121`; transitions are empty; T122+
 is unauthorized; ADR-0033/0034/0035 are unchanged; PR #211 is unmerged.
+T122 is now Done after independent QA Approved on open PR #213 at QA evidence head
+`0bbf9b4f69d007fe2c0cb3255bd58892a086dd16`, which reviewed implementation head
+`443655fc899b19abee76e9fd12e29bc4eb9be146` and confirmed authorization ancestry.
+The bounded result is Address `organization_id` finalization plus forced, Organization-scoped,
+default-deny Address RLS under the non-owning `legal_dms_app` role, with fail-closed migration,
+same-Organization integrity, and tenant-GUC isolation evidence. No ownership is inferred or
+backfilled. The full-history Alembic offline JSONB rendering problem remains pre-existing and
+outside T122; the T122 migration range renders correctly. PR #213 remains open pending the PM
+pre-merge gate, not merged. `latestTaskDone` and `latestTaskAuthorized` are both `T122` and
+transitions are empty; ADR-0036 remains Proposed, Required ADR #20 remains unresolved,
+ADR-0033/0034/0035 are unchanged, and T123+ remains unauthorized.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working

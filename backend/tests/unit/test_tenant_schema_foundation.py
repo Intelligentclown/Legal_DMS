@@ -25,6 +25,15 @@ TENANT_TABLES = {
     "client_contacts": ClientContact,
 }
 
+# At the repository head, `addresses` is no longer a nullable-staged tenant
+# table: T122 finalizes its `organization_id` to NOT NULL (with its own RLS
+# backstop + model contract asserted in
+# `tests/unit/test_address_tenant_finalization_foundation.py`). The other
+# tables retain the staged-nullable contract this test asserts.
+STAGED_NULLABLE_TABLES = {
+    name: model for name, model in TENANT_TABLES.items() if name != "addresses"
+}
+
 
 class RecordingOperations:
     def __init__(self) -> None:
@@ -57,7 +66,7 @@ def _migration_module() -> ModuleType:
 
 class TestTenantSchemaFoundation:
     def test_orm_models_match_the_staged_tenant_schema_contract(self) -> None:
-        for model in TENANT_TABLES.values():
+        for model in STAGED_NULLABLE_TABLES.values():
             column = model.__table__.c.organization_id
             assert column.nullable is True
             assert column.index is True
