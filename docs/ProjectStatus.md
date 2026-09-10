@@ -24,7 +24,7 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-09 (Documentation Manager, T120 post-QA synchronization on PR #209).
+**Last Updated:** 2026-09-10 (Documentation Manager, T121 architecture post-QA synchronization on PR #211).
 Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
 PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
 Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
@@ -35,6 +35,14 @@ executor dependency-safe Client staging, and synthetic rollback/retry/replay cov
 No real-data execution, cutover, RLS, ADR change, or Client retirement occurred. `latestTaskDone` and
 `latestTaskAuthorized` are both `T120`; `inProgressTransitions` is empty; Required ADR #20 remains
 unresolved; ADR-0033/0034/0035 are unchanged; T121+ remains unauthorized; PR #209 is unmerged.
+T121 architecture is now Done and QA-approved on open PR #211 at `bf33f7eb23ae16db8ea3233d0a963d0c91830d94`.
+ADR-0036 is **Proposed**, unchanged by this synchronization: it establishes a mechanical, fail-closed
+fresh-installation path, requires disposable development/test data be reset or disposed before
+qualifying, and leaves T108-T120 authoritative for non-fresh installations. Ordinary Party enablement
+remains blocked until Address finalization/RLS, Party Organization scoping/default-deny RLS/non-owning
+runtime role, and Party authorization capabilities exist. Required ADR #20 still governs legacy cutover
+and retirement. `latestTaskDone` and `latestTaskAuthorized` are `T121`; transitions are empty; T122+
+is unauthorized; ADR-0033/0034/0035 are unchanged; PR #211 is unmerged.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working

@@ -1479,3 +1479,5 @@ Financial) without separate explicit direction.
    `PROJECT_STATE.json`'s `currentVersion`, also create a matching
    [releases/vX.Y.Z.md](releases/README.md) — see that folder's `README.md` for the required
    sections and template.
+
+**Update (2026-09-10, Documentation Manager, T121):** ADR-0036 remains Proposed; QA Approved on open PR #211. It creates only a mechanical fail-closed fresh-install boundary; non-fresh installs retain T108-T120, and Address/RLS, Party tenant/RLS/runtime-role, and permission prerequisites remain before ordinary Party writes. Required ADR #20 remains unresolved; T122+ unauthorized; no implementation occurred.

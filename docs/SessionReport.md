@@ -3689,3 +3689,7 @@ real-data execution, cutover, Required ADR #20, and T121+.
 
 **State After Synchronization:** T120 Done; latest Done/authorized `T120`; empty transitions; Required
 ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T121+ unauthorized; PR #209 unmerged.
+
+## Session: 2026-09-10 — T121 Architecture Synchronization
+
+QA Approved ADR-0036 on PR #211 was synchronized without changing the ADR, implementation, or QA evidence. T121 Done; Required ADR #20 unresolved; T122+ unauthorized; PR unmerged.
