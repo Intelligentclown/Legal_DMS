@@ -10,9 +10,9 @@ Related Tasks: T122
 
 Related ADRs: [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md) (§6 Address finalization), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md) (Decision 4 = this task)
 
-Git Commit:
+Git Commit: 5518e1e (branch `feature/t122-address-tenant-finalization-rls`)
 
-Pull Request:
+Pull Request: https://github.com/Intelligentclown/Legal_DMS/pull/213 (base `main`; exact-head CI green)
 
 Release:
 
