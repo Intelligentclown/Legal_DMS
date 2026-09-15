@@ -5,9 +5,10 @@ Two categories, deliberately not conflated:
 - **Catalog/security-attribute assertions** (via `db_session`, the admin/
   owning role -- reading `pg_roles`/`pg_class`/`pg_tables`/`pg_policies` is
   a superuser-visible operation regardless of RLS): `legal_dms_app` is not
-  the table owner, is not `SUPERUSER`, does not have `BYPASSRLS`; both
-  tables have `relrowsecurity`/`relforcerowsecurity` set; policies exist
-  for exactly these two tables and no other. The point (per this task's own
+  the table owner, is not `SUPERUSER`, does not have `BYPASSRLS`; the
+  tenant-boundary tables (`addresses`, `organizations`, `parties`,
+  `users`) have `relrowsecurity`/`relforcerowsecurity` set; policies exist
+  for exactly these tables and no other. The point (per this task's own
   review) is that "a policy exists" alone is not the security property --
   someone changing role ownership later could leave a structural "policy
   exists" test passing while the actual backstop is neutralized. These
@@ -75,18 +76,19 @@ class TestRoleHasNoRlsBypassAttributes:
         assert rolbypassrls is False
 
 
-class TestForceRlsIsEnabledOnExactlyTheseTwoTables:
-    async def test_organizations_and_users_have_row_security_and_force_enabled(
+class TestForceRlsIsEnabledOnTenantBoundaryTables:
+    async def test_tenant_boundary_tables_have_row_security_and_force_enabled(
         self, db_session: AsyncSession
     ) -> None:
         result = await db_session.execute(
             text(
                 "SELECT relname, relrowsecurity, relforcerowsecurity FROM pg_class "
-                "WHERE relname IN ('organizations', 'users') AND relkind = 'r'"
+                "WHERE relname IN ('addresses', 'organizations', 'parties', 'users') "
+                "AND relkind = 'r'"
             )
         )
         rows = {row.relname: row for row in result.all()}
-        assert set(rows) == {"organizations", "users"}
+        assert set(rows) == {"addresses", "organizations", "parties", "users"}
         for row in rows.values():
             assert row.relrowsecurity is True
             assert row.relforcerowsecurity is True
@@ -96,16 +98,18 @@ class TestForceRlsIsEnabledOnExactlyTheseTwoTables:
             text(
                 "SELECT relname FROM pg_class "
                 "WHERE relkind = 'r' AND relrowsecurity = true "
-                "AND relname NOT IN ('organizations', 'users')"
+                "AND relname NOT IN ('addresses', 'organizations', 'parties', 'users')"
             )
         )
         assert result.scalars().all() == []
 
 
-class TestPoliciesExistForExactlyOrganizationsAndUsers:
-    async def test_pg_policies_covers_exactly_two_tables(self, db_session: AsyncSession) -> None:
+class TestPoliciesExistForExactlyTenantBoundaryTables:
+    async def test_pg_policies_covers_exactly_the_tenant_boundary(
+        self, db_session: AsyncSession
+    ) -> None:
         result = await db_session.execute(text("SELECT DISTINCT tablename FROM pg_policies"))
-        assert set(result.scalars().all()) == {"organizations", "users"}
+        assert set(result.scalars().all()) == {"addresses", "organizations", "parties", "users"}
 
     async def test_users_has_select_insert_and_update_policies(
         self, db_session: AsyncSession

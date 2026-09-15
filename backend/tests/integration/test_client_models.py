@@ -15,6 +15,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from app.infrastructure.config import get_settings
 from app.infrastructure.persistence.models.client import Address, Client, ClientContact
 from app.infrastructure.persistence.models.geography import Country
+from app.infrastructure.persistence.models.organization import Organization
 
 
 async def _make_country(session: AsyncSession) -> Country:
@@ -47,7 +48,15 @@ class TestAddress:
 
     async def test_partial_granularity_is_allowed(self, db_session: AsyncSession) -> None:
         country = await _make_country(db_session)
-        address = Address(line1="PO Box 1", country_id=country.id, address_type="mailing")
+        organization = Organization(name=f"Org-{uuid4()}")
+        db_session.add(organization)
+        await db_session.flush()
+        address = Address(
+            organization_id=organization.id,
+            line1="PO Box 1",
+            country_id=country.id,
+            address_type="mailing",
+        )
         db_session.add(address)
 
         await db_session.flush()  # no village/taluka/district/state -- should be fine

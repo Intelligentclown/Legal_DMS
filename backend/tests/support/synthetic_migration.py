@@ -112,11 +112,18 @@ async def seed_client_graph(
     client_type: str = "individual",
     pan_number: str | None = None,
     aadhaar_number: str | None = None,
+    legacy_org_less_address: bool = False,
 ) -> tuple[Client, dict[str, object]]:
     """Seeds one legacy Client with the full T108 governed dependent graph
     (address, contact, property + owner, matter, client-linked and
-    matter-linked appointments, invoice, payment). No row carries an
-    Organization or party_id, matching the pre-migration legacy state."""
+    matter-linked appointments, invoice, payment). No row carries a party_id,
+    matching the pre-migration legacy state (`clients.address_id` still
+    references an Organization-less street address) unless
+    `legacy_org_less_address` is set to opt out. When `organization` is given
+    and `legacy_org_less_address` is false, the address is seeded already
+    Organization-scoped so the graph is representable on a tenant-finalized
+    head database (where `addresses.organization_id` is NOT NULL); the
+    legacy-shaped rehearsal suite keeps the flag true."""
     country = await seed_country(session)
     matter_type, matter_status, payment_method = await seed_lookups(session)
     created_by = None if user is None else user.id
@@ -124,6 +131,9 @@ async def seed_client_graph(
     address = Address(
         line1="123 Synthetic Way",
         country_id=country.id,
+        organization_id=(
+            None if organization is None or legacy_org_less_address else organization.id
+        ),
         created_by=created_by,
         updated_by=created_by,
     )

@@ -24,7 +24,7 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-10 (Documentation Manager, T123 post-QA synchronization on PR #215).
+**Last Updated:** 2026-09-15 (Documentation Manager, T124 post-QA synchronization on PR #217).
 Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
 PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
 Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
@@ -72,6 +72,35 @@ range is valid. PR #215 remains open pending the PM pre-merge gate, not merged.
 `latestTaskDone` and `latestTaskAuthorized` are both `T123` and transitions are
 empty; ADR-0036 remains Proposed, Required ADR #20 remains unresolved,
 ADR-0033/0034/0035 are unchanged, and T124+ remains unauthorized.
+T124 is now Done after independent QA Approved on open PR #217 at QA evidence
+head `a96ba0adb5465d6cd5afc2aaf3357ad053fd2308`, which reviewed implementation
+head `72fd061729b30345d15a8a98be75634148a33cad` against authorization
+baseline `01bae6f2aca43b41612da1ab3a818ddaa482ca06` (PR #216) and confirmed
+ancestry. The bounded result is the tenant-safe Party application surface and
+fresh-install enablement: migration `1b8f4a9c2e6d` (parent `62cadaff2571`)
+seeding `parties:read`/`parties:write`/`parties:delete` with the approved role
+grant matrix (18 to 21 permissions, 59 to 71 associations); an
+Organization-scoped `/parties` CRUD API where Organization always comes from
+the live auth context, `RequirePermission` is enforced per route, T123 Party
+RLS is retained as the database-level backstop, and cross-Organization
+payloads are rejected; and ADR-0036's live mechanical fresh-install
+classifier (11-table per-write predicate excluding `parties`, no
+operator/env/config proof) gating ordinary Party writes to FRESH state only,
+with LEGACY/MIGRATED ordinary writes remaining blocked. Developer evidence:
+full backend suite 724 passed/21 skipped; ruff/black/governance green;
+exact-head CI green. QA recorded a process deviation: the retained shared
+development database was upgraded `f3b7c9d1e2a4 -> 1b8f4a9c2e6d` without
+durable evidence of an explicitly authorized exception to the disposable-DB
+testing rule -- technically safe, not a code-correctness defect, and not
+rewritten as though prior authorization existed. No Client cutover,
+`clients` retirement, `client_id`/bridge removal, MatterParty redesign,
+broader Matter/Property/Document migration, ledger/executor redesign, Party
+RLS weakening, Address RLS redesign, ADR-0036 acceptance (remains
+**Proposed**), Required ADR #20 resolution, frontend Party UI, or T125+ work
+occurred. PR #217 remains open pending the PM pre-merge gate, not merged.
+`latestTaskDone` and `latestTaskAuthorized` are both `T124` and transitions
+are empty; ADR-0036 remains Proposed, Required ADR #20 remains unresolved,
+ADR-0033/0034/0035 are unchanged, and T125+ remains unauthorized.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working

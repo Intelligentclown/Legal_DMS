@@ -55,6 +55,7 @@ async def _make_reference_rows(
 async def _make_client_graph(
     session: AsyncSession,
     *,
+    organization: Organization,
     client_user: User | None,
     address_user: User | None = None,
     property_user: User | None = None,
@@ -66,6 +67,7 @@ async def _make_client_graph(
     address = Address(
         line1="123 Main",
         country_id=country.id,
+        organization_id=organization.id,
         created_by=None if address_user is None else address_user.id,
         updated_by=None if address_user is None else address_user.id,
     )
@@ -177,6 +179,7 @@ class TestClientMigrationPreflight:
         user = await _make_org_user(db_session, organization)
         client = await _make_client_graph(
             db_session,
+            organization=organization,
             client_user=user,
             address_user=user,
             property_user=user,
@@ -192,8 +195,12 @@ class TestClientMigrationPreflight:
         assert report.classifications["deterministic"] >= 1
 
     async def test_zero_evidence_is_unmappable(self, db_session: AsyncSession) -> None:
+        organization = Organization(name=f"Org-{uuid4()}")
+        db_session.add(organization)
+        await db_session.flush()
         client = await _make_client_graph(
             db_session,
+            organization=organization,
             client_user=None,
             address_user=None,
             property_user=None,
@@ -216,6 +223,7 @@ class TestClientMigrationPreflight:
         user_b = await _make_org_user(db_session, org_b)
         client = await _make_client_graph(
             db_session,
+            organization=org_a,
             client_user=user_a,
             address_user=user_a,
             property_user=user_b,
@@ -238,6 +246,7 @@ class TestClientMigrationPreflight:
         user_b = await _make_org_user(db_session, org_b)
         client_a = await _make_client_graph(
             db_session,
+            organization=org_a,
             client_user=user_a,
             address_user=None,
             property_user=user_a,
@@ -246,6 +255,7 @@ class TestClientMigrationPreflight:
         )
         client_b = await _make_client_graph(
             db_session,
+            organization=org_b,
             client_user=user_b,
             address_user=None,
             property_user=user_b,

@@ -432,7 +432,8 @@ async def test_dry_run_plans_the_write_set_and_rolls_back_everything(
 
 
 async def test_non_executable_decision_is_gated(db_session: AsyncSession) -> None:
-    _client, _rows = await seed_client_graph(db_session, organization=None, user=None)
+    organization = await make_org(db_session)
+    _client, _rows = await seed_client_graph(db_session, organization=organization, user=None)
     report_bytes, artifact_bytes = await freeze_basis(db_session)
 
     result = await run_migration_executor(
@@ -498,7 +499,8 @@ async def test_t111_stale_basis_blocks_every_write(db_session: AsyncSession) -> 
 
 
 async def test_missing_organization_decision_gates_all_writes(db_session: AsyncSession) -> None:
-    client, _rows = await seed_client_graph(db_session, organization=None, user=None)
+    organization = await make_org(db_session)
+    client, _rows = await seed_client_graph(db_session, organization=organization, user=None)
     report_bytes, artifact_bytes = await freeze_basis(
         db_session,
         overrides={

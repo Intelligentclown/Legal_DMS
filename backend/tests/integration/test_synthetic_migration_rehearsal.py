@@ -225,7 +225,9 @@ async def test_end_to_end_rehearsal_complete_anchor_graph(disposable_db) -> None
     try:
         organization = await make_org(session)
         user = await make_user(session, organization)
-        client, rows = await seed_client_graph(session, organization=organization, user=user)
+        client, rows = await seed_client_graph(
+            session, organization=organization, user=user, legacy_org_less_address=True
+        )
         ids = seed_ids(client, organization, rows)
         await session.commit()
         client_id = client.id
@@ -430,7 +432,9 @@ async def test_stale_frozen_evidence_rejected_before_writes(disposable_db) -> No
     try:
         organization = await make_org(session)
         user = await make_user(session, organization)
-        client, rows = await seed_client_graph(session, organization=organization, user=user)
+        client, rows = await seed_client_graph(
+            session, organization=organization, user=user, legacy_org_less_address=True
+        )
         ids = seed_ids(client, organization, rows)
         client_id = client.id
         report_bytes, artifact_bytes = await _freeze_and_validate(session)
@@ -441,7 +445,7 @@ async def test_stale_frozen_evidence_rejected_before_writes(disposable_db) -> No
         extra_org = await make_org(session)
         extra_user = await make_user(session, extra_org)
         extra_client, _extra_rows = await seed_client_graph(
-            session, organization=extra_org, user=extra_user
+            session, organization=extra_org, user=extra_user, legacy_org_less_address=True
         )
         extra_ids = seed_ids(extra_client, extra_org, _extra_rows)
         await session.commit()
@@ -492,7 +496,9 @@ async def test_changed_live_client_basis_rejected_fail_closed(disposable_db) -> 
     try:
         organization = await make_org(session)
         user = await make_user(session, organization)
-        client, rows = await seed_client_graph(session, organization=organization, user=user)
+        client, rows = await seed_client_graph(
+            session, organization=organization, user=user, legacy_org_less_address=True
+        )
         ids = seed_ids(client, organization, rows)
         client_id = client.id
         report_bytes, artifact_bytes = await _freeze_and_validate(session)
@@ -557,7 +563,9 @@ async def test_cross_organization_disagreement_rejected_zero_writes(disposable_d
         org_a = await make_org(session)
         org_b = await make_org(session)
         user_a = await make_user(session, org_a)
-        client, rows = await seed_client_graph(session, organization=org_a, user=user_a)
+        client, rows = await seed_client_graph(
+            session, organization=org_a, user=user_a, legacy_org_less_address=True
+        )
         client_id = client.id
         # The legacy Address already carries a resolved Organization that
         # disagrees with the selected decision's Organization -- this must fail
@@ -597,7 +605,9 @@ async def test_fault_injection_rollback_retry_noop(disposable_db) -> None:
     try:
         organization = await make_org(session)
         user = await make_user(session, organization)
-        client, rows = await seed_client_graph(session, organization=organization, user=user)
+        client, rows = await seed_client_graph(
+            session, organization=organization, user=user, legacy_org_less_address=True
+        )
         ids = seed_ids(client, organization, rows)
         client_id = client.id
         # Commit the source graph so the injected failure + rollback only ever
