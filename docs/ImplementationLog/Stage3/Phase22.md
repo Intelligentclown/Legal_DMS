@@ -1,6 +1,6 @@
 # Stage 3 - Phase 22
 
-Status: Implementation complete; pending independent QA
+Status: Done (QA Approved; ready for PM pre-merge gate)
 
 Started: 2026-09-15
 
@@ -10,9 +10,9 @@ Related Tasks: [T124](IMPLEMENTATION_QUEUE.md) (Tenant-safe Party application su
 
 Related ADRs: [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md) (Organization is the tenant boundary), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md) (Proposed; T124 implements T120's Decision 4 prerequisite but does not accept the ADR itself)
 
-Git Commit: implementation `2ae0dbfb2e5b9ae1678eedc38b378f8d530022c6`
+Git Commit: implementation `2ae0dbfb2e5b9ae1678eedc38b378f8d530022c6`; reviewed implementation head `72fd061729b30345d15a8a98be75634148a33cad`; QA approval evidence `a96ba0adb5465d6cd5afc2aaf3357ad053fd2308`
 
-Pull Request: #217 (open; implementation ready; not merged)
+Pull Request: #217 (open; QA Approved; ready for PM pre-merge gate)
 
 Release:
 
@@ -219,7 +219,15 @@ independent step; none of this substitutes for it):
 
 ## Deferred Work
 
-- The PM pre-merge gate, QA, and merge of PR #217 remain pending.
+- The PM pre-merge gate and merge of PR #217 remain pending. Independent QA
+  was completed; per `docs/ImplementationLog/README.md`'s QA Decision, the
+  Documentation Manager performs final synchronization and the merge follows.
+- QA recorded a process deviation: the retained shared development database
+  was upgraded `f3b7c9d1e2a4 -> 1b8f4a9c2e6d` without durable evidence of an
+  explicitly authorized exception to the disposable-DB testing rule. QA
+  reported it as technically safe and necessary to test the permission schema
+  downstream, not a code-correctness defect; it is preserved here as a
+  process deviation, not rewritten as though prior authorization existed.
 - ADR-0036 remains **Proposed**; T124 implements its fresh-install
   enablement but a subsequent task must accept the ADR itself.
 - Client cutover / role retirement, MatterParty re-staging, ledger and
@@ -263,4 +271,25 @@ Manager's responsibility after QA, per `docs/ImplementationLog/README.md`.
 
 ## QA Decision
 
-To be completed by independent QA.
+Approved. Independent QA reviewed implementation head
+`72fd061729b30345d15a8a98be75634148a33cad` against authorization baseline
+`01bae6f2aca43b41612da1ab3a818ddaa482ca06`; QA-only evidence
+`a96ba0adb5465d6cd5afc2aaf3357ad053fd2308` (which changed only
+`docs/reviews/T124_QA_Review.md`) is on the exact remote PR head. The review
+confirms a 22-file in-scope audit; permission migration correctness
+(`1b8f4a9c2e6d` after `62cadaff2571`, 3 Party permission codes, 18 to 21
+permissions / 59 to 71 associations); `RequirePermission` enforced across all
+`/parties` routes; Organization context derived strictly from the live auth
+context with no caller-supplied override; Address cross-tenant validation
+(422); PUT partial-update semantics documented as non-blocking; the ADR-0036
+live row-count installation classifier with FRESH/LEGACY/MIGRATED semantics,
+`parties` excluded from the 11-table predicate, and no env/config/test-flag
+proof; the FRESH-only Party write gate with TOCTOU-safe transactional
+scoping; MIGRATED/LEGACY ordinary writes blocked pending Required ADR #20;
+and exact-head CI green (Backend, Frontend, Governance, Release). Focused
+integration tests were reported green by QA; the developer's full-suite count
+(`724 passed, 21 skipped`) remains developer evidence unless independently
+recorded. QA also recorded the shared-development-DB upgrade
+(`f3b7c9d1e2a4 -> 1b8f4a9c2e6d`) as a process deviation -- technically safe,
+not a code-correctness defect, and not rewritten as an approved exception.
+PR #217 remains open and is not recorded as merged.

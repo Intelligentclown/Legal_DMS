@@ -3725,3 +3725,19 @@ QA Approved ADR-0036 on PR #211 was synchronized without changing the ADR, imple
 **Validation:** governance validator, all governance tests, and `git diff --check`.
 
 **State After Synchronization:** T123 Done; latest Done/authorized `T123`; empty transitions; ADR-0036 Proposed; Required ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T124+ unauthorized; PR #215 open/unmerged.
+
+## Session: 2026-09-15 — T124 Post-QA Documentation Synchronization on PR #217
+
+**Objective:** Synchronize the QA-approved T124 status without merging PR #217 or changing implementation, QA evidence, ADRs, or future-task authorization.
+
+**Verified Before Editing:** PR #217 is open (base `main`, non-draft, unmerged, mergeable) at QA evidence head `a96ba0adb5465d6cd5afc2aaf3357ad053fd2308`; reviewed implementation `72fd061729b30345d15a8a98be75634148a33cad` and authorization baseline `01bae6f2aca43b41612da1ab3a818ddaa482ca06` are ancestors. The QA commit descends directly from the reviewed head and changed only `docs/reviews/T124_QA_Review.md`; no implementation changed after QA. The QA verdict is Approved.
+
+**Documentation Updated:** synchronized Phase22 and canonical governance, project-status, and handover records. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase22.md` and `docs/reviews/T124_QA_Review.md`.
+
+**Evidence Preserved:** T124 delivered migration `1b8f4a9c2e6d` (parent `62cadaff2571`) seeding `parties:read`/`parties:write`/`parties:delete` plus 18-to-21 / 59-to-71 grant growth; a tenant-safe Organization-scoped `/parties` CRUD surface with Organization always from the live auth context, `RequirePermission` per route, T123 Party RLS retained as the DB backstop, and cross-Organization payload rejection; and ADR-0036's live mechanical fresh-install classifier (11-table per-write predicate excluding `parties`, no env/config/test-flag proof) gating ordinary Party writes to FRESH only, with LEGACY/MIGRATED blocked. Developer evidence: 724 passed/21 skipped full suite. QA recorded the shared-development-DB upgrade `f3b7c9d1e2a4 -> 1b8f4a9c2e6d` as a process deviation -- technically safe, not a code-correctness defect, not rewritten as an approved exception.
+
+**Deliberately Not Touched:** implementation, migrations, models, tests, QA evidence, ADRs, CI, database operations, Client cutover/retirement, bridge removal, MatterParty/ledger/executor redesign, Party/Address RLS weakening, ADR-0036 acceptance, Required ADR #20 resolution, frontend Party UI, and T125+.
+
+**Validation:** governance validator, all governance tests, and `git diff --check`.
+
+**State After Synchronization:** T124 Done; latest Done/authorized `T124`; empty transitions; ADR-0036 Proposed; Required ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T125+ unauthorized; PR #217 open/unmerged.
