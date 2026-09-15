@@ -72,7 +72,7 @@ from tests.support.synthetic_migration import (
     provision_disposable_database_with,
 )
 
-HEAD = "62cadaff2571"
+HEAD = "1b8f4a9c2e6d"
 PARENT_HEAD = "9c4a7e2d1b5f"
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -86,7 +86,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[2]
 @pytest.fixture(scope="session")
 def disposable_db() -> Iterator[tuple[str, str]]:
     """One disposable PostgreSQL database migrated to the repository head
-    (which is now the T123 head), created on first use and destroyed +
+    (which is now the T124 head), created on first use and destroyed +
     disposal-confirmed in teardown."""
     url, db_name = provision_disposable_database_with("legal_dms_t123_rls")
     try:
