@@ -1,6 +1,6 @@
 {
   "project": "Legal Document & Matter Management System",
-  "lastUpdated": "2026-09-08",
+  "lastUpdated": "2026-09-16",
   "currentStage": {
     "id": "stage-3",
     "name": "Authentication & Authorization",
@@ -18,9 +18,9 @@
     "requiredADRPlanningListTotal": 20,
     "resolvedRequiredADRs": [1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 18, 19],
     "unresolvedRequiredADRs": [10, 11, 12, 15, 16, 17, 20],
-    "latestTaskDone": "T124",
+    "latestTaskDone": "T125",
     "latestTaskAuthorized": "T125",
-    "asOfCommit": "a96ba0adb5465d6cd5afc2aaf3357ad053fd2308",
+    "asOfCommit": "2de16906b163ff9988ea97378af980fe327a70b0",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
