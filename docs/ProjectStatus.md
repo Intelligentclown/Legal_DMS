@@ -24,7 +24,7 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-15 (Documentation Manager, T124 post-QA synchronization on PR #217).
+**Last Updated:** 2026-09-16 (Documentation Manager, T125 governance closeout).
 Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
 PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
 Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
@@ -101,6 +101,17 @@ occurred. PR #217 remains open pending the PM pre-merge gate, not merged.
 `latestTaskDone` and `latestTaskAuthorized` are both `T124` and transitions
 are empty; ADR-0036 remains Proposed, Required ADR #20 remains unresolved,
 ADR-0033/0034/0035 are unchanged, and T125+ remains unauthorized.
+T125 is now Done after PR #219 merged as
+`2de16906b163ff9988ea97378af980fe327a70b0`, with authorization/main baseline
+`b8796b1e72da203dedb0dc39bb69e572e852a8e0` and final QA-evidence head
+`837b9e440e13dc1995b763d751cdf7bbaee89416` as its two parents. Independent QA Approved the
+architecture commit `d755cb70603a803c4a348d42e8da508ac1bca9ef`. The bounded result is the
+ADR-0037 operational-fresh installation-provenance architecture only. ADR-0037 remains
+**Proposed**, ADR-0036 remains **Proposed**, and Required ADR #20 remains unresolved. No
+implementation, schema, migration, database mutation, provenance table, classifier/PartyWriteGate
+change, bootstrap/install command, Party/Address/Matter API change, ADR acceptance, or future-task
+work occurred. `latestTaskDone` and `latestTaskAuthorized` are both `T125`, transitions are empty,
+and T126+ remains unauthorized.
 **Overall Completion:** Stage 0 + Stage 1 + Stage 2 complete (100% of their scope).
 `PROJECT_STATE.json`'s `completion.overallProjectPercent` remains **0% by design** — Stages 0–2 were
 infrastructure/framework/schema only, and while Stage 3/4 has since wired a real, working

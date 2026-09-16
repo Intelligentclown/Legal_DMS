@@ -3741,3 +3741,35 @@ QA Approved ADR-0036 on PR #211 was synchronized without changing the ADR, imple
 **Validation:** governance validator, all governance tests, and `git diff --check`.
 
 **State After Synchronization:** T124 Done; latest Done/authorized `T124`; empty transitions; ADR-0036 Proposed; Required ADR #20 unresolved; ADR-0033/0034/0035 unchanged; T125+ unauthorized; PR #217 open/unmerged.
+
+## Session: 2026-09-16 — T125 Governance Closeout
+
+**Objective:** Record T125 as Done only after PR #219 merged, without altering ADR-0037, ADR-0036,
+their architecture or QA evidence, Required ADR #20's unresolved status, or T126+.
+
+**Verified Before Editing:** fresh remote verification confirmed PR #218 authorization merged at
+baseline `b8796b1e72da203dedb0dc39bb69e572e852a8e0` and PR #219 merged as
+`2de16906b163ff9988ea97378af980fe327a70b0` at `2026-09-16T07:51:58Z`, with final QA-evidence head
+`837b9e440e13dc1995b763d751cdf7bbaee89416`. The independent QA record is Approved. Architecture
+commit `d755cb70603a803c4a348d42e8da508ac1bca9ef` and the QA head are ancestors of the merged baseline.
+
+**Documentation Updated:** marked T125 Done in `IMPLEMENTATION_QUEUE.md`, synchronized the governance
+frontier in `PROJECT_STATE.json`, and updated project-status and handover summaries. ADR-0037 and
+ADR-0036 remain `Proposed`; closeout does not alter their lifecycle status.
+
+**Evidence Preserved:** architecture head `d755cb7`, QA-evidence head `837b9e4`, PR #219 merge
+`2de1690`, the T124 shared-development-database process deviation, and Required ADR #20's unresolved
+status remain explicit.
+
+**Deliberately Not Touched:** ADR architecture, architecture/QA reports, application code, provenance
+tables, schema, Alembic migrations, database state, classifier/PartyWriteGate, bootstrap/install
+commands, Party/Address/Matter APIs, Required ADR #20, ADR acceptance, and T126+ authorization/work.
+
+**Validation Run By This Synchronization Pass:**
+- `python scripts/governance_validate.py`
+- `python -m unittest scripts.tests.test_governance_validate -v`
+- `git diff --check`
+
+**State After Synchronization:** T125 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
+T125; `inProgressTransitions` is empty; ADR-0037 and ADR-0036 remain Proposed; Required ADR #20
+remains unresolved; and T126+ is unauthorized.
