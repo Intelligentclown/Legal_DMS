@@ -24,7 +24,7 @@ out of this task's authorized file scope); this file is the maintained narrative
 tag already contains everything previously documented as 0.3.1 through 0.3.8; this version is only
 what's genuinely new since that tag, previously mislabeled 0.3.9). No new tag has been cut since;
 substantial work (`T41`–`T78`) has landed on `main` under this same version number.
-**Last Updated:** 2026-09-16 (Documentation Manager, T125 governance closeout).
+**Last Updated:** 2026-09-18 (Documentation Manager, T126 post-QA synchronization).
 Fresh verification confirms T120 authorization merged at `main` `d14347df5cc8d78481c3af79f3516bc42472128b`;
 PR #209 remains open at corrected QA-approved head `3c46bebbe75e956fd1be0bc157fe891ea8516ab9`.
 Authorization `772e91f22be78f57970be867258d354c81024118` and reviewed implementation head
@@ -730,3 +730,5 @@ see [templates/README.md](templates/README.md).
 Not estimable yet — the full feature scope (Matter/Client/Property Management, Document
 Automation, OCR, QR, Search, Reports, Payments, AI, Authentication) has no sizing or sequencing
 decided. The database schema those features will sit on is now complete.
+
+T126 is now Done in the ordinary pre-merge §3 synchronization sense after independent QA **Approved** on open PR #222. Reviewed implementation `929709e47ff85606fda5eb765b02d21bdac853da` introduced migration `c4e7a9b2d6f1` (parent `1b8f4a9c2e6d`) and the bounded ADR-0037 persistence/bootstrap foundation: immutable installation provenance, guarded fresh-install birth, one privileged serialized operational-fresh transition, runtime read-only provenance projection, revision/contract binding, a complete bootstrap predicate including `parties`, contradiction checks, and idempotent concurrent handling. QA evidence `7a97f7dd9fc832f0a3817d228735d6c14d4dbdc4` was the verified pre-sync PR head; exact-head Backend, Frontend, Governance, and Release workflows were successful. The retained/shared development database remained unchanged and unproven and the prior T124 process deviation remains preserved. The T124 classifier and `PartyWriteGate` remain unchanged; no production `OPERATIONAL_FRESH` classifier/precedence integration, Party eligibility change, Address CRUD, Matter/MatterParty/Property/File work, migrated Party-write enablement, Client cutover/retirement, Required ADR #20 resolution, ADR-0036/0037 acceptance, frontend work, or T127+ occurred. `latestTaskDone`/`latestTaskAuthorized` are `T126`, transitions are empty, ADR-0037/ADR-0036 remain Proposed, Required ADR #20 remains unresolved, and PR #222 remains open/unmerged awaiting the PM pre-merge gate.
