@@ -18,11 +18,14 @@ dependencies = [
 [project.scripts]
 bootstrap-admin = "app.infrastructure.cli.bootstrap:main"
 provision-app-role = "app.infrastructure.cli.provision_app_role:main"
+provision-bootstrap-role = "app.infrastructure.cli.provision_bootstrap_role:main"
 reconcile-organizations = "app.infrastructure.cli.reconcile_organizations:main"
 client-migration-preflight = "app.infrastructure.cli.client_migration_preflight:main"
 validate-client-reconciliation-artifact = "app.infrastructure.cli.client_reconciliation_artifact_validator:main"
 client-reconciliation-staleness-preflight = "app.infrastructure.cli.client_reconciliation_staleness_preflight:main"
 client-migration-executor = "app.infrastructure.cli.client_migration_executor:main"
+fresh-install-provenance = "app.infrastructure.cli.fresh_install_provenance:main"
+operational-fresh-bootstrap = "app.infrastructure.cli.operational_fresh_bootstrap:main"
 
 [dependency-groups]
 dev = [
