@@ -3773,3 +3773,18 @@ commands, Party/Address/Matter APIs, Required ADR #20, ADR acceptance, and T126+
 **State After Synchronization:** T125 is Done; `latestTaskDone` and `latestTaskAuthorized` are both
 T125; `inProgressTransitions` is empty; ADR-0037 and ADR-0036 remain Proposed; Required ADR #20
 remains unresolved; and T126+ is unauthorized.
+
+
+## Session: 2026-09-18 — T126 Post-QA Documentation Synchronization on PR #222
+
+**Objective:** Synchronize QA-approved T126 under ordinary `PROJECT_WORKFLOW.md §3` without merging PR #222, changing production code/QA evidence/ADRs, or authorizing T127+.
+
+**Verified Before Editing:** PR #222 was open, non-draft, unmerged and mergeable at QA-inclusive head `7a97f7dd9fc832f0a3817d228735d6c14d4dbdc4`; reviewed implementation `929709e47ff85606fda5eb765b02d21bdac853da`; authorization PR #221 merged as `086978b770292c8e067e7a8da3f7a5b34060dd9f`; QA evidence changed only `docs/reviews/T126_QA_Review.md`; QA Decision Approved. Exact-head Backend, Frontend, Governance, and Release workflows were successful.
+
+**Documentation Updated:** synchronized T126's queue/governance frontier, project-status, handover, and this session summary. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase23.md` and `docs/reviews/T126_QA_Review.md`.
+
+**Boundaries Preserved:** the T124 classifier and `PartyWriteGate` remain unchanged; no production `OPERATIONAL_FRESH` classifier/precedence integration, Party eligibility change, Address CRUD, Matter/MatterParty/Property/File application work, migrated Party-write enablement, Client cutover/retirement, Required ADR #20 resolution, ADR-0036/0037 acceptance, frontend work, or T127+ occurred. The retained/shared development database remained unchanged and unproven; the previously documented T124 process deviation remains preserved.
+
+**Evidence:** migration `c4e7a9b2d6f1` (parent `1b8f4a9c2e6d`); developer 7 T126 integration, 50 T118/T119/T120 regression, 59 T124 classifier + Party/Address RLS regression, and 51 governance tests, with Ruff/Black/Alembic SQL/diff/governance checks passed. The developer's local full backend run exceeded its terminal capture window around 9% without a reported failure and is not claimed as passing; exact-head GitHub Backend CI passed. Independent QA: Approved.
+
+**State After Synchronization:** T126 Done in ordinary pre-merge §3 convention; latest Done/authorized `T126`; empty transitions; ADR-0037 and ADR-0036 Proposed; Required ADR #20 unresolved; T127+ unauthorized; PR #222 remains open/unmerged.

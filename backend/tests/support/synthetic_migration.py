@@ -598,6 +598,19 @@ def provision_disposable_database_with(
     return disposable_url, db_name
 
 
+def provision_empty_disposable_database(prefix: str) -> tuple[str, str]:
+    """Create a blank disposable target for initial-install tests only.
+
+    Unlike the ordinary helper, this intentionally does not run Alembic. The
+    caller must either prove the fresh-install path or discard the database.
+    """
+    base_url = get_settings().database_url
+    db_name = f"{prefix}_{uuid4().hex[:12]}"
+    disposable_url = _disposable_branch_url(base_url, db_name)
+    asyncio.run(_admin_execute(f'CREATE DATABASE "{db_name}"'))
+    return disposable_url, db_name
+
+
 def drop_disposable_database(db_name: str) -> None:
     """Destroys a disposable database (with `FORCE`, so it works even if a
     connection lingers) and records a confirmation. Safe to call when the
