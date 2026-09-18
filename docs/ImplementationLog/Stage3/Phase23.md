@@ -2,19 +2,19 @@
 
 # Stage 3 - Phase 23
 
-Status: In Progress (implementation awaiting independent QA)
+Status: Done (implementation and independent QA complete; PR #222 awaiting merge)
 
 Started: 2026-09-18
 
-Completed:
+Completed: 2026-09-18
 
 Related Tasks: T126
 
 Related ADRs: [ADR-0037](../../../ADR/0037-operational-fresh-installation-provenance.md), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md), [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md), [ADR-0022](../../../ADR/0022-authorization-architecture.md)
 
-Git Commit:
+Git Commit: `929709e47ff85606fda5eb765b02d21bdac853da`
 
-Pull Request:
+Pull Request: #222 (open/unmerged at post-QA documentation synchronization)
 
 Release:
 
@@ -59,8 +59,11 @@ normal runtime classifier or Party write gate.
 ## Test Results
 
 - T126 disposable PostgreSQL integration: 7 passed.
+- T118/T119/T120 regression group: 50 passed.
 - T124 classifier plus Party/Address RLS regression group: 59 passed.
-- Alembic head and generated PostgreSQL upgrade/downgrade SQL: passed.
+- Governance tests: 51 passed.
+- Ruff, Black, Alembic SQL/diff/governance checks: passed.
+- Historical developer limitation: the local full backend run exceeded the terminal capture window at approximately 9% without a reported failure; it is not claimed as passing. Exact-head GitHub Backend CI passed.
 
 ## Design Decisions
 
@@ -93,21 +96,21 @@ normal runtime classifier or Party write gate.
 ☑ Architecture preserved
 ☑ Existing design patterns followed
 ☑ Tests added
-☐ Existing tests pass
+☑ Existing tests pass (focused/regression/governance groups and exact-head CI; local full-suite capture limitation recorded)
 ☑ Documentation updated
-☐ ADR updated (if required)
-☐ AI_BOOTSTRAP updated (if required)
-☐ PROJECT_STATE updated (if required)
+☑ ADR updated (if required) — not required; ADR-0037/0036 remain Proposed
+☑ AI_BOOTSTRAP updated (if required) — not required
+☑ PROJECT_STATE updated (if required) — synchronized post-QA
 ☑ No unrelated refactoring
 ☑ No scope creep
-☐ Ready for QA
+☑ Ready for QA — independent QA completed
 
-Full backend and all required T118-T124 regressions remain to be run before
-the implementation is marked ready for independent QA. No ADR, bootstrap
-rule, or project-state change is required by this bounded implementation.
+Independent QA reviewed exact implementation head `929709e47ff85606fda5eb765b02d21bdac853da`; QA evidence commit `7a97f7dd9fc832f0a3817d228735d6c14d4dbdc4` records the Approved decision. The retained/shared development database remained unchanged and unproven; no positive T126 execution against it is claimed.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
+
+Independent QA evidence: `docs/reviews/T126_QA_Review.md` (`7a97f7dd9fc832f0a3817d228735d6c14d4dbdc4`).
