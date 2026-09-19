@@ -1,18 +1,18 @@
 # Stage 3 - Phase 24
 
-Status: Implementation complete; independent QA pending
+Status: Done (implementation and independent QA complete; PR #224 awaiting merge)
 
 Started: 2026-09-18
 
-Completed:
+Completed: 2026-09-19
 
 Related Tasks: T127
 
 Related ADRs: [ADR-0037](../../../ADR/0037-operational-fresh-installation-provenance.md), [ADR-0036](../../../ADR/0036-fresh-installation-party-enablement-boundary.md), [ADR-0035](../../../ADR/0035-party-persistence-schema-contract-and-tenant-safe-migration-bridges.md), [ADR-0021](../../../ADR/0021-organization-tenant-boundary-enforcement.md), [ADR-0022](../../../ADR/0022-authorization-architecture.md)
 
-Git Commit: Pending implementation commit
+Git Commit: `9ccea514d3a394a6718ad6fb28ab4ff530850f6d`
 
-Pull Request: Pending implementation PR
+Pull Request: #224 (open/unmerged at post-QA documentation synchronization)
 
 Release:
 
@@ -113,5 +113,6 @@ T124's continuing empty-database `FRESH` entitlement.
 
 ## QA Decision
 
-Pending independent QA. This implementation record does not mark T127 Done,
-does not claim QA approval, and does not authorize T128 or later work.
+☑ Approved
+
+Independent QA reviewed exact implementation head `9ccea514d3a394a6718ad6fb28ab4ff530850f6d`; QA evidence commit `cbc5698a76e020fe2d2408c50ff8043d5c116e40` records the Approved decision in `docs/reviews/T127_QA_Review.md`. T127 is Done in the ordinary pre-merge §3 synchronization sense; PR #224 remains open/unmerged, and T128+ remains unauthorized.
