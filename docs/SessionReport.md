@@ -3788,3 +3788,18 @@ remains unresolved; and T126+ is unauthorized.
 **Evidence:** migration `c4e7a9b2d6f1` (parent `1b8f4a9c2e6d`); developer 7 T126 integration, 50 T118/T119/T120 regression, 59 T124 classifier + Party/Address RLS regression, and 51 governance tests, with Ruff/Black/Alembic SQL/diff/governance checks passed. The developer's local full backend run exceeded its terminal capture window around 9% without a reported failure and is not claimed as passing; exact-head GitHub Backend CI passed. Independent QA: Approved.
 
 **State After Synchronization:** T126 Done in ordinary pre-merge §3 convention; latest Done/authorized `T126`; empty transitions; ADR-0037 and ADR-0036 Proposed; Required ADR #20 unresolved; T127+ unauthorized; PR #222 remains open/unmerged.
+
+## Session: 2026-09-19 — T127 Post-QA Documentation Synchronization on PR #224
+
+**Objective:** Synchronize QA-approved T127 under ordinary `PROJECT_WORKFLOW.md §3` without merging PR #224, changing production/test/QA code, changing ADR status, performing database operations, or authorizing T128+.
+
+**Verified Before Editing:** `origin/main` was `37b2b4313edbd16d36b0fb9c4c8e4773c02db631` (authorization PR #223 merge); PR #224 was open, non-draft and unmerged at QA-only head `cbc5698a76e020fe2d2408c50ff8043d5c116e40`, whose direct parent is reviewed implementation `9ccea514d3a394a6718ad6fb28ab4ff530850f6d` and whose only change is `docs/reviews/T127_QA_Review.md`. Independent QA Decision: Approved.
+
+**Documentation Updated:** synchronized Phase24, T127 queue/governance frontier, project-status, handover, and this session summary. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase24.md` and `docs/reviews/T127_QA_Review.md`.
+
+**Evidence Preserved:** T127 replaces T124 runtime `FRESH`/zero-row entitlement with provenance-authoritative `OPERATIONAL_FRESH`, `MIGRATED`, `LEGACY_WITH_BUSINESS_DATA`, and `UNPROVEN`; ordinary Party writes are installation-state eligible only for valid `OPERATIONAL_FRESH`. The narrow transaction-scoped SHARE locks on `clients` and `client_party_migration_ledger` span classification and Party mutation in the same request transaction to protect the relevant migration-evidence TOCTOU window; they are not described as a global lock. No migration was created.
+
+**Boundaries Preserved:** `MIGRATED` remains ordinary-Party-write denied pending Required ADR #20; ADR-0037/ADR-0036 remain Proposed; runtime provenance stays read-only; Party/Address RLS, tenant scoping, permissions and T118 separation remain intact. No Address/Matter/MatterParty/Property/File expansion, Client cutover/retirement, frontend work, database operation, ADR acceptance, Required ADR #20 resolution, or T128+ occurred.
+
+**State After Synchronization:** T127 Done in ordinary pre-merge §3 convention; latest Done/authorized `T127`; empty transitions; ADR-0037/ADR-0036 Proposed; Required ADR #20 unresolved; T128+ unauthorized; PR #224 remains open/unmerged.
+

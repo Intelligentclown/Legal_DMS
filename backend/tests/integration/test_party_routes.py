@@ -1,13 +1,14 @@
-"""T124: HTTP behavior of the governed Party application surface — the real
-mounted FastAPI app, real Postgres, against a disposable database migrated to
-the repository head (never the shared development database, so the ADR-0036
-gate sees a genuinely fresh installation).
+"""T124/T127 HTTP behavior of the governed Party application surface.
+
+The real mounted FastAPI app uses a disposable T126-created and bootstrapped
+PostgreSQL installation, so the ADR-0037 gate exercises real operational-fresh
+evidence rather than a test-only runtime override.
 
 Structure mirrors `test_users.py`'s approved pattern (httpx `ASGITransport`,
 `get_db`/`get_admin_db` overridden to this test's own session over the
 owning admin role). Unlike `test_users.py`, the write-gate behavior is NOT
 stubbed away by default: the disposable database is cell-emptied by design, so
-the real `SqlAlchemyInstallationClassifier` sees `FRESH` and the gate admits
+the real `SqlAlchemyInstallationClassifier` sees `OPERATIONAL_FRESH` and the gate admits
 the happy-path suite through the actual gate code path.
 
 Covered:
@@ -20,8 +21,8 @@ Covered:
   (404, never a cross-Org data leak);
 - CRUD happy path: create → get → list (pagination) → partial PUT → PUT with
   explicit `null` `address_id` (clears) → delete → 404 after;
-- address same-Organization validation: via a forced-`FRESH` classifier
-  (address rows legitimately flip the *real* classifier, so the clean 422
+- address same-Organization validation: via a forced operational-fresh classifier
+  (the clean 422
   path is exercised with the classifier pinned), same-Org address accepted,
   cross-Org/nonexistent address → 422;
 - the real-fresh-install gate: with the real classifier, an installation that
@@ -31,6 +32,7 @@ Covered:
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncGenerator, Iterator
 from uuid import uuid4
 
@@ -45,8 +47,10 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.application.interfaces.install_classifier import InstallationState
+from app.infrastructure.cli.fresh_install_provenance import establish_fresh_installation
+from app.infrastructure.cli.operational_fresh_bootstrap import run_bootstrap
 from app.infrastructure.database.session import get_admin_db, get_db
-from app.infrastructure.persistence.models.client import Address
+from app.infrastructure.persistence.models.client import Address, Client
 from app.infrastructure.persistence.models.geography import Country
 from app.infrastructure.persistence.models.identity import (
     Permission,
@@ -62,7 +66,7 @@ from app.presentation.api.v1.parties import get_install_classifier
 from tests.support.static_install_classifier import StaticInstallationClassifier
 from tests.support.synthetic_migration import (
     drop_disposable_database,
-    provision_disposable_database_with,
+    provision_empty_disposable_database,
 )
 
 _PASSWORD = "correct horse battery staple"
@@ -72,8 +76,10 @@ PARTIES_PATH = "/api/v1/parties"
 
 @pytest.fixture(scope="session")
 def disposable_db() -> Iterator[tuple[str, str]]:
-    url, db_name = provision_disposable_database_with("legal_dms_t124_parties")
+    url, db_name = provision_empty_disposable_database("legal_dms_t127_parties")
     try:
+        asyncio.run(establish_fresh_installation(url))
+        asyncio.run(run_bootstrap(url))
         yield url, db_name
     finally:
         drop_disposable_database(db_name)
@@ -430,7 +436,7 @@ class TestAddressSameOrganizationValidation:
     async def test_create_with_same_organization_address_succeeds(
         self, client: AsyncClient, db_session: AsyncSession, force_install_state
     ) -> None:
-        force_install_state(InstallationState.FRESH)
+        force_install_state(InstallationState.OPERATIONAL_FRESH)
         headers, organization = await _headers_with_permissions(
             client, db_session, "parties:read", "parties:write"
         )
@@ -444,7 +450,7 @@ class TestAddressSameOrganizationValidation:
     async def test_create_with_cross_organization_address_is_422(
         self, client: AsyncClient, db_session: AsyncSession, force_install_state
     ) -> None:
-        force_install_state(InstallationState.FRESH)
+        force_install_state(InstallationState.OPERATIONAL_FRESH)
         caller_headers, _caller_org = await _headers_with_permissions(
             client, db_session, "parties:write"
         )
@@ -461,7 +467,7 @@ class TestAddressSameOrganizationValidation:
     async def test_create_with_nonexistent_address_is_422(
         self, client: AsyncClient, db_session: AsyncSession, force_install_state
     ) -> None:
-        force_install_state(InstallationState.FRESH)
+        force_install_state(InstallationState.OPERATIONAL_FRESH)
         headers, _organization = await _headers_with_permissions(
             client, db_session, "parties:write"
         )
@@ -474,7 +480,7 @@ class TestAddressSameOrganizationValidation:
     async def test_update_to_cross_organization_address_is_422(
         self, client: AsyncClient, db_session: AsyncSession, force_install_state
     ) -> None:
-        force_install_state(InstallationState.FRESH)
+        force_install_state(InstallationState.OPERATIONAL_FRESH)
         headers, _caller_org = await _headers_with_permissions(
             client, db_session, "parties:read", "parties:write"
         )
@@ -491,35 +497,65 @@ class TestAddressSameOrganizationValidation:
         assert response.json()["error"]["code"] == "validation_error"
 
 
-class TestFreshInstallGate:
-    async def test_gate_blocks_create_when_legacy_data_present(
+class TestOperationalFreshGate:
+    async def test_gate_blocks_create_when_legacy_client_evidence_present(
         self, client: AsyncClient, db_session: AsyncSession
     ) -> None:
         headers, organization = await _headers_with_permissions(client, db_session, "parties:write")
-        await _make_address(db_session, organization)
+        address = await _make_address(db_session, organization)
+        db_session.add(
+            Client(
+                organization_id=organization.id,
+                client_type="individual",
+                full_name="Legacy Client",
+                primary_phone="7000000001",
+                address_id=address.id,
+            )
+        )
+        await db_session.flush()
         response = await client.post(PARTIES_PATH, headers=headers, json=_party_payload())
         assert response.status_code == 403
         assert response.json()["error"]["code"] == "forbidden"
-        assert "fresh" in response.json()["error"]["message"]
+        assert "provenance" in response.json()["error"]["message"]
 
-    async def test_gate_blocks_update_when_legacy_data_present(
+    async def test_gate_blocks_update_when_legacy_client_evidence_present(
         self, client: AsyncClient, db_session: AsyncSession
     ) -> None:
         headers, organization = await _headers_with_permissions(client, db_session, "parties:write")
-        await _make_address(db_session, organization)
+        address = await _make_address(db_session, organization)
+        db_session.add(
+            Client(
+                organization_id=organization.id,
+                client_type="individual",
+                full_name="Legacy Client",
+                primary_phone="7000000001",
+                address_id=address.id,
+            )
+        )
+        await db_session.flush()
         response = await client.put(
             f"{PARTIES_PATH}/{uuid4()}", headers=headers, json={"display_name": "X"}
         )
         assert response.status_code == 403
         assert response.json()["error"]["code"] == "forbidden"
 
-    async def test_gate_blocks_delete_when_legacy_data_present(
+    async def test_gate_blocks_delete_when_legacy_client_evidence_present(
         self, client: AsyncClient, db_session: AsyncSession
     ) -> None:
         headers, organization = await _headers_with_permissions(
             client, db_session, "parties:delete"
         )
-        await _make_address(db_session, organization)
+        address = await _make_address(db_session, organization)
+        db_session.add(
+            Client(
+                organization_id=organization.id,
+                client_type="individual",
+                full_name="Legacy Client",
+                primary_phone="7000000001",
+                address_id=address.id,
+            )
+        )
+        await db_session.flush()
         response = await client.delete(f"{PARTIES_PATH}/{uuid4()}", headers=headers)
         assert response.status_code == 403
         assert response.json()["error"]["code"] == "forbidden"

@@ -16,8 +16,8 @@ Follows the `users.py` established conventions (T62/T63/T105) exactly:
   `PartyService`/`PartyRepository` are org-scoped, so a caller can never
   operate on another tenant's Party — cross-Org access reads as 404 and is
   gated identically to a nonexistent id;
-- `PartyService` enforces the ADR-0036 fresh-install write gate on
-  create/update/delete (fail-closed 403 in any non-FRESH installation) and
+- `PartyService` enforces the ADR-0037 operational-fresh write gate on
+  create/update/delete (fail-closed 403 in any non-operational-fresh installation) and
   validates that an `address_id` belongs to the caller's Organization (422
   instead of a composite-FK 500); reads are ungated by the gate because they
   are already protected by permission + Organization scoping + T123 RLS.
@@ -68,8 +68,8 @@ PartyRepositoryDep = Annotated[SqlAlchemyPartyRepository, Depends(get_party_repo
 
 
 async def get_install_classifier(session: DBSessionDep) -> InstallationClassifier:
-    """Built fresh per request over *this* request's session — the ADR-0036
-    classifier reads the live row-presence snapshot on the same connection
+    """Built fresh per request over *this* request's session — the ADR-0037
+    classifier reads provenance and migration evidence on the same connection
     the Party write would use. Exposed as a module-local dependency so the
     route tests can override it (with either a graded fake or a real
     classifier against a dedicated database), without touching the container

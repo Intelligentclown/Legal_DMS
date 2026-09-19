@@ -1,10 +1,10 @@
-"""ADR-0036 enablement gate for ordinary Party writes (T124).
+"""ADR-0037 enablement gate for ordinary Party writes (T127).
 
 `PartyWriteGate` is the application-layer fail-closed gate between the
 authorized Party permission surface (`parties:write` / `parties:delete`, the
 presentation layer) and database writes: before any normal create/update/delete
 of a `Party` row, `ensure_writable()` consults `InstallationClassifier` and
-only a `FRESH` classification proceeds. Every other state — and any failure to
+only an `OPERATIONAL_FRESH` classification proceeds. Every other state — and any failure to
 observe the database — raises `ForbiddenError` so a Party write is never
 reachable in a legacy or ambiguous installation.
 
@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from app.application.errors.exceptions import ForbiddenError
 from app.application.interfaces.install_classifier import (
+    InstallationClassificationError,
     InstallationClassifier,
     InstallationState,
 )
@@ -32,11 +33,17 @@ class PartyWriteGate:
         self._classifier = classifier
 
     async def ensure_writable(self) -> None:
-        state = await self._classifier.classify()
-        if state is not InstallationState.FRESH:
+        try:
+            state = await self._classifier.classify()
+        except InstallationClassificationError as exc:
+            raise ForbiddenError(
+                "Party writes are not available because installation provenance "
+                "cannot be verified"
+            ) from exc
+        if state is not InstallationState.OPERATIONAL_FRESH:
             raise ForbiddenError(
                 "Party writes are not available in this installation: it is "
-                f"classified as {state.value!r}, not the ADR-0036 fresh-install "
-                "state. Ordinary Party writes are gated until the governed "
-                "migration window (T108-T118) has cut over."
+                f"classified as {state.value!r}, not the ADR-0037 operational-fresh "
+                "state. Ordinary Party writes remain denied outside a proven "
+                "operational-fresh installation."
             )

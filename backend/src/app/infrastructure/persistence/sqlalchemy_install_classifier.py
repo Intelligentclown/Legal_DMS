@@ -1,28 +1,9 @@
-"""SQLAlchemy implementation of the ADR-0036 fresh-install classifier (T124).
+"""SQLAlchemy implementation of ADR-0037 runtime classification (T127).
 
-`classify()` reads a live row-presence snapshot of the eleven governed
-legacy-object tables (see the port docstring for the exact exclusion of
-`parties` and the scaffolding tables) and maps it deterministically onto
-`InstallationState`:
-
-    FRESH
-        every governed legacy-object table row count is zero.
-    MIGRATED
-        NOT fresh, AND the migration ledger is non-empty AND every
-        `clients` row is covered by a ledger entry.
-    LEGACY_WITH_BUSINESS_DATA
-        everything else with at least one governed row (the cutover is in
-        progress, or ledger coverage is incomplete/fragmented).
-
-The ledger-coverage check counts distinct `legacy_client_id` values in
-`client_party_migration_ledger` and compares against the total `clients`
-row count — no join or partial-ledger heuristics are needed because the
-ledger is append-only and keyed exactly one-per-legacy-client by design
-(T118/A DR-0034).
-
-Counts are evaluated per table within a single snapshot to stay
-deterministic; an inability to read any governed table (e.g. the role is
-denied) surfaces as an exception, which the caller treats as fail-closed.
+T126 supplies the only normal-runtime operational-fresh proof through its
+read-only ``legal_dms_provenance.runtime_state`` projection. Row presence is
+still used for migration and legacy evidence, but never turns an empty upgrade
+into an entitled fresh installation.
 """
 
 from __future__ import annotations
@@ -30,18 +11,23 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.interfaces.install_classifier import (
+    InstallationClassificationError,
     InstallationClassifier,
     InstallationState,
 )
 
-# The twelve governed legacy-object tables: ADR-0036 requires the *fresh
-# definition* to be the full zero-row set, but the per-write predicate the
-# classifier evaluates excludes `parties` (the slice's own product surface) —
-# see the port docstring. `parties` is therefore not consulted by classify().
-_GOVERNED_TABLES: tuple[str, ...] = (
+# T126 binds both values into immutable operational-transition evidence. A
+# future revision must explicitly extend the supported runtime contract.
+_PROVENANCE_CONTRACT_VERSION = "adr-0037.v1"
+_SUPPORTED_SCHEMA_REVISION = "c4e7a9b2d6f1"
+_OPERATIONAL_EVENT_KIND = "OPERATIONAL_FRESH_ENTERED"
+_RUNTIME_STATE_VIEW = "legal_dms_provenance.runtime_state"
+
+_BUSINESS_TABLES: tuple[str, ...] = (
     "clients",
     "client_contacts",
     "addresses",
@@ -51,6 +37,7 @@ _GOVERNED_TABLES: tuple[str, ...] = (
     "appointments",
     "invoices",
     "payments",
+    "parties",
     "matter_parties",
     "client_party_migration_ledger",
 )
@@ -61,36 +48,85 @@ _logger = logging.getLogger(__name__)
 
 
 class SqlAlchemyInstallationClassifier(InstallationClassifier):
-    """Row-presence classifier backed by one SQLAlchemy `AsyncSession`."""
+    """Provenance-aware classifier backed by one SQLAlchemy session."""
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
     async def _count_rows(self, table_name: str) -> int:
-        """Row count for a literal, validator-whitelisted table name.
-
-        The table names come from this class's own frozen tuple — they are
-        bound as table identifiers, never interpolated from caller input —
-        so there is no SQL-injection surface here.
-        """
-        stmt = text(f"SELECT count(*) FROM {table_name}")
-        result = await self._session.execute(stmt)
+        """Count a literal, classifier-owned table name."""
+        result = await self._session.execute(text(f"SELECT count(*) FROM {table_name}"))
         return int(result.scalar_one())
 
     async def classify(self) -> InstallationState:
-        counts = {table: await self._count_rows(table) for table in _GOVERNED_TABLES}
-        _logger.debug("install classification row-presence snapshot: %s", counts)
+        try:
+            await self._lock_migration_evidence()
+            counts = {table: await self._count_rows(table) for table in _BUSINESS_TABLES}
+            ledger_covered = await self._ledger_covered_clients_count()
+            operational = await self._operational_transition()
+        except InstallationClassificationError:
+            raise
+        except SQLAlchemyError as exc:
+            _logger.warning("installation classification could not read database evidence")
+            raise InstallationClassificationError(
+                "installation evidence could not be read safely"
+            ) from exc
 
-        if all(count == 0 for count in counts.values()):
-            return InstallationState.FRESH
-
+        _logger.debug("installation classification evidence: %s", counts)
         ledger_rows = counts[_LEDGER_TABLE]
         clients_total = counts[_CLIENTS_TABLE]
-        ledger_covered = await self._ledger_covered_clients_count()
-        if ledger_rows > 0 and ledger_covered == clients_total:
-            return InstallationState.MIGRATED
+        migration_complete = ledger_rows > 0 and ledger_covered == clients_total
 
-        return InstallationState.LEGACY_WITH_BUSINESS_DATA
+        # A Client or governed migration ledger entry is legacy/migration
+        # evidence, not legitimate post-bootstrap Party/Address growth.
+        if operational is not None and (clients_total > 0 or ledger_rows > 0):
+            raise InstallationClassificationError(
+                "operational-fresh provenance contradicts migration evidence"
+            )
+
+        if migration_complete:
+            return InstallationState.MIGRATED
+        if operational is not None:
+            return InstallationState.OPERATIONAL_FRESH
+        if any(count > 0 for count in counts.values()):
+            return InstallationState.LEGACY_WITH_BUSINESS_DATA
+        return InstallationState.UNPROVEN
+
+    async def _lock_migration_evidence(self) -> None:
+        """Hold migration-evidence stability through the request transaction.
+
+        The Party service uses this session for both gate evaluation and the
+        ensuing write. These short PostgreSQL locks make a concurrent Client
+        insert or T118 ledger append wait until that transaction commits or
+        rolls back, closing the classification-to-write race without changing
+        the separate migration executor's transaction contract.
+        """
+        await self._session.execute(
+            text("LOCK TABLE clients, client_party_migration_ledger IN SHARE MODE")
+        )
+
+    async def _operational_transition(self) -> tuple[str, str] | None:
+        result = await self._session.execute(
+            text(
+                "SELECT installation_id, event_kind, provenance_contract_version, "
+                f"observed_schema_revision FROM {_RUNTIME_STATE_VIEW}"
+            )
+        )
+        rows = result.mappings().all()
+        if not rows:
+            return None
+        if len(rows) != 1:
+            raise InstallationClassificationError("operational provenance is forked")
+
+        row = rows[0]
+        if (
+            row["installation_id"] is None
+            or row["event_kind"] != _OPERATIONAL_EVENT_KIND
+            or row["provenance_contract_version"] != _PROVENANCE_CONTRACT_VERSION
+            or row["observed_schema_revision"] != _SUPPORTED_SCHEMA_REVISION
+        ):
+            raise InstallationClassificationError("operational provenance is unsupported")
+        return str(row["installation_id"]), str(row["observed_schema_revision"])
 
     async def _ledger_covered_clients_count(self) -> int:
         stmt = select(func.count(func.distinct(text("legacy_client_id")))).select_from(
