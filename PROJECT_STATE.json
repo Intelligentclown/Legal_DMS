@@ -41,7 +41,7 @@
       20
     ],
     "latestTaskDone": "T127",
-    "latestTaskAuthorized": "T127",
+    "latestTaskAuthorized": "T128",
     "asOfCommit": "2de16906b163ff9988ea97378af980fe327a70b0",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
