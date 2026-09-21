@@ -3803,3 +3803,18 @@ remains unresolved; and T126+ is unauthorized.
 
 **State After Synchronization:** T127 Done in ordinary pre-merge §3 convention; latest Done/authorized `T127`; empty transitions; ADR-0037/ADR-0036 Proposed; Required ADR #20 unresolved; T128+ unauthorized; PR #224 remains open/unmerged.
 
+## Session: 2026-09-21 — T128 §3.1 Governance Closeout
+
+**Objective:** Close T128 only after architecture+QA PR #226 merged, without changing ADR status, implementing Self-Context, resolving Required ADRs, cleaning stale context, or authorizing T129+.
+
+**Verified Before Editing:** `origin/main` was `042ca4a78115ae15794db60841d8bd3740143132`, whose parents are authorization baseline `67e0e7d0942c494281a1a15593d9ce992bb779ae` and final architecture+QA head `9c1b54aaecc8bd590dc631cd7d9b1f564211539f`. Authorization PR #225 and architecture+QA PR #226 are merged. Independent QA Approved exact architecture commit `e212b4dcd3bb327322394975955e5108d5b48b89`.
+
+**Documentation Updated:** marked T128 Done in `IMPLEMENTATION_QUEUE.md`, synchronized the governance frontier in `PROJECT_STATE.json`, and appended compact status/handover summaries linked to the authoritative ADR/review evidence.
+
+**Outcome Preserved:** ADR-0038 establishes deterministic, derived, provenance-aware, fail-closed, non-authoritative Self-Context projection and remains Proposed. ADR-0037/ADR-0036 remain Proposed; no Required ADR was resolved and Required ADR #20 remains unresolved. Generated context cannot independently create authorization, task selection, architecture decisions, ADR acceptance, QA approval, implementation permission, governance transitions, or project priority.
+
+**Deliberately Not Touched:** approved ADR/review artifacts; Self-Context compiler/manifest/Task Package/renderer; shared-parser extraction; bootstrap/CI integration; stale-document cleanup; governance-file restructuring; application/frontend/backend code; schema/migrations/database; and T129+.
+
+**Future Candidate:** **Deterministic Current-Context Manifest Foundation** is recommendation only, unnumbered and unauthorized pending separate Project Manager/owner selection and authorization.
+
+**State After Synchronization:** T128 Done; `latestTaskDone = T128`; `latestTaskAuthorized = T128`; `inProgressTransitions = []`; T129+ unauthorized.
