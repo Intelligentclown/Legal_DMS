@@ -49,7 +49,7 @@ class TestGeographySeed:
 class TestIdentitySeed:
     async def test_roles_and_permissions_exist(self, db_session: AsyncSession) -> None:
         assert await _count(db_session, Role) == 6
-        assert await _count(db_session, Permission) == 21
+        assert await _count(db_session, Permission) == 24
 
         admin = (
             await db_session.execute(select(Role).where(Role.name == "Administrator"))
@@ -62,6 +62,9 @@ class TestIdentitySeed:
         assert "parties:read" in codes
         assert "parties:write" in codes
         assert "parties:delete" in codes
+        assert "addresses:read" in codes
+        assert "addresses:write" in codes
+        assert "addresses:delete" in codes
 
 
 class TestMatterAndWorkflowSeed:

@@ -22,6 +22,9 @@ EXPECTED_MATRIX = {
         "documents:delete",
         "financial:read",
         "financial:write",
+        "addresses:read",
+        "addresses:write",
+        "addresses:delete",
         "users:manage",
         "roles:manage",
         "settings:manage",
@@ -44,6 +47,9 @@ EXPECTED_MATRIX = {
         "documents:write",
         "documents:delete",
         "financial:read",
+        "addresses:read",
+        "addresses:write",
+        "addresses:delete",
         "reports:read",
     },
     "Paralegal": {
@@ -58,6 +64,8 @@ EXPECTED_MATRIX = {
         "documents:read",
         "documents:write",
         "financial:read",
+        "addresses:read",
+        "addresses:write",
         "reports:read",
     },
     "Clerk": {
@@ -69,6 +77,8 @@ EXPECTED_MATRIX = {
         "parties:write",
         "documents:read",
         "documents:write",
+        "addresses:read",
+        "addresses:write",
     },
     "Accountant": {
         "financial:read",
@@ -76,6 +86,7 @@ EXPECTED_MATRIX = {
         "matters:read",
         "clients:read",
         "parties:read",
+        "addresses:read",
         "reports:read",
     },
     "Read Only": {
@@ -85,6 +96,7 @@ EXPECTED_MATRIX = {
         "properties:read",
         "documents:read",
         "financial:read",
+        "addresses:read",
         "reports:read",
     },
 }
@@ -103,12 +115,12 @@ async def test_t66_role_permissions_matrix_exact_match(db_session):
     rp_res = await db_session.execute(text("SELECT role_id, permission_id FROM role_permissions"))
     actual_associations = rp_res.fetchall()
 
-    # 5. Exactly 71 T66 associations
-    msg = f"Expected 71 associations, got {len(actual_associations)}"
-    assert len(actual_associations) == 71, msg
+    # 5. Exactly 83 T66+T124+T130 associations
+    msg = f"Expected 83 associations, got {len(actual_associations)}"
+    assert len(actual_associations) == 83, msg
 
     # 6. No duplicate associations
-    assert len(set(actual_associations)) == 71, "Found duplicate associations"
+    assert len(set(actual_associations)) == 83, "Found duplicate associations"
 
     # 1. Every authorized role exists (must have at least one permission in our matrix)
     # 2. Every authorized permission exists (must be used in our matrix)

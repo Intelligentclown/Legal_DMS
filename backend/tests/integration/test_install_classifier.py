@@ -33,7 +33,7 @@ from tests.support.synthetic_migration import (
     provision_empty_disposable_database,
 )
 
-HEAD = "c4e7a9b2d6f1"
+HEAD = "5d8a3f2e9c6b"
 pytestmark = pytest.mark.asyncio
 
 
@@ -190,6 +190,25 @@ async def test_party_and_address_growth_preserve_operational_fresh(
                 address_id=address.id,
             )
         )
+        await session.flush()
+        classifier = SqlAlchemyInstallationClassifier(session)
+        assert await classifier.classify() == InstallationState.OPERATIONAL_FRESH
+        await PartyWriteGate(classifier).ensure_writable()
+
+
+async def test_address_only_growth_preserves_operational_fresh(
+    operational_engine: AsyncEngine,
+) -> None:
+    async with async_sessionmaker(operational_engine, expire_on_commit=False)() as session:
+        org, country, _first = await _seed_org_country_address(session)
+        for i in range(3):
+            session.add(
+                Address(
+                    organization_id=org.id,
+                    line1=f"T130 Address {i}",
+                    country_id=country.id,
+                )
+            )
         await session.flush()
         classifier = SqlAlchemyInstallationClassifier(session)
         assert await classifier.classify() == InstallationState.OPERATIONAL_FRESH

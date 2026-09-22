@@ -3832,3 +3832,16 @@ remains unresolved; and T126+ is unauthorized.
 **Evidence/Boundaries:** QA recorded 7 focused manifest tests and 51 governance tests passing, validator 0 warnings/0 errors, deterministic output, dirty/dangling-ADR/ledger-conflict fail-closed behavior, and no material defects. No database/schema/migration work occurred; migration frontier remains `c4e7a9b2d6f1`. Layer B/C, bootstrap/routing integration, stale-context cleanup, governance restructuring, CI freshness, automatic decisions, domain capability work and T130+ remain deferred/unauthorized. ADR-0038/0037/0036 remain Proposed; unresolved Required ADRs remain `[10, 11, 12, 15, 16, 17, 20]`.
 
 **State After Synchronization:** T129 Done in ordinary pre-merge §3 convention; latest Done/Authorized `T129`; empty transitions; T130+ unauthorized; PR #229 remains open/unmerged.
+
+
+## Session: 2026-09-22 — T130 Post-QA Documentation Synchronization on PR #231
+
+**Objective:** Synchronize independently QA-approved T130 under ordinary `PROJECT_WORKFLOW.md §3` on existing PR #231 without modifying implementation/tests/migration/QA evidence, merging, changing ADR/Required-ADR state, mutating a database, or authorizing T131+.
+
+**Verified Before Editing:** `origin/main` was `e3e3502c0b4240b576ab8ab4ace5f0fa2892e3b4` (authorization PR #230 merge). PR #231 was open/non-draft/unmerged at QA-only head `5a641298f07d42f8c92251e612c60a1b7e71fa50`, direct child of reviewed implementation-log head `64573ea053e62b1b82497f5d5c17f7d847104251`; QA commit changed only the T130 QA review. Independent QA Decision: Approved; QA-head Backend/Frontend/Governance/Release CI all succeeded.
+
+**Documentation Updated:** synchronized Phase26, T130 queue/governance frontier, project status, handover and this session summary. Migration frontier is now `5d8a3f2e9c6b`. Detailed evidence remains in Phase26 and the unchanged QA artifact.
+
+**Outcome/Boundaries:** Address CRUD, permissions/grants, tenant/RLS/geography/delete behavior, Party compatibility and operational-fresh supported-revision extension are recorded without changing ADR-0037 semantics or PartyWriteGate. The six developer broad-run auditing failures remain explicitly qualified by QA's 84/84 isolated clean pass and non-T130-flake finding. Required ADR #20 remains unresolved; ADR-0038/0037/0036 Proposed; T131+ unauthorized.
+
+**State After Synchronization:** T130 Done in ordinary pre-merge §3 convention; latest Done/Authorized T130; empty transitions; PR #231 remains open/unmerged.
