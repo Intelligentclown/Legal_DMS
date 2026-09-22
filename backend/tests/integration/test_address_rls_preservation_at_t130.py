@@ -53,7 +53,7 @@ pytestmark = pytest.mark.asyncio
 
 @pytest.fixture(scope="session")
 def disposable_db() -> Iterator[tuple[str, str]]:
-    url, db_name = provision_disposable_database_with("legal_dms_t130_rls")
+    url, db_name = provision_disposable_database_with("legal_dms_t130_rls", upgrade_target=NEW_HEAD)
     try:
         yield url, db_name
     finally:

@@ -41,7 +41,7 @@ def blank_database() -> Iterator[tuple[str, str]]:
 
 @pytest.fixture
 def upgraded_database() -> Iterator[tuple[str, str]]:
-    url, name = provision_disposable_database_with("legal_dms_t126_upgrade")
+    url, name = provision_disposable_database_with("legal_dms_t126_upgrade", upgrade_target=HEAD)
     try:
         yield url, name
     finally:
