@@ -3818,3 +3818,17 @@ remains unresolved; and T126+ is unauthorized.
 **Future Candidate:** **Deterministic Current-Context Manifest Foundation** is recommendation only, unnumbered and unauthorized pending separate Project Manager/owner selection and authorization.
 
 **State After Synchronization:** T128 Done; `latestTaskDone = T128`; `latestTaskAuthorized = T128`; `inProgressTransitions = []`; T129+ unauthorized.
+
+## Session: 2026-09-22 — T129 Post-QA Documentation Synchronization on PR #229
+
+**Objective:** Synchronize independently QA-approved T129 under ordinary `PROJECT_WORKFLOW.md §3` on the existing implementation PR, without modifying implementation/tests/QA evidence, merging PR #229, changing ADR/Required-ADR state, performing database work, or authorizing T130+.
+
+**Verified Before Editing:** `origin/main` was `a8031b58b149bb544396b59c86798bfd366d7655` (T129 authorization merge). PR #229 was open, non-draft and unmerged at QA-only head `898c41a51fe19d54d0cbfb613fbb61383d6b22ed`; its direct parent is reviewed implementation/remediation `706e1fc9bf9332fa527e9665a58eff55878c0d0f`, and the QA commit changed only `docs/reviews/T129_QA_Review.md`. Independent QA Decision: Approved. Exact QA-head Backend, Frontend, Governance and Release CI were successful.
+
+**Documentation Updated:** synchronized Phase25, T129 queue/governance frontier, project status, handover, and this session summary. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase25.md` and `docs/reviews/T129_QA_Review.md`.
+
+**Outcome:** T129 completes only ADR-0038 Layer A: an offline/on-demand deterministic Current Context Manifest with versioned contracts, stable repository/local-commit identity, shared governance semantics, governance-frontier/Required-ADR/ADR-status projection, ledger cross-checks, deterministic diagnostics, dirty-authoritative-source protection, fail-closed conflict handling and canonical JSON. Authoritative repository evidence remains authoritative; the manifest is disposable/non-authoritative and makes no project decision.
+
+**Evidence/Boundaries:** QA recorded 7 focused manifest tests and 51 governance tests passing, validator 0 warnings/0 errors, deterministic output, dirty/dangling-ADR/ledger-conflict fail-closed behavior, and no material defects. No database/schema/migration work occurred; migration frontier remains `c4e7a9b2d6f1`. Layer B/C, bootstrap/routing integration, stale-context cleanup, governance restructuring, CI freshness, automatic decisions, domain capability work and T130+ remain deferred/unauthorized. ADR-0038/0037/0036 remain Proposed; unresolved Required ADRs remain `[10, 11, 12, 15, 16, 17, 20]`.
+
+**State After Synchronization:** T129 Done in ordinary pre-merge §3 convention; latest Done/Authorized `T129`; empty transitions; T130+ unauthorized; PR #229 remains open/unmerged.
