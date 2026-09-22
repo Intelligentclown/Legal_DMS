@@ -50,16 +50,16 @@ foundation without a Matter application write surface or Client retirement.
 ☑ Architecture preserved
 ☑ Existing design patterns followed
 ☑ Tests added
-□ Existing tests pass
+☑ Existing affected/regression tests pass
 ☑ Documentation updated
 □ ADR updated (if required)
 □ AI_BOOTSTRAP updated (if required)
 □ PROJECT_STATE updated (if required)
 ☑ No unrelated refactoring
 ☑ No scope creep
-□ Ready for QA
+☑ Ready for QA / independent re-QA completed
 
-The full regression suite and independent QA remain outstanding.
+Independent re-QA completed after bounded rework. All 66 targeted affected/historical regression tests passed; the complete backend suite was not independently run in entirety.
 
 ## QA Decision
 
