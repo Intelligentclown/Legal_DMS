@@ -72,7 +72,7 @@ from tests.support.synthetic_migration import (
     provision_disposable_database_with,
 )
 
-HEAD = "c4e7a9b2d6f1"
+HEAD = "5d8a3f2e9c6b"
 PARENT_HEAD = "9c4a7e2d1b5f"
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]

@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_en
 
 from app.infrastructure.database.session import get_engine
 
-REVISION = "c4e7a9b2d6f1"
+REVISION = "5d8a3f2e9c6b"
 _LOCK_KEY = "legal_dms.initial-install.v1"
 
 
