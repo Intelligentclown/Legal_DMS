@@ -3862,3 +3862,16 @@ remains unresolved; and T126+ is unauthorized.
 **Future Candidate:** **Matter/Property Tenant-and-Canonical-Relationship Schema Foundation** is recommendation only, unnumbered and unauthorized pending separate Project Manager/owner selection and authorization. No T132 row/reservation/authorization or implementation branch was created.
 
 **State After Synchronization:** T131 Done; `latestTaskDone = T131`; `latestTaskAuthorized = T131`; `inProgressTransitions = []`; T132+ unauthorized. No production/runtime/schema/migration/database work occurred.
+
+
+## Session: 2026-09-22 — T132 Post-QA Documentation Synchronization on PR #236
+
+**Objective:** Synchronize QA-approved T132 under ordinary `PROJECT_WORKFLOW.md §3` on existing PR #236 without modifying implementation/tests/migration/QA evidence, merging, changing ADR/Required-ADR state, performing Project Delivery Roadmap work, or authorizing T133+.
+
+**Verified Before Editing:** `origin/main` was `c25cf58b17fd586e110d57d52540db16a7b4e341`. PR #236 was open/non-draft/unmerged at QA evidence head `34e7ce2765792ef983e26d7fcbbd64c6a8fdb8fa`, based on current main. Governance was latest Done T131 / Authorized T132 / empty transitions; Required ADR #20 unresolved; ADR-0039 Proposed; T133+ unauthorized. Backend, Frontend, Governance and Release workflows were successful at the exact pre-sync QA head.
+
+**QA History Preserved:** QA pass #1 reviewed `93b4d7e6791f7a9b9042b1ebfd1a57ffd70386fc` and recorded **Rework required** at `d2f2b076f0766ba843780d2576809664658ca526` because the operational-fresh provenance integration test still expected `5d8a3f2e9c6b`. Remediation `40b6c95789352614206fd1eb66361b170aff2923` changed only that stale test-head expectation to `7f1b9c3d4a2e`. Re-QA **Approved** the remediation at evidence commit `34e7ce2765792ef983e26d7fcbbd64c6a8fdb8fa`, with 66/66 targeted affected/historical PostgreSQL regressions passing and clean ruff/black/diff checks. The full backend suite was not independently run in entirety.
+
+**Documentation Updated:** synchronized Phase27, T132 queue/governance frontier, project status, handover and this session summary. Detailed implementation and QA evidence remain in the phase log and QA review/Git history.
+
+**State After Synchronization:** T132 Done in ordinary pre-merge §3 convention; latest Done/Authorized T132; empty transitions; Required ADR #20 unresolved; ADR-0039 Proposed; T133+ unauthorized; PR #236 remains open/unmerged.

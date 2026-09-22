@@ -1,6 +1,6 @@
 # Stage 3 - Phase 27
 
-Status: Implementation complete; awaiting independent Antigravity QA
+Status: Implementation complete; independent re-QA Approved after bounded rework; post-QA governance synchronized; PR #236 pending final merge
 
 Started: 2026-09-22
 
@@ -63,6 +63,13 @@ The full regression suite and independent QA remain outstanding.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
+
+### QA lifecycle
+
+- **QA pass #1 — Rework required.** Independent QA reviewed `93b4d7e6791f7a9b9042b1ebfd1a57ffd70386fc`; evidence commit `d2f2b076f0766ba843780d2576809664658ca526` recorded the blocking stale operational-fresh provenance expectation (`5d8a3f2e9c6b` instead of T132 head `7f1b9c3d4a2e`).
+- **Bounded remediation.** Commit `40b6c95789352614206fd1eb66361b170aff2923` changed exactly that stale test-head expectation in `backend/tests/integration/test_operational_fresh_provenance.py`; no production implementation or migration changed.
+- **QA pass #2 — Approved.** Independent re-QA reviewed remediation head `40b6c95789352614206fd1eb66361b170aff2923`; final QA evidence commit `34e7ce2765792ef983e26d7fcbbd64c6a8fdb8fa` records 66/66 targeted affected/historical PostgreSQL regression tests passing, ruff clean, black clean and diff-check clean. The complete backend suite was not independently run in entirety, so no full-suite-pass claim is made.
+- Exact pre-synchronization QA-head CI was green for Backend, Frontend, Governance and Release.
