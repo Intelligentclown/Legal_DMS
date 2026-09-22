@@ -138,7 +138,9 @@ async def _address_grants(url: str) -> dict[str, set[str]]:
 
 @pytest.fixture(scope="module")
 def migrated_db() -> str:
-    url, db_name = provision_disposable_database_with("legal_dms_t130_permissions", upgrade_target=NEW_HEAD)
+    url, db_name = provision_disposable_database_with(
+        "legal_dms_t130_permissions", upgrade_target=NEW_HEAD
+    )
     try:
         yield url
     finally:
