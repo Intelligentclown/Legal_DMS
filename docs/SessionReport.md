@@ -3845,3 +3845,20 @@ remains unresolved; and T126+ is unauthorized.
 **Outcome/Boundaries:** Address CRUD, permissions/grants, tenant/RLS/geography/delete behavior, Party compatibility and operational-fresh supported-revision extension are recorded without changing ADR-0037 semantics or PartyWriteGate. The six developer broad-run auditing failures remain explicitly qualified by QA's 84/84 isolated clean pass and non-T130-flake finding. Required ADR #20 remains unresolved; ADR-0038/0037/0036 Proposed; T131+ unauthorized.
 
 **State After Synchronization:** T130 Done in ordinary pre-merge §3 convention; latest Done/Authorized T130; empty transitions; PR #231 remains open/unmerged.
+
+
+## Session: 2026-09-22 — T131 §3.1 Governance Closeout
+
+**Objective:** Close T131 only after architecture+QA PR #233 merged, without implementing cutover work, changing ADR status, resolving Required ADR #20, modifying PartyWriteGate, creating migrations, or authorizing/numbering T132+.
+
+**Verified Before Editing:** `origin/main` was `8c33c7e28b8a9e5d7cc5de92be2cdccc7e98c6d4`, the protected merge of PR #233 with parents authorization baseline `0933dc765693a62499be78d68256e8ea70988f71` and final architecture+QA head `fca91f02c071ebfc1bfce0c81d070816ce95a2f8`. Authorization PR #232 merged from final head `9e9f05e53e59361ba4d063e1ddea8a2e96b27160`. Independent QA **Decision: Approved** for exact architecture head `7912cd73388f08e5cade9357827900dffec347e9`.
+
+**Documentation Updated:** marked T131 Done in `IMPLEMENTATION_QUEUE.md`, synchronized `PROJECT_STATE.json.governanceLedger.latestTaskDone`, and appended compact project-status/handover/session summaries. Accepted ADR-0039 and architecture/QA review artifacts were left unchanged.
+
+**Outcome Preserved:** T131 completed architecture only. ADR-0039 selects staged canonical switch with compatibility shadows: Party is canonical for target/new business, Client remains transitional source/evidence, operational-fresh new business does not manufacture Client identity or dual-write Party back to Client, and later Matter/Property cutovers move canonical relationships toward MatterParty and PropertyOwner.party_id. PartyWriteGate remains unchanged; MIGRATED alone is insufficient for ordinary Party writes; tenant/RLS prerequisites and separately governed destructive-retirement gates remain mandatory.
+
+**Required-ADR/ADR State:** Required ADR #20, “Migration strategy from the current schema,” remains unresolved because Matter `property_id`/`matter_type_id`, Document/Matter→File and other downstream migration/backfill seams remain outside T131. Unresolved Required ADRs remain `[10, 11, 12, 15, 16, 17, 20]`. ADR-0036/0037/0038/0039 remain Proposed.
+
+**Future Candidate:** **Matter/Property Tenant-and-Canonical-Relationship Schema Foundation** is recommendation only, unnumbered and unauthorized pending separate Project Manager/owner selection and authorization. No T132 row/reservation/authorization or implementation branch was created.
+
+**State After Synchronization:** T131 Done; `latestTaskDone = T131`; `latestTaskAuthorized = T131`; `inProgressTransitions = []`; T132+ unauthorized. No production/runtime/schema/migration/database work occurred.
