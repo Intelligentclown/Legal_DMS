@@ -24,7 +24,7 @@ from tests.support.synthetic_migration import (
     provision_empty_disposable_database,
 )
 
-HEAD = "5d8a3f2e9c6b"
+HEAD = "7f1b9c3d4a2e"
 EVENTS = "legal_dms_provenance.installation_events"
 
 pytestmark = pytest.mark.asyncio
@@ -41,7 +41,7 @@ def blank_database() -> Iterator[tuple[str, str]]:
 
 @pytest.fixture
 def upgraded_database() -> Iterator[tuple[str, str]]:
-    url, name = provision_disposable_database_with("legal_dms_t126_upgrade")
+    url, name = provision_disposable_database_with("legal_dms_t126_upgrade", upgrade_target=HEAD)
     try:
         yield url, name
     finally:

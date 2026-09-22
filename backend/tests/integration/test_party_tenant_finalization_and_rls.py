@@ -88,7 +88,7 @@ def disposable_db() -> Iterator[tuple[str, str]]:
     """One disposable PostgreSQL database migrated to the repository head
     (which is now the T124 head), created on first use and destroyed +
     disposal-confirmed in teardown."""
-    url, db_name = provision_disposable_database_with("legal_dms_t123_rls")
+    url, db_name = provision_disposable_database_with("legal_dms_t123_rls", upgrade_target=HEAD)
     try:
         yield url, db_name
     finally:

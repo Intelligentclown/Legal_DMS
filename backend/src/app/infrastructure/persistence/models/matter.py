@@ -66,11 +66,14 @@ class Matter(Base, AuditMixin, OptimisticLockMixin):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     matter_number: Mapped[str] = mapped_column(String(50), unique=True)
     matter_type_id: Mapped[UUID] = mapped_column(ForeignKey("matter_types.id"), index=True)
     matter_status_id: Mapped[UUID] = mapped_column(ForeignKey("matter_statuses.id"), index=True)
-    client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
+    # ADR-0039/T132: legacy compatibility/evidence shadow.  New operational-fresh
+    # Matters participate through MatterParty and therefore do not manufacture a
+    # Client row; existing non-null Client links remain FK- and tenant-checked.
+    client_id: Mapped[UUID | None] = mapped_column(ForeignKey("clients.id"), index=True)
     property_id: Mapped[UUID | None] = mapped_column(ForeignKey("properties.id"), index=True)
     assigned_to: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"), index=True)
     title: Mapped[str] = mapped_column(String(255))

@@ -22,10 +22,11 @@ from app.application.interfaces.install_classifier import (
 
 # T126 binds both values into immutable operational-transition evidence. A
 # future revision must explicitly extend the supported runtime contract. T130
-# extended the contract to `5d8a3f2e9c6b` (the first post-frontier migration)
+# extended the contract to `5d8a3f2e9c6b`; T132 advances the supported head
+# while preserving the same immutable provenance contract.
 # by recreating the provenance functions' `alembic_version` guards.
 _PROVENANCE_CONTRACT_VERSION = "adr-0037.v1"
-_SUPPORTED_SCHEMA_REVISION = "5d8a3f2e9c6b"
+_SUPPORTED_SCHEMA_REVISION = "7f1b9c3d4a2e"
 _OPERATIONAL_EVENT_KIND = "OPERATIONAL_FRESH_ENTERED"
 _RUNTIME_STATE_VIEW = "legal_dms_provenance.runtime_state"
 
