@@ -28,7 +28,9 @@ Context Manifest derived deterministically from existing repository evidence.
 - Added canonical JSON manifest generation with schema, derivation, and source-set versions.
 - Reused governance validator semantic functions for task frontier, Required ADR, ADR metadata,
   and governance-ledger consistency rather than parsing validator presentation output.
-- Added fail-closed diagnostics for invalid/conflicting authoritative evidence.
+- Added fail-closed diagnostics for invalid/conflicting authoritative evidence, including dangling
+  queue ADR references and modified authoritative source files that cannot truthfully be labelled
+  as local Git `HEAD`.
 
 ## Files Modified
 
@@ -38,18 +40,22 @@ Context Manifest derived deterministically from existing repository evidence.
 
 ## Tests Added
 
-- Determinism, no wall-clock field, source commit, frontier, Required ADR, ledger-drift, and
-  offline/no-fetch coverage for the manifest generator.
+- Determinism, no wall-clock field, source commit, frontier, Required ADR, ledger-drift, duplicate
+  task, dangling ADR reference, missing ADR status, dirty authoritative source, and offline/no-fetch
+  coverage for the manifest generator.
 
 ## Test Results
 
-- `python -m unittest scripts.tests.test_current_context_manifest scripts.tests.test_governance_validate`: 55 passed.
+- `python scripts/tests/test_current_context_manifest.py -v`: 7 passed.
+- `python scripts/tests/test_governance_validate.py -v`: 51 passed.
 - `python scripts/governance_validate.py`: passed. `git diff --check`: clean.
 
 ## Design Decisions
 
 - The allow-listed source set is `IMPLEMENTATION_QUEUE.md`, `PROJECT_STATE.json`, numbered ADRs,
   and local Git `HEAD` only. The output is disposable and never committed as a generated artifact.
+- Dirty checking is intentionally limited to the authoritative file classes above, so irrelevant
+  untracked/generated files do not prevent an otherwise truthful manifest source identity.
 
 ## Problems Encountered
 

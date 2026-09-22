@@ -45,8 +45,55 @@ class TestCurrentContextManifest(unittest.TestCase):
             with patch.object(manifest.governance, "find_repo_root", return_value=root), patch.object(
                 manifest, "_git_commit", return_value="a" * 40
             ):
-                with self.assertRaises(manifest.ManifestError):
+                with self.assertRaises(manifest.ManifestError) as caught:
                     manifest.build(root)
+            self.assertEqual(caught.exception.diagnostics[0]["class"], "conflicting")
+
+    def test_duplicate_task_and_dangling_adr_reference_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "ADR").mkdir()
+            (root / "ADR" / "0001-a.md").write_text(
+                "# ADR-0001: A\n\n**Status:** Proposed\n\n**Resolves:** Required ADR #1.\n\n", encoding="utf-8"
+            )
+            (root / "PROJECT_STATE.json").write_text("{}", encoding="utf-8")
+            with patch.object(manifest.governance, "find_repo_root", return_value=root), patch.object(
+                manifest, "_git_commit", return_value="a" * 40
+            ):
+                (root / "IMPLEMENTATION_QUEUE.md").write_text(
+                    "| T1 | Authorized by the project owner. |\n| T1 | duplicate |\n", encoding="utf-8"
+                )
+                with self.assertRaises(manifest.ManifestError) as caught:
+                    manifest.build(root)
+                self.assertEqual(caught.exception.diagnostics[0]["code"], "duplicate-task-id")
+                (root / "IMPLEMENTATION_QUEUE.md").write_text("Queue references `ADR/9999`.\n", encoding="utf-8")
+                with self.assertRaises(manifest.ManifestError) as caught:
+                    manifest.build(root)
+                self.assertEqual(caught.exception.diagnostics[0]["code"], "dangling-adr-reference")
+
+    def test_missing_adr_status_is_unverified_not_guessed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "ADR").mkdir()
+            (root / "ADR" / "0001-a.md").write_text("# ADR-0001: A\n", encoding="utf-8")
+            (root / "IMPLEMENTATION_QUEUE.md").write_text("", encoding="utf-8")
+            (root / "PROJECT_STATE.json").write_text("{}", encoding="utf-8")
+            with patch.object(manifest.governance, "find_repo_root", return_value=root), patch.object(
+                manifest, "_git_commit", return_value="a" * 40
+            ):
+                payload = manifest.build(root)
+            self.assertIsNone(payload["adr_statuses"]["ADR-0001"]["value"])
+            self.assertEqual(payload["adr_statuses"]["ADR-0001"]["provenance"], "unverified")
+
+    def test_dirty_authoritative_source_fails_before_head_is_reported(self) -> None:
+        root = self._root()
+        with patch.object(manifest, "_authoritative_worktree_changes", return_value=["IMPLEMENTATION_QUEUE.md"]), patch.object(
+            manifest, "_git_commit"
+        ) as commit:
+            with self.assertRaises(manifest.ManifestError) as caught:
+                manifest.build(root)
+        commit.assert_not_called()
+        self.assertEqual(caught.exception.diagnostics[0]["code"], "dirty-authoritative-source")
 
     def test_generation_does_not_use_network(self) -> None:
         with patch("subprocess.run", wraps=subprocess.run) as run:
