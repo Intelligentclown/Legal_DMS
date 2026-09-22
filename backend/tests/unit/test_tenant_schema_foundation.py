@@ -25,13 +25,12 @@ TENANT_TABLES = {
     "client_contacts": ClientContact,
 }
 
-# At the repository head, `addresses` is no longer a nullable-staged tenant
-# table: T122 finalizes its `organization_id` to NOT NULL (with its own RLS
-# backstop + model contract asserted in
-# `tests/unit/test_address_tenant_finalization_foundation.py`). The other
-# tables retain the staged-nullable contract this test asserts.
+# At the repository head, `addresses` (T122) and `matters` (T132) are no
+# longer nullable-staged tenant tables. Their finalized model/RLS contracts
+# are asserted by their dedicated foundation suites; the remaining tables
+# retain the staged-nullable contract this historical test asserts.
 STAGED_NULLABLE_TABLES = {
-    name: model for name, model in TENANT_TABLES.items() if name != "addresses"
+    name: model for name, model in TENANT_TABLES.items() if name not in {"addresses", "matters"}
 }
 
 
