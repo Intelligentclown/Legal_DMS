@@ -90,6 +90,7 @@ Party-canonical operational-fresh ownership without manufacturing Client data.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
+
