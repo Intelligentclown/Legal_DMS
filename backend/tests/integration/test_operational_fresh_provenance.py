@@ -24,7 +24,7 @@ from tests.support.synthetic_migration import (
     provision_empty_disposable_database,
 )
 
-HEAD = "7f1b9c3d4a2e"
+HEAD = "9e6a4b2c8d1f"
 EVENTS = "legal_dms_provenance.installation_events"
 
 pytestmark = pytest.mark.asyncio

@@ -26,7 +26,7 @@ from tests.support.synthetic_migration import (
 )
 
 PARENT = "5d8a3f2e9c6b"
-HEAD = "7f1b9c3d4a2e"
+HEAD = "9e6a4b2c8d1f"
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 
