@@ -3884,3 +3884,14 @@ remains unresolved; and T126+ is unauthorized.
 **Verified evidence:** QA reviewed implementation head `3f0f75eb7859ab14158daf3d3edf587ad307c89e`; QA evidence commit `5dd014365b046512ce598d1d472e8aa0f541a677` is one descendant commit changing only `docs/ImplementationLog/Stage3/Phase28.md` and records **QA Decision: Approved**. Exact QA-head Governance, Backend, Frontend and Release workflows were successful.
 
 **State after synchronization:** T133 is Done in the repository's ordinary pre-merge §3 convention; latest Done/authorized are T133 and transitions remain empty. PR #238 remains open/unmerged. Required ADR #20 remains unresolved; ADR-0036/0037/0038/0039 remain Proposed; T134+ remains unauthorized. Detailed implementation and QA evidence remain canonical in `docs/ImplementationLog/Stage3/Phase28.md`.
+
+
+## Session: 2026-09-23 — T134 Post-QA Governance Synchronization on PR #240
+
+**Objective:** Synchronize independently QA-approved T134 under ordinary `PROJECT_WORKFLOW.md §3` on existing PR #240 without modifying implementation/tests/migrations, merging, or authorizing successor work.
+
+**Verified evidence:** QA reviewed implementation `801a4682f30dbab9804b9d35f30dedd2f90fbcf9`. Original QA evidence `b452e3cb09a1d75bb34fb3003aaef77bbadf4c5d` and correction `a8540831d09e51047a1d49e1f28958ca31f88db9` are documentation-only descendants changing only `docs/ImplementationLog/Stage3/Phase29.md`. The corrected durable record contains **Independent QA Verification** with formal **Approved** verdict, independent test/quality/governance evidence and no blocking or non-blocking findings.
+
+**Documentation Updated:** synchronized the T134 queue/governance frontier, project status, handover and this session summary. Phase29 remains QA-owned and was not rewritten by Documentation Manager.
+
+**State After Synchronization:** T134 Done in ordinary pre-merge §3 convention; latest Done/Authorized T134; empty transitions; T135+ unauthorized; Required ADR #20 unresolved; ADR-0036/0037/0038/0039 Proposed; Alembic frontier `9e6a4b2c8d1f`; PartyWriteGate and provenance/classifier state unchanged; PR #240 remains open/unmerged.
