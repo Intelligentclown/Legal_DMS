@@ -84,7 +84,9 @@ class TestBridgeSchemaFoundation:
             )
             assert f"ix_{table.name}_party_id" in {index.name for index in table.indexes}
             assert table.c.client_id is not None
-            assert table.c.organization_id.nullable is True
+            # T133 finalizes the PropertyOwner tenant boundary; the other
+            # historical bridge tables remain staged by their own contracts.
+            assert table.c.organization_id.nullable is (table.name != "property_owners")
 
     def test_upgrade_adds_only_nullable_bridge_schema(self) -> None:
         module = _migration_module()

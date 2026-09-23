@@ -25,12 +25,15 @@ TENANT_TABLES = {
     "client_contacts": ClientContact,
 }
 
-# At the repository head, `addresses` (T122) and `matters` (T132) are no
+# At the repository head, `addresses` (T122), `matters` (T132), and
+# `properties`/`property_owners` (T133) are no
 # longer nullable-staged tenant tables. Their finalized model/RLS contracts
 # are asserted by their dedicated foundation suites; the remaining tables
 # retain the staged-nullable contract this historical test asserts.
 STAGED_NULLABLE_TABLES = {
-    name: model for name, model in TENANT_TABLES.items() if name not in {"addresses", "matters"}
+    name: model
+    for name, model in TENANT_TABLES.items()
+    if name not in {"addresses", "matters", "properties", "property_owners"}
 }
 
 

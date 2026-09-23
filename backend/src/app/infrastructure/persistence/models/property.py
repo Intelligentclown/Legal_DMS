@@ -45,7 +45,10 @@ class Property(Base, AuditMixin, OptimisticLockMixin):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
+    # T133 finalizes Property's Organization tenant boundary.  The composite
+    # relationships below make this the authoritative tenant for its Address
+    # and PropertyOwner graph.
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     property_type: Mapped[str] = mapped_column(String(20), default="agricultural")
     survey_number: Mapped[str] = mapped_column(String(50), index=True)
     sub_division_number: Mapped[str | None] = mapped_column(String(50))
@@ -83,9 +86,11 @@ class PropertyOwner(Base, AuditMixin):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     property_id: Mapped[UUID] = mapped_column(ForeignKey("properties.id"), index=True)
-    client_id: Mapped[UUID] = mapped_column(ForeignKey("clients.id"), index=True)
+    # Client is a retained compatibility/evidence shadow.  New operational-
+    # fresh ownership is Party-canonical and must not manufacture a Client.
+    client_id: Mapped[UUID | None] = mapped_column(ForeignKey("clients.id"), index=True)
     party_id: Mapped[UUID | None] = mapped_column(index=True)
     ownership_share: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     ownership_type: Mapped[str] = mapped_column(String(50), default="owner")
