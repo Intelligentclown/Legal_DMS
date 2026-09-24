@@ -33,7 +33,7 @@ from tests.support.synthetic_migration import (
     provision_empty_disposable_database,
 )
 
-HEAD = "9e6a4b2c8d1f"
+HEAD = "b8c4d2e1f7a9"
 pytestmark = pytest.mark.asyncio
 
 

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.persistence.models.client import Client
 from app.infrastructure.persistence.models.document import Document, DocumentType, DocumentVersion
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
+from app.infrastructure.persistence.models.organization import Organization
 from app.infrastructure.persistence.models.storage import (
     Backup,
     FileStorageRecord,
@@ -27,12 +28,16 @@ from app.infrastructure.persistence.models.storage import (
 async def _make_document_version(session: AsyncSession) -> DocumentVersion:
     matter_type = MatterType(code=f"TYPE-{uuid4()}", name="Sale")
     status = MatterStatus(code=f"STATUS-{uuid4()}", name="Open")
-    client = Client(full_name="Client", primary_phone="9876543210")
+    organization = Organization(name=f"Org-{uuid4()}")
     doc_type = DocumentType(code=f"DT-{uuid4()}", name="Deed")
-    session.add_all([matter_type, status, client, doc_type])
+    session.add_all([organization, matter_type, status, doc_type])
+    await session.flush()
+    client = Client(organization_id=organization.id, full_name="Client", primary_phone="9876543210")
+    session.add(client)
     await session.flush()
 
     matter = Matter(
+        organization_id=organization.id,
         matter_number=f"M-{uuid4()}",
         matter_type_id=matter_type.id,
         matter_status_id=status.id,
@@ -43,7 +48,12 @@ async def _make_document_version(session: AsyncSession) -> DocumentVersion:
     session.add(matter)
     await session.flush()
 
-    document = Document(matter_id=matter.id, document_type_id=doc_type.id, title="Deed")
+    document = Document(
+        organization_id=organization.id,
+        matter_id=matter.id,
+        document_type_id=doc_type.id,
+        title="Deed",
+    )
     session.add(document)
     await session.flush()
 

@@ -17,7 +17,16 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -64,9 +73,24 @@ class DocumentVariable(Base):
 
 class Document(Base, AuditMixin, OptimisticLockMixin):
     __tablename__ = "documents"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id", name="uq_documents_organization_id_id"),
+        ForeignKeyConstraint(
+            ["organization_id", "matter_id"],
+            ["matters.organization_id", "matters.id"],
+            name="fk_documents_organization_id_matters",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "matter_id", "file_id"],
+            ["files.organization_id", "files.matter_id", "files.id"],
+            name="fk_documents_organization_id_matter_id_files",
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     matter_id: Mapped[UUID] = mapped_column(ForeignKey("matters.id"), index=True)
+    file_id: Mapped[UUID | None] = mapped_column(index=True)
     document_type_id: Mapped[UUID] = mapped_column(ForeignKey("document_types.id"), index=True)
     title: Mapped[str] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(50), default="draft")
