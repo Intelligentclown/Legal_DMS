@@ -26,7 +26,7 @@ from app.application.interfaces.install_classifier import (
 # while preserving the same immutable provenance contract.
 # by recreating the provenance functions' `alembic_version` guards.
 _PROVENANCE_CONTRACT_VERSION = "adr-0037.v1"
-_SUPPORTED_SCHEMA_REVISION = "9e6a4b2c8d1f"
+_SUPPORTED_SCHEMA_REVISION = "b8c4d2e1f7a9"
 _OPERATIONAL_EVENT_KIND = "OPERATIONAL_FRESH_ENTERED"
 _RUNTIME_STATE_VIEW = "legal_dms_provenance.runtime_state"
 

@@ -19,6 +19,7 @@ from app.infrastructure.persistence.models.document import (
     DocumentVersion,
 )
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
+from app.infrastructure.persistence.models.organization import Organization
 from app.infrastructure.persistence.models.storage import FileStorageRecord
 
 
@@ -44,11 +45,15 @@ async def _make_file_record(session: AsyncSession) -> FileStorageRecord:
 async def _make_matter(session: AsyncSession) -> Matter:
     matter_type = MatterType(code=f"TYPE-{uuid4()}", name="Sale")
     status = MatterStatus(code=f"STATUS-{uuid4()}", name="Open")
-    client = Client(full_name="Client", primary_phone="9876543210")
-    session.add_all([matter_type, status, client])
+    organization = Organization(name=f"Org-{uuid4()}")
+    session.add_all([organization, matter_type, status])
+    await session.flush()
+    client = Client(organization_id=organization.id, full_name="Client", primary_phone="9876543210")
+    session.add(client)
     await session.flush()
 
     matter = Matter(
+        organization_id=organization.id,
         matter_number=f"M-{uuid4()}",
         matter_type_id=matter_type.id,
         matter_status_id=status.id,
@@ -121,7 +126,11 @@ class TestDocumentVariable:
 class TestDocumentAndVersions:
     async def test_document_requires_a_valid_matter(self, db_session: AsyncSession) -> None:
         doc_type = await _make_document_type(db_session)
-        db_session.add(Document(matter_id=uuid4(), document_type_id=doc_type.id, title="x"))
+        db_session.add(
+            Document(
+                organization_id=uuid4(), matter_id=uuid4(), document_type_id=doc_type.id, title="x"
+            )
+        )
 
         with pytest.raises(IntegrityError):
             await db_session.flush()
@@ -129,7 +138,12 @@ class TestDocumentAndVersions:
     async def test_version_number_unique_within_document(self, db_session: AsyncSession) -> None:
         matter = await _make_matter(db_session)
         doc_type = await _make_document_type(db_session)
-        document = Document(matter_id=matter.id, document_type_id=doc_type.id, title="Deed")
+        document = Document(
+            organization_id=matter.organization_id,
+            matter_id=matter.id,
+            document_type_id=doc_type.id,
+            title="Deed",
+        )
         db_session.add(document)
         await db_session.flush()
 
@@ -156,7 +170,12 @@ class TestDocumentAndVersions:
     ) -> None:
         matter = await _make_matter(db_session)
         doc_type = await _make_document_type(db_session)
-        document = Document(matter_id=matter.id, document_type_id=doc_type.id, title="Deed")
+        document = Document(
+            organization_id=matter.organization_id,
+            matter_id=matter.id,
+            document_type_id=doc_type.id,
+            title="Deed",
+        )
         db_session.add(document)
         await db_session.flush()
 

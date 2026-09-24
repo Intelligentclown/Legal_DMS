@@ -16,6 +16,7 @@ therefore `alembic revision --autogenerate` — sees every table.
 from app.infrastructure.persistence.models import activity as activity
 from app.infrastructure.persistence.models import client as client
 from app.infrastructure.persistence.models import document as document
+from app.infrastructure.persistence.models import file as file
 from app.infrastructure.persistence.models import financial as financial
 from app.infrastructure.persistence.models import geography as geography
 from app.infrastructure.persistence.models import identity as identity

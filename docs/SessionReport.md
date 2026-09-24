@@ -3918,3 +3918,13 @@ remains unresolved; and T126+ is unauthorized.
 **Required-ADR State:** Required ADR #10 is resolved by ADR-0040. Required ADR #20 remains globally unresolved; unresolved Required ADRs are `[11, 12, 15, 16, 17, 20]`.
 
 **Scope/State After Synchronization:** T136 Done; `latestTaskDone = T136`; `latestTaskAuthorized = T136`; `inProgressTransitions = []`; T137+ unauthorized. No File/Document implementation, production/runtime/schema/migration/test/database work occurred; Alembic remains `9e6a4b2c8d1f`. ADR-0040's six future implementation slices remain unnumbered and unauthorized.
+
+## Session: 2026-09-24 — T137 Post-QA Governance Synchronization on PR #247
+
+**Objective:** Synchronize independently QA-approved T137 under ordinary `PROJECT_WORKFLOW.md §3` on existing PR #247 without modifying implementation/tests/migration/RLS/provenance behavior, merging, or authorizing successor work.
+
+**Verified evidence:** `origin/main` is authorization merge `34cf5154248bcecb14d4b1aa39e797f8d74a6c08`. QA reviewed exact implementation `42baef57ae5f305d84fbe4bcf28d83bd935d3f2f`; QA evidence `ce56815c5f9ebcae30c997214631ac60e6dfb44b` changes only Phase31 and records Independent QA Reviewer / Antigravity, Formal Verdict **Approved**, 4 focused disposable PostgreSQL tests passed, Ruff clean, Black 257 files unchanged, governance validator clean, `git diff --check` clean, no findings, and successful Backend/Frontend/Governance/Release workflows.
+
+**Documentation Updated:** synchronized T137 queue/governance frontier, project status, handover and this session summary. Phase31 remains QA-owned and was not rewritten.
+
+**State After Synchronization:** T137 Done in ordinary pre-merge §3 convention; migration frontier/support revision `b8c4d2e1f7a9`; latest Done/Authorized T137; empty transitions; T138+ unauthorized; Required ADR #20 unresolved; unresolved Required ADRs `[11, 12, 15, 16, 17, 20]`; ADR-0036/0037/0038/0039/0040 Proposed. File remains persistence-only; PR #247 remains open/unmerged pending final Git/CI gates.
