@@ -4,7 +4,7 @@
 **Date:** 2026-09-24  
 **Related task:** T136 — File/Document Transition and Current-Schema Migration Architecture.
 
-**Resolves, subject to independent QA and §3.1 governance closeout:** Required ADR #10, “Document/File relationship” — the exact `documents.matter_id` → `documents.file_id` relationship and migration mechanics.
+**Resolves:** Required ADR #10, “Document/File relationship” — the exact `documents.matter_id` → `documents.file_id` relationship and migration mechanics. Independent QA approved the architecture and the §3.1 architecture PR merged; T136 governance closeout records the completed resolution.
 
 **Advances but does not resolve:** Required ADR #20, “Migration strategy from the current schema.” T136 settles only the File/Document seam. Matter `property_id` / `matter_type_id`, MatterProperty/classification/work-type transitions, remaining Client consumers, ClientContact, Appointment, Invoice, Payment, final Client retirement, and other separately governed current-schema transitions remain unresolved.
 
