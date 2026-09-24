@@ -5,7 +5,7 @@
 **Authorization baseline:** `09229cef3a4e31300edf31a904aa7a443fe80f4b`  
 **Authorization PR:** #243  
 **Architecture ADR:** `ADR/0040-file-document-transition-current-schema-migration.md`  
-**QA Decision:** _Pending independent QA_
+**QA Decision:** Approved by Independent QA Reviewer
 
 ## 1. Baseline and authorization
 
@@ -99,4 +99,4 @@ No STOP condition was triggered. Authorization is valid; ADR-0027/0030 do not co
 
 Independent QA must review the exact published architecture head, not this chat. Verify ADR-0040 against repository evidence and its own acceptance criteria, especially no synthetic File, direct Document tenant ownership, composite mismatch prevention, downgrade refusal, #10 resolution claim, #20 boundedness, and absence of implementation/schema/test changes.
 
-**QA Decision:** _Pending independent QA. Software Architect must not fill this section._
+**QA Decision:** Approved (see `docs/reviews/T136_QA_Review.md`)
