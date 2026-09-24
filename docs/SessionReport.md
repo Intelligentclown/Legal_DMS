@@ -3895,3 +3895,14 @@ remains unresolved; and T126+ is unauthorized.
 **Documentation Updated:** synchronized the T134 queue/governance frontier, project status, handover and this session summary. Phase29 remains QA-owned and was not rewritten by Documentation Manager.
 
 **State After Synchronization:** T134 Done in ordinary pre-merge §3 convention; latest Done/Authorized T134; empty transitions; T135+ unauthorized; Required ADR #20 unresolved; ADR-0036/0037/0038/0039 Proposed; Alembic frontier `9e6a4b2c8d1f`; PartyWriteGate and provenance/classifier state unchanged; PR #240 remains open/unmerged.
+
+
+## Session: 2026-09-24 — T135 Post-QA Governance Synchronization on PR #242
+
+**Objective:** Synchronize independently QA-approved T135 under ordinary `PROJECT_WORKFLOW.md §3` on existing PR #242 without modifying implementation/tests/migrations, merging, or authorizing successor work.
+
+**Verified evidence:** `origin/main` is authorization merge `50a7eb7559b7c307e70d73c0dd7fc1846a3d27db`. QA reviewed exact implementation `2e9226464a5497dc52487f0a333cb4c4c183e9bc`; QA evidence `5ea6f2982dbf8acdd6b616ebe1c06f081814f31a` is its documentation-only child in Phase30 and records Independent QA Reviewer / Antigravity, Formal Verdict **Approved**, exact reviewed SHA, independent test/quality/governance evidence, and no blocking/non-blocking findings. QA-head Backend, Frontend, Governance and Release workflows were successful.
+
+**Documentation Updated:** synchronized T135 queue/governance frontier, project status, handover and this session summary. Phase30 remains QA-owned and was not rewritten. The T134 queue's stale pre-merge sentence was minimally corrected while preserving that it described the earlier synchronization point.
+
+**State After Synchronization:** T135 Done in ordinary pre-merge §3 convention; latest Done/Authorized T135; empty transitions; T136+ unauthorized; Required ADR #20 unresolved; ADR-0036/0037/0038/0039 Proposed; Alembic frontier `9e6a4b2c8d1f`; PartyWriteGate/provenance/classifier unchanged; PR #242 remains open/unmerged pending final Git/CI gates.
