@@ -1,6 +1,6 @@
 # Stage 3 - Phase 30
 
-Status: Implementation complete; awaiting independent QA
+Status: Approved by independent QA
 
 Related Tasks: T135
 
@@ -96,16 +96,53 @@ finalized schema, without creating or manufacturing legacy Client identity.
 - Independent QA should rerun the full application/integration ledger and
   runtime-role/GUC fixtures on the exact implementation head.
 
-## Reviewer Checklist
+## Independent QA Verification
 
-☑ Architecture preserved
-☑ Existing design patterns followed
-☑ Tests added
-☑ Existing affected/regression tests pass
-☑ Documentation updated
-□ ADR updated (if required)
-□ AI_BOOTSTRAP updated (if required)
-□ PROJECT_STATE updated (if required)
-☑ No unrelated refactoring
-☑ No scope creep
-☑ Ready for QA
+- **QA Role:** Independent QA Reviewer / Antigravity
+- **Formal Verdict:** Approved
+- **Exact Implementation Commit Reviewed:** `2e9226464a5497dc52487f0a333cb4c4c183e9bc`
+- **QA Evidence Log Update Target:** `Phase30.md`
+
+### Architectural Acceptance & Domain Invariants
+- **Party-Canonical Creation:** `POST /properties` creates a `Property` with an atomic `PropertyOwner` row setting `party_id = <Party>` and `client_id = NULL`.
+- **Zero Client Manufacture:** Proven independently via disposable PostgreSQL test `test_canonical_create_has_party_only_owners_and_is_scoped`. Count of `Client` rows before and after canonical `POST /properties` is verified identical (`clients_before == clients_after`).
+- **Atomicity:** `SqlAlchemyPropertyRepository.add_with_owners` executes within an `async with self._session.begin_nested():` savepoint. Cross-Organization Party/Address references, invalid Parties, unknown Villages, or duplicate Parties fail closed before aggregate persistence with HTTP 422 (`ValidationError`), leaving 0 Property and 0 PropertyOwner rows.
+- **Organization Authority:** `_require_organization(current_user)` derives tenant identity strictly from `current_user.organization_id` (JWT context). Callers cannot select or override tenant identity. Foreign-tenant owner Parties or Address references fail closed.
+- **Tenant Isolation:** `GET /properties` and `GET /properties/{id}` scope queries strictly by `organization_id`. Cross-tenant Property IDs return HTTP 404 (`NotFoundError`), rendering them invisible across tenants.
+- **Bounded Updates:** `PUT /properties/{id}` permits updating authorized scalar fields (`property_type`, `survey_number`, `sub_division_number`, `area_value`, `area_unit`, `address_id`, `village_id`, `registration_number`). Existing `PropertyOwner` rows are preserved, owner mutation is omitted, `survey_number` cannot be cleared/nullified, and extraneous body fields (e.g., `client_id`) cannot mutate state.
+- **Permission Enforcement:** `properties:read` for GET endpoints, `properties:write` for POST and PUT endpoints. Requests lacking write permission return HTTP 403 (`ForbiddenError`).
+- **Legacy Read Compatibility:** Reads legacy `PropertyOwner` (`client_id != NULL`, `party_id = NULL`) safely without canonical rewrite, Client deletion, or manufactured `Party` rows. `client_id` is exposed only as `legacy_client_id` for read compatibility.
+- **DELETE Omission:** DELETE endpoint is omitted (HTTP 405 `MethodNotAllowedError`), as no governed Property deletion/lifecycle contract exists.
+- **Generic `survey_number` Boundary:** `survey_number` is required on create and non-clearable on update per existing generic Property schema constraints (`NOT NULL`). T135 makes no final domain architectural claim that survey numbers universally identify all Gujarat properties or resolve City Survey/TP/FP records.
+- **Boundary Audits:**
+  - `MatterProperty`, Scheme/Revenue/CitySurvey/TP/FP, File/Document, and Client retirement remain out of scope.
+  - `PartyWriteGate` is unchanged and remains Party-specific.
+  - No Alembic migration added or modified; Alembic head remains `9e6a4b2c8d1f`.
+  - `get_db()` connects as `legal_dms_app` (`NOBYPASSRLS`). Forced PostgreSQL RLS on `properties` and `property_owners` remains active.
+
+### Independent Test Evidence
+- **Focused Property unit & integration suite:** 12 passed (`test_property_routes.py` [3], `test_property_service.py` [9]).
+- **T133 Property foundation & RLS suite:** 3 passed (`test_property_tenant_party_foundation.py`).
+- **T134 Matter routes & foundation suite:** 6 passed (`test_matter_routes.py` [3], `test_matter_tenant_party_foundation.py` [3]).
+- **Party tenant/RLS suite:** 26 passed (`test_party_tenant_finalization_and_rls.py`).
+- **Address tenant/RLS suite:** 25 passed (`test_address_tenant_finalization_and_rls.py`).
+- **Backend unit suite:** 326 passed, 60 warnings, 0 failed.
+- **Key integration regression suite:** 63 passed, 7 skipped (0 failed).
+
+### Independent Quality & Governance Evidence
+- **Ruff:** Clean on all 8 changed files.
+- **Black:** Clean on `backend/src` and `backend/tests` (`255 files left unchanged`).
+- **Governance Validator:** `python scripts/governance_validate.py` returned `OK (0 warning(s), 0 errors)`.
+- **`git diff --check`:** Clean (0 whitespace or syntax issues).
+- **Exact-Head GitHub CI (`2e9226464a5497dc52487f0a333cb4c4c183e9bc`):** All 8 check runs completed successfully.
+
+### QA Findings
+- **Blocking Findings:** None.
+- **Non-Blocking Findings:** None.
+- **Verdict Application:** Approval applies specifically to commit `2e9226464a5497dc52487f0a333cb4c4c183e9bc`.
+
+## QA Decision
+
+☑ Approved
+□ Approved with comments
+□ Rework required
