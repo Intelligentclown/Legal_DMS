@@ -93,4 +93,4 @@
 
 - PR #244 remains open and unmerged.
 - T136 remains Authorized / not Done.
-- Control Tower may proceed with post-QA governance synchronization, merging PR #244, marking T136 Done, resolving Required ADR #10 in governance ledgers, and authorizing successor tasks.
+- Hand back to Control Tower for independent verification of this QA evidence and the exact post-QA PR head. Under §3.1, PR #244 must remain open until merge gates are freshly verified; only after the architecture PR actually merges may a separate governance closeout synchronize T136 completion and the QA-supported Required ADR #10 resolution. No T137+ task is selected or authorized by this QA.
