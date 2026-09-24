@@ -3906,3 +3906,15 @@ remains unresolved; and T126+ is unauthorized.
 **Documentation Updated:** synchronized T135 queue/governance frontier, project status, handover and this session summary. Phase30 remains QA-owned and was not rewritten. The T134 queue's stale pre-merge sentence was minimally corrected while preserving that it described the earlier synchronization point.
 
 **State After Synchronization:** T135 Done in ordinary pre-merge §3 convention; latest Done/Authorized T135; empty transitions; T136+ unauthorized; Required ADR #20 unresolved; ADR-0036/0037/0038/0039 Proposed; Alembic frontier `9e6a4b2c8d1f`; PartyWriteGate/provenance/classifier unchanged; PR #242 remains open/unmerged pending final Git/CI gates.
+
+## Session: 2026-09-24 — T136 §3.1 Governance Closeout
+
+**Objective:** Close T136 only after architecture+QA PR #244 merged, resolve QA-supported Required ADR #10, preserve Required ADR #20 as unresolved, and make no implementation/schema/migration/test or successor-authorization change.
+
+**Verified Before Editing:** `origin/main` was `73bf20ba4c04b63d2580d8b41ec701ce19f21f5d`, the merge of PR #244 with parents authorization baseline `09229cef3a4e31300edf31a904aa7a443fe80f4b` and final architecture+QA head `7211988b03e00d5ac3e6ad907d64f843b5cb14d9`. Authorization PR #243 merged from head `ee9368cc79430ee4e05c5896033b2a58c4b6d093`. Independent QA **Approved** exact architecture `c89a8ea6d7be72088fcd8d39188513077a779312`; primary QA evidence is `c77dfc3403b82b37e25a0afa4bd3a9e17ccb0836`, with no blocking or non-blocking findings.
+
+**Documentation Updated:** ADR-0040's Required-ADR resolution metadata now records Required ADR #10 as resolved after its QA/merge/closeout gates; `PROJECT_STATE.json` synchronizes the Required-ADR ledger and `latestTaskDone`; `IMPLEMENTATION_QUEUE.md` marks T136 Done; project status/handover/session summaries record the bounded closeout. ADR-0040 remains Proposed and its architecture is not rewritten.
+
+**Required-ADR State:** Required ADR #10 is resolved by ADR-0040. Required ADR #20 remains globally unresolved; unresolved Required ADRs are `[11, 12, 15, 16, 17, 20]`.
+
+**Scope/State After Synchronization:** T136 Done; `latestTaskDone = T136`; `latestTaskAuthorized = T136`; `inProgressTransitions = []`; T137+ unauthorized. No File/Document implementation, production/runtime/schema/migration/test/database work occurred; Alembic remains `9e6a4b2c8d1f`. ADR-0040's six future implementation slices remain unnumbered and unauthorized.
