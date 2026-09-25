@@ -1,6 +1,6 @@
 {
   "project": "Legal Document & Matter Management System",
-  "lastUpdated": "2026-09-24",
+  "lastUpdated": "2026-09-25",
   "currentStage": {
     "id": "stage-3",
     "name": "Authentication & Authorization",
@@ -27,31 +27,24 @@
       8,
       9,
       10,
+      11,
       13,
       14,
       18,
       19
     ],
     "unresolvedRequiredADRs": [
-      11,
       12,
       15,
       16,
       17,
       20
     ],
-    "latestTaskDone": "T139",
+    "latestTaskDone": "T140",
     "latestTaskAuthorized": "T140",
     "asOfCommit": "2de16906b163ff9988ea97378af980fe327a70b0",
     "validator": "scripts/governance_validate.py",
-    "inProgressTransitions": [
-      {
-        "task": "T140",
-        "requiredAdrs": [
-          11
-        ]
-      }
-    ]
+    "inProgressTransitions": []
   },
   "documentation": {
     "architectureScorecard": "docs/ArchitectureScorecard.md",
