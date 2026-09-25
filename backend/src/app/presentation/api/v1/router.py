@@ -8,6 +8,7 @@ from fastapi import APIRouter
 from app.presentation.api.v1 import (
     addresses,
     auth,
+    documents,
     files,
     health,
     matters,
@@ -20,6 +21,7 @@ from app.presentation.api.v1 import (
 router = APIRouter()
 router.include_router(addresses.router, tags=["addresses"])
 router.include_router(auth.router, tags=["auth"])
+router.include_router(documents.router, tags=["documents"])
 router.include_router(files.router, tags=["files"])
 router.include_router(health.router, tags=["health"])
 router.include_router(matters.router, tags=["matters"])
