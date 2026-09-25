@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,8 +30,16 @@ async def _make_document_type(session: AsyncSession) -> DocumentType:
     return doc_type
 
 
-async def _make_file_record(session: AsyncSession) -> FileStorageRecord:
+async def _set_org_context(session: AsyncSession, organization_id: object) -> None:
+    await session.execute(
+        text("SELECT set_config('app.current_organization_id', :org, true)"),
+        {"org": str(organization_id)},
+    )
+
+
+async def _make_file_record(session: AsyncSession, organization_id: object) -> FileStorageRecord:
     record = FileStorageRecord(
+        organization_id=organization_id,
         file_path=f"/storage/{uuid4()}.pdf",
         original_filename="deed.pdf",
         size_bytes=1024,
@@ -63,12 +71,17 @@ async def _make_matter(session: AsyncSession) -> Matter:
     )
     session.add(matter)
     await session.flush()
+    await _set_org_context(session, organization.id)
     return matter
 
 
 class TestFileStorageRecord:
     async def test_valid_record_succeeds(self, db_session: AsyncSession) -> None:
-        record = await _make_file_record(db_session)
+        organization = Organization(name=f"Org-{uuid4()}")
+        db_session.add(organization)
+        await db_session.flush()
+        await _set_org_context(db_session, organization.id)
+        record = await _make_file_record(db_session, organization.id)
 
         assert record.id is not None
         assert record.storage_provider == "local"
@@ -84,7 +97,11 @@ class TestDocumentTemplate:
 
     async def test_can_reference_a_file_storage_record(self, db_session: AsyncSession) -> None:
         doc_type = await _make_document_type(db_session)
-        file_record = await _make_file_record(db_session)
+        organization = Organization(name=f"Org-{uuid4()}")
+        db_session.add(organization)
+        await db_session.flush()
+        await _set_org_context(db_session, organization.id)
+        file_record = await _make_file_record(db_session, organization.id)
 
         template = DocumentTemplate(
             document_type_id=doc_type.id, name="Template", file_storage_record_id=file_record.id
@@ -147,19 +164,25 @@ class TestDocumentAndVersions:
         db_session.add(document)
         await db_session.flush()
 
-        file_record_1 = await _make_file_record(db_session)
-        file_record_2 = await _make_file_record(db_session)
+        file_record_1 = await _make_file_record(db_session, matter.organization_id)
+        file_record_2 = await _make_file_record(db_session, matter.organization_id)
 
         db_session.add(
             DocumentVersion(
-                document_id=document.id, version_number=1, file_storage_record_id=file_record_1.id
+                organization_id=matter.organization_id,
+                document_id=document.id,
+                version_number=1,
+                file_storage_record_id=file_record_1.id,
             )
         )
         await db_session.flush()
 
         db_session.add(
             DocumentVersion(
-                document_id=document.id, version_number=1, file_storage_record_id=file_record_2.id
+                organization_id=matter.organization_id,
+                document_id=document.id,
+                version_number=1,
+                file_storage_record_id=file_record_2.id,
             )
         )
         with pytest.raises(IntegrityError):
@@ -180,9 +203,10 @@ class TestDocumentAndVersions:
         await db_session.flush()
 
         for version_number in (1, 2, 3):
-            file_record = await _make_file_record(db_session)
+            file_record = await _make_file_record(db_session, matter.organization_id)
             db_session.add(
                 DocumentVersion(
+                    organization_id=matter.organization_id,
                     document_id=document.id,
                     version_number=version_number,
                     file_storage_record_id=file_record.id,

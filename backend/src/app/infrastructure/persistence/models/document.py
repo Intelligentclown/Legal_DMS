@@ -98,12 +98,63 @@ class Document(Base, AuditMixin, OptimisticLockMixin):
 
 class DocumentVersion(Base):
     __tablename__ = "document_versions"
-    __table_args__ = (UniqueConstraint("document_id", "version_number"),)
+    __table_args__ = (
+        UniqueConstraint("document_id", "version_number"),
+        UniqueConstraint("organization_id", "id", name="uq_document_versions_organization_id_id"),
+        UniqueConstraint(
+            "organization_id",
+            "file_storage_record_id",
+            name="uq_document_versions_organization_id_file_storage_record_id",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "document_id"],
+            ["documents.organization_id", "documents.id"],
+            name="fk_document_versions_organization_id_documents",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "file_storage_record_id"],
+            ["file_storage_records.organization_id", "file_storage_records.id"],
+            name="fk_document_versions_organization_id_file_storage_records",
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id"), index=True)
     version_number: Mapped[int] = mapped_column(Integer)
     file_storage_record_id: Mapped[UUID] = mapped_column(ForeignKey("file_storage_records.id"))
     change_summary: Mapped[str | None] = mapped_column(String(1000))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     created_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+
+
+class DocumentVersionIdempotencyKey(Base):
+    """Persisted retry evidence for the later version-create transaction."""
+
+    __tablename__ = "document_version_idempotency_keys"
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "document_id",
+            "idempotency_key",
+            name="uq_document_version_idempotency_keys_scope_key",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "document_id"],
+            ["documents.organization_id", "documents.id"],
+            name="fk_dv_idempotency_org_documents",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "document_version_id"],
+            ["document_versions.organization_id", "document_versions.id"],
+            name="fk_dv_idempotency_org_document_versions",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
+    document_id: Mapped[UUID] = mapped_column(index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(255))
+    payload_fingerprint: Mapped[str] = mapped_column(String(64))
+    document_version_id: Mapped[UUID] = mapped_column(index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

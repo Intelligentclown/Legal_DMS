@@ -17,7 +17,17 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, String, func, text
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -25,8 +35,16 @@ from app.infrastructure.database.base import Base
 
 class FileStorageRecord(Base):
     __tablename__ = "file_storage_records"
+    __table_args__ = (
+        # Nullable during T141's staged shared-consumer transition: only
+        # DocumentVersion-owned rows have authoritative tenant evidence.
+        UniqueConstraint(
+            "organization_id", "id", name="uq_file_storage_records_organization_id_id"
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    organization_id: Mapped[UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
     storage_provider: Mapped[str] = mapped_column(String(50), default="local")
     file_path: Mapped[str] = mapped_column(String(1000))
     original_filename: Mapped[str] = mapped_column(String(255))

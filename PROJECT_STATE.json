@@ -40,7 +40,7 @@
       17,
       20
     ],
-    "latestTaskDone": "T140",
+    "latestTaskDone": "T141",
     "latestTaskAuthorized": "T141",
     "asOfCommit": "2de16906b163ff9988ea97378af980fe327a70b0",
     "validator": "scripts/governance_validate.py",
