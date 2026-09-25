@@ -4,7 +4,7 @@
 **Date:** 2026-09-25
 **Related task:** T140 — Document Versioning and Storage Transaction Architecture.
 
-**Resolves:** Required ADR #11, “Document/version architecture,” subject to independent architecture QA and the `PROJECT_WORKFLOW.md §3.1` governance closeout. This architecture PR proposes the resolution; authoring this ADR alone does not complete T140.
+**Resolves:** Required ADR #11, “Document/version architecture.” Independent architecture QA approved the architecture and the §3.1 architecture PR merged; T140 governance closeout records the completed resolution.
 
 **Does not resolve:** Required ADR #12 (Workflow vs Government Status), #15 (Core vs configurable vocabulary), #16 (UUID vs human-readable identifiers), #17 (Soft deletion/history), or #20 (Migration strategy from the current schema). It does not authorize implementation, deletion/retention policy, legacy Document→File resolution, compatibility retirement, or T141+.
 
@@ -389,7 +389,7 @@ A future implementation must stop/escalate rather than expand scope if:
 
 Required ADR #11 asks for Document/version architecture. This ADR defines version identity/lifecycle, immutable history, concurrency-safe allocation, latest-version semantics, storage ownership, tenant/RLS, namespace, DB/blob transaction and compensation, idempotency, checksums, authorization, read/download behavior, provider portability, migration/recovery requirements, legacy boundary and #17 boundary sufficiently for implementation.
 
-Therefore ADR-0041 **proposes resolution of Required ADR #11**. The structured governance ledger must not mark #11 resolved merely because this draft exists. Independent architecture QA must verify the decision and the §3.1 governance closeout after the architecture PR merges performs settled-state synchronization.
+Therefore ADR-0041 **resolves Required ADR #11**. Independent architecture QA approved the decision and the architecture PR merged; this §3.1 governance closeout performs the settled-state synchronization.
 
 ## Reviewer Checklist — Software Architect self-assessment
 

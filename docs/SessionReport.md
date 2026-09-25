@@ -3928,3 +3928,17 @@ remains unresolved; and T126+ is unauthorized.
 **Documentation Updated:** synchronized T137 queue/governance frontier, project status, handover and this session summary. Phase31 remains QA-owned and was not rewritten.
 
 **State After Synchronization:** T137 Done in ordinary pre-merge §3 convention; migration frontier/support revision `b8c4d2e1f7a9`; latest Done/Authorized T137; empty transitions; T138+ unauthorized; Required ADR #20 unresolved; unresolved Required ADRs `[11, 12, 15, 16, 17, 20]`; ADR-0036/0037/0038/0039/0040 Proposed. File remains persistence-only; PR #247 remains open/unmerged pending final Git/CI gates.
+
+## Session: 2026-09-25 — T140 §3.1 Governance Closeout
+
+**Objective:** Close T140 only after authorization, independent architecture QA and protected architecture merge, without implementing version/storage capability, creating migrations, resolving another Required ADR, or authorizing T141+.
+
+**Verified Before Editing:** `origin/main` was `47a712d752762d933988ccad5427314f7f7f8da3`, the protected merge of PR #254 with architecture+QA final head `2141acdfd640a1df3bcbcf5296d9cfe124db7776`. Authorization PR #253 had previously merged as `0f0d5aea73ea5d2313c6599e59f4128a34b484c9`. Independent QA recorded **Formal Verdict: Approved** for exact architecture `17f01b57162a17745483e423987d5c0bf9960eca`, with no unresolved blocker.
+
+**Governance Settlement:** T140 is Done. ADR-0041 remains **Proposed**, consistent with the T136 Required-ADR closeout precedent, while its `Resolves:` statement is made unconditional after Approved QA and architecture merge. Required ADR #11 is therefore settled. The governance ledger advances `latestTaskDone` to T140, retains `latestTaskAuthorized = T140`, removes the T140/#11 in-progress transition, adds #11 to the resolved set, and leaves unresolved `[12, 15, 16, 17, 20]`.
+
+**Preserved Boundaries:** No production code, tests, SQLAlchemy model, repository/service/route, storage implementation, RBAC/RLS implementation, Alembic migration, database mutation, legacy Document→File resolution, synthetic/default File, `documents.matter_id` retirement, Self-Context B/C, Delivery Roadmap work, or T141+ authorization occurred. Alembic/provenance remains `be439c0d6fdb`.
+
+**Future Guidance:** ADR-0041's version/storage tenant+integrity schema foundation and canonical DocumentVersion application+storage orchestration remain sequential architectural recommendations only; they are unnumbered and unauthorized pending later Project Manager/owner selection.
+
+**State After Synchronization:** T140 Done; latest Done/Authorized T140; transitions empty; Required ADR #11 resolved; unresolved Required ADRs #12/#15/#16/#17/#20; T141+ unauthorized.
