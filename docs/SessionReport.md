@@ -3942,3 +3942,18 @@ remains unresolved; and T126+ is unauthorized.
 **Future Guidance:** ADR-0041's version/storage tenant+integrity schema foundation and canonical DocumentVersion application+storage orchestration remain sequential architectural recommendations only; they are unnumbered and unauthorized pending later Project Manager/owner selection.
 
 **State After Synchronization:** T140 Done; latest Done/Authorized T140; transitions empty; Required ADR #11 resolved; unresolved Required ADRs #12/#15/#16/#17/#20; T141+ unauthorized.
+
+## Session: 2026-09-25 — T141 Post-QA Governance Synchronization
+
+**Objective:** Synchronize ordinary §3 governance after independent QA Approved T141 on PR #257, without modifying production code/tests/migration, merging the PR, changing ADR-0041, resolving another Required ADR, or selecting/authorizing a successor.
+
+**Verified Before Editing:** `origin/main` was `cd814972f94eff7c5204385d690442481d210513`; PR #257 was open/unmerged at QA-evidence head `9505fd433c4e8319617373fa76da5c3bdf73648f`. Immutable implementation `3e96d41fd5d2953f872ea4748f68d1845d9dbe2c` is its direct parent, and the QA evidence commit changes only `docs/ImplementationLog/Stage3/Phase34.md`, which durably records Independent QA **Approved**. Exact QA-evidence-head Backend, Frontend, Governance and Release workflows were successful.
+
+**Governance Synchronization:** T141 is Done in the ordinary pre-merge §3 sense. Migration/provenance advances from `be439c0d6fdb` to sole head `cdcfd7df5fde`. The completed bounded foundation is summarized in the canonical T141 queue row and detailed technically in `docs/ImplementationLog/Stage3/Phase34.md`; this session summary does not duplicate that execution record.
+
+**Preserved Boundaries:** Required ADR #11 remains resolved by T140/ADR-0041; unresolved Required ADRs remain `[12, 15, 16, 17, 20]`; ADR-0041 remains Proposed. No runtime version allocation, DocumentVersion application/API, physical storage orchestration, legacy Document→File resolution, retention/deletion semantics, new RBAC, production/test/migration modification, T142+ authorization, or successor selection occurred during synchronization.
+
+**QA Disclosure Preserved:** Full PostgreSQL integration is not globally green: baseline `424 passed, 56 failed, 21 skipped`; T141 `434 passed, 56 failed, 21 skipped`; no baseline-only/T141-only/materially-different common failures. The 56 failures remain baseline-equivalent legacy integration-harness debt.
+
+**State After Synchronization:** `latestTaskDone=T141`; `latestTaskAuthorized=T141`; transitions empty; migration/provenance `cdcfd7df5fde`; T142+ unauthorized; PR #257 remains open/unmerged pending exact-final-head merge gates.
+
