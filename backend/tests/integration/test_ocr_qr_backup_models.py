@@ -47,6 +47,10 @@ async def _make_document_version(session: AsyncSession) -> DocumentVersion:
     )
     session.add(matter)
     await session.flush()
+    await session.execute(
+        text("SELECT set_config('app.current_organization_id', :org, true)"),
+        {"org": str(organization.id)},
+    )
 
     document = Document(
         organization_id=organization.id,
@@ -58,6 +62,7 @@ async def _make_document_version(session: AsyncSession) -> DocumentVersion:
     await session.flush()
 
     file_record = FileStorageRecord(
+        organization_id=organization.id,
         file_path=f"/storage/{uuid4()}.pdf",
         original_filename="deed.pdf",
         size_bytes=1024,
@@ -67,7 +72,10 @@ async def _make_document_version(session: AsyncSession) -> DocumentVersion:
     await session.flush()
 
     version = DocumentVersion(
-        document_id=document.id, version_number=1, file_storage_record_id=file_record.id
+        organization_id=organization.id,
+        document_id=document.id,
+        version_number=1,
+        file_storage_record_id=file_record.id,
     )
     session.add(version)
     await session.flush()
