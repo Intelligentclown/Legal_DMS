@@ -4008,3 +4008,15 @@ remains unresolved; and T126+ is unauthorized.
 **Boundaries preserved:** T142 remains Authorized/blocked/not Done; its uncommitted draft is untouched and not resumed. No ADR-0042/ADR-0020/ADR-0041 change, no production/test/session/dependency-scope implementation, no migration/database/persistent compensation/outbox/saga/pending-version/idempotency-schema change, no Required ADR resolution, and no T145+ authorization occurred. Migration/provenance remains `cdcfd7df5fde`.
 
 **Intended state if authorization PR merges:** T143 Done; T142 Authorized/blocked/not Done; T144 Authorized/not Done; `latestTaskDone=T143`; `latestTaskAuthorized=T144`; transitions `[]`; unresolved Required ADRs `[12,15,16,17,20]`; ADR-0020 Accepted; ADR-0041 Proposed; ADR-0042 Proposed/Resolves None; migration/provenance `cdcfd7df5fde`; T145+ unauthorized.
+
+## Session: 2026-09-26 — T144 §3.1 Governance Closeout
+
+**Purpose:** Dedicated governance closeout only for T144 — Pre-Response Request Transaction Finalization Architecture. No production implementation and no T142 resumption.
+
+**Fresh baseline/provenance verification:** `origin/main` was exactly `f875232c2822cc430fe3bb0c13316267604bc30c`, protected merge of architecture+QA PR #263. Authorization PR #262 merged as `ce698126127259019a65e8b74531fa34e3fc5493` from authorization head `24811f3b87c5c0820bc5153a35ccb0a56d09fa49`. PR #263 merged from final QA-evidence head `e029a1295402934f0c731f66fe5d9d9ffd3dce87`; immutable architecture candidate `4506b5c85307d689f94aeef839859257cbb07b81` is independently QA **Approved**. No competing open PR existed.
+
+**Architecture closeout result:** ADR-0042 remains **Proposed / Resolves: None**. Its T144 addendum selects explicit FastAPI function-scoped application transaction dependency finalization and establishes the invariant that no successful HTTP response may begin before the request transaction owner has established the terminal transaction outcome required for that success. ADR-0020 remains Accepted and the sole transaction-owner policy is preserved; ADR-0041 remains Proposed and unchanged. This records architecture completion only, not implementation.
+
+**Governance transition:** T144 becomes Done; `latestTaskDone=T144`; `latestTaskAuthorized=T144`; transitions remain `[]`. T142 remains durably Authorized but blocked/not Done pending Control Tower post-closeout reassessment and is not resumed here. Required ADR #11 remains resolved; unresolved Required ADRs remain `[12,15,16,17,20]`. Alembic/operational-fresh provenance remains `cdcfd7df5fde`. T145+ remains unauthorized.
+
+**Preserved boundaries:** No ADR content/status was modified by closeout; no production code or tests changed; no migration/schema/provenance change occurred; no Required ADR was resolved; no T142 draft was modified; no successor was selected or authorized.
