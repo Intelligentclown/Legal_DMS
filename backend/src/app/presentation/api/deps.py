@@ -43,7 +43,8 @@ from app.application.interfaces.auth import (
 from app.infrastructure.auth.jwt_authentication_provider import JwtAuthenticationProvider
 from app.infrastructure.auth.rbac_authorization_service import RbacAuthorizationService
 from app.infrastructure.config import Settings
-from app.infrastructure.database.session import get_admin_db, get_db
+from app.infrastructure.database.session import _OUTCOME_CONTEXT_KEY, get_admin_db, get_db
+from app.infrastructure.database.transaction_outcome import TransactionOutcomeContext
 from app.infrastructure.di.container import container
 from app.infrastructure.persistence.sqlalchemy_refresh_token_repository import (
     SqlAlchemyRefreshTokenRepository,
@@ -64,7 +65,21 @@ def get_audit_logger_dependency() -> AuditLogger:
 
 SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
 AuditLoggerDep = Annotated[AuditLogger, Depends(get_audit_logger_dependency)]
-DBSessionDep = Annotated[AsyncSession, Depends(get_db)]
+# T144/ADR-0042: function scope finalizes get_db (including commit/outcome
+# handling) before Starlette begins the successful response.
+DBSessionDep = Annotated[AsyncSession, Depends(get_db, scope="function")]
+
+
+def get_transaction_outcome_context(session: DBSessionDep) -> TransactionOutcomeContext:
+    context = session.info.get(_OUTCOME_CONTEXT_KEY)
+    if not isinstance(context, TransactionOutcomeContext):
+        raise RuntimeError("Request transaction outcome context is unavailable")
+    return context
+
+
+TransactionOutcomeContextDep = Annotated[
+    TransactionOutcomeContext, Depends(get_transaction_outcome_context)
+]
 # T105: the admin/owning-role session -- see get_admin_db()'s own docstring
 # for why AuthService specifically needs this instead of DBSessionDep.
 AdminDBSessionDep = Annotated[AsyncSession, Depends(get_admin_db)]
