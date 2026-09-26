@@ -8,6 +8,7 @@ uses to obtain a request-scoped `AsyncSession`.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncGenerator
 from functools import lru_cache
 
@@ -19,6 +20,20 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.infrastructure.config import get_settings
+from app.infrastructure.database.transaction_outcome import (
+    TransactionOutcome,
+    TransactionOutcomeContext,
+    TransactionOutcomeUncertainError,
+)
+
+_OUTCOME_CONTEXT_KEY = "_legal_dms_transaction_outcome_context"
+
+
+async def _finalize_outcome(
+    context: TransactionOutcomeContext, outcome: TransactionOutcome
+) -> None:
+    """Give cleanup a chance to finish even when request cancellation is pending."""
+    await asyncio.shield(context.finalize(outcome))
 
 
 @lru_cache
@@ -76,12 +91,29 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     session_factory = get_app_session_factory()
     async with session_factory() as session:
+        context = TransactionOutcomeContext()
+        session.info[_OUTCOME_CONTEXT_KEY] = context
+        commit_started = False
         try:
             yield session
+            commit_started = True
             await session.commit()
-        except Exception:
-            await session.rollback()
+            await _finalize_outcome(context, TransactionOutcome.CONFIRMED_COMMIT)
+        except BaseException as exc:
+            if commit_started:
+                await _finalize_outcome(context, TransactionOutcome.COMMIT_OUTCOME_UNCERTAIN)
+                if isinstance(exc, Exception):
+                    raise TransactionOutcomeUncertainError() from exc
+                raise
+            try:
+                await session.rollback()
+            except BaseException:
+                await _finalize_outcome(context, TransactionOutcome.COMMIT_OUTCOME_UNCERTAIN)
+                raise
+            await _finalize_outcome(context, TransactionOutcome.DEFINITIVE_NON_COMMIT)
             raise
+        finally:
+            session.info.pop(_OUTCOME_CONTEXT_KEY, None)
 
 
 async def get_admin_db() -> AsyncGenerator[AsyncSession, None]:
