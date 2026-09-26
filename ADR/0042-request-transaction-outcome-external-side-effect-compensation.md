@@ -437,3 +437,371 @@ No migration is required by this architecture. Alembic and operational-fresh sup
 T142 remains Authorized, blocked and not Done until T143 completes its entire §3.1 lifecycle and Control Tower separately decides resumption.
 
 T143 resolves no Required ADR and changes no existing ADR status.
+
+---
+
+## T144 Addendum — Pre-Response Request Transaction Finalization
+
+**Related task:** T144 — Pre-Response Request Transaction Finalization Architecture.
+
+**Status effect:** none. ADR-0042 remains **Proposed** and **Resolves: None**. This addendum narrows and completes the FastAPI wiring decision in §§6 and 11 after the mandatory T142 lifecycle experiment falsified the default-scope assumption. ADR-0020 remains Accepted. ADR-0041 remains Proposed and unchanged.
+
+### A. Evidence that triggered this addendum
+
+After T143 completed its full §3.1 lifecycle, T142 resumed under its existing authorization and exercised ADR-0042's mandatory real FastAPI lifecycle acceptance condition. Under the repository's current declaration:
+
+```python
+DBSessionDep = Annotated[AsyncSession, Depends(get_db)]
+```
+
+with no explicit scope, the observed ordering was:
+
+```text
+handler returns success
+→ get_db() post-yield finalization resumes
+→ finalization raises
+→ client nevertheless receives the already-started 200 response
+```
+
+T142 correctly stopped without an implementation commit or PR.
+
+Repository lock authority at the T144 authorization baseline pins:
+
+```text
+FastAPI   0.141.1
+Starlette 1.3.1
+```
+
+FastAPI 0.141.1's documented yield-dependency contract distinguishes two lifetimes:
+
+- an unspecified yield dependency defaults to `scope="request"`, whose exit code runs after the response is sent;
+- `scope="function"` runs the yield dependency's exit code after the path operation function finishes but before the response is sent.
+
+FastAPI added explicit function scope for yield dependencies in 0.121.0, so it is available in the repository's pinned 0.141.1 version. The framework dependency solver also maintains a distinct function exit stack and request exit stack, and dependency caching remains enabled by default.
+
+The second T142 STOP is therefore not a TestClient-only anomaly. The existing default request scope is incompatible with ADR-0042's requirement that transaction finalization determine whether a success response is allowed to begin.
+
+### B. Normative response-start invariant
+
+For every HTTP operation whose business success depends on the request-owned database transaction:
+
+> **No successful HTTP response may begin before the request transaction owner has established the terminal transaction outcome required for that success.**
+
+A handler return is provisional. Constructing a response object or serializable value is not transaction success and does not authorize `http.response.start`.
+
+The required normal ordering is:
+
+```text
+request
+→ open one restricted request AsyncSession
+→ authentication / trusted Organization context
+→ authorization / application DB work
+→ handler returns a provisional value or materialized response
+→ get_db() resumes
+→ terminal database outcome is established
+→ TransactionOutcomeContext is finalized
+→ only CONFIRMED_COMMIT permits a success response to start
+```
+
+### C. Selected FastAPI transaction-dependency lifetime
+
+The transaction-owning `get_db()` dependency MUST be consumed with explicit FastAPI **function scope** on application routes that use the request transaction:
+
+```python
+DBSessionDep = Annotated[
+    AsyncSession,
+    Depends(get_db, scope="function"),
+]
+```
+
+or an exactly equivalent repository-local declaration that produces the same FastAPI dependency graph and lifetime.
+
+The explicit scope is architectural, not a convenience default. Future implementation MUST NOT rely on FastAPI's implicit yield-dependency scope for the transaction owner.
+
+This changes dependency lifetime only. It does not transfer transaction ownership:
+
+- `get_db()` remains the sole final commit/rollback owner;
+- repositories remain flush-only;
+- services and routes MUST NOT call commit;
+- one HTTP request still uses one application AsyncSession transaction for this dependency graph;
+- no second UnitOfWork or middleware transaction owner is introduced.
+
+The admin authentication dependency `get_admin_db()` is a distinct pre-tenant authentication transaction and is not silently redefined by this addendum. Any future change to its response-finalization requirements must be justified against its own callers rather than inferred from `DBSessionDep`.
+
+### D. Dependency-tree and session-identity constraints
+
+FastAPI permits a function-scoped yield dependency to have function- or request-scoped subdependencies. Conversely, a request-scoped yield dependency cannot depend on a shorter-lived function-scoped dependency that it needs during teardown. T144 therefore makes the transaction owner's explicit scope the controlling boundary and requires implementation/QA to validate the actual graph rather than mechanically changing arbitrary `Depends()` calls.
+
+For the application request transaction, FastAPI dependency caching MUST preserve the same yielded `AsyncSession` wherever `DBSessionDep` is requested in the dependency graph. The following identity is normative where those components participate:
+
+```text
+authentication-provider DB session
+= tenant/GUC DB session
+= authorization DB session
+= application/service DB session
+= transaction-finalization DB session
+```
+
+Current repository wiring supports this shape: `get_authentication_provider()` and `get_authorization_service()` both consume `DBSessionDep`; `CurrentUserDep` composes through the authentication provider; `RequirePermission` composes through CurrentUser and the authorization service; application services consume the same `DBSessionDep`.
+
+No hidden second application AsyncSession, duplicate commit, or post-commit application DB work is permitted.
+
+### E. Transaction outcome and HTTP result
+
+ADR-0042's three terminal outcomes are unchanged.
+
+#### CONFIRMED_COMMIT
+
+`await session.commit()` returned successfully.
+
+Required ordering:
+
+```text
+confirmed commit
+→ finalize context as CONFIRMED_COMMIT
+→ discard registered compensation
+→ clear request transaction references
+→ permit success response
+```
+
+A later response-send failure or client disconnect does not undo the committed database transaction and MUST NOT trigger destructive compensation.
+
+#### DEFINITIVE_NON_COMMIT
+
+The transaction owner establishes that the transaction did not commit.
+
+Required ordering:
+
+```text
+definitive non-commit
+→ rollback/non-commit establishment where applicable
+→ finalize context as DEFINITIVE_NON_COMMIT
+→ best-effort LIFO compensation
+→ propagate failure before any success response starts
+```
+
+Compensation failure is observable but does not fabricate database success and does not replace the original request/transaction failure as the primary outcome.
+
+#### COMMIT_OUTCOME_UNCERTAIN
+
+The transaction owner cannot establish whether PostgreSQL committed.
+
+Required ordering:
+
+```text
+commit outcome uncertain
+→ finalize context as COMMIT_OUTCOME_UNCERTAIN
+→ never execute destructive compensation
+→ clear in-memory compensation references without executing them
+→ surface a domain-neutral reconciliation-required failure before success response start
+```
+
+A rollback attempt after an uncertain COMMIT exception does not convert uncertainty into definitive non-commit. Durable application idempotency/reconciliation remains authoritative.
+
+### F. Exception translation boundary
+
+Because function-scoped finalization completes before response send, an exception raised by transaction finalization remains eligible for normal FastAPI/Starlette exception handling before `http.response.start`.
+
+Future implementation MUST provide a domain-neutral infrastructure exception for `COMMIT_OUTCOME_UNCERTAIN` and map it to a server-side failure that:
+
+- does not claim rollback;
+- does not claim the operation definitely failed;
+- does not return business success;
+- does not encourage blind retry;
+- permits application-specific idempotency reconciliation on a later request.
+
+Ordinary validation/application exceptions retain their existing translation. A definitive non-commit caused by an original application/DB exception should preserve that original failure as primary after rollback/eligible compensation.
+
+### G. Authentication, Organization GUC and FORCE RLS
+
+This addendum changes no tenant authority.
+
+The application transaction continues to use the restricted `legal_dms_app` engine/session. The trusted Organization transaction-local GUC, FORCE RLS/default-deny posture, authenticated Organization derivation and existing RBAC remain mandatory.
+
+Required lifetime:
+
+```text
+application session opens
+→ authentication establishes trusted tenant context/GUC
+→ authorization and application DB work
+→ transaction finalizes while that same session/transaction is active
+→ session closes
+→ response is sent
+```
+
+Code that executes after confirmed commit MUST NOT assume the transaction-local Organization GUC remains available and MUST NOT perform additional application DB work through the finalized request session.
+
+No privileged database path is introduced.
+
+### H. Response construction, JSON and raw-byte downloads
+
+All DB-backed data required to construct the response MUST be materialized before transaction finalization.
+
+For ordinary JSON/API responses:
+
+```text
+query/materialize response data
+→ provisional handler return
+→ transaction finalization
+→ serialize/send without lazy ORM access
+```
+
+Implementation must not return live ORM objects whose serialization can trigger database access after the request transaction has finalized.
+
+T142's current FileStorage port exposes `read(path) -> bytes`; therefore its bounded download architecture is materialized, not session-backed streaming:
+
+```text
+authorize and query metadata
+→ read physical bytes
+→ verify checksum/size
+→ construct materialized byte response
+→ finalize request transaction
+→ send bytes
+```
+
+No request AsyncSession may be required while those bytes are transmitted.
+
+### I. Streaming boundary
+
+A function-scoped yield dependency finalizes before response transmission begins. Consequently, a `StreamingResponse` MUST NOT lazily use:
+
+- the finalized request AsyncSession;
+- transaction-local Organization GUC state;
+- TransactionOutcomeContext;
+- ORM lazy loads tied to that session.
+
+T142 does not require session-backed lazy streaming under the current `FileStorage.read() -> bytes` contract. Such streaming is explicitly outside T142/T144.
+
+A future streaming-storage design may stream from a resource whose lifetime is independent of the completed request DB transaction, but that is separate architecture and MUST NOT reopen the transaction after confirmed commit.
+
+### J. Background-task boundary
+
+Background work runs outside the finalized application request transaction and MUST NOT capture or reuse:
+
+- the request AsyncSession;
+- transaction-local tenant GUC state;
+- TransactionOutcomeContext;
+- registered compensation actions;
+- ORM objects requiring that session.
+
+A background task that needs database access must establish its own separately authorized resource/tenant context. T144 does not design that background transaction architecture.
+
+### K. Cancellation and disconnects
+
+ADR-0042's BaseException-aware requirement remains normative.
+
+- cancellation before external success: no compensation exists;
+- cancellation after external success but before COMMIT: establish rollback/non-commit if possible; compensate only when definitive;
+- cancellation while COMMIT is in flight: classify as `COMMIT_OUTCOME_UNCERTAIN` unless non-commit is independently proven;
+- cancellation while rollback/outcome establishment prevents authoritative classification: uncertain;
+- cancellation during compensation: once definitive non-commit exists, a narrowly bounded/shielded cleanup opportunity may be used, then cancellation is re-propagated;
+- cancellation after confirmed commit: database remains committed.
+
+Client disconnect and HTTP delivery are separate from database outcome. A disconnect before or during finalization does not itself prove non-commit. A disconnect or response-send failure after confirmed commit never authorizes compensation. Durable idempotency reconciles a client that did not receive the committed response.
+
+### L. Rejected alternatives after the second T142 STOP
+
+1. **ASGI/FastAPI transaction middleware:** rejected. Native function-scoped dependency lifetime already provides the needed pre-response exit point while preserving the existing session graph. Middleware would add session/context propagation and ownership complexity without evidence of need.
+2. **Explicit route/service commit:** rejected. It violates ADR-0020's centralized owner and creates feature-specific transaction authority.
+3. **New request transaction coordinator/UnitOfWork owner:** rejected. No second owner is needed when the framework can run the existing owner at the correct response boundary.
+4. **Custom deferred-send wrapper:** rejected. It duplicates supported FastAPI lifecycle semantics and couples application architecture to lower-level ASGI send interception.
+5. **Database-first/persistence-storage reordering:** rejected. It does not solve distributed atomicity and would contradict ADR-0041's blob-first invariant.
+6. **Saga/outbox/persistent transaction state:** rejected for current scope. It would require migration and materially broader operational semantics without evidence that in-request outcome handling plus durable idempotency is insufficient.
+
+If implementation evidence later disproves function scope for the real dependency graph, it MUST STOP rather than silently select one of these alternatives.
+
+### M. Durable evidence and mandatory implementation/QA proof
+
+T144's architectural decision is based on three converging evidence classes:
+
+1. **Repository runtime evidence:** the second T142 acceptance experiment on the repository's default dependency wiring demonstrated the prohibited 200-before-finalization behavior and caused the mandated STOP.
+2. **Repository version/wiring evidence:** `backend/uv.lock` pins FastAPI 0.141.1 / Starlette 1.3.1; `DBSessionDep` currently omits scope; `get_db()` performs commit after `yield`; auth/authorization dependencies consume that same `DBSessionDep`.
+3. **Framework contract/source evidence:** FastAPI 0.141.1 documents `scope="function"` as post-handler/pre-response exit, default request scope as post-response exit, and enforces dependency-scope ordering with distinct function/request exit stacks.
+
+The architecture deliberately does not convert an architecture-only PR into production implementation or production tests. Before the T144 architecture+QA PR may merge, independent architecture QA MUST reproduce the selected mechanism against the repository's pinned environment and record durable evidence on the exact architecture head.
+
+That evidence MUST include, at minimum:
+
+1. handler success + successful commit → `http.response.start` only after confirmed commit/context finalization;
+2. handler success + definitive non-commit/finalization failure → no success response started and client observes failure;
+3. handler success + injected uncertain commit → no success response started, client observes reconciliation-required failure, destructive compensation does not execute;
+4. direct ASGI send instrumentation recording `http.response.start` ordering, not only a TestClient status assertion;
+5. same `AsyncSession` identity through authentication provider, tenant/GUC work, authorization, application work and finalization;
+6. exactly one application commit and no repository/service commit;
+7. real PostgreSQL proof of transaction-local Organization GUC/FORCE RLS through finalization;
+8. JSON response with all DB-backed data materialized before finalization;
+9. raw-byte/download response with storage bytes materialized before finalization and no session use during send;
+10. streaming path proof that request-session-backed lazy streaming is prohibited/excluded;
+11. background-task proof/review that request transaction resources are not captured;
+12. cancellation before commit, during commit, and during compensation;
+13. disconnect before/during finalization and send failure after confirmed commit;
+14. existing transaction-policy and route regression coverage remains green;
+15. Alembic/provenance remains `cdcfd7df5fde`.
+
+Failure of items 1–7 is architecture-blocking. If exact-version QA shows a successful response can still start before finalization, the architecture MUST STOP and return to Control Tower.
+
+### N. T142 preserved-draft impact
+
+T142 remains Authorized / blocked / not Done throughout T144.
+
+Likely reusable after T144 completes its full §3.1 lifecycle and Control Tower separately releases T142:
+
+- DocumentVersion repository/canonical queries;
+- Document row lock and `MAX(version_number)+1` allocation;
+- storage-key construction;
+- SHA-256/size integrity;
+- persisted idempotency/reconciliation;
+- FileStorage orchestration;
+- canonical Organization/Matter/File/Document validation;
+- route/schema structure;
+- outcome/compensation primitives consistent with this addendum.
+
+Architecture-sensitive and requiring rework/reverification:
+
+- `DBSessionDep` scope;
+- `get_db()` outcome finalization;
+- TransactionOutcomeContext wiring;
+- exception translation;
+- cancellation finalization;
+- ASGI response-start tests;
+- streaming assumptions.
+
+T144 does not modify or commit that draft.
+
+### O. Governance, migration and STOP boundaries
+
+T144 resolves no Required ADR. Unresolved Required ADRs remain `[12,15,16,17,20]`.
+
+No migration is required. Alembic/provenance remains `cdcfd7df5fde`.
+
+This addendum does not authorize T142 implementation, T145+, committed-content deletion/retention, FileStorage redesign, outbox/saga state, pending DocumentVersion state, persistent compensation, new idempotency persistence, RBAC/RLS redesign or ADR-0041 changes.
+
+Implementation/QA MUST STOP and return to Control Tower if:
+
+- function-scoped dependency cannot safely satisfy the actual graph;
+- a success response can begin before transaction finalization;
+- ADR-0020's fundamental transaction owner must change;
+- route/service/repository commit becomes necessary;
+- multiple transaction owners become necessary;
+- migration/persistent saga/outbox becomes necessary;
+- RLS/GUC cannot survive through finalization;
+- auth requires incompatible request-scope teardown semantics;
+- T142 requires session-backed lazy streaming;
+- compensation requires committed-history deletion authority;
+- Required ADR #17/#20 resolution becomes necessary.
+
+### P. Decision summary
+
+T144 selects **explicit FastAPI function-scoped lifetime for the application request transaction dependency** as the minimum pre-response finalization architecture.
+
+The architectural invariant is:
+
+```text
+provisional handler result
+→ get_db() final commit/rollback + TransactionOutcomeContext finalization
+→ terminal DB outcome known
+→ and only then may a successful HTTP response begin
+```
+
+ADR-0020 remains the transaction-ownership authority. ADR-0041 remains unchanged. ADR-0042's outcome, compensation, uncertainty and idempotency semantics remain unchanged; this addendum makes their HTTP lifecycle executable without allowing success to escape before transaction finalization.
+
