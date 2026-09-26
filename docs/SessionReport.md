@@ -3957,3 +3957,14 @@ remains unresolved; and T126+ is unauthorized.
 
 **State After Synchronization:** `latestTaskDone=T141`; `latestTaskAuthorized=T141`; transitions empty; migration/provenance `cdcfd7df5fde`; T142+ unauthorized; PR #257 remains open/unmerged pending exact-final-head merge gates.
 
+## Session: 2026-09-26 — T142 Durable Authorization
+
+**Objective:** Record project-owner authorization for **T142 — Canonical Document Version Application and Storage Orchestration** through the normal ordinary §3 documentation-only authorization PR, without implementing T142 or altering architecture/schema.
+
+**Verified Before Editing:** `origin/main` was exactly `7cff6bd0926153e843fc6d94d208390c1708c91c`, the protected T141 PR #257 merge. No open PR or existing T142 authorization occupied the frontier. Governance was `latestTaskDone=T141`, `latestTaskAuthorized=T141`, transitions empty; Required ADR #11 resolved; unresolved `[12,15,16,17,20]`; ADR-0041 Proposed; migration and operational-fresh supported revision `cdcfd7df5fde`. T142 was a free namespace.
+
+**Authorization Recorded:** T142 is an ordinary §3 implementation task. The canonical queue row records its bounded version surface, Organization/Matter/File/Document resolution, existing Document RBAC, PostgreSQL row-lock version allocation, ADR-0041 storage transaction, T141 idempotency, known-failure compensation, stored-byte integrity verification, legacy-unfiled and shared-storage boundaries, minimum test evidence, explicit exclusions, and mandatory STOP/escalation conditions.
+
+**Hard Boundaries:** No production code, tests, migration, application service, repository, schema, router, storage orchestration, version allocation, ADR change, Required-ADR resolution, T143+ authorization, or successor implementation occurred. No migration is authorized or expected for T142; frontier remains `cdcfd7df5fde`. T142 implementation may not begin until the authorization PR is actually merged and Control Tower verifies durable authorization on `main`.
+
+**Intended State if Authorization PR Merges:** T141 Done; `latestTaskDone=T141`; T142 Authorized/not Done; `latestTaskAuthorized=T142`; transitions `[]`; Required ADR #11 resolved; unresolved Required ADRs `[12,15,16,17,20]`; ADR-0041 Proposed; migration/provenance `cdcfd7df5fde`; T143+ unauthorized.
