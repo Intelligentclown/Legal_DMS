@@ -2,19 +2,19 @@
 
 # Stage 3 – Phase 35
 
-Status: Implementation / pre-QA verification in progress — not QA-ready
+Status: Approved (Independent QA)
 
 Started: 2026-09-26
 
-Completed:
+Completed: 2026-09-26
 
 Related Tasks: T142
 
 Related ADRs: ADR-0020, ADR-0021, ADR-0022, ADR-0041, ADR-0042
 
-Git Commit:
+Git Commit: d3e739b12af7426514e0f1dc95bbdc4a021b83b6 (Immutable Implementation Candidate)
 
-Pull Request:
+Pull Request: #265
 
 Release:
 
@@ -90,12 +90,11 @@ Earlier T142 stops are retained: ADR-0020's pre-T143 commit-outcome gap; FastAPI
 
 ## Deferred Work
 
-Independent QA, governance synchronization, and merge remain outside the Developer role and are not started.
+Protected merge remains outside the Documentation Manager role and is not started.
 
 ## Future Considerations
 
-Independent QA and governance synchronization remain outside the Developer role and
-do not begin until Control Tower independently verifies the resulting exact PR head.
+Independent QA is complete and durable at `3c7dd2c1d979fae19b628bcc9c2b910acf81b595`. Governance synchronization records the approved state; Control Tower must independently verify the resulting exact PR head before release to the Git/CI PR Manager.
 
 ## Reviewer Checklist
 
@@ -107,13 +106,21 @@ baseline-identical with zero T142-introduced regressions.
 ☑ Documentation updated
 □ ADR updated (if required) — no new decision.
 □ AI_BOOTSTRAP updated (if required) — not applicable.
-□ PROJECT_STATE updated (if required) — Documentation Manager ownership after QA.
+☑ PROJECT_STATE checked — no frontier edit required because T143/T144 are already completed and latest Done/Authorized remain T144.
 ☑ No unrelated refactoring
 ☑ No scope creep
-□ Ready for QA
+☑ Ready for QA — immutable implementation candidate was independently reviewed and Approved.
+
+## Independent QA Evidence & Findings
+
+- **Independent QA Reviewer:** durable review artifact `docs/reviews/T142_QA_Review.md`.
+- **Exact Immutable Implementation Head Reviewed:** `d3e739b12af7426514e0f1dc95bbdc4a021b83b6`.
+- **QA Evidence Commit:** `3c7dd2c1d979fae19b628bcc9c2b910acf81b595`, exactly one commit after the reviewed implementation and changing only the QA artifact.
+- **Formal Verdict:** **Approved**.
+- Independent QA verified the focused T142 suite at **20 passed**, Black clean, `git diff --check` clean, governance validation clean, no migration/schema/RBAC/Required-ADR expansion, and no candidate-only full-suite regression.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required

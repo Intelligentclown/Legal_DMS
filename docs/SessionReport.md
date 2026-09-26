@@ -4020,3 +4020,16 @@ remains unresolved; and T126+ is unauthorized.
 **Governance transition:** T144 becomes Done; `latestTaskDone=T144`; `latestTaskAuthorized=T144`; transitions remain `[]`. T142 remains durably Authorized but blocked/not Done pending Control Tower post-closeout reassessment and is not resumed here. Required ADR #11 remains resolved; unresolved Required ADRs remain `[12,15,16,17,20]`. Alembic/operational-fresh provenance remains `cdcfd7df5fde`. T145+ remains unauthorized.
 
 **Preserved boundaries:** No ADR content/status was modified by closeout; no production code or tests changed; no migration/schema/provenance change occurred; no Required ADR was resolved; no T142 draft was modified; no successor was selected or authorized.
+
+
+## Session: 2026-09-26 — T142 Post-QA Governance Synchronization
+
+**Objective:** Synchronize ordinary §3 governance after independent QA formally **Approved** T142 on PR #265, without modifying production code/tests/migrations, merging the PR, changing ADR status, resolving another Required ADR, or authorizing/selecting T145+.
+
+**Verified Before Editing:** `origin/main` was exactly `6b8923c6abda09fcab5e480bb545390e130d202b`; PR #265 was open/unmerged at corrected QA-evidence head `3c7dd2c1d979fae19b628bcc9c2b910acf81b595`. Immutable implementation `d3e739b12af7426514e0f1dc95bbdc4a021b83b6` is its direct parent, and the QA commit adds only `docs/reviews/T142_QA_Review.md`, identifying PR #265, the Independent QA Reviewer role, that exact implementation SHA, and formal verdict **Approved**.
+
+**Governance Synchronization:** T142 is Done in the ordinary pre-merge §3 sense. The canonical queue row now records the implementation/QA evidence and Done state; Phase35 records the durable QA evidence and no longer describes QA as pending. Because T143 and T144 are already completed prerequisite architecture cycles with higher governance frontier semantics, `latestTaskDone=T144` and `latestTaskAuthorized=T144` remain unchanged; transitions remain `[]`.
+
+**Preserved Boundaries:** Unresolved Required ADRs remain `[12,15,16,17,20]`; ADR-0020 remains Accepted; ADR-0041 remains Proposed; ADR-0042 remains Proposed / Resolves None; migration and operational-fresh provenance remain `cdcfd7df5fde`. No production code, tests, migration, schema, RBAC, ADR content/status, T143/T144 history, or T145+ authorization changed during synchronization.
+
+**State After Synchronization:** T142 Done pre-merge; T143/T144 Done; latest Done/Authorized T144; transitions empty; PR #265 remains open/unmerged pending fresh exact-final-head CI and Control Tower verification before Git/CI PR Manager protected merge.
