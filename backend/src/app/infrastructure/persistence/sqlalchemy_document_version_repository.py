@@ -107,5 +107,12 @@ class SqlAlchemyDocumentVersionRepository(DocumentVersionRepository):
         version: DocumentVersion,
         key: DocumentVersionIdempotencyKey | None,
     ) -> None:
-        self._session.add_all([storage, version] + ([key] if key is not None else []))
+        # These models deliberately do not carry a mutable ORM relationship:
+        # DocumentVersion is immutable history and its storage record is a
+        # separately owned descriptor. Flush the referenced storage row first
+        # so PostgreSQL's immediate FK sees its parent, while retaining one
+        # request-owned transaction and no repository-level commit.
+        self._session.add(storage)
+        await self._session.flush()
+        self._session.add_all([version] + ([key] if key is not None else []))
         await self._session.flush()

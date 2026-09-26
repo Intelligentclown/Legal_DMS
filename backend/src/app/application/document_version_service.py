@@ -74,8 +74,21 @@ class DocumentVersionService:
         if stored.size != len(content):
             await self._storage.delete(key)
             raise UnexpectedError("Storage provider reported an unexpected byte size")
-        self._outcome.register(lambda: self._storage.delete(key))
         await self._repository.lock_document(document)
+        # A second lookup is required after the Document-local allocation lock.
+        # Two retries can both miss the optimistic lookup above while one is
+        # writing its blob; the lock serializes their durable idempotency
+        # evidence without holding it during external storage I/O.
+        if idempotency_key is not None:
+            existing = await self._repository.idempotency(
+                organization_id, document.id, idempotency_key
+            )
+            if existing is not None:
+                await self._storage.delete(key)
+                if existing.payload_fingerprint != fingerprint:
+                    raise ConflictError("Idempotency key was reused with different content")
+                return await self.get(organization_id, document, existing.document_version_id)
+        self._outcome.register(lambda: self._storage.delete(key))
         number = await self._repository.next_version_number(document.id)
         record = FileStorageRecord(
             id=storage_id,
