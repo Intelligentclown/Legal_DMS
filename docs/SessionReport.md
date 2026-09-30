@@ -4045,3 +4045,15 @@ remains unresolved; and T126+ is unauthorized.
 **Boundaries:** Existing backend contracts, authentication, RBAC, Organization tenant isolation/RLS, hierarchy validation, File numbering, DocumentVersion allocation/storage/transaction semantics and validation/error behavior remain authoritative. No production implementation occurs in this authorization step. No migration, schema, backend redesign, new RBAC/RLS/storage/transaction architecture, ADR change, Required-ADR resolution, Client retirement/migration, Work Type/Classification, Lead/Enquiry, Quotation, Scheme, Government Process, broad Gujarat property work, legacy convergence, DocumentVersion deletion/retention/purge, Self-Context B/C, Delivery Roadmap or T146+ authorization is included. Unresolved Required ADRs remain `[12,15,16,17,20]`; migration/provenance remains `cdcfd7df5fde`.
 
 **Intended state if authorization PR merges:** `latestTaskDone=T144`; `latestTaskAuthorized=T145`; transitions `[]`; T145 Authorized/not Done; T146+ unauthorized. Implementation may begin only after protected authorization merge and Control Tower verification.
+
+## Session: 2026-09-30 — T146 Durable Authorization Proposal
+
+**Objective:** Record Project Owner approval for **T146 — Frontend Vocabulary Discovery & Document Transport Compatibility** through an ordinary §3 governance-only authorization PR; do not implement T146, resume T145, or merge this PR.
+
+**Fresh verification:** `origin/main` is exactly `887b20bf0f9599550a2bc758ccdf730fc58f81db`, protected merge of PR #266 authorizing T145. Mechanical frontier before this proposal is `latestTaskDone=T144`, `latestTaskAuthorized=T145`, transitions `[]`; T145 is Authorized/blocked/not Done; unresolved Required ADRs are `[12,15,16,17,20]`; migration/provenance is `cdcfd7df5fde`; no T146 PR/branch/default-branch reference or competing successor was found.
+
+**Authorization recorded:** T146 is the bounded backend/API compatibility prerequisite: authenticated read-only Matter Type/Status discovery using existing `matters:read`; authenticated read-only Document Type discovery using existing `documents:read`; narrow CORS support for required `X-Filename`, existing optional `Idempotency-Key`, and exposed `Content-Disposition`. Existing vocabulary authority and DocumentVersion behavior remain unchanged.
+
+**Boundaries:** no frontend T145 implementation; no vocabulary writes/configurability/Work Type/Classification/workflow/Government-status semantics; no migration/schema/seed change; no new RBAC family; no RLS, transaction, storage or DocumentVersion redesign; no ADR change or Required-ADR resolution; no T147+. T145 remains Authorized/blocked/not Done and may resume under its existing authorization only after T146 completes its full ordinary §3 lifecycle and Control Tower verifies protected merge.
+
+**Intended state if authorization PR merges:** `latestTaskDone=T144`; `latestTaskAuthorized=T146`; transitions `[]`; T145 Authorized/blocked/not Done; T146 Authorized/not Done; unresolved Required ADRs `[12,15,16,17,20]`; migration/provenance `cdcfd7df5fde`; T147+ unauthorized.
