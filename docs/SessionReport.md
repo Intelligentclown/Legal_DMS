@@ -4057,3 +4057,14 @@ remains unresolved; and T126+ is unauthorized.
 **Boundaries:** no frontend T145 implementation; no vocabulary writes/configurability/Work Type/Classification/workflow/Government-status semantics; no migration/schema/seed change; no new RBAC family; no RLS, transaction, storage or DocumentVersion redesign; no ADR change or Required-ADR resolution; no T147+. T145 remains Authorized/blocked/not Done and may resume under its existing authorization only after T146 completes its full ordinary §3 lifecycle and Control Tower verifies protected merge.
 
 **Intended state if authorization PR merges:** `latestTaskDone=T144`; `latestTaskAuthorized=T146`; transitions `[]`; T145 Authorized/blocked/not Done; T146 Authorized/not Done; unresolved Required ADRs `[12,15,16,17,20]`; migration/provenance `cdcfd7df5fde`; T147+ unauthorized.
+
+
+## Session: 2026-09-30 — T146 Post-QA Governance Synchronization on PR #268
+
+**Objective:** Synchronize ordinary §3 governance after independent different-agent QA formally **Approved** T146, without merging PR #268, resuming T145, authorizing T147+, changing production/tests/migrations/schema/seeds/frontend/ADRs, or resolving a Required ADR.
+
+**Verified Before Editing:** `origin/main` is exactly `c7eb88a871127be15068d4eca6045c22373ba933`, protected merge of T146 authorization PR #267. PR #268 is OPEN/non-draft/unmerged at pre-sync QA-evidence head `85d6a8ec53a6554e7475cc1e61d894499e9b81a2`. Frozen implementation `6e57fe96deda8d7ba5a8fff0dd44172c3b98f11f` is its direct parent; the intervening commit adds only `docs/reviews/T146_QA_Review.md`, identifying the Independent QA Reviewer role, PR #268, that exact implementation SHA, and formal verdict **Approved**.
+
+**Governance Synchronization:** T146 is Done in the ordinary pre-merge §3 sense. The canonical queue row records the exact implementation/QA provenance and bounded QA findings. `latestTaskDone=T146`, `latestTaskAuthorized=T146`, transitions remain `[]`. PR #268 remains open/unmerged pending a fresh CI cycle for the new exact final head plus later review/protection verification and protected merge.
+
+**Preserved Boundaries:** T145 remains Authorized/blocked/not Done until PR #268 is protected-merged and Control Tower independently verifies durable T146 completion on `main`. T147+ remains unauthorized. Unresolved Required ADRs remain `[12,15,16,17,20]`; no ADR content/status changed; migration/provenance remains `cdcfd7df5fde`. No production/frontend/test/migration/schema/seed code changed during synchronization. QA's `LOOKUP_LIMIT = 100` acceptance is preserved only as a T146 static-seeded-vocabulary assessment and does not establish pagination/configurability policy or resolve Required ADR #15.

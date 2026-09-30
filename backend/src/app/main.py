@@ -36,12 +36,23 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if settings.is_development else None,
     )
 
+    # T146: `X-Filename` and `Idempotency-Key` are headers the existing
+    # DocumentVersion upload route has always required/accepted
+    # (`presentation/api/v1/documents.py`'s `create_document_version`), and
+    # `Content-Disposition` is the header the existing download route has
+    # always returned. A browser/Electron renderer cannot send or read a
+    # header the preflight does not allow or the response does not expose,
+    # so all three are added to the same explicit allowlists T78 established
+    # -- deliberately not widened to a wildcard. The upload/download,
+    # idempotency, storage and versioning semantics behind those headers are
+    # untouched; this is transport compatibility only.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["Content-Type", "Authorization"],
+        allow_headers=["Content-Type", "Authorization", "X-Filename", "Idempotency-Key"],
+        expose_headers=["Content-Disposition"],
     )
     app.add_middleware(LoggingMiddleware)
     # Added last so it becomes the outermost middleware, running before
