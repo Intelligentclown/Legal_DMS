@@ -22,6 +22,8 @@ interface FakeResponse {
   ok: boolean;
   status: number;
   json: () => Promise<unknown>;
+  blob?: () => Promise<Blob>;
+  headers?: { get: (name: string) => string | null };
 }
 
 function stubFetch(response: FakeResponse): Mock {
@@ -40,6 +42,19 @@ const UNAUTHORIZED_RESPONSE: FakeResponse = {
   ok: false,
   status: 401,
   json: () => Promise.resolve({ error: { code: "UNAUTHORIZED", message: "Invalid token" } }),
+};
+
+const DOWNLOAD_HEADERS: Record<string, string> = {
+  "Content-Type": "application/pdf",
+  "Content-Disposition": 'attachment; filename="deed.pdf"',
+};
+
+const BINARY_RESPONSE: FakeResponse = {
+  ok: true,
+  status: 200,
+  json: () => Promise.resolve({ data: { id: "v1", version_number: 1 } }),
+  blob: () => Promise.resolve(new Blob(["%PDF-1.7"])),
+  headers: { get: (name) => DOWNLOAD_HEADERS[name] ?? null },
 };
 
 describe("httpClient", () => {
@@ -88,6 +103,143 @@ describe("httpClient", () => {
 
       const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
       expect(init.method).toBe("DELETE");
+    });
+  });
+
+  describe("raw-byte upload", () => {
+    it("sends the bytes as the request body without JSON-serializing them", async () => {
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+      const bytes = new Uint8Array([1, 2, 3]).buffer;
+
+      await httpClient.postBinary("/versions", bytes, { contentType: "application/pdf" });
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      expect(init.method).toBe("POST");
+      expect(init.body).toBe(bytes);
+    });
+
+    it("sends the caller's Content-Type over the JSON default", async () => {
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.postBinary("/versions", new Uint8Array([1]).buffer, {
+        contentType: "application/pdf",
+      });
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      const headers = init.headers as Record<string, string>;
+      expect(headers["Content-Type"]).toBe("application/pdf");
+    });
+
+    it("defaults to application/octet-stream so the backend is never told it is JSON", async () => {
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.postBinary("/versions", new Uint8Array([1]).buffer);
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      const headers = init.headers as Record<string, string>;
+      expect(headers["Content-Type"]).toBe("application/octet-stream");
+    });
+
+    it("forwards the required X-Filename and optional Idempotency-Key headers", async () => {
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.postBinary("/versions", new Uint8Array([1]).buffer, {
+        headers: { "X-Filename": "deed.pdf", "Idempotency-Key": "key-1" },
+      });
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      const headers = init.headers as Record<string, string>;
+      expect(headers["X-Filename"]).toBe("deed.pdf");
+      expect(headers["Idempotency-Key"]).toBe("key-1");
+    });
+
+    it("omits Idempotency-Key entirely when the caller does not supply one", async () => {
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.postBinary("/versions", new Uint8Array([1]).buffer, {
+        headers: { "X-Filename": "deed.pdf" },
+      });
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      const headers = init.headers as Record<string, string>;
+      expect(headers["X-Filename"]).toBe("deed.pdf");
+      expect(headers).not.toHaveProperty("Idempotency-Key");
+    });
+
+    it("still attaches the bearer token on a raw-byte upload", async () => {
+      setAccessToken("abc123");
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.postBinary("/versions", new Uint8Array([1]).buffer);
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      const headers = init.headers as Record<string, string>;
+      expect(headers.Authorization).toBe("Bearer abc123");
+    });
+
+    it("converts a failed raw-byte upload into a structured HttpError", async () => {
+      stubFetch({
+        ok: false,
+        status: 409,
+        json: () =>
+          Promise.resolve({ error: { code: "CONFLICT", message: "Idempotency key reused" } }),
+      });
+
+      const error: unknown = await httpClient
+        .postBinary("/versions", new Uint8Array([1]).buffer)
+        .catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(HttpError);
+      expect((error as HttpError).status).toBe(409);
+      expect((error as HttpError).message).toBe("Idempotency key reused");
+    });
+  });
+
+  describe("binary download", () => {
+    it("returns the bytes plus the Content-Type and Content-Disposition headers", async () => {
+      stubFetch(BINARY_RESPONSE);
+
+      const result = await httpClient.getBinary("/versions/v1/content");
+
+      expect(await result.blob.text()).toBe("%PDF-1.7");
+      expect(result.contentType).toBe("application/pdf");
+      expect(result.contentDisposition).toBe('attachment; filename="deed.pdf"');
+    });
+
+    it("issues a GET request", async () => {
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.getBinary("/versions/v1/content");
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      expect(init.method).toBe("GET");
+    });
+
+    it("attaches the bearer token on a download", async () => {
+      setAccessToken("abc123");
+      const mockFetch = stubFetch(BINARY_RESPONSE);
+
+      await httpClient.getBinary("/versions/v1/content");
+
+      const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+      const headers = init.headers as Record<string, string>;
+      expect(headers.Authorization).toBe("Bearer abc123");
+    });
+
+    it("converts a failed download into a structured HttpError", async () => {
+      stubFetch({
+        ok: false,
+        status: 404,
+        json: () => Promise.resolve({ error: { code: "NOT_FOUND", message: "Version not found" } }),
+      });
+
+      const error: unknown = await httpClient
+        .getBinary("/versions/v1/content")
+        .catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(HttpError);
+      expect((error as HttpError).status).toBe(404);
+      expect((error as HttpError).message).toBe("Version not found");
     });
   });
 

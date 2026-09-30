@@ -81,4 +81,19 @@ describe("MainLayout", () => {
 
     expect(screen.getByRole("button", { name: /logging out/i })).toBeDisabled();
   });
+
+  it("exposes the Party and Matter entry points in the main navigation", () => {
+    mockUseAuth.mockReturnValue({
+      currentUser: { id: "u1", display_name: "Jane Doe", roles: ["Administrator"] },
+      tokens: { access_token: "access-123", refresh_token: "refresh-456" },
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    renderLayout();
+
+    expect(screen.getByRole("navigation", { name: /main/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Parties" })).toHaveAttribute("href", "/parties");
+    expect(screen.getByRole("link", { name: "Matters" })).toHaveAttribute("href", "/matters");
+  });
 });

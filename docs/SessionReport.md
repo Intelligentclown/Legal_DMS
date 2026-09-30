@@ -4068,3 +4068,16 @@ remains unresolved; and T126+ is unauthorized.
 **Governance Synchronization:** T146 is Done in the ordinary pre-merge §3 sense. The canonical queue row records the exact implementation/QA provenance and bounded QA findings. `latestTaskDone=T146`, `latestTaskAuthorized=T146`, transitions remain `[]`. PR #268 remains open/unmerged pending a fresh CI cycle for the new exact final head plus later review/protection verification and protected merge.
 
 **Preserved Boundaries:** T145 remains Authorized/blocked/not Done until PR #268 is protected-merged and Control Tower independently verifies durable T146 completion on `main`. T147+ remains unauthorized. Unresolved Required ADRs remain `[12,15,16,17,20]`; no ADR content/status changed; migration/provenance remains `cdcfd7df5fde`. No production/frontend/test/migration/schema/seed code changed during synchronization. QA's `LOOKUP_LIMIT = 100` acceptance is preserved only as a T146 static-seeded-vocabulary assessment and does not establish pagination/configurability policy or resolve Required ADR #15.
+
+
+## Session: 2026-09-30 — T145 Post-QA Governance Synchronization on PR #269
+
+**Objective:** Synchronize ordinary §3 governance after independent different-agent QA formally **Approved** T145 without merging PR #269, modifying implementation/QA evidence, authorizing T147+, changing ADR/Required-ADR/migration state, or selecting a successor.
+
+**Verified Before Editing:** `origin/main=febce021b4f4a689a7ebcc57ea85a277dcfa5d65`. PR #269 was OPEN/non-draft/unmerged at `17f6146803880b3478f4d73b3866bd4bd1d0cd8b`. Frozen implementation `65d1eb81a7e25c481e19ecb39542b1ea209c7e9b` contains exactly 49 changed files under `frontend/src/` (+4702/-11); its direct QA-evidence child adds only `docs/reviews/T145_QA_Review.md`, identifying the Independent QA Reviewer, PR #269, authorization baseline, exact frozen candidate and formal **Approved** verdict. Pre-sync PR scope is therefore 50 files (+4817/-11), with no backend/test/migration/schema/seed/ADR/governance mutation.
+
+**Governance Synchronization:** T145 is now Done in the ordinary pre-merge §3 sense. Its queue row records exact implementation/QA provenance and the QA-supported Party → Matter → File → Document → DocumentVersion result. Property remains intentionally omitted because the current Matter contract does not require it. PR #269 remains open/unmerged pending fresh exact-final-head CI/review/protection and protected merge.
+
+**Non-monotonic frontier handling:** Current validator code computes `latestTaskDone` as the highest-numbered task row containing its own `TNN is now Done` marker. T146 is already Done, so marking earlier T145 Done does not and must not lower the ledger frontier. `latestTaskDone=T146`, `latestTaskAuthorized=T146`, transitions remain `[]`. T146 remains Done; T147+ remains unauthorized.
+
+**Preserved boundaries:** unresolved Required ADRs remain `[12,15,16,17,20]`; migration/provenance remains `cdcfd7df5fde`; no implementation, QA artifact, backend, test, migration, schema, seed or ADR file is modified by synchronization; no successor is selected.
