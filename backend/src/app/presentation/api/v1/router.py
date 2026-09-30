@@ -11,6 +11,7 @@ from app.presentation.api.v1 import (
     documents,
     files,
     health,
+    lookups,
     matters,
     parties,
     properties,
@@ -24,6 +25,10 @@ router.include_router(auth.router, tags=["auth"])
 router.include_router(documents.router, tags=["documents"])
 router.include_router(files.router, tags=["files"])
 router.include_router(health.router, tags=["health"])
+# T146: global reference-vocabulary discovery. Mounted before `matters` only
+# for alphabetical consistency with the import/inclusion order above; these
+# are distinct top-level paths with no interaction with `/matters/...`.
+router.include_router(lookups.router, tags=["lookups"])
 router.include_router(matters.router, tags=["matters"])
 router.include_router(parties.router, tags=["parties"])
 router.include_router(properties.router, tags=["properties"])

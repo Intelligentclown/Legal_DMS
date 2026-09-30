@@ -6,6 +6,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.application.common.query import FilterOperator, FilterSpec, SearchQuery, SortSpec
 from app.application.errors.exceptions import ConflictError, NotFoundError, ValidationError
 from app.application.interfaces.document_repository import DocumentRepository
 from app.application.interfaces.file_repository import FileRepository
@@ -14,6 +15,18 @@ from app.application.interfaces.repository import AbstractRepository
 from app.infrastructure.persistence.models.document import Document, DocumentType
 
 _MUTABLE_FIELDS = frozenset({"title", "status", "document_type_id"})
+
+# T146 vocabulary discovery. `DocumentType` is a global reference table (no
+# `organization_id`, no RLS) with an existing `is_active` column and no
+# ordering column, so the read is filtered to active rows and ordered by the
+# already-unique `code`.
+_DOCUMENT_TYPE_QUERY = SearchQuery(
+    filters=(FilterSpec(field="is_active", operator=FilterOperator.EQ, value=True),),
+    sort=(SortSpec(field="code"),),
+)
+# Unpaginated collection, bounded by the same limit the repository port's own
+# default uses; the seeded vocabulary is well inside it.
+LOOKUP_LIMIT = 100
 
 
 class DocumentService:
@@ -39,6 +52,12 @@ class DocumentService:
     async def _document_type(self, document_type_id: UUID) -> None:
         if await self._document_type_repository.get_by_id(document_type_id) is None:
             raise ValidationError(f"document_type_id with id {document_type_id} does not exist")
+
+    async def list_document_types(self) -> Sequence[DocumentType]:
+        """T146: active Document Types, ordered by `code`."""
+        return await self._document_type_repository.list(
+            limit=LOOKUP_LIMIT, query=_DOCUMENT_TYPE_QUERY
+        )
 
     async def list_in_file(
         self, organization_id: UUID, matter_id: UUID, file_id: UUID, *, limit: int, offset: int

@@ -6,12 +6,33 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.application.common.query import FilterOperator, FilterSpec, SearchQuery, SortSpec
 from app.application.errors.exceptions import NotFoundError, ValidationError
 from app.application.interfaces.matter_repository import MatterRepository
 from app.application.interfaces.party_repository import PartyRepository
 from app.application.interfaces.repository import AbstractRepository
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
 from app.infrastructure.persistence.models.party import MatterParty
+
+# T146 vocabulary discovery: the smallest read that a selector needs over the
+# existing global reference tables. Ordering uses only existing persisted
+# columns -- `sort_order`, tie-broken by the already-unique `code` so the
+# result is deterministic. `MatterType.is_active` is an existing column, so
+# only active rows are offered; `MatterStatus` has no such column and is not
+# filtered. Neither vocabulary is tenant-owned, so no Organization scoping
+# applies to either.
+_MATTER_TYPE_QUERY = SearchQuery(
+    filters=(FilterSpec(field="is_active", operator=FilterOperator.EQ, value=True),),
+    sort=(SortSpec(field="sort_order"), SortSpec(field="code")),
+)
+_MATTER_STATUS_QUERY = SearchQuery(
+    sort=(SortSpec(field="sort_order"), SortSpec(field="code")),
+)
+# These collections are unpaginated, so each read is bounded rather than open
+# ended. The bound is the same one the repository port's own default limit
+# and `MAX_PAGE_SIZE` already express for this codebase; the seeded
+# vocabularies are well inside it.
+LOOKUP_LIMIT = 100
 
 _CREATE_FIELDS = frozenset(
     {"matter_number", "matter_type_id", "matter_status_id", "title", "description", "opened_at"}
@@ -52,6 +73,19 @@ class MatterService:
 
     async def participants(self, matter: Matter) -> Sequence[MatterParty]:
         return await self._repository.list_participants(matter.id, matter.organization_id)
+
+    async def list_matter_types(self) -> Sequence[MatterType]:
+        """T146: active Matter Types, ordered by `sort_order` then `code`."""
+        return await self._matter_type_repository.list(limit=LOOKUP_LIMIT, query=_MATTER_TYPE_QUERY)
+
+    async def list_matter_statuses(self) -> Sequence[MatterStatus]:
+        """T146: all Matter Statuses, ordered by `sort_order` then `code`.
+
+        Unfiltered because the table genuinely has no active-state column.
+        """
+        return await self._matter_status_repository.list(
+            limit=LOOKUP_LIMIT, query=_MATTER_STATUS_QUERY
+        )
 
     async def create_in_organization(
         self,
