@@ -70,11 +70,11 @@
 
 | Required ADR | Summary Assessment | Result |
 | :--- | :--- | :--- |
-| **ADR-0012** (Workflow Engine) | Local Enquiry/Quotation state machines are bounded domain statuses, not a generic workflow engine. | **Preserved** |
-| **ADR-0015** (Configurable Vocabulary) | Status strings are fixed internal technical tokens; does not decide global tenant-configurable vocabulary. | **Preserved** |
-| **ADR-0016** (Readable Numbering) | UUID primary keys and technical revision ordinals used; readable reference numbering left open. | **Preserved** |
-| **ADR-0017** (Soft Delete / Retention) | Historical immutability enforced for commercial evidence without establishing general purge/retention policies. | **Preserved** |
-| **ADR-0020** (Legacy Convergence) | Does not touch legacy Client/File tables or establish migration policy. Uses `client_id=NULL` / `MatterParty`. | **Preserved** |
+| **Required ADR #12** (Workflow Engine) | Local Enquiry/Quotation state machines are bounded domain statuses, not a generic workflow engine. | **Preserved** |
+| **Required ADR #15** (Configurable Vocabulary) | Identifies lifecycle state roles needed for invariants; does not decide storage/representation or configurability policy (columns/enums/lookups/tenant-configurable vocabulary). | **Preserved** |
+| **Required ADR #16** (Readable Numbering) | UUID primary keys and technical revision ordinals used; readable reference numbering left open. | **Preserved** |
+| **Required ADR #17** (Soft Delete / Retention) | Historical immutability enforced for commercial evidence without establishing general purge/retention policies. | **Preserved** |
+| **Required ADR #20** (Current-Schema Convergence & Migration Strategy) | Does not retire legacy Client or compatibility columns, retire Document/File bridges, or decide migration convergence strategy. Composes with ADR-0020 session commit/rollback policy. | **Preserved** |
 
 **Conclusion:** ADR-0043 correctly declares `Resolves: None`.
 
