@@ -4081,3 +4081,13 @@ remains unresolved; and T126+ is unauthorized.
 **Non-monotonic frontier handling:** Current validator code computes `latestTaskDone` as the highest-numbered task row containing its own `TNN is now Done` marker. T146 is already Done, so marking earlier T145 Done does not and must not lower the ledger frontier. `latestTaskDone=T146`, `latestTaskAuthorized=T146`, transitions remain `[]`. T146 remains Done; T147+ remains unauthorized.
 
 **Preserved boundaries:** unresolved Required ADRs remain `[12,15,16,17,20]`; migration/provenance remains `cdcfd7df5fde`; no implementation, QA artifact, backend, test, migration, schema, seed or ADR file is modified by synchronization; no successor is selected.
+
+## Session: 2026-09-30 — T148 Post-QA Governance Synchronization on PR #275
+
+**Objective:** Synchronize ordinary §3 governance after independent QA formally **Approved** T148, without merging PR #275, modifying implementation/tests/migration/ADR/QA evidence, resolving a Required ADR, authorizing T149+, or selecting a successor.
+
+**Verified Before Editing:** protected `main` was exactly `b306aaf42dcb865b97a932fb2c422e30b05f71a5`. PR #275 was OPEN/non-draft/unmerged at QA-evidence head `2bf1034e83c740e7915844035741ea3a3281aee3`. Immutable implementation `cb609c47afcbbfd968eb43d54ad18cde511961b4` is its direct parent; the implementation→QA delta adds only `docs/reviews/T148_QA_Review.md` (+122/-0). Backend, Frontend, Governance and Release workflows were all successful on that pre-sync QA head.
+
+**Governance Synchronization:** T148 is Done in the ordinary pre-merge §3 sense. The canonical queue records **QA Decision: Approved**, implementation/QA provenance, migration `e148c0f5a8b2` (parent `cdcfd7df5fde`), bounded implementation facts and exclusions. `latestTaskDone=T148`, `latestTaskAuthorized=T148`, transitions `[]`; operational-fresh/migration frontier advances to `e148c0f5a8b2` in the completed T148 candidate.
+
+**Preserved Boundaries:** unresolved Required ADRs remain `[12,15,16,17,20]`; ADR-0043 remains Proposed / Resolves: None; T149+ unauthorized. This synchronization changes documentation/governance only and does not mutate production implementation, implementation tests, migration `e148c0f5a8b2`, QA artifact/verdict, schema/seeds/database or ADRs. PR #275 remains open/unmerged and requires an entirely fresh CI cycle on the synchronized exact head.
