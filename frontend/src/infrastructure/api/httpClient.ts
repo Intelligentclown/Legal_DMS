@@ -61,17 +61,24 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...extra,
+  };
+}
+
+/**
+ * Single funnel for every request: resolves the URL, injects the bearer token,
+ * runs the global 401 handling, and converts a non-OK response into a
+ * structured `HttpError`. Returns the raw `Response` so callers that need a
+ * non-JSON body (binary download) can read it themselves.
+ */
+async function send(path: string, init: RequestInit): Promise<Response> {
   const hadAccessToken = accessToken !== null;
 
-  const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...init?.headers,
-    },
-  });
+  const response = await fetch(`${env.apiBaseUrl}${path}`, init);
 
   if (response.status === 401) {
     accessToken = null;
@@ -87,6 +94,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw await buildHttpError(path, response);
   }
 
+  return response;
+}
+
+async function request<T>(path: string, init: RequestInit): Promise<T> {
+  const response = await send(path, init);
+
   if (response.status === 204) {
     return undefined as T;
   }
@@ -97,14 +110,60 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 function requestWithBody<T>(method: string, path: string, body?: unknown): Promise<T> {
   return request<T>(path, {
     method,
+    headers: authHeaders(),
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 }
 
+const DEFAULT_BINARY_CONTENT_TYPE = "application/octet-stream";
+
+export interface BinaryResponse {
+  blob: Blob;
+  /** The backend replays the MIME type recorded at upload; null if none was sent. */
+  contentType: string | null;
+  /** `attachment; filename="…"` as returned by the download route. */
+  contentDisposition: string | null;
+}
+
 export const httpClient = {
   get: <T>(path: string, options?: { headers?: Record<string, string> }): Promise<T> =>
-    request<T>(path, { headers: options?.headers }),
+    request<T>(path, { method: "GET", headers: authHeaders(options?.headers) }),
   post: <T>(path: string, body?: unknown): Promise<T> => requestWithBody<T>("POST", path, body),
   put: <T>(path: string, body?: unknown): Promise<T> => requestWithBody<T>("PUT", path, body),
   delete: <T>(path: string): Promise<T> => requestWithBody<T>("DELETE", path),
+
+  /**
+   * Sends raw bytes as the request body instead of a JSON payload, for the
+   * existing DocumentVersion upload contract, which takes the file bytes
+   * directly (not multipart/form-data) alongside the required `X-Filename`
+   * header and the optional `Idempotency-Key` header.
+   *
+   * `contentType` is applied over the JSON default because the backend reads
+   * `Content-Type` as the stored MIME type and FastAPI would try to JSON-parse
+   * a body declared as `application/json`.
+   */
+  postBinary: <T>(
+    path: string,
+    content: Blob | ArrayBuffer,
+    options?: { contentType?: string; headers?: Record<string, string> },
+  ): Promise<T> =>
+    request<T>(path, {
+      method: "POST",
+      headers: authHeaders({
+        "Content-Type": options?.contentType ?? DEFAULT_BINARY_CONTENT_TYPE,
+        ...options?.headers,
+      }),
+      body: content,
+    }),
+
+  /** Reads a binary response plus the headers the download route relies on. */
+  getBinary: async (path: string): Promise<BinaryResponse> => {
+    const response = await send(path, { method: "GET", headers: authHeaders() });
+
+    return {
+      blob: await response.blob(),
+      contentType: response.headers.get("Content-Type"),
+      contentDisposition: response.headers.get("Content-Disposition"),
+    };
+  },
 };
