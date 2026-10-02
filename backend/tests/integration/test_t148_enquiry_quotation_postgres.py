@@ -366,6 +366,16 @@ def test_t150_upgrade_from_populated_t148_permits_only_one_issuance_transition()
 
         asyncio.run(acceptance_is_immutable())
         assert alembic_current_branch(url) == HEAD
+        result = _alembic(url, "downgrade", PARENT)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert alembic_current_branch(url) == PARENT
+        asyncio.run(
+            _reject(
+                url,
+                "UPDATE quotation_revisions SET issued_at = now() WHERE id = CAST(:revision AS uuid)",
+                ids,
+            )
+        )
     finally:
         drop_disposable_database(name)
 

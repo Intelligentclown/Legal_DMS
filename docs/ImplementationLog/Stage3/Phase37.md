@@ -59,7 +59,7 @@ or weakening Acceptance evidence immutability.
 - `uv run black --check alembic/versions/8d77007b9d7f_permit_quotation_revision_issuance.py src/app/infrastructure/cli/fresh_install_provenance.py tests/integration/test_t148_enquiry_quotation_postgres.py tests/integration/test_operational_fresh_provenance.py`: passed.
 - `uv run ruff check src tests alembic`: passed.
 - `uv run pytest tests/unit -q`: 339 passed, 60 existing warnings.
-- `uv run pytest tests/integration/test_t148_enquiry_quotation_postgres.py -q -rA`: 3 passed, including populated upgrade, RLS, and empty downgrade.
+- `uv run pytest tests/integration/test_t148_enquiry_quotation_postgres.py -q -rA`: 3 passed, including populated upgrade/rollback, RLS, and empty downgrade.
 - `uv run pytest tests/integration/test_operational_fresh_provenance.py -q -rA`: 7 passed.
 - `uv run alembic heads`: sole head `8d77007b9d7f`.
 - `uv run python ../scripts/governance_validate.py --report`: passed; unresolved Required ADRs remain `[12,15,16,17,20]`.
