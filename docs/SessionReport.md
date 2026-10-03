@@ -4091,3 +4091,14 @@ remains unresolved; and T126+ is unauthorized.
 **Governance Synchronization:** T148 is Done in the ordinary pre-merge §3 sense. The canonical queue records **QA Decision: Approved**, implementation/QA provenance, migration `e148c0f5a8b2` (parent `cdcfd7df5fde`), bounded implementation facts and exclusions. `latestTaskDone=T148`, `latestTaskAuthorized=T148`, transitions `[]`; operational-fresh/migration frontier advances to `e148c0f5a8b2` in the completed T148 candidate.
 
 **Preserved Boundaries:** unresolved Required ADRs remain `[12,15,16,17,20]`; ADR-0043 remains Proposed / Resolves: None; T149+ unauthorized. This synchronization changes documentation/governance only and does not mutate production implementation, implementation tests, migration `e148c0f5a8b2`, QA artifact/verdict, schema/seeds/database or ADRs. PR #275 remains open/unmerged and requires an entirely fresh CI cycle on the synchronized exact head.
+
+
+## Session: 2026-10-03 — T151 §3.1 Governance Closeout
+
+**Purpose:** Dedicated governance closeout only for T151 — AI Execution Role Isolation, Context Profiles & Risk-Scaled QA Workflow Hardening.
+
+**Fresh lifecycle verification:** protected `main` was exactly `0d3403179b42a11396452bd508b18b0a84b8f9ee`, the protected merge of PR #281. Authorization PR #280 merged as `7d5a65cd96a5caa0ef3e3fc697913f14e3af71fd`; frozen implementation `86950c697f3b175df676bb4910d1f303c14659e3` is followed by QA publication `6e52eb49338032a12d3b8e17ec8d31bd9221d7fe`, where independent Antigravity QA records **Approved**.
+
+**Governance transition:** T151 becomes Done; `latestTaskDone=T151`; `latestTaskAuthorized=T151`; transitions remain `[]`. Unresolved Required ADRs remain `[12,15,16,17,20]`; migration/provenance remains `8d77007b9d7f`; T152+ remains unauthorized and no successor is selected.
+
+**Preserved boundaries:** This closeout changes governance/status records only. It does not alter the eight T151 policy implementation files, product code/tests, schema/migrations, RLS/RBAC, APIs, storage/transaction/concurrency behavior, product ADRs, Required-ADR state, or migration/provenance.
