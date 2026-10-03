@@ -40,9 +40,9 @@
       17,
       20
     ],
-    "latestTaskDone": "T149",
+    "latestTaskDone": "T150",
     "latestTaskAuthorized": "T150",
-    "asOfCommit": "T149 post-QA governance synchronization candidate on PR #279; frozen implementation cd678767515a8c9a118f65f8919c77f89c3af5ad; QA publication bf573433c0c77cef501ef365831f32bac6bd2e0e; migration/provenance frontier 8d77007b9d7f",
+    "asOfCommit": "T149 post-QA governance synchronization candidate on PR #279; T149 Done pre-merge; highest Done task remains T150; frozen implementation cd678767515a8c9a118f65f8919c77f89c3af5ad; QA publication bf573433c0c77cef501ef365831f32bac6bd2e0e; migration/provenance frontier 8d77007b9d7f",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
