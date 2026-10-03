@@ -9,6 +9,7 @@ from app.presentation.api.v1 import (
     addresses,
     auth,
     documents,
+    enquiries,
     files,
     health,
     lookups,
@@ -23,6 +24,7 @@ router = APIRouter()
 router.include_router(addresses.router, tags=["addresses"])
 router.include_router(auth.router, tags=["auth"])
 router.include_router(documents.router, tags=["documents"])
+router.include_router(enquiries.router, tags=["enquiries"])
 router.include_router(files.router, tags=["files"])
 router.include_router(health.router, tags=["health"])
 # T146: global reference-vocabulary discovery. Mounted before `matters` only
