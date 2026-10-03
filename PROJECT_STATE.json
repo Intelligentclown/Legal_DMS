@@ -41,8 +41,8 @@
       20
     ],
     "latestTaskDone": "T151",
-    "latestTaskAuthorized": "T151",
-    "asOfCommit": "T151 §3.1 governance closeout candidate after protected implementation+QA merge 0d3403179b42a11396452bd508b18b0a84b8f9ee; QA publication 6e52eb49338032a12d3b8e17ec8d31bd9221d7fe; migration/provenance frontier 8d77007b9d7f",
+    "latestTaskAuthorized": "T152",
+    "asOfCommit": "T152 authorization candidate from protected main cdc2ff92a069819503c4b4e4a9d9f360554d39be; latest Done remains T151; migration/provenance frontier 8d77007b9d7f",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
