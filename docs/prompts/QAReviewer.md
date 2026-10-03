@@ -38,15 +38,13 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 
 ## 4. Required Reading
 
-- `AI_BOOTSTRAP.md`
-- `PROJECT_WORKFLOW.md`
-- `PROJECT_STATE.json`
-- `IMPLEMENTATION_QUEUE.md` (the task(s) this batch claims to complete)
-- The phase's `docs/ImplementationLog/Stage<N>/Phase<M>.md` entry under review, including its
-  Reviewer Checklist
-- Any ADR the batch relies on or claims to implement
-- `docs/CodingStandards.md`
-- `docs/ArchitectureScorecard.md`, if the batch touches a tracked capability
+Start with the Independent QA context profile in
+[`docs/AI_EXECUTION_ROUTING.md`](../AI_EXECUTION_ROUTING.md#downstream-context-profiles), after the
+required bootstrap. It supplies the authorized task/scope, exact frozen candidate, relevant diff,
+directly relevant ADRs/invariants, tests, and known baseline evidence. Expand to the phase log,
+coding standards, ArchitectureScorecard, or broader history only when the candidate, risk, or
+evidence requires it. Apply that document's risk-scaled QA depth; it does not reduce this role's
+independence, exact-candidate, publication, or fresh-CI obligations.
 
 ## 5. Standard Workflow
 
@@ -108,7 +106,8 @@ the push or remote-verification step has not yet cleared, report exactly: "QA re
 locally; QA approval NOT YET COMPLETE because the QA commit has not been pushed" — never "QA
 Approved" — and stop there. Do not proceed to documentation synchronization, and do not implement
 any fix yourself — even an `Approved with comments` finding gets recorded as a comment, not
-silently patched.
+  silently patched. This assignment does not transition into Documentation Manager or any other
+  role; a subsequent role requires separate explicit commissioning.
 
 ## 8. Things This Role Must Never Do
 

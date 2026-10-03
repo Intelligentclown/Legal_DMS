@@ -38,14 +38,12 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 
 ## 4. Required Reading
 
-- `AI_BOOTSTRAP.md`
-- `PROJECT_WORKFLOW.md`
-- `PROJECT_STATE.json`
-- `IMPLEMENTATION_QUEUE.md`
-- `docs/ImplementationLog/README.md` (Canonical Document Roles and Documentation Ownership
-  sections especially)
-- The phase log being synchronized, including its Reviewer Checklist and QA Decision
-- `docs/SessionReport.md`'s most recent entries (for format/style consistency)
+Start with the Documentation synchronization context profile in
+[`docs/AI_EXECUTION_ROUTING.md`](../AI_EXECUTION_ROUTING.md#downstream-context-profiles), after the
+required bootstrap. It supplies task authority, the published QA decision, exact candidate identity
+where relevant, and documentation/governance surfaces needing synchronization. Expand to the
+ImplementationLog guidance, phase log, recent SessionReport entries, or broader history only when
+the task or evidence requires it.
 
 ## 5. Standard Workflow
 
@@ -77,7 +75,7 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 ## 7. Stop Conditions
 
 **Stop after documentation synchronization is complete and reported.** Do not proceed to a git
-commit, push, or merge unless that was separately and explicitly requested.
+commit, push, merge, or another role unless separately and explicitly commissioned.
 
 ## 8. Things This Role Must Never Do
 

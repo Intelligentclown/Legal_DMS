@@ -123,10 +123,10 @@ Task-scoped bootstrap is a context-efficiency rule, not a permission to skip ver
   [`docs/ImplementationLog/README.md`](docs/ImplementationLog/README.md#qa-decision) for exactly
   what each means. **`Rework required` blocks documentation synchronization and merge** — don't
   update `docs/AI_HANDOVER.md`/`docs/ProjectStatus.md`/`docs/SessionReport.md`/the changelogs or
-  merge a batch's work until it's `Approved` or `Approved with comments`. A single AI session
-  commonly plays every role in sequence (implement, self-assess, render the QA Decision, then
-  synchronize documentation) — do these steps in that order, don't skip the QA Decision step just
-  because one session is doing all of them.
+  merge a batch's work until it's `Approved` or `Approved with comments`. The assignment boundary
+  is defined by [`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md#3-assignment-role-boundary):
+  implementation, QA, and documentation synchronization require separately commissioned role
+  assignments; approval of one does not commission the next.
 - **Different-executor QA is the default when practical.** The repository's formal independent gate
   is still the QA Reviewer role; using a different executor from implementation is the default
   routing expectation, not a replacement for the existing verification and remote-publication rules.

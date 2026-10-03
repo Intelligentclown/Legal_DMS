@@ -4,8 +4,8 @@ Copy this file's content as-is to start a Git / CI / PR Manager session. See
 [`docs/prompts/README.md`](README.md) for how this relates to `AI_BOOTSTRAP.md` and
 `PROJECT_WORKFLOW.md`.
 
-**Governance note (read before using this prompt):** `PROJECT_WORKFLOW.md` §7 currently names four
-standard AI roles (Project Manager, Backend Developer, QA Reviewer, Documentation Manager). This role
+**Governance note (read before using this prompt):** `PROJECT_WORKFLOW.md` §7 currently names six
+standard AI roles. This role
 is **not yet listed there**. It exists to operationalize lifecycle steps `PROJECT_WORKFLOW.md` §3
 *already describes* — Git Commit → Push → GitHub Actions → Pull Request → Merge → Delete Branch →
 Update Local `main` — the same way the other four prompts operationalize duties §3 already assigns
@@ -53,15 +53,12 @@ Full statement of this principle: `PROJECT_WORKFLOW.md`'s
 
 ## 4. Required Reading
 
-- `AI_BOOTSTRAP.md`
-- `PROJECT_WORKFLOW.md` — especially §3 (lifecycle), §4 (branch strategy), §5 (Git workflow), §6 (PR
-  workflow), §9 (Definition of Done)
-- `PROJECT_STATE.json`, `IMPLEMENTATION_QUEUE.md`, `PROJECT_CHECKPOINT.md`
-- The task's `docs/ImplementationLog/Stage<N>/Phase<M>.md` entry, including its QA Decision
-- `docs/DefinitionOfDone.md`
-- `docs/DevelopmentGuide.md`'s "Continuous Integration" section
-- [`ADR/0017`](../../ADR/0017-github-actions-ci.md) — what each CI workflow actually validates (and
-  what it doesn't — see §8)
+Start with the Git / CI final-verification context profile in
+[`docs/AI_EXECUTION_ROUTING.md`](../AI_EXECUTION_ROUTING.md#downstream-context-profiles), after the
+required bootstrap. It supplies PR identity, expected protected baseline, exact final head,
+authorization/QA ancestry, mandatory checks, review/protection state, and merge result. Expand to
+workflow, CI, task, implementation-log, or ADR material only when the verification evidence requires
+it; the profile never narrows the invariants this role must verify.
 
 ## 5. Standard Workflow
 

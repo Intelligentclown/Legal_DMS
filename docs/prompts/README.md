@@ -24,6 +24,12 @@ what's specific to one role on top.
 `docs/AI_EXECUTION_ROUTING.md` separately explains executor routing. These prompts define roles, not
 which product must perform them.
 
+Every prompt is commissioned for one role only. Completing, approving, or handing off its output
+ends that assignment; another lifecycle role needs separate explicit commissioning. The canonical
+assignment boundary, minimal handoff, downstream context profiles, invariant-reverification rule,
+and risk-scaled QA depth are in
+[`docs/AI_EXECUTION_ROUTING.md`](../AI_EXECUTION_ROUTING.md).
+
 ## How this relates to `PROJECT_WORKFLOW.md`
 
 `PROJECT_WORKFLOW.md` explains *why* the lifecycle has the shape it does — the roles, the gates, the
