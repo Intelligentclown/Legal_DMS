@@ -198,8 +198,8 @@ Pre-Merge Governance Gate for the corresponding independent verification before 
 
 | Status | Meaning |
 |---|---|
-| **Approved** | The batch is correct as-is. Implementation may proceed to the Documentation Manager for final documentation synchronization and merge. |
-| **Approved with comments** | Minor comments only — worth recording (add them as a short note under the checklist), but **no implementation changes are required**. Proceeds to the Documentation Manager the same as a plain Approved. |
+| **Approved** | The batch is correct as-is. It is eligible for a separately commissioned Documentation Manager assignment for final documentation synchronization and merge. |
+| **Approved with comments** | Minor comments only — worth recording (add them as a short note under the checklist), but **no implementation changes are required**. It is eligible for the same separately commissioned Documentation Manager assignment as a plain Approved. |
 | **Rework required** | The implementation returns to the Developer. **Documentation synchronization and merge must wait until QA approves** — don't let the Documentation Manager's pass or a merge happen on a batch that hasn't cleared this gate. |
 
 A `Rework required` decision doesn't mean starting a new phase log — the same phase log gets
@@ -301,11 +301,11 @@ document in their column looks wrong.
 
 This maps directly onto the QA Decision workflow above: a Developer's phase log reaches "Ready for
 QA," a QA Reviewer records the QA Decision, and only once it's `Approved`/`Approved with comments`
-does work proceed to the Documentation Manager for final synchronization (`docs/AI_HANDOVER.md`,
-`docs/ProjectStatus.md`, `docs/SessionReport.md`, the changelogs) and merge. A single AI session
-often plays every role in sequence on a given piece of work — this table still applies; it says
-*which hat you're wearing* when you touch a given document, not that five different people must be
-involved.
+is the batch eligible for a separately commissioned Documentation Manager assignment for final
+synchronization (`docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, `docs/SessionReport.md`, the
+changelogs) and merge. Primary ownership describes routine responsibility, not exclusive editing
+authority; the one-role-per-assignment boundary is defined in
+[`docs/AI_EXECUTION_ROUTING.md`](../AI_EXECUTION_ROUTING.md#3-assignment-role-boundary).
 
 ## Relationship to `docs/templates/`
 

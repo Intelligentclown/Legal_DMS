@@ -303,8 +303,12 @@ Repository roles are governance concepts. The product or session performing a ro
 choice, not a new role. Default executor routing and bootstrap guidance live in
 [`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md).
 
-The project defines six standard AI roles. One development session may perform all six
-sequentially, but each role has distinct responsibilities and boundaries. Backend Developer and
+The project defines six standard AI roles. Each commissioned assignment executes exactly one
+repository role; completing or approving that role's output does not authorize the same assignment
+to assume another role. A subsequent role requires separate explicit commissioning. This is an
+assignment boundary, not a claim about whether a human may start a new assignment in the same
+product interface. The canonical rule and its handoff/context guidance are in
+[`docs/AI_EXECUTION_ROUTING.md`](docs/AI_EXECUTION_ROUTING.md#3-assignment-role-boundary). Backend Developer and
 Frontend Developer are peer roles occupying the same lifecycle position — a task is assigned to
 exactly one of the two, selected by the authorized task's domain (backend/Python vs. frontend/
 TypeScript/Electron-renderer), never both, and neither is a subordinate or a merged variant of the

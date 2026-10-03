@@ -47,7 +47,35 @@ gates.
 If a different executor is unavailable, the repository's existing role boundaries and publication
 requirements still control; this document does not create an automatic waiver.
 
-## 4. Bootstrap Modes
+## 3. Assignment Role Boundary
+
+A commissioned AI assignment executes **exactly one repository role**. Completion of that role
+ends the assignment. Approval, a passing check, or a handoff-ready result does not implicitly
+commission the same assignment to become QA Reviewer, Documentation Manager, Git / CI / PR
+Manager, Project Manager / Control Tower, Software Architect, or another role. The next role needs
+a separate explicit commissioning.
+
+This is a governance boundary around the commissioned assignment and its authority, not a technical
+claim about chat or product-session internals. A human may start a separately commissioned
+assignment in the same interface where repository policy permits it. Role definitions and lifecycle
+gates remain useful and unchanged; this rule prevents their routine automatic chaining.
+
+## 4. Minimal Control Tower Handoff
+
+A normal Control Tower commissioning message should normally contain only:
+
+- assigned role;
+- task ID;
+- expected protected-`main` baseline;
+- an exceptional task-specific constraint not already durable in repository authority;
+- instruction to bootstrap from protected repository truth; and
+- the explicit STOP boundary.
+
+Repository facts already encoded durably should normally be rediscovered from protected repository
+state, not copied into every handoff. A larger prompt remains appropriate for genuinely exceptional
+or high-risk work; brevity never overrides safety or scope clarity.
+
+## 5. Bootstrap Modes
 
 `AI_BOOTSTRAP.md` defines two bootstrap modes:
 
@@ -59,7 +87,7 @@ requirements still control; this document does not create an automatic waiver.
 The mode changes how much context is loaded up front. It does **not** change the repository's
 authorization, QA, or merge rules.
 
-## 5. Context-Loading Principles
+## 6. Context-Loading Principles
 
 - **Repository first, always.** Prior chat may provide a lead, but repository evidence decides.
 - **Load the minimum context that is sufficient for the current role and task.**
@@ -74,7 +102,16 @@ authorization, QA, or merge rules.
   as the executor can still prove the task's authorization, dependencies, and relevant governance
   constraints from repository artifacts.
 
-## 6. Recommended Context Order
+### Reverify the invariant; do not repeatedly reconstruct its entire history
+
+Reverify each critical invariant directly from repository or platform truth; do not treat a prior
+role's report as authority and do not reload unrelated history merely because it exists. As
+applicable, independently verify protected `main`, durable authorization, required ancestry, the
+exact candidate/head, QA publication and ancestry, candidate mutation after QA, mandatory CI,
+review/protection state, and the protected merge result. This principle narrows unnecessary context,
+not independent verification or lifecycle gates.
+
+## 7. Recommended Context Order
 
 ### Control Tower Bootstrap
 
@@ -104,7 +141,32 @@ task ID/scope to an executor.
 7. Broader project history only if a discrepancy, missing dependency, or scope question makes it
    necessary
 
-## 7. Monthly Workflow Reviews
+### Downstream context profiles
+
+These are minimum initial contexts beneath the bootstrap modes above, not competing workflows or
+exhaustive checklists. Expand on demand when evidence, scope, or a discrepancy requires it.
+
+| Role | Minimum initial context |
+|---|---|
+| **Independent QA** | Authorized task/scope; exact frozen candidate identity; relevant diff; directly relevant ADRs/invariants; relevant tests; known baseline failures/evidence where applicable. QA independently verifies all policy-critical facts. |
+| **Documentation synchronization** | Task authority; published QA decision; exact candidate identity where relevant; and the governance/documentation surfaces that require synchronization. |
+| **Git / CI final verification** | PR identity; expected protected baseline; exact final head; required authorization and QA ancestry; mandatory checks; review/protection state; and merge result. |
+
+### Risk-scaled QA depth
+
+QA selects depth from the authorized change's risk, without changing whether independent QA is
+required. Governance/documentation-only work normally emphasizes scope, authority, cross-reference,
+and parser/validator checks; ordinary CRUD/application work adds behavior and regression coverage;
+frontend/UI work adds rendered and interaction coverage; architecture/ADR work deeply validates
+authority, alternatives, and downstream invariants. Migration/schema, RLS/security/tenant, and
+transaction/concurrency/storage/integrity work require deep verification of the relevant persistence,
+isolation, failure, and boundary behavior.
+
+Lower risk means a narrower appropriate verification depth, never self-review, no QA, weaker
+exact-candidate checks, or waived fresh CI. Different-executor QA remains the default where
+practical, and candidate mutation still requires the repository's applicable fresh-QA process.
+
+## 8. Monthly Workflow Reviews
 
 Periodic workflow reviews belong under `docs/AI_WORKFLOW_REVIEWS/README.md`.
 
@@ -116,7 +178,7 @@ Those reviews are:
 - and escalated through the Project Manager plus a separately numbered governance task when they
   identify a change worth adopting.
 
-## 8. Thin Entry Points
+## 9. Thin Entry Points
 
 - `AGENTS.md` exists as a thin entry point only.
 - It must stay a router to `AI_BOOTSTRAP.md` and this document.
