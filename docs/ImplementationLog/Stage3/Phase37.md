@@ -104,6 +104,6 @@ or weakening Acceptance evidence immutability.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
