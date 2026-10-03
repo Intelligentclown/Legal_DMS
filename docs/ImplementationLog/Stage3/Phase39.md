@@ -114,6 +114,7 @@ Documentation Manager.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
+
