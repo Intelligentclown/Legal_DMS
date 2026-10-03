@@ -1,6 +1,6 @@
 {
   "project": "Legal Document & Matter Management System",
-  "lastUpdated": "2026-10-02",
+  "lastUpdated": "2026-10-03",
   "currentStage": {
     "id": "stage-3",
     "name": "Authentication & Authorization",
@@ -40,9 +40,9 @@
       17,
       20
     ],
-    "latestTaskDone": "T148",
+    "latestTaskDone": "T150",
     "latestTaskAuthorized": "T150",
-    "asOfCommit": "T150 authorization candidate; base 63c405a7160a5a342dadb4279e24311a05f44825",
+    "asOfCommit": "T150 post-QA governance synchronization candidate on PR #278; frozen implementation c7f1a4aa05abe950445444559528d9c0fd4068bc; QA publication be7dee325b71c8db71e80fd4bed8a531693a3df2; migration/provenance frontier 8d77007b9d7f",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
