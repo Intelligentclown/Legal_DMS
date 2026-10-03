@@ -1,19 +1,23 @@
-"""T149 route, tenant, issuance and PostgreSQL allocation evidence."""
+"""T149/T152 route, tenant, issuance and PostgreSQL conversion evidence."""
 
 from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncGenerator, Iterator
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.infrastructure.cli.fresh_install_provenance import establish_fresh_installation
 from app.infrastructure.cli.operational_fresh_bootstrap import run_bootstrap
 from app.infrastructure.database import session as session_module
+from app.infrastructure.persistence.models.client import Client
+from app.infrastructure.persistence.models.enquiry import Acceptance
+from app.infrastructure.persistence.models.file import File
 from app.infrastructure.persistence.models.identity import (
     Permission,
     Role,
@@ -21,8 +25,9 @@ from app.infrastructure.persistence.models.identity import (
     User,
     UserRole,
 )
+from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
 from app.infrastructure.persistence.models.organization import Organization
-from app.infrastructure.persistence.models.party import Party
+from app.infrastructure.persistence.models.party import MatterParty, Party
 from app.infrastructure.security.password_hasher import hash_password
 from app.main import app
 from tests.support.synthetic_migration import (
@@ -176,3 +181,189 @@ async def test_t149_permissions_are_narrow_and_do_not_consume_accept(
     assert (
         await client.post("/api/v1/enquiries", headers=headers, json={"prospect_display_name": "P"})
     ).status_code == 403
+
+
+async def _t152_setup(
+    client: AsyncClient,
+    factory: async_sessionmaker[AsyncSession],
+    permissions: tuple[str, ...],
+    *,
+    party_linked: bool = True,
+) -> tuple[dict[str, str], UUID, UUID, UUID, UUID, dict[str, object]]:
+    credentials, organization_id, party_id = await _credentials(factory, *permissions)
+    headers = {"Authorization": f"Bearer {await _token(client, credentials)}"}
+    enquiry_payload = (
+        {"party_id": str(party_id)} if party_linked else {"prospect_display_name": "P"}
+    )
+    enquiry = await client.post("/api/v1/enquiries", headers=headers, json=enquiry_payload)
+    assert enquiry.status_code == 201
+    enquiry_id = UUID(enquiry.json()["data"]["id"])
+    quotation = await client.post(f"/api/v1/enquiries/{enquiry_id}/quotations", headers=headers)
+    assert quotation.status_code == 201
+    quotation_id = UUID(quotation.json()["data"]["id"])
+    revision = await client.post(
+        f"/api/v1/enquiries/{enquiry_id}/quotations/{quotation_id}/revisions",
+        headers=headers,
+        json={"proposal_snapshot": {"scope": "exact evidence"}},
+    )
+    assert revision.status_code == 201
+    revision_id = UUID(revision.json()["data"]["id"])
+    issued = await client.post(
+        f"/api/v1/enquiries/{enquiry_id}/quotations/{quotation_id}/revisions/{revision_id}/issue",
+        headers=headers,
+    )
+    assert issued.status_code == 200
+    async with factory() as db:
+        matter_type_id = (await db.execute(select(MatterType.id).limit(1))).scalar_one()
+        matter_status_id = (await db.execute(select(MatterStatus.id).limit(1))).scalar_one()
+    matter = {
+        "matter_number": f"T152-{uuid4()}",
+        "matter_type_id": str(matter_type_id),
+        "matter_status_id": str(matter_status_id),
+        "title": "Converted matter",
+        "opened_at": datetime.now(UTC).isoformat(),
+    }
+    return (
+        headers,
+        organization_id,
+        party_id,
+        enquiry_id,
+        quotation_id,
+        {
+            "revision_id": revision_id,
+            "matter": matter,
+        },
+    )
+
+
+def _accept_path(enquiry_id: UUID, quotation_id: UUID, revision_id: UUID) -> str:
+    return (
+        f"/api/v1/enquiries/{enquiry_id}/quotations/{quotation_id}/revisions/"
+        f"{revision_id}/accept"
+    )
+
+
+@pytest.mark.asyncio
+async def test_t152_accepts_exact_issued_revision_creates_party_canonical_matter_and_replays(
+    t149_client: tuple[AsyncClient, async_sessionmaker[AsyncSession]],
+) -> None:
+    client, factory = t149_client
+    headers, organization_id, party_id, enquiry_id, quotation_id, values = await _t152_setup(
+        client,
+        factory,
+        ("enquiries:write", "quotations:write", "quotations:accept", "matters:write"),
+    )
+    revision_id, matter = values["revision_id"], values["matter"]
+    path = _accept_path(enquiry_id, quotation_id, revision_id)
+    accepted = await client.post(path, headers={**headers, "Idempotency-Key": "same"}, json=matter)
+    assert accepted.status_code == 201
+    data = accepted.json()["data"]
+    assert data["replayed"] is False
+    replay = await client.post(path, headers={**headers, "Idempotency-Key": "same"}, json=matter)
+    assert replay.status_code == 200
+    assert replay.json()["data"] == {**data, "replayed": True}
+    changed = {**matter, "title": "changed"}
+    assert (
+        await client.post(path, headers={**headers, "Idempotency-Key": "same"}, json=changed)
+    ).status_code == 409
+    assert (
+        await client.post(path, headers={**headers, "Idempotency-Key": "different"}, json=matter)
+    ).status_code == 409
+
+    other_credentials, _other_org, _other_party = await _credentials(
+        factory, "quotations:accept", "matters:write"
+    )
+    other_headers = {"Authorization": f"Bearer {await _token(client, other_credentials)}"}
+    assert (
+        await client.post(
+            path, headers={**other_headers, "Idempotency-Key": "foreign"}, json=matter
+        )
+    ).status_code == 404
+
+    async with factory() as db:
+        acceptance = (
+            await db.execute(select(Acceptance).where(Acceptance.enquiry_id == enquiry_id))
+        ).scalar_one()
+        assert acceptance.quotation_revision_id == revision_id
+        assert acceptance.quotation_id == quotation_id
+        converted = await db.get(Matter, acceptance.matter_id)
+        assert converted is not None and converted.client_id is None
+        participants = (
+            (await db.execute(select(MatterParty).where(MatterParty.matter_id == converted.id)))
+            .scalars()
+            .all()
+        )
+        assert [(row.party_id, row.role) for row in participants] == [(party_id, "client")]
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(Client)
+                .where(Client.organization_id == organization_id)
+            )
+        ).scalar_one() == 0
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(File)
+                .where(File.organization_id == organization_id)
+            )
+        ).scalar_one() == 0
+
+
+@pytest.mark.asyncio
+async def test_t152_requires_party_and_both_authorities_and_serializes_concurrent_conversion(
+    t149_client: tuple[AsyncClient, async_sessionmaker[AsyncSession]],
+) -> None:
+    client, factory = t149_client
+    # A prospect-only enquiry is intentionally not silently turned into a Party.
+    headers, _org, _party, enquiry_id, quotation_id, values = await _t152_setup(
+        client,
+        factory,
+        ("enquiries:write", "quotations:write", "quotations:accept", "matters:write"),
+        party_linked=False,
+    )
+    path = _accept_path(enquiry_id, quotation_id, values["revision_id"])
+    assert (
+        await client.post(
+            path, headers={**headers, "Idempotency-Key": "no-party"}, json=values["matter"]
+        )
+    ).status_code == 422
+
+    # Acceptance alone cannot create a Matter.
+    limited, _org, _party, enquiry_id, quotation_id, values = await _t152_setup(
+        client, factory, ("enquiries:write", "quotations:write", "quotations:accept")
+    )
+    path = _accept_path(enquiry_id, quotation_id, values["revision_id"])
+    assert (
+        await client.post(
+            path, headers={**limited, "Idempotency-Key": "missing-matter"}, json=values["matter"]
+        )
+    ).status_code == 403
+
+    headers, _org, _party, enquiry_id, quotation_id, values = await _t152_setup(
+        client,
+        factory,
+        ("enquiries:write", "quotations:write", "quotations:accept", "matters:write"),
+    )
+    path = _accept_path(enquiry_id, quotation_id, values["revision_id"])
+
+    async def convert(key: str):
+        return await client.post(
+            path, headers={**headers, "Idempotency-Key": key}, json=values["matter"]
+        )
+
+    left, right = await asyncio.gather(convert("left"), convert("right"))
+    assert sorted([left.status_code, right.status_code]) == [201, 409]
+    async with factory() as db:
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(Acceptance)
+                .where(Acceptance.enquiry_id == enquiry_id)
+            )
+        ).scalar_one() == 1
+        assert (
+            await db.execute(
+                select(func.count()).select_from(Matter).where(Matter.organization_id == _org)
+            )
+        ).scalar_one() == 1

@@ -6,16 +6,21 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Header, Response, status
 from pydantic import BaseModel, Field
 
+from app.application.acceptance_service import AcceptanceService
 from app.application.common.pagination import DEFAULT_PAGE_SIZE, PageRequest, PageResult
 from app.application.enquiry_service import EnquiryService
 from app.application.errors.exceptions import ForbiddenError
 from app.application.interfaces.auth import CurrentUser
+from app.application.matter_service import MatterService
 from app.infrastructure.persistence.models.enquiry import Enquiry, Quotation, QuotationRevision
+from app.infrastructure.persistence.models.matter import MatterStatus, MatterType
 from app.infrastructure.persistence.sqlalchemy_enquiry_repository import SqlAlchemyEnquiryRepository
+from app.infrastructure.persistence.sqlalchemy_matter_repository import SqlAlchemyMatterRepository
 from app.infrastructure.persistence.sqlalchemy_party_repository import SqlAlchemyPartyRepository
+from app.infrastructure.persistence.sqlalchemy_repository import SqlAlchemyRepository
 from app.presentation.api.deps import CurrentUserDep, DBSessionDep, RequirePermission
 from app.presentation.common.response import ApiResponse, paginated_response
 
@@ -27,6 +32,23 @@ async def get_service(session: DBSessionDep) -> EnquiryService:
 
 
 ServiceDep = Annotated[EnquiryService, Depends(get_service)]
+
+
+async def get_acceptance_service(session: DBSessionDep) -> AcceptanceService:
+    parties = SqlAlchemyPartyRepository(session)
+    return AcceptanceService(
+        SqlAlchemyEnquiryRepository(session),
+        parties,
+        MatterService(
+            SqlAlchemyMatterRepository(session),
+            parties,
+            SqlAlchemyRepository(session, MatterType),
+            SqlAlchemyRepository(session, MatterStatus),
+        ),
+    )
+
+
+AcceptanceServiceDep = Annotated[AcceptanceService, Depends(get_acceptance_service)]
 
 
 class EnquiryCreate(BaseModel):
@@ -80,6 +102,22 @@ class RevisionRead(BaseModel):
     issued_at: datetime | None
     issued_by: UUID | None
     created_at: datetime | None
+
+
+class AcceptanceMatterCreate(BaseModel):
+    matter_number: str = Field(min_length=1, max_length=50)
+    matter_type_id: UUID
+    matter_status_id: UUID
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    opened_at: datetime
+
+
+class AcceptanceRead(BaseModel):
+    id: UUID
+    matter_id: UUID
+    quotation_revision_id: UUID
+    replayed: bool
 
 
 def _organization(user: CurrentUser) -> UUID:
@@ -339,5 +377,44 @@ async def issue_revision(
                 revision_id,
                 _actor(current_user),
             )
+        )
+    )
+
+
+@router.post(
+    "/{enquiry_id}/quotations/{quotation_id}/revisions/{revision_id}/accept",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(RequirePermission("quotations:accept")),
+        Depends(RequirePermission("matters:write")),
+    ],
+)
+async def accept_revision(
+    enquiry_id: UUID,
+    quotation_id: UUID,
+    revision_id: UUID,
+    payload: AcceptanceMatterCreate,
+    current_user: CurrentUserDep,
+    service: AcceptanceServiceDep,
+    response: Response,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=255)],
+) -> ApiResponse[AcceptanceRead]:
+    acceptance, matter, replayed = await service.accept(
+        _organization(current_user),
+        enquiry_id,
+        quotation_id,
+        revision_id,
+        payload.model_dump(),
+        idempotency_key,
+        _actor(current_user),
+    )
+    if replayed:
+        response.status_code = status.HTTP_200_OK
+    return ApiResponse(
+        data=AcceptanceRead(
+            id=acceptance.id,
+            matter_id=matter.id,
+            quotation_revision_id=acceptance.quotation_revision_id,
+            replayed=replayed,
         )
     )

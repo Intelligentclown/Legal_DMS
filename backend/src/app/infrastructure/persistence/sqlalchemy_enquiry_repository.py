@@ -9,7 +9,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.interfaces.enquiry_repository import EnquiryRepository
-from app.infrastructure.persistence.models.enquiry import Enquiry, Quotation, QuotationRevision
+from app.infrastructure.persistence.models.enquiry import (
+    Acceptance,
+    Enquiry,
+    Quotation,
+    QuotationRevision,
+)
 
 
 class SqlAlchemyEnquiryRepository(EnquiryRepository):
@@ -175,3 +180,30 @@ class SqlAlchemyEnquiryRepository(EnquiryRepository):
     async def update_revision(self, revision: QuotationRevision) -> QuotationRevision:
         await self._session.flush()
         return revision
+
+    async def lock_enquiry(self, organization_id: UUID, enquiry_id: UUID) -> Enquiry | None:
+        """The T152 conversion serialization point; final commit remains request-owned."""
+        return (
+            await self._session.execute(
+                select(Enquiry)
+                .where(Enquiry.id == enquiry_id, Enquiry.organization_id == organization_id)
+                .with_for_update()
+            )
+        ).scalar_one_or_none()
+
+    async def acceptance_for_enquiry(
+        self, organization_id: UUID, enquiry_id: UUID
+    ) -> Acceptance | None:
+        return (
+            await self._session.execute(
+                select(Acceptance).where(
+                    Acceptance.organization_id == organization_id,
+                    Acceptance.enquiry_id == enquiry_id,
+                )
+            )
+        ).scalar_one_or_none()
+
+    async def add_acceptance(self, acceptance: Acceptance) -> Acceptance:
+        self._session.add(acceptance)
+        await self._session.flush()
+        return acceptance
