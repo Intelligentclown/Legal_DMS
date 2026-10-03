@@ -6,7 +6,12 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from uuid import UUID
 
-from app.infrastructure.persistence.models.enquiry import Enquiry, Quotation, QuotationRevision
+from app.infrastructure.persistence.models.enquiry import (
+    Acceptance,
+    Enquiry,
+    Quotation,
+    QuotationRevision,
+)
 
 
 class EnquiryRepository(ABC):
@@ -66,3 +71,14 @@ class EnquiryRepository(ABC):
 
     @abstractmethod
     async def update_revision(self, revision: QuotationRevision) -> QuotationRevision: ...
+
+    @abstractmethod
+    async def lock_enquiry(self, organization_id: UUID, enquiry_id: UUID) -> Enquiry | None: ...
+
+    @abstractmethod
+    async def acceptance_for_enquiry(
+        self, organization_id: UUID, enquiry_id: UUID
+    ) -> Acceptance | None: ...
+
+    @abstractmethod
+    async def add_acceptance(self, acceptance: Acceptance) -> Acceptance: ...
