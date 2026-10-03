@@ -118,6 +118,6 @@ project-wide synchronization belongs after QA.
 
 ## QA Decision
 
-□ Approved
+☑ Approved
 □ Approved with comments
 □ Rework required
