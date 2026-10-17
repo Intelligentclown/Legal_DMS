@@ -40,9 +40,9 @@
       17,
       20
     ],
-    "latestTaskDone": "T154",
-    "latestTaskAuthorized": "T154",
-    "asOfCommit": "T154 §3.1 PR-3 governance closeout after protected architecture/QA merge PR #288 at bae9b7dcb415ea3f4a3cfab66d4f9928de1c23f1; authorization PR #287; frozen architecture 00a29c6f2c2477151312991d87738c1462df3e07; QA publication 297dd455d351625ba5f96bcf33d86f6215a13313; formal QA Approved (0 blocking, 0 non-blocking); ADR-0044 Proposed, Resolves None; unresolved Required ADRs [12,15,16,17,20]; migration/provenance frontier 8d77007b9d7f; no T155+ authorization.",
+    "latestTaskDone": "T155",
+    "latestTaskAuthorized": "T155",
+    "asOfCommit": "T155 ordinary §3 post-QA governance synchronization on implementation PR #291 (still OPEN/unmerged); protected authorization baseline 3659caa6b624c70b6d627ab993a3df0f19a2a062; original frozen implementation 681905db8396d77caffab4dcc2806d2c56c03a96; original QA bee12f41ca725a6e9914387d832801db064b043d (Approved with comments); remediated implementation 1fafabb3c54216822663de3d95932453ac8a9a05; final QA publication c082488e4bad37840f9e0f4f86c659640d99f7b6 (Approved, zero findings). Canonical MatterProperty schema, tenant-integrity, FORCE RLS, guarded downgrade and provenance migration b155caa6d4e1 (parent 8d77007b9d7f; sole head). No historical backfill or application/API/frontend implementation. ADR-0044 Proposed / Resolves None; unresolved Required ADRs [12,15,16,17,20]; latestTaskDone=T155, latestTaskAuthorized=T155, transitions []; T156+ unauthorized. Protected merge remains pending.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
