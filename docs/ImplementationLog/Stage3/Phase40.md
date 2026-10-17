@@ -82,5 +82,11 @@ Independent QA and post-QA documentation synchronization require separately comm
 ## QA Decision
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
+
+### QA Review Comments (Non-Blocking)
+
+1. **Party Selection Dataset Limitation:** `listParties({ pageSize: 100 })` constrains Party selection to the first 100 parties returned by the existing paginated Party API surface. This limitation is acceptable under T153 authorization (which explicitly prohibited backend/API contract modifications) and is properly disclosed as Deferred Work in this log. Supporting a server-side searchable combobox for larger datasets should be tracked as a future backend search API capability.
+2. **Page-Level RTL Component Test Coverage:** While API contract behavior (`enquiriesApi.test.ts`, 3 tests) and routing hierarchy (`routes.test.ts`, 6 tests) are covered and verified, dedicated RTL component-level test suites for `EnquiriesPage`, `EnquiryCreatePage`, `EnquiryDetailPage`, and `QuotationDetailPage` were not included in this batch. Adding isolated component tests is recommended as follow-up test hardening.
+
