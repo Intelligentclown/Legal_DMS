@@ -40,9 +40,9 @@
       17,
       20
     ],
-    "latestTaskDone": "T153",
-    "latestTaskAuthorized": "T153",
-    "asOfCommit": "T153 ordinary §3 post-QA pre-merge governance synchronization on PR #286; frozen implementation 63c3a353caea20ce7104808e9e1509af74c33dca; QA publication 519d3599904b537e39263987367de493ee98c142; QA Decision Approved with comments; protected merge pending; migration/provenance frontier 8d77007b9d7f",
+    "latestTaskDone": "T154",
+    "latestTaskAuthorized": "T154",
+    "asOfCommit": "T154 §3.1 PR-3 governance closeout after protected architecture/QA merge PR #288 at bae9b7dcb415ea3f4a3cfab66d4f9928de1c23f1; authorization PR #287; frozen architecture 00a29c6f2c2477151312991d87738c1462df3e07; QA publication 297dd455d351625ba5f96bcf33d86f6215a13313; formal QA Approved (0 blocking, 0 non-blocking); ADR-0044 Proposed, Resolves None; unresolved Required ADRs [12,15,16,17,20]; migration/provenance frontier 8d77007b9d7f; no T155+ authorization.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
