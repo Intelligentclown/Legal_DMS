@@ -679,15 +679,18 @@ class TestT156Calendar(unittest.TestCase):
     def test_real_four_column_done_requires_each_completion_field(self):
         row = gv.TaskRow("T157", 1, "| T157 | completed task | Done | T156 |")
         required = ("actual_start", "actual_completion", "actual_elapsed", "variance", "classification")
-        for field in required:
-            with self.subTest(missing=field):
-                self.assertTrue(any("Done missing " + field in e for e in self.errors([row])))
         complete = dict(self.task, actual_start="2026-10-20",
                         actual_completion="2026-10-22", actual_elapsed=3,
                         planned_finish_used="2026-10-22", variance=0,
                         classification="On Time", critical_at_completion=False,
                         milestone_impact=0, finalization_impact=0,
                         recalculated="2026-10-22")
+        for field in required:
+            with self.subTest(missing=field):
+                incomplete = complete.copy()
+                incomplete.pop(field)
+                self.data["tasks"] = [incomplete]
+                self.assertTrue(any("Done missing " + field in e for e in self.errors([row])))
         for field in required:
             with self.subTest(invalid=field):
                 invalid = complete.copy()
