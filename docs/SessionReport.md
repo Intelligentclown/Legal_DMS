@@ -4102,3 +4102,8 @@ remains unresolved; and T126+ is unauthorized.
 **Governance transition:** T151 becomes Done; `latestTaskDone=T151`; `latestTaskAuthorized=T151`; transitions remain `[]`. Unresolved Required ADRs remain `[12,15,16,17,20]`; migration/provenance remains `8d77007b9d7f`; T152+ remains unauthorized and no successor is selected.
 
 **Preserved boundaries:** This closeout changes governance/status records only. It does not alter the eight T151 policy implementation files, product code/tests, schema/migrations, RLS/RBAC, APIs, storage/transaction/concurrency behavior, product ADRs, Required-ADR state, or migration/provenance.
+
+
+## Session: 2026-10-17 — T156 §3.1 Governance Closeout
+
+T156 §3.1 PR-3 governance closeout (2026-10-17): Authorization PR #292 merged at `a4877dd28440073bbfd64d15753d3976608fbb45`; governance implementation and independent QA PR #293 merged at `e79b78bbbf02efb925f1da4137d49b4bccf8c200`, final QA publication `507128ef514ddc898c40b3c72ee69d19ed11a1ae` (QA Decision: Approved after historical Changes requested and remediation). T156 is now Done; latest Done/Authorized T156; transitions `[]`; unresolved Required ADRs `[12,15,16,17,20]`; migration frontier `b155caa6d4e1`. Calendar enforcement begins T157+, with T156 bootstrap and T1–T155 exempt. M1 2026-11-15, M2 2026-12-31, M3/finalization 2027-02-28 remain provisional low-confidence unchanged; no T157+ task selected/authorized. PR-3 awaits independent verification and protected merge.
