@@ -7,6 +7,7 @@ import { Button } from "@/presentation/components/ui/button";
 const NAV_ITEMS = [
   { to: "/", label: "Status", end: true },
   { to: "/parties", label: "Parties", end: false },
+  { to: "/enquiries", label: "Enquiries", end: false },
   { to: "/matters", label: "Matters", end: false },
 ];
 

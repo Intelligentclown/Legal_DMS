@@ -63,6 +63,8 @@ describe("router", () => {
     const patterns: RouteObject[] = layout?.children ?? [];
     const params = patterns.flatMap((route) => route.path?.match(/:[A-Za-z]+/g) ?? []);
 
-    expect(new Set(params)).toEqual(new Set([":partyId", ":matterId", ":fileId", ":documentId"]));
+    expect(new Set(params)).toEqual(
+      new Set([":partyId", ":enquiryId", ":quotationId", ":matterId", ":fileId", ":documentId"]),
+    );
   });
 });
