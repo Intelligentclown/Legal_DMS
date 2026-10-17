@@ -579,9 +579,6 @@ class TestFindRepoRoot(unittest.TestCase):
                 gv.find_repo_root(Path(tmp))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 class TestT156Calendar(unittest.TestCase):
     def setUp(self):
         from delivery_calendar import check_calendar, forecast
@@ -617,7 +614,7 @@ class TestT156Calendar(unittest.TestCase):
         self.assertEqual(self.errors([gv.TaskRow("T155",1,"| T155 | Done |")]),[])
         self.assertTrue(self.errors())
     def test_completion_variance(self):
-        done=gv.TaskRow("T157",1,"| T157 | synthetic | Done |")
+        done=gv.TaskRow("T157",1,"| T157 | synthetic | Done | T156 |")
         t=self.task
         t.update(actual_start="2026-10-20",actual_completion="2026-10-21",actual_elapsed=2,
                  planned_finish_used="2026-10-22",variance=-1,classification="Early",
@@ -660,6 +657,53 @@ class TestT156Calendar(unittest.TestCase):
         b["forecast_start"]="2026-10-20"
         self.assertEqual(forecast([a,b],"M3","2026-10-20"),"2026-10-21")
 
+
+    def test_status_cell_isolated_from_description_and_predecessor(self):
+        """Only the real four-column Status cell controls Done validation."""
+        for row_text in (
+            "| T157 | Description says Done already | Authorized | T156 |",
+            "| T157 | ordinary work | Authorized | T156 Done context |",
+        ):
+            with self.subTest(row=row_text):
+                self.assertEqual(self.errors([gv.TaskRow("T157", 1, row_text)]), [])
+        self.assertTrue(self.errors([
+            gv.TaskRow("T157", 1, "| T157 | Description says Authorized | Done | T156 |")
+        ]))
+        self.assertTrue(self.errors([
+            gv.TaskRow("T157", 1, "| T157 | malformed | Done |")
+        ]))
+        self.assertTrue(self.errors([
+            gv.TaskRow("T157", 1, "| T157 | malformed | Done | T156 | extra |")
+        ]))
+
+    def test_real_four_column_done_requires_each_completion_field(self):
+        row = gv.TaskRow("T157", 1, "| T157 | completed task | Done | T156 |")
+        required = ("actual_start", "actual_completion", "actual_elapsed", "variance", "classification")
+        for field in required:
+            with self.subTest(missing=field):
+                self.assertTrue(any("Done missing " + field in e for e in self.errors([row])))
+        complete = dict(self.task, actual_start="2026-10-20",
+                        actual_completion="2026-10-22", actual_elapsed=3,
+                        planned_finish_used="2026-10-22", variance=0,
+                        classification="On Time", critical_at_completion=False,
+                        milestone_impact=0, finalization_impact=0,
+                        recalculated="2026-10-22")
+        for field in required:
+            with self.subTest(invalid=field):
+                invalid = complete.copy()
+                invalid[field] = {
+                    "actual_start": "not-a-date", "actual_completion": "not-a-date",
+                    "actual_elapsed": 9, "variance": 9, "classification": "Late"
+                }[field]
+                self.data["tasks"] = [invalid]
+                self.assertTrue(self.errors([row]))
+        self.data["tasks"] = [complete]
+        self.assertEqual(self.errors([row]), [])
+
 def gv_date(value):
     from datetime import date
     return date.fromisoformat(value)
+
+
+if __name__ == "__main__":
+    unittest.main()
