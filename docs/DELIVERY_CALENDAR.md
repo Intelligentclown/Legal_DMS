@@ -1,0 +1,17 @@
+# T156 Delivery Calendar Governance
+
+The machine-readable schedule is [delivery_calendar.json](delivery_calendar.json). This is the schedule authority only. `IMPLEMENTATION_QUEUE.md` alone authorizes numbered work and records Done. Calendar entries never authorize tasks.
+
+## Activation and arithmetic
+Prospective enforcement starts at **T157**, inclusive. T1–T155 and bootstrap T156 are exempt; no fictional history is reconstructed. All dates are ISO YYYY-MM-DD, project-local calendar dates. Durations are **inclusive**: finish minus start plus one day. Finish variance is actual protected completion minus original planned finish in calendar days: negative **Early**, zero **On Time**, positive **Late**. The original planned finish is immutable for variance; forecasts may change independently. A Done task records protected-merge completion, not a developer's last commit.
+
+## Forecasting
+Dependency edges are finish-to-start, with successors starting no earlier than the day after predecessors finish. Independent lanes may overlap. Slack is the amount of delay absorbed without moving the milestone; the active critical path has zero slack. An early finish only accelerates a milestone when all controlling predecessor/successor and fixed-date constraints permit it. Recompute after each protected task completion, record every affected milestone including unchanged movement, and append an immutable old/new/movement/direction/trigger/reason/recalculation history entry. Never replace prior entries. The forecast calculator accepts an explicitly complete task network; it must not claim a validated overall date from an incomplete future backlog.
+
+## Initial targets and scope
+The owner-proposed targets (M1 2026-11-15, M2 2026-12-31, M3 2027-02-28) are retained as **provisional, low-confidence planning baselines**, not validated achievable dates. The currently visible queue authorizes no T157+ tasks, so no defensible fully estimated critical path or exact revised dates can be computed. It would be misleading to claim schedule feasibility or fabricate a day-count revision. M1 is a controlled existing/core office vertical slice; excludes government/finance completion. M2 is meaningful regular office use with integrated Matter, follow-up, Property and applicable government processes; excludes post-V1 enhancements. M3 is full frozen V1 and operational stabilization; excludes explicitly deferred work. The unresolved Required ADRs [12,15,16,17,20] gate corresponding workflow/government, vocabulary, identifiers, lifecycle/history, and historical convergence work.
+
+Candidate planning lanes are Matter workspace, workflow/follow-ups/government, Property completeness, commercial/finance, and frontend/stabilization. These are hypotheses until owner-authorized tasks and dependencies establish an actual graph. A late task cannot bypass owner authorization, ADR gates, role separation, Independent QA, exact-head CI, review, protected-branch rules, tenant/RLS/security, migration safety, transaction integrity or STOP conditions.
+
+## Required update protocol
+Before authorizing T157+, add a structured task entry with all required planned/forecast/dependency/critical-path fields. When protected merge makes a task Done, record actual dates and variance and recalculate dependent forecast history in the same governance closeout. Validator failure blocks omission; calendar planning never changes the task ledger. T156 PR 2 must not mark itself Done; PR 3 performs separate governance closeout.
