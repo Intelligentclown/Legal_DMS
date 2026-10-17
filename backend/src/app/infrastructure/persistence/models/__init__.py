@@ -22,6 +22,7 @@ from app.infrastructure.persistence.models import financial as financial
 from app.infrastructure.persistence.models import geography as geography
 from app.infrastructure.persistence.models import identity as identity
 from app.infrastructure.persistence.models import matter as matter
+from app.infrastructure.persistence.models import matter_property as matter_property
 from app.infrastructure.persistence.models import organization as organization
 from app.infrastructure.persistence.models import party as party
 from app.infrastructure.persistence.models import property as property
