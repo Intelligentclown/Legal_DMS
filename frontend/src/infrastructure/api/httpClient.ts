@@ -115,6 +115,26 @@ function requestWithBody<T>(method: string, path: string, body?: unknown): Promi
   });
 }
 
+export interface JsonResponse<T> {
+  data: T;
+  status: number;
+}
+
+async function requestWithBodyResponse<T>(
+  method: string,
+  path: string,
+  body: unknown,
+  headers?: Record<string, string>,
+): Promise<JsonResponse<T>> {
+  const response = await send(path, {
+    method,
+    headers: authHeaders(headers),
+    body: JSON.stringify(body),
+  });
+
+  return { data: (await response.json()) as T, status: response.status };
+}
+
 const DEFAULT_BINARY_CONTENT_TYPE = "application/octet-stream";
 
 export interface BinaryResponse {
@@ -129,6 +149,12 @@ export const httpClient = {
   get: <T>(path: string, options?: { headers?: Record<string, string> }): Promise<T> =>
     request<T>(path, { method: "GET", headers: authHeaders(options?.headers) }),
   post: <T>(path: string, body?: unknown): Promise<T> => requestWithBody<T>("POST", path, body),
+  /** Like post(), while preserving a successful status needed by replay-aware APIs. */
+  postWithResponse: <T>(
+    path: string,
+    body: unknown,
+    options?: { headers?: Record<string, string> },
+  ): Promise<JsonResponse<T>> => requestWithBodyResponse<T>("POST", path, body, options?.headers),
   put: <T>(path: string, body?: unknown): Promise<T> => requestWithBody<T>("PUT", path, body),
   delete: <T>(path: string): Promise<T> => requestWithBody<T>("DELETE", path),
 
