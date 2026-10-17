@@ -41,7 +41,7 @@
       20
     ],
     "latestTaskDone": "T152",
-    "latestTaskAuthorized": "T152",
+    "latestTaskAuthorized": "T153",
     "asOfCommit": "T152 post-QA governance synchronization candidate on PR #284; frozen implementation 19a5f1ca1b399c2bb5e2f87de84609fb53796428; QA publication 6655be3aa270ab89e6f1b0bc5211fc3c3c72deab; migration/provenance frontier 8d77007b9d7f",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
