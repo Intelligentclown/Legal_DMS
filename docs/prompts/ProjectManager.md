@@ -178,3 +178,7 @@ approved, or that authorization was recorded, in place of this verification. Do 
 the missing QA commit, and do not merge the branch with a later `main` to fix a failed ancestry
 check, yourself unless a separate instruction explicitly authorizes that as its own action — report
 the gap and wait.
+
+
+## T156 delivery calendar
+For every proposed T157+ authorization, verify the structured entry in `docs/delivery_calendar.json` contains milestone, lane, dependencies, critical path/slack, planned and forecast dates, duration, and impact. Check the baseline/forecast and latest history before reporting a finalization date. Planning is not authorization. Follow `docs/DELIVERY_CALENDAR.md`.
