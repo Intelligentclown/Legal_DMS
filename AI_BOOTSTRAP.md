@@ -205,3 +205,7 @@ following from repository artifacts alone, without any conversation history:
   [docs/Architecture.md](docs/Architecture.md).
 - **Two known tooling caveats** (not bugs in this project's own code) are tracked in
   [docs/KnownIssues.md](docs/KnownIssues.md) — check there before assuming a tool "just works."
+
+
+## T156 delivery schedule activation
+For T157+ consult `docs/DELIVERY_CALENDAR.md` and `docs/delivery_calendar.json` before authorization or Done closeout. Missing structured schedule fields fail governance CI. Calendar deadlines never override authorization, ADR, QA, security, CI, review, branch protection or STOP requirements.
