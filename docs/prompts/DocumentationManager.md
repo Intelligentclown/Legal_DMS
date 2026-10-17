@@ -89,3 +89,7 @@ commit, push, merge, or another role unless separately and explicitly commission
 - Never synchronize documentation for a batch that doesn't yet have a QA Decision of `Approved` or
   `Approved with comments`.
 - Never edit a document that's already accurate, just to demonstrate activity.
+
+
+## T156 completion schedule synchronization
+For every T157+ protected Done closeout, record actual protected completion and actual start, inclusive elapsed days, deterministic signed finish variance and Early/On Time/Late, critical-path state, affected milestone/finalization impact and recalculation date. Recalculate dependency forecasts and append history including unchanged outcomes. Never overwrite baseline or treat a late task as grounds to bypass governance. See `docs/DELIVERY_CALENDAR.md`.
