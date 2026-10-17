@@ -206,3 +206,7 @@ checks should follow the same shape: a pure function taking parsed data in and r
 `scripts/tests/test_governance_validate.py`. Prefer checks that hold structurally (e.g., "field X
 must equal a value computed from field Y") over checks that depend on one exact sentence surviving
 verbatim in future prose, per this task's own governing instruction.
+
+
+## T156 prospective structured calendar validation
+The validator reads `docs/delivery_calendar.json` using `scripts/delivery_calendar.py`. Every queue row T157+ requires a structured schedule entry. T1–T155 and T156 bootstrap are exempt. Date format, inclusive planned duration, milestone/lane/dependency/critical-path metadata, Done actuals and signed classification, and forecast history consistency fail closed. See `docs/DELIVERY_CALENDAR.md`. This check does not independently prove the completeness of future unselected work, delivery feasibility or protected merge ancestry; those remain human gates.

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "activation_task_number": 157,
+  "as_of": "2026-10-17",
+  "calendar_convention": "inclusive",
+  "status": "provisional planning baseline; not an implementation authorization",
+  "milestones": [
+    {
+      "id": "M1",
+      "name": "Office Dogfooding",
+      "baseline": "2026-11-15",
+      "forecast": "2026-11-15",
+      "actual": null,
+      "confidence": "low",
+      "risk": "Core office slice integration and operational smoke not yet decomposed into authorized tasks",
+      "last_recalculated": "2026-10-17"
+    },
+    {
+      "id": "M2",
+      "name": "Core V1",
+      "baseline": "2026-12-31",
+      "forecast": "2026-12-31",
+      "actual": null,
+      "confidence": "low",
+      "risk": "Workflow and government processes depend on unresolved Required ADR #12; additional scope remains unestimated",
+      "last_recalculated": "2026-10-17"
+    },
+    {
+      "id": "M3",
+      "name": "Full V1",
+      "baseline": "2027-02-28",
+      "forecast": "2027-02-28",
+      "actual": null,
+      "confidence": "low",
+      "risk": "Required ADRs #12 #15 #16 #17 #20 and stabilization capacity remain open",
+      "last_recalculated": "2026-10-17"
+    }
+  ],
+  "lanes": [
+    {
+      "id": "matter",
+      "scope": "Matter workspace and MatterProperty application integration"
+    },
+    {
+      "id": "workflow",
+      "scope": "Tasks, follow-ups, workflow and government process (ADR #12 gate)"
+    },
+    {
+      "id": "property",
+      "scope": "Property completeness and association UX"
+    },
+    {
+      "id": "finance",
+      "scope": "Commercial/finance workflows"
+    },
+    {
+      "id": "ux",
+      "scope": "Frontend integration, regression and stabilization"
+    }
+  ],
+  "tasks": [],
+  "history": [],
+  "planning_assumptions": [
+    "Milestone dates are retained as unvalidated provisional planning targets, not evidence-backed achievable delivery commitments.",
+    "No T157+ task is selected, created, or authorized; dependency graph is necessarily incomplete.",
+    "M1 excludes unfinished government/finance and Full V1 scope; M2 excludes deferred post-V1 enhancements; M3 requires all frozen V1 scope and operational stabilization.",
+    "Actual critical path cannot be asserted until authorized future task estimates and dependencies exist; no fabricated task dates or slack are recorded.",
+    "Unresolved Required ADRs remain [12,15,16,17,20]."
+  ]
+}

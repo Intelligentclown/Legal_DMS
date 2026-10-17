@@ -611,6 +611,8 @@ def validate(root: Path) -> list[Violation]:
         resolved = compute_resolved_required_adrs(adrs)
         violations += check_governance_ledger(project_state, resolved, rows)
 
+    from delivery_calendar import validate_file
+    violations += [Violation("delivery-calendar", message) for message in validate_file(root, rows)]
     return violations
 
 
