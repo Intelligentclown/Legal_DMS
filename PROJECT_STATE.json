@@ -41,8 +41,8 @@
       20
     ],
     "latestTaskDone": "T156",
-    "latestTaskAuthorized": "T156",
-    "asOfCommit": "T156 §3.1 PR-3 governance closeout after protected PR-2 merge e79b78bbbf02efb925f1da4137d49b4bccf8c200 (PR #293; final QA publication 507128ef514ddc898c40b3c72ee69d19ed11a1ae; QA Decision Approved after original Changes requested and remediation); authorization PR #292 merge a4877dd28440073bbfd64d15753d3976608fbb45. Calendar governance active prospectively T157+; T156 exempt bootstrap, T1–T155 historical. M1 2026-11-15, M2 2026-12-31, M3/finalization 2027-02-28 unchanged provisional low-confidence unvalidated forecasts. T156 resolves no Required ADR; unresolved [12,15,16,17,20]; migration/provenance b155caa6d4e1 unchanged; inProgressTransitions []; T157+ unauthorized. PR-3 closeout pending protected merge.",
+    "latestTaskAuthorized": "T157",
+    "asOfCommit": "T157 authorization/calendar-registration candidate based on protected main 18a797766ac68d65ffe280c7b429573dbe6ea9ac (T156 PR #294 protected merge). Project Owner authorized T157 on 2026-10-17 after Control Tower readiness assessment. T156 remains latest Done; T157 is Authorized/not Done; prospective calendar entry registered for 2026-10-18 through 2026-10-21; unresolved Required ADRs [12,15,16,17,20], migration/provenance frontier b155caa6d4e1 and inProgressTransitions [] remain unchanged; T158+ unselected/unauthorized.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
