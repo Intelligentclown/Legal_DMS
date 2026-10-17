@@ -40,9 +40,9 @@
       17,
       20
     ],
-    "latestTaskDone": "T155",
-    "latestTaskAuthorized": "T155",
-    "asOfCommit": "T155 ordinary §3 post-QA governance synchronization on implementation PR #291 (still OPEN/unmerged); protected authorization baseline 3659caa6b624c70b6d627ab993a3df0f19a2a062; original frozen implementation 681905db8396d77caffab4dcc2806d2c56c03a96; original QA bee12f41ca725a6e9914387d832801db064b043d (Approved with comments); remediated implementation 1fafabb3c54216822663de3d95932453ac8a9a05; final QA publication c082488e4bad37840f9e0f4f86c659640d99f7b6 (Approved, zero findings). Canonical MatterProperty schema, tenant-integrity, FORCE RLS, guarded downgrade and provenance migration b155caa6d4e1 (parent 8d77007b9d7f; sole head). No historical backfill or application/API/frontend implementation. ADR-0044 Proposed / Resolves None; unresolved Required ADRs [12,15,16,17,20]; latestTaskDone=T155, latestTaskAuthorized=T155, transitions []; T156+ unauthorized. Protected merge remains pending.",
+    "latestTaskDone": "T156",
+    "latestTaskAuthorized": "T156",
+    "asOfCommit": "T156 §3.1 PR-3 governance closeout after protected PR-2 merge e79b78bbbf02efb925f1da4137d49b4bccf8c200 (PR #293; final QA publication 507128ef514ddc898c40b3c72ee69d19ed11a1ae; QA Decision Approved after original Changes requested and remediation); authorization PR #292 merge a4877dd28440073bbfd64d15753d3976608fbb45. Calendar governance active prospectively T157+; T156 exempt bootstrap, T1–T155 historical. M1 2026-11-15, M2 2026-12-31, M3/finalization 2027-02-28 unchanged provisional low-confidence unvalidated forecasts. T156 resolves no Required ADR; unresolved [12,15,16,17,20]; migration/provenance b155caa6d4e1 unchanged; inProgressTransitions []; T157+ unauthorized. PR-3 closeout pending protected merge.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
