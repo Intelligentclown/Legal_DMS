@@ -452,3 +452,8 @@ Current standard prompts:
 Contributors should use these repository-local prompts instead of relying on previous chat history or external prompt copies.
 
 Changes to these prompts are governed by the project's **Process Changes are Versioned** rule and should be proposed, reviewed, and documented before adoption.
+
+
+## T156 prospective delivery calendar (effective T157+)
+
+The structured schedule in `docs/delivery_calendar.json` is mandatory for every numbered task T157 onward at authorization and Done closeout. `IMPLEMENTATION_QUEUE.md` alone remains authorization/completion authority. Read `docs/DELIVERY_CALENDAR.md` for inclusive-day arithmetic, dependency/slack forecast rules, append-only history and the no-governance-bypass invariant. T156 is the exempt bootstrap. At protected completion the Documentation Manager must update actuals and forecast history; the Project Manager must include planned fields before authorization. A schedule never grants authority to bypass any gate.
