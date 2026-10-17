@@ -53,6 +53,21 @@ def forecast(tasks, milestone_id, baseline):
     if not nodes: return baseline
     return max([day(baseline)]+[finish(k) for k in nodes]).isoformat()
 
+def queue_status(row):
+    """Read the explicit Status cell of the four-column queue row.
+
+    Fail closed for malformed task rows; never infer status from prose or
+    predecessor text. TaskRow.text includes leading/trailing pipe delimiters.
+    """
+    cells = [cell.strip() for cell in row.text.strip().split("|")]
+    if len(cells) != 6 or cells[0] or cells[-1] or cells[1] != row.task_id:
+        raise ValueError("malformed four-column task queue row")
+    status = cells[3]
+    if status not in ("Authorized", "Done"):
+        raise ValueError("unsupported task queue status: " + status)
+    return status
+
+
 def check_calendar(data, rows):
     errors=[]
     if data.get("schema_version") != 1 or data.get("activation_task_number") != 157:
@@ -102,7 +117,7 @@ def check_calendar(data, rows):
             for dep in t["dependencies"]:
                 if dep not in taskmap and dep not in rowmap: raise ValueError("unknown dependency")
             if not t.get("title"): raise ValueError("missing title")
-            if "Done" in rowmap[task_id].text.split("|")[-2]:
+            if queue_status(rowmap[task_id]) == "Done":
                 for key in DONE:
                     if key not in t or t[key] is None: raise ValueError("Done missing "+key)
                 if t["planned_finish_used"] != t["planned_finish"]: raise ValueError("planned finish baseline changed")
