@@ -103,6 +103,28 @@ def _insert_sql() -> str:
     return "INSERT INTO matter_properties (id, organization_id, matter_id, property_id) VALUES (CAST(:id AS uuid), CAST(:org AS uuid), CAST(:matter AS uuid), CAST(:property AS uuid))"
 
 
+async def _provenance_contract(url: str) -> tuple[str, str]:
+    engine = create_async_engine(url)
+    try:
+        async with engine.connect() as conn:
+            definitions: list[str] = []
+            for signature in (
+                "legal_dms_provenance.record_fresh_birth(uuid,uuid)",
+                "legal_dms_provenance.enter_operational_fresh(uuid)",
+            ):
+                definitions.append(
+                    (
+                        await conn.execute(
+                            text("SELECT pg_get_functiondef(CAST(:signature AS regprocedure))"),
+                            {"signature": signature},
+                        )
+                    ).scalar_one()
+                )
+            return definitions[0], definitions[1]
+    finally:
+        await engine.dispose()
+
+
 def test_upgrade_from_t155_parent_creates_one_sole_head_and_preserves_legacy_shadow() -> None:
     url, name = provision_disposable_database_with("legal_dms_t155_upgrade", upgrade_target=PARENT)
     try:
@@ -249,5 +271,98 @@ def test_forced_rls_allows_only_trusted_current_organization_and_default_denies(
                 await admin.dispose()
 
         asyncio.run(exercise())
+    finally:
+        drop_disposable_database(name)
+
+
+def test_downgrade_fails_closed_without_partial_removal_when_canonical_rows_exist() -> None:
+    url, name = provision_disposable_database_with(
+        "legal_dms_t155_downgrade_guard", upgrade_target=HEAD
+    )
+    try:
+        ids = asyncio.run(_seed_endpoints(url))
+
+        async def seed_association() -> None:
+            engine = create_async_engine(url)
+            try:
+                async with engine.begin() as conn:
+                    await conn.execute(
+                        text(_insert_sql()),
+                        {
+                            "id": str(uuid4()),
+                            "org": ids["org"],
+                            "matter": ids["matter"],
+                            "property": ids["property"],
+                        },
+                    )
+            finally:
+                await engine.dispose()
+
+        asyncio.run(seed_association())
+        result = _alembic(url, "downgrade", PARENT)
+        assert result.returncode != 0
+        assert "cannot downgrade T155 while canonical MatterProperty rows exist" in (
+            result.stdout + result.stderr
+        )
+        assert alembic_current_branch(url) == HEAD
+
+        async def verify_not_partially_downgraded() -> None:
+            engine = create_async_engine(url)
+            try:
+                async with engine.connect() as conn:
+                    assert (
+                        await conn.execute(text("SELECT count(*) FROM matter_properties"))
+                    ).scalar_one() == 1
+                    assert (
+                        await conn.execute(text("SELECT to_regclass('public.matter_properties')"))
+                    ).scalar_one() == "matter_properties"
+            finally:
+                await engine.dispose()
+
+        asyncio.run(verify_not_partially_downgraded())
+    finally:
+        drop_disposable_database(name)
+
+
+def test_empty_downgrade_removes_t155_schema_restores_provenance_and_reupgrades() -> None:
+    url, name = provision_disposable_database_with(
+        "legal_dms_t155_downgrade_empty", upgrade_target=HEAD
+    )
+    try:
+        assert all(HEAD in definition for definition in asyncio.run(_provenance_contract(url)))
+        result = _alembic(url, "downgrade", PARENT)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert alembic_current_branch(url) == PARENT
+
+        async def verify_parent_state() -> None:
+            engine = create_async_engine(url)
+            try:
+                async with engine.connect() as conn:
+                    assert (
+                        await conn.execute(text("SELECT to_regclass('public.matter_properties')"))
+                    ).scalar_one() is None
+                    assert (
+                        await conn.execute(
+                            text(
+                                "SELECT count(*) FROM pg_policies WHERE tablename = 'matter_properties'"
+                            )
+                        )
+                    ).scalar_one() == 0
+                    assert (
+                        await conn.execute(
+                            text(
+                                "SELECT count(*) FROM pg_indexes WHERE tablename = 'matter_properties'"
+                            )
+                        )
+                    ).scalar_one() == 0
+            finally:
+                await engine.dispose()
+
+        asyncio.run(verify_parent_state())
+        assert all(PARENT in definition for definition in asyncio.run(_provenance_contract(url)))
+        result = _alembic(url, "upgrade", HEAD)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert alembic_current_branch(url) == HEAD
+        assert all(HEAD in definition for definition in asyncio.run(_provenance_contract(url)))
     finally:
         drop_disposable_database(name)

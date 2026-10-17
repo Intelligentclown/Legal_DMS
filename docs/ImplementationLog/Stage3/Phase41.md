@@ -2,7 +2,7 @@
 
 # Stage 3 – Phase 41
 
-Status: In Progress — implementation candidate complete; awaiting Independent QA.
+Status: In Progress — post-QA remediation candidate complete; awaiting Independent QA re-verification.
 
 Started: 2026-10-17
 
@@ -36,12 +36,16 @@ changing the legacy Matter property shadow.
   new sole revision `b155caa6d4e1`.
 - Added disposable-PostgreSQL coverage for migration, integrity, tenant isolation,
   default-deny, FORCE RLS, and legacy-shadow coexistence.
+- Post-QA narrow remediation synchronized the operational-fresh revision constants
+  to `b155caa6d4e1` and added permanent downgrade regression coverage.
 
 ## Files Modified
 
 - `backend/alembic/versions/b155caa6d4e1_matter_property_tenant_integrity_foundation.py`
 - `backend/src/app/infrastructure/persistence/models/__init__.py`
 - `backend/src/app/infrastructure/persistence/models/matter_property.py`
+- `backend/src/app/infrastructure/cli/fresh_install_provenance.py`
+- `backend/tests/integration/test_operational_fresh_provenance.py`
 - `backend/tests/integration/test_matter_property_tenant_integrity_foundation.py`
 - `docs/ImplementationLog/Stage3/Phase41.md`
 
@@ -49,18 +53,22 @@ changing the legacy Matter property shadow.
 
 - `test_matter_property_tenant_integrity_foundation.py` verifies migration from
   `8d77007b9d7f`, one head, same-tenant insert, duplicate rejection, composite-FK
-  tenant rejection, no Party/ownership mutation, and trusted-context RLS behavior.
+  tenant rejection, no Party/ownership mutation, trusted-context RLS behavior,
+  populated downgrade refusal, empty downgrade cleanup, provenance restoration,
+  and re-upgrade.
 
 ## Test Results
 
 - `cd backend && uv run ruff check src tests alembic`: passed.
 - `cd backend && uv run black --check src tests alembic`: passed.
-- `cd backend && uv run pytest tests/unit/test_matter_service.py tests/unit/test_property_service.py`:
-  11 passed, 1 existing dependency warning.
+- `cd backend && uv run pytest tests/integration/test_matter_property_tenant_integrity_foundation.py -v`:
+  5 passed, 1 existing dependency warning.
+- `cd backend && uv run pytest tests/integration/test_operational_fresh_provenance.py -v`:
+  7 passed, 1 existing dependency warning.
+- `cd backend && uv run pytest tests/unit -q`: 342 passed, 60 existing dependency warnings.
 - `cd backend && alembic heads`: passed; one head, `b155caa6d4e1`.
-- The focused disposable-PostgreSQL test command could not run because the local
-  PostgreSQL endpoint refused connections (`WinError 1225`); this is an environment
-  failure, not represented as a passing candidate test.
+- `python scripts/governance_validate.py --report`: passed; unresolved Required
+  ADRs remain `[12,15,16,17,20]`.
 
 ## Design Decisions
 
@@ -71,13 +79,14 @@ changing the legacy Matter property shadow.
 
 ## Problems Encountered
 
-- Local PostgreSQL was unavailable, blocking execution of the newly added real-
-  PostgreSQL tests and broader database integration validation.
+- The initial helper for reading PostgreSQL provenance function definitions used
+  an invalid async generator expression. The focused suite exposed the error;
+  replacing it with an explicit async loop restored the intended test-only helper.
 
 ## Deferred Work
 
-- Independent QA must execute the real-PostgreSQL migration/integrity/RLS coverage
-  against the frozen candidate.
+- Independent QA must re-verify this post-QA-remediated candidate, including its
+  two new downgrade regression cases.
 - Application association CRUD, authorization/audit orchestration, historical
   convergence, and all T156+ work remain outside this task.
 
@@ -91,8 +100,7 @@ changing the legacy Matter property shadow.
 ☑ Architecture preserved
 ☑ Existing design patterns followed
 ☑ Tests added
-□ Existing tests pass — focused real-PostgreSQL coverage and the broad suite are
-blocked by unavailable local PostgreSQL.
+☑ Existing tests pass
 ☑ Documentation updated
 □ ADR updated (if required) — ADR-0044 remains unchanged and Proposed.
 □ AI_BOOTSTRAP updated (if required) — no standing-process change.
