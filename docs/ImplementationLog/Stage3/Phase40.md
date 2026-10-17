@@ -12,7 +12,7 @@ Related Tasks: T153
 
 Related ADRs: [ADR-0043](../../../ADR/0043-enquiry-quotation-acceptance-matter-conversion.md)
 
-Git Commit:
+Git Commit: `8e561f9536bb4ff46981089ef750ad6b0b4beae0`
 
 Pull Request:
 
