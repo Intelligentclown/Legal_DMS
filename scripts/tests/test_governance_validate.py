@@ -581,3 +581,85 @@ class TestFindRepoRoot(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestT156Calendar(unittest.TestCase):
+    def setUp(self):
+        from delivery_calendar import check_calendar, forecast
+        self.check=check_calendar
+        self.forecast=forecast
+        self.data={"schema_version":1,"activation_task_number":157,"milestones":[
+            {"id":k,"baseline":"2026-12-31","forecast":"2026-12-31","actual":None,
+             "confidence":"low","risk":"planning","last_recalculated":"2026-10-17"} for k in ("M1","M2","M3")],
+            "lanes":[{"id":"core"}],"history":[],"tasks":[]}
+        self.row=gv.TaskRow("T157",1,"| T157 | Authorized by the project owner | Authorized | T156 |")
+        self.task={"id":"T157","title":"synthetic","milestone":"M3","lane":"core",
+            "dependencies":[],"critical_path":{"is_critical":False,"slack_days":5},
+            "planned_start":"2026-10-20","planned_finish":"2026-10-22","planned_duration":3,
+            "forecast_start":"2026-10-20","forecast_finish":"2026-10-22","forecast_impact":{}}
+        self.data["tasks"]=[self.task]
+    def errors(self,rows=None):
+        return self.check(self.data,[self.row] if rows is None else rows)
+    def test_valid(self): self.assertEqual(self.errors(),[])
+    def test_missing_fields(self):
+        for key in ("planned_start","planned_finish","planned_duration","milestone","lane","dependencies","critical_path"):
+            with self.subTest(key=key):
+                t=self.task.copy(); t.pop(key); self.data["tasks"]=[t]
+                self.assertTrue(self.errors())
+        self.data["tasks"]=[self.task]
+    def test_bad_date_and_duration(self):
+        for key,value in (("planned_start","2026-13-01"),("planned_duration",4)):
+            with self.subTest(key=key):
+                t=self.task.copy();t[key]=value;self.data["tasks"]=[t]
+                self.assertTrue(self.errors())
+    def test_historical_exempt_and_t157_missing(self):
+        self.assertEqual(self.errors([gv.TaskRow("T155",1,"| T155 | Done |")]),["T157: calendar entry not in queue"])
+        self.data["tasks"]=[]
+        self.assertEqual(self.errors([gv.TaskRow("T155",1,"| T155 | Done |")]),[])
+        self.assertTrue(self.errors())
+    def test_completion_variance(self):
+        done=gv.TaskRow("T157",1,"| T157 | synthetic | Done |")
+        t=self.task
+        t.update(actual_start="2026-10-20",actual_completion="2026-10-21",actual_elapsed=2,
+                 planned_finish_used="2026-10-22",variance=-1,classification="Early",
+                 critical_at_completion=False,milestone_impact=0,finalization_impact=0,
+                 recalculated="2026-10-22")
+        self.assertEqual(self.errors([done]),[])
+        for actual,variance,label in (("2026-10-22",0,"On Time"),("2026-10-24",2,"Late")):
+            t.update(actual_completion=actual,actual_elapsed=(gv_date(actual)-gv_date("2026-10-20")).days+1,
+                     variance=variance,classification=label)
+            self.assertEqual(self.errors([done]),[])
+        for field in ("actual_start","actual_completion","actual_elapsed","variance","classification"):
+            x=t.copy();x.pop(field);self.data["tasks"]=[x]
+            self.assertTrue(self.errors([done]))
+        self.data["tasks"]=[t]
+        for actual,variance,label in (("2026-10-21",-1,"Late"),("2026-10-22",0,"Early"),("2026-10-24",2,"On Time")):
+            t.update(actual_completion=actual,actual_elapsed=(gv_date(actual)-gv_date("2026-10-20")).days+1,
+                     variance=variance,classification=label)
+            self.assertTrue(self.errors([done]))
+    def test_history_required_and_reconciled(self):
+        self.data["milestones"][2]["forecast"]="2027-01-01"
+        self.assertTrue(self.errors())
+        self.data["history"]=[{"milestone":"M3","old":"2026-12-31","new":"2027-01-01",
+            "movement":1,"direction":"later","reason":"critical predecessor delay",
+            "trigger":"T157","recalculated":"2026-10-24"}]
+        self.assertEqual(self.errors(),[])
+        self.data["history"][0]["reason"]=""
+        self.assertTrue(self.errors())
+    def test_slack_critical_and_acceleration(self):
+        from delivery_calendar import forecast
+        base="2026-10-22"
+        a=dict(self.task,id="T157",planned_duration=3,forecast_start="2026-10-20",actual_completion="2026-10-21")
+        b=dict(self.task,id="T158",planned_duration=2,forecast_start="2026-10-23",dependencies=[])
+        # Early noncritical task cannot pull another lane's finish forward.
+        self.assertEqual(forecast([a,b],"M3",base),"2026-10-24")
+        a["actual_completion"]="2026-10-23"
+        self.assertEqual(forecast([a,b],"M3",base),"2026-10-24")
+        b["dependencies"]=["T157"]
+        self.assertEqual(forecast([a,b],"M3",base),"2026-10-25")
+        a["actual_completion"]="2026-10-19"
+        b["forecast_start"]="2026-10-20"
+        self.assertEqual(forecast([a,b],"M3","2026-10-20"),"2026-10-21")
+
+def gv_date(value):
+    from datetime import date
+    return date.fromisoformat(value)
