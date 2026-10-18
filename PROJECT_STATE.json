@@ -40,7 +40,7 @@
       17,
       20
     ],
-    "latestTaskDone": "T158",
+    "latestTaskDone": "T159",
     "latestTaskAuthorized": "T159",
     "completionProvenance": {
       "T158": {
@@ -52,9 +52,19 @@
         ],
         "mergedAtUtc": "2026-10-18T09:49:29Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T159": {
+        "implementationPr": 301,
+        "protectedMergeSha": "9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4",
+        "protectedMergeParents": [
+          "451f4441948094275b9fab19cca17185228e943c",
+          "c1ac9112896d3800ee79681803b05b5fc17a166c"
+        ],
+        "mergedAtUtc": "2026-10-18T12:54:58Z",
+        "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T158 §3.1 PR-3 governance closeout candidate based on protected main dcb7218b19e89ef38ffc01b1cdfd57651807366b, architecture/QA PR #298 protected-merged 2026-10-18T09:49:29Z. T158 Done after PR-3 protected merge, ADR-0045 Accepted/Resolves None; QA Approved with comments (zero blocking, three downstream implementation advisories). Calendar actual start/completion 2026-10-18, elapsed 1 day, variance -2 Early; M1/M2/M3/finalization unchanged provisional forecasts and append-only history. T157 Authorized/not Done, PR #296 frozen/open/unmerged; T159+ unauthorized. Unresolved Required ADRs [12,15,16,17,20], migration frontier b155caa6d4e1 and transitions [] unchanged. Separate governance implementation is required before T157 resume; this PR is not itself protected-merged yet.",
+    "asOfCommit": "T159 §3.1 PR-3 governance closeout candidate based on protected main 9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4 (PR #301 protected implementation merge on 2026-10-18T12:54:58Z / 18:24:58 Asia/Kolkata). Owner authorization 2026-10-18; implementation candidate 7b02001c49cd5b046aea5f7f06f095b34107c143, independent QA publication c1ac9112896d3800ee79681803b05b5fc17a166c, QA Approved with comments/zero blocking. T159 Done is pending PR-3 protected governance merge; implementation technical completion is protected PR #301 merge. Actual work start evidenced 2026-10-18 by implementation commit 12:14:12Z and PR #301 creation 12:14:22Z; actual protected completion 2026-10-18, elapsed one inclusive day, original planned finish 2026-10-22, finish variance -4 Early. Calendar schema 2 typed dependencies and immutable forecast events; M1/M2/M3/overall finalization unchanged due to incomplete downstream graph. T158 Done/provenance preserved; T157 Authorized/not Done, PR #296 frozen OPEN/unmerged. T157 safe resumption requires later Control Tower verification after protected closeout PR merge. Required ADRs [12,15,16,17,20] and migration frontier b155caa6d4e1 unchanged; T160+ not authorized.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
