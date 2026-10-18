@@ -168,6 +168,51 @@
         "approved_qa_publication_head": "72d856ef46e385a0f3353a919c3d704a13f162a0",
         "actual_start_evidence": "PR #298 created 2026-10-18T09:29:29Z (architecture work), not authorization date"
       }
+    },
+    {
+      "id": "T159",
+      "title": "Protected-Merge Governance Lifecycle & Calendar Enforcement",
+      "milestone": "M1",
+      "lane": "matter",
+      "dependencies": [
+        "T158"
+      ],
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-19",
+      "planned_finish": "2026-10-22",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-19",
+      "forecast_finish": "2026-10-22",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T159 is an M1 governance-enablement prerequisite for held T157, not a T157 finish-to-start successor. Same-lane overlap was reviewed against calendar guidance and validator; no exclusive-capacity rule exists. Existing provisional targets retained because downstream task graph and resource capacity are not fully estimated."
+      }
     }
   ],
   "history": [
@@ -209,6 +254,7 @@
     "T157 is provisionally critical with zero slack within the current M1 Matter workspace lane; the complete project critical path cannot be asserted until additional authorized task estimates and dependencies exist.",
     "Unresolved Required ADRs remain [12,15,16,17,20].",
     "T158 is tracked in existing M1 matter lane solely as a governance unblock for T157; lane taxonomy remains unchanged pending architectural review. T158 depends on T156 and T157 as defect-evidence predecessor, not on T157 becoming Done; no automatic forecast acceleration or protected completion is inferred.",
-    "T158 QA advisories remain unresolved: separately authorized §3 workflow/validator implementation, typed defect-evidence vs scheduling dependencies for T157/T158, and explicit Asia/Kolkata timezone authority. T158 closeout does not unblock T157."
+    "T158 QA advisories remain unresolved: separately authorized §3 workflow/validator implementation, typed defect-evidence vs scheduling dependencies for T157/T158, and explicit Asia/Kolkata timezone authority. T158 closeout does not unblock T157.",
+    "T159 owner-authorized 2026-10-18 as M1 governance-enablement task planned 2026-10-19 through 2026-10-22 inclusive; T158 is its sole scheduling predecessor, ADR-0045 Accepted is its architecture prerequisite, and T157 is held pending T159 implementation/protected governance verification rather than a completed predecessor. T159/T157 same-lane overlap was reviewed: existing DELIVERY_CALENDAR.md and validator establish no exclusive-lane capacity or non-overlap rule; resource capacity and full critical path remain unproven. T157 PR #296 remains frozen/unmerged; provisional forecasts unchanged."
   ]
 }
