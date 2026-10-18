@@ -58,13 +58,60 @@
       "scope": "Frontend integration, regression and stabilization"
     }
   ],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "T157",
+      "title": "Matter–Property Association Application Surface",
+      "milestone": "M1",
+      "lane": "matter",
+      "dependencies": [
+        "T154",
+        "T155"
+      ],
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-18",
+      "planned_finish": "2026-10-21",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-18",
+      "forecast_finish": "2026-10-21",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T157 fits inside the existing provisional M1 window and introduces no current evidence requiring milestone movement."
+      }
+    }
+  ],
   "history": [],
   "planning_assumptions": [
     "Milestone dates are retained as unvalidated provisional planning targets, not evidence-backed achievable delivery commitments.",
-    "No T157+ task is selected, created, or authorized; dependency graph is necessarily incomplete.",
+    "T157 is the first authorized prospective-calendar task; T158+ remains unselected/unauthorized and the dependency graph beyond T157 remains incomplete.",
     "M1 excludes unfinished government/finance and Full V1 scope; M2 excludes deferred post-V1 enhancements; M3 requires all frozen V1 scope and operational stabilization.",
-    "Actual critical path cannot be asserted until authorized future task estimates and dependencies exist; no fabricated task dates or slack are recorded.",
+    "T157 is provisionally critical with zero slack within the current M1 Matter workspace lane; the complete project critical path cannot be asserted until additional authorized task estimates and dependencies exist.",
     "Unresolved Required ADRs remain [12,15,16,17,20]."
   ]
 }
