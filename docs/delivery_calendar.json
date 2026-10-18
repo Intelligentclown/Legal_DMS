@@ -1,6 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "activation_task_number": 157,
+  "project_timezone": "Asia/Kolkata",
   "as_of": "2026-10-18",
   "calendar_convention": "inclusive",
   "status": "provisional planning baseline; not an implementation authorization",
@@ -64,10 +65,13 @@
       "title": "Matter–Property Association Application Surface",
       "milestone": "M1",
       "lane": "matter",
-      "dependencies": [
-        "T154",
-        "T155"
-      ],
+      "dependencies": {
+        "finish_to_start": [
+          "T154",
+          "T155"
+        ],
+        "defect_evidence": []
+      },
       "critical_path": {
         "is_critical": true,
         "slack_days": 0
@@ -110,10 +114,14 @@
       "title": "Protected-Merge Completion & Post-Merge Governance Closeout Architecture",
       "milestone": "M1",
       "lane": "matter",
-      "dependencies": [
-        "T156",
-        "T157"
-      ],
+      "dependencies": {
+        "finish_to_start": [
+          "T156"
+        ],
+        "defect_evidence": [
+          "T157"
+        ]
+      },
       "critical_path": {
         "is_critical": true,
         "slack_days": 0
@@ -161,8 +169,12 @@
       "finalization_impact": 0,
       "recalculated": "2026-10-18",
       "completion_evidence": {
-        "pr": 298,
+        "implementation_pr": 298,
         "protected_merge_sha": "dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+        "protected_merge_parents": [
+          "00597e83ee1a766e27fbd321ae51796030b576f6",
+          "72d856ef46e385a0f3353a919c3d704a13f162a0"
+        ],
         "merged_at_utc": "2026-10-18T09:49:29Z",
         "timezone": "Asia/Kolkata",
         "approved_qa_publication_head": "72d856ef46e385a0f3353a919c3d704a13f162a0",
@@ -174,9 +186,12 @@
       "title": "Protected-Merge Governance Lifecycle & Calendar Enforcement",
       "milestone": "M1",
       "lane": "matter",
-      "dependencies": [
-        "T158"
-      ],
+      "dependencies": {
+        "finish_to_start": [
+          "T158"
+        ],
+        "defect_evidence": []
+      },
       "critical_path": {
         "is_critical": true,
         "slack_days": 0
@@ -224,6 +239,7 @@
       "direction": "unchanged",
       "reason": "T158 protected architecture merge completed 2 days early; incomplete dependency graph, frozen/unmerged T157 and unresolved governance implementation prerequisite prevent defensible milestone acceleration; provisional forecast retained.",
       "trigger": "T158 PR #298 merge dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+      "trigger_key": "T158:dcb7218b19e89ef38ffc01b1cdfd57651807366b:M1",
       "recalculated": "2026-10-18"
     },
     {
@@ -234,6 +250,7 @@
       "direction": "unchanged",
       "reason": "T158 protected architecture merge completed 2 days early; incomplete dependency graph, frozen/unmerged T157 and unresolved governance implementation prerequisite prevent defensible milestone acceleration; provisional forecast retained.",
       "trigger": "T158 PR #298 merge dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+      "trigger_key": "T158:dcb7218b19e89ef38ffc01b1cdfd57651807366b:M2",
       "recalculated": "2026-10-18"
     },
     {
@@ -244,6 +261,7 @@
       "direction": "unchanged",
       "reason": "T158 protected architecture merge completed 2 days early; incomplete dependency graph, frozen/unmerged T157 and unresolved governance implementation prerequisite prevent defensible milestone acceleration; provisional forecast retained.",
       "trigger": "T158 PR #298 merge dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+      "trigger_key": "T158:dcb7218b19e89ef38ffc01b1cdfd57651807366b:M3",
       "recalculated": "2026-10-18"
     }
   ],

@@ -577,6 +577,51 @@ def check_governance_ledger(
     return violations
 
 
+def check_calendar_completion_provenance(project_state: dict, root: Path, rows: list[TaskRow]) -> list[Violation]:
+    """Cross-check the queue's durable Done state, calendar actuals, and derived
+    snapshot tuple. This is deliberately offline evidence validation: GitHub
+    protection, ancestry, reviews, and CI remain live merge-gate checks."""
+    try:
+        calendar = json.loads((root / "docs/delivery_calendar.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [Violation("completion-provenance", f"cannot read delivery calendar: {exc}")]
+    if calendar.get("schema_version") < 2:
+        return []  # T156 schema is historical compatibility, not a backfill trigger.
+
+    ledger = project_state.get("governanceLedger", {})
+    snapshot = ledger.get("completionProvenance")
+    task_rows = {row.task_id: row for row in rows}
+    violations: list[Violation] = []
+    for task in calendar.get("tasks", []):
+        task_id = task.get("id")
+        if task_id not in task_rows or f"{task_id} is now Done" not in task_rows[task_id].text:
+            continue
+        evidence = task.get("completion_evidence")
+        if not isinstance(snapshot, dict) or not isinstance(snapshot.get(task_id), dict):
+            violations.append(Violation(
+                "completion-provenance-missing-snapshot",
+                f"{task_id} is Done but PROJECT_STATE.json governanceLedger.completionProvenance "
+                "does not contain its protected implementation-merge tuple.",
+            ))
+            continue
+        if not isinstance(evidence, dict):
+            continue  # delivery_calendar emits the primary malformed-evidence error.
+        expected = {
+            "implementationPr": evidence.get("implementation_pr"),
+            "protectedMergeSha": evidence.get("protected_merge_sha"),
+            "protectedMergeParents": evidence.get("protected_merge_parents"),
+            "mergedAtUtc": evidence.get("merged_at_utc"),
+            "timezone": evidence.get("timezone"),
+        }
+        if snapshot[task_id] != expected:
+            violations.append(Violation(
+                "completion-provenance-snapshot-drift",
+                f"{task_id} protected completion tuple differs between delivery_calendar.json "
+                "and PROJECT_STATE.json; closeout must synchronize both atomically.",
+            ))
+    return violations
+
+
 # ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
@@ -610,9 +655,18 @@ def validate(root: Path) -> list[Violation]:
     else:
         resolved = compute_resolved_required_adrs(adrs)
         violations += check_governance_ledger(project_state, resolved, rows)
+        violations += check_calendar_completion_provenance(project_state, root, rows)
 
-    from delivery_calendar import validate_file
+    from delivery_calendar import pending_closeout_alerts, validate_file
     violations += [Violation("delivery-calendar", message) for message in validate_file(root, rows)]
+    try:
+        calendar = json.loads((root / "docs/delivery_calendar.json").read_text(encoding="utf-8"))
+        violations += [
+            Violation("protected-merge-closeout-pending", message, severity="WARNING")
+            for message in pending_closeout_alerts(calendar, rows)
+        ]
+    except (OSError, json.JSONDecodeError):
+        pass  # validate_file already reports the actionable calendar error.
     return violations
 
 

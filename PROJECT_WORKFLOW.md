@@ -88,12 +88,13 @@ Next Task
 | **Project Manager** | Rebuilds repository state, identifies the next unfinished task from `IMPLEMENTATION_QUEUE.md` or confirms an already-supplied task is the intended authorized task, verifies dependencies, phase gates, documentation consistency, implementation status, and blockers, then waits for explicit project-owner approval before implementation begins. |
 | **Backend Developer** | Implements the approved task, writes or extends tests, records the work in an `ImplementationLog` phase log, and self-assesses against the Reviewer Checklist. |
 | **QA Reviewer** | Independently reviews the implementation against the Reviewer Checklist and renders a QA Decision (`Approved` / `Approved with comments` / `Rework required`). `Rework required` sends the work back to the Developer — nothing downstream happens until it clears this gate. |
-| **Documentation Manager** | Once QA approves, synchronizes the project-wide documents this task affects (`PROJECT_STATE.json`, `docs/SessionReport.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md`, changelogs, release notes, etc.) without duplicating what the `ImplementationLog` already records. |
+| **Documentation Manager (pre-merge readiness)** | Once QA approves, synchronizes implementation and QA descriptions, handover and release notes on the implementation PR without declaring Done, advancing latestTaskDone, or recording future completion actuals. It may describe the candidate as QA-approved and pending protected merge. |
 | **Git Commit** | The implementation and documentation synchronization are committed using the project's commit-message conventions (see [§5](#5-git-workflow)). |
 | **Push** | Push the feature branch to GitHub, triggering CI. |
 | **GitHub Actions** | The project's CI workflows validate the change. |
-| **Pull Request** | Opened against `main`, triggering another CI run for the merge target. |
-| **Merge** | Merge into `main` after all required checks pass. |
+| **Pull Request** | Opened against main, triggering another CI run for the merge target. The implementation candidate remains merge-ready, not Done. |
+| **Protected implementation merge** | After exact-head QA/review/CI/protection/ancestry checks, merges into protected main. This is technical completion and supplies the canonical implementation merge SHA and GitHub UTC merged_at; it is not yet durable Done. |
+| **Post-merge governance closeout** | A separate closeout-only PR from fresh protected main records the queue Done marker and implementation merge evidence, calendar actuals/history, and derived PROJECT_STATE.json synchronization. It receives separate independent QA and protected merge. Only this closeout merge makes an ordinary T157+ task durably Done. |
 | **Delete Branch** | Delete the feature branch after merge. |
 | **Update Local main** | Update the local repository (`git checkout main && git pull`) before beginning new work. |
 | **Next Task** | Start the next cycle by identifying the next unfinished task from `IMPLEMENTATION_QUEUE.md`. Never assume the next task number from previous conversations. |
@@ -128,9 +129,10 @@ scope is defined directly in `IMPLEMENTATION_QUEUE.md` rather than an `Implement
 `T87`–`T96` are the verified precedent.
 
 **This does not replace or invalidate [§3](#3-standard-development-lifecycle).** Ordinary backend/
-frontend implementation work continues to use the single-PR Standard Development Lifecycle — that
-flow already has its own QA/Documentation-Manager sequencing appropriate to a code change with tests
-and an `ImplementationLog` entry, which most Required-ADR/governance tasks don't produce.
+frontend implementation work follows §3's pre-merge readiness plus protected-implementation-merge
+and post-merge closeout sequence. §3.1 remains exactly three PRs: its existing PR 3 is the
+post-implementation governance closeout and derives completion evidence from PR 2's protected
+merge; it does not gain a fourth PR.
 
 **This is not, by this addition alone, a universal policy for all future work.** It documents an
 already-proven pattern for the specific class of task named above. Broadening it into the mandatory
@@ -141,6 +143,8 @@ Manager's pre-merge gate additionally verifies that the task's authorization com
 genuine git ancestor of the PR's actual remote HEAD — see
 [`docs/prompts/ProjectManager.md`](docs/prompts/ProjectManager.md)'s Pre-Merge Governance Gate for the
 exact mechanism and the incident history that motivated it.
+
+**T157 recovery readiness (bounded):** PR #296 remains frozen until T159's implementation PR is protected-merged and its enforcement is live on protected main. Resumption requires a fresh check that its implementation tree is still the QA-covered tree at b6c4158b23744390dcc284010cff6aec8d59dd75, or that any descendants are documentation-only; fresh exact-head CI, approvals, protection and ancestry verification; and no product-code mutation. Re-review is required only if candidate code changes or the independent QA authority identifies a concrete reason. After its protected implementation merge, T157 follows the separate ordinary §3 closeout; it must not be marked Done or assigned actuals beforehand.
 
 ### 3.2 Non-Task Documentation/Governance Action Exception ("Option A")
 
@@ -456,4 +460,4 @@ Changes to these prompts are governed by the project's **Process Changes are Ver
 
 ## T156 prospective delivery calendar (effective T157+)
 
-The structured schedule in `docs/delivery_calendar.json` is mandatory for every numbered task T157 onward at authorization and Done closeout. `IMPLEMENTATION_QUEUE.md` alone remains authorization/completion authority. Read `docs/DELIVERY_CALENDAR.md` for inclusive-day arithmetic, dependency/slack forecast rules, append-only history and the no-governance-bypass invariant. T156 is the exempt bootstrap. At protected completion the Documentation Manager must update actuals and forecast history; the Project Manager must include planned fields before authorization. A schedule never grants authority to bypass any gate.
+The structured schedule in docs/delivery_calendar.json is mandatory for every numbered task T157 onward at authorization and Done closeout. IMPLEMENTATION_QUEUE.md alone remains authorization/completion authority. Read docs/DELIVERY_CALENDAR.md for inclusive-day arithmetic, typed dependency/slack forecast rules, append-only history and the no-governance-bypass invariant. T156 is the exempt bootstrap. The protected implementation merge supplies actual completion; the separate closeout records it only after independently verified merge provenance. A schedule never grants authority to bypass any gate.
