@@ -1,6 +1,6 @@
 # ADR-0045: Protected-Merge Completion and Post-Merge Governance Closeout
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-18
 **Task:** T158
 **Resolves:** None
