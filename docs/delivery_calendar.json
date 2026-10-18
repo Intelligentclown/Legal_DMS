@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "activation_task_number": 157,
-  "as_of": "2026-10-17",
+  "as_of": "2026-10-18",
   "calendar_convention": "inclusive",
   "status": "provisional planning baseline; not an implementation authorization",
   "milestones": [
@@ -104,14 +104,61 @@
         },
         "reason": "T157 fits inside the existing provisional M1 window and introduces no current evidence requiring milestone movement."
       }
+    },
+    {
+      "id": "T158",
+      "title": "Protected-Merge Completion & Post-Merge Governance Closeout Architecture",
+      "milestone": "M1",
+      "lane": "matter",
+      "dependencies": [
+        "T156",
+        "T157"
+      ],
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-18",
+      "planned_finish": "2026-10-20",
+      "planned_duration": 3,
+      "forecast_start": "2026-10-18",
+      "forecast_finish": "2026-10-20",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "Urgent governance unblock within T157's existing M1 window; no evidence at authorization requiring milestone movement. T157 is Authorized and post-QA blocked; dependency graph beyond T158 incomplete."
+      }
     }
   ],
   "history": [],
   "planning_assumptions": [
     "Milestone dates are retained as unvalidated provisional planning targets, not evidence-backed achievable delivery commitments.",
-    "T157 is the first authorized prospective-calendar task; T158+ remains unselected/unauthorized and the dependency graph beyond T157 remains incomplete.",
+    "T157 remains Authorized, implementation and Independent QA complete, post-QA governance completion blocked pending T158; T158 is Authorized for governance/process-hardening architecture only; T159+ unselected/unauthorized; dependency graph beyond T158 incomplete.",
     "M1 excludes unfinished government/finance and Full V1 scope; M2 excludes deferred post-V1 enhancements; M3 requires all frozen V1 scope and operational stabilization.",
     "T157 is provisionally critical with zero slack within the current M1 Matter workspace lane; the complete project critical path cannot be asserted until additional authorized task estimates and dependencies exist.",
-    "Unresolved Required ADRs remain [12,15,16,17,20]."
+    "Unresolved Required ADRs remain [12,15,16,17,20].",
+    "T158 is tracked in existing M1 matter lane solely as a governance unblock for T157; lane taxonomy remains unchanged pending architectural review. T158 depends on T156 and T157 as defect-evidence predecessor, not on T157 becoming Done; no automatic forecast acceleration or protected completion is inferred."
   ]
 }
