@@ -1,7 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "activation_task_number": 157,
-  "as_of": "2026-10-17",
+  "project_timezone": "Asia/Kolkata",
+  "as_of": "2026-10-18",
   "calendar_convention": "inclusive",
   "status": "provisional planning baseline; not an implementation authorization",
   "milestones": [
@@ -13,7 +14,7 @@
       "actual": null,
       "confidence": "low",
       "risk": "Core office slice integration and operational smoke not yet decomposed into authorized tasks",
-      "last_recalculated": "2026-10-17"
+      "last_recalculated": "2026-10-18"
     },
     {
       "id": "M2",
@@ -23,7 +24,7 @@
       "actual": null,
       "confidence": "low",
       "risk": "Workflow and government processes depend on unresolved Required ADR #12; additional scope remains unestimated",
-      "last_recalculated": "2026-10-17"
+      "last_recalculated": "2026-10-18"
     },
     {
       "id": "M3",
@@ -33,7 +34,7 @@
       "actual": null,
       "confidence": "low",
       "risk": "Required ADRs #12 #15 #16 #17 #20 and stabilization capacity remain open",
-      "last_recalculated": "2026-10-17"
+      "last_recalculated": "2026-10-18"
     }
   ],
   "lanes": [
@@ -64,10 +65,13 @@
       "title": "Matter–Property Association Application Surface",
       "milestone": "M1",
       "lane": "matter",
-      "dependencies": [
-        "T154",
-        "T155"
-      ],
+      "dependencies": {
+        "finish_to_start": [
+          "T154",
+          "T155"
+        ],
+        "defect_evidence": []
+      },
       "critical_path": {
         "is_critical": true,
         "slack_days": 0
@@ -104,14 +108,227 @@
         },
         "reason": "T157 fits inside the existing provisional M1 window and introduces no current evidence requiring milestone movement."
       }
+    },
+    {
+      "id": "T158",
+      "title": "Protected-Merge Completion & Post-Merge Governance Closeout Architecture",
+      "milestone": "M1",
+      "lane": "matter",
+      "dependencies": {
+        "finish_to_start": [
+          "T156"
+        ],
+        "defect_evidence": [
+          "T157"
+        ]
+      },
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-18",
+      "planned_finish": "2026-10-20",
+      "planned_duration": 3,
+      "forecast_start": "2026-10-18",
+      "forecast_finish": "2026-10-20",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T158 protected architecture merge on 2026-10-18, 2 days before original planned finish; early critical-task completion does not prove milestone acceleration because T157 remains unmerged, evidence-only T157→T158 edge is not a schedulable predecessor, and the project task graph is incomplete. All provisional milestone and finalization forecasts retained."
+      },
+      "actual_start": "2026-10-18",
+      "actual_completion": "2026-10-18",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-20",
+      "variance": -2,
+      "classification": "Early",
+      "critical_at_completion": true,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-18",
+      "completion_evidence": {
+        "implementation_pr": 298,
+        "protected_merge_sha": "dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+        "protected_merge_parents": [
+          "00597e83ee1a766e27fbd321ae51796030b576f6",
+          "72d856ef46e385a0f3353a919c3d704a13f162a0"
+        ],
+        "merged_at_utc": "2026-10-18T09:49:29Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "72d856ef46e385a0f3353a919c3d704a13f162a0",
+        "actual_start_evidence": "PR #298 created 2026-10-18T09:29:29Z (architecture work), not authorization date"
+      }
+    },
+    {
+      "id": "T159",
+      "title": "Protected-Merge Governance Lifecycle & Calendar Enforcement",
+      "milestone": "M1",
+      "lane": "matter",
+      "dependencies": {
+        "finish_to_start": [
+          "T158"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-19",
+      "planned_finish": "2026-10-22",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-19",
+      "forecast_finish": "2026-10-22",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T159 is an M1 governance-enablement prerequisite for held T157, not a T157 finish-to-start successor. Same-lane overlap was reviewed against calendar guidance and validator; no exclusive-capacity rule exists. Existing provisional targets retained because downstream task graph and resource capacity are not fully estimated."
+      },
+      "actual_start": "2026-10-18",
+      "actual_completion": "2026-10-18",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-22",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": true,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-18",
+      "completion_evidence": {
+        "implementation_pr": 301,
+        "protected_merge_sha": "9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4",
+        "protected_merge_parents": [
+          "451f4441948094275b9fab19cca17185228e943c",
+          "c1ac9112896d3800ee79681803b05b5fc17a166c"
+        ],
+        "merged_at_utc": "2026-10-18T12:54:58Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "c1ac9112896d3800ee79681803b05b5fc17a166c",
+        "actual_start_evidence": "T159 implementation commit 7b02001c49cd5b046aea5f7f06f095b34107c143 authored/committed 2026-10-18T12:14:12Z (17:44:12 Asia/Kolkata) and changes 8 governance implementation files; PR #301 created 2026-10-18T12:14:22Z. Evidence establishes implementation activity on 2026-10-18, not owner authorization or mere planning."
+      }
     }
   ],
-  "history": [],
+  "history": [
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T158 protected architecture merge completed 2 days early; incomplete dependency graph, frozen/unmerged T157 and unresolved governance implementation prerequisite prevent defensible milestone acceleration; provisional forecast retained.",
+      "trigger": "T158 PR #298 merge dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+      "trigger_key": "T158:dcb7218b19e89ef38ffc01b1cdfd57651807366b:M1",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T158 protected architecture merge completed 2 days early; incomplete dependency graph, frozen/unmerged T157 and unresolved governance implementation prerequisite prevent defensible milestone acceleration; provisional forecast retained.",
+      "trigger": "T158 PR #298 merge dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+      "trigger_key": "T158:dcb7218b19e89ef38ffc01b1cdfd57651807366b:M2",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T158 protected architecture merge completed 2 days early; incomplete dependency graph, frozen/unmerged T157 and unresolved governance implementation prerequisite prevent defensible milestone acceleration; provisional forecast retained.",
+      "trigger": "T158 PR #298 merge dcb7218b19e89ef38ffc01b1cdfd57651807366b",
+      "trigger_key": "T158:dcb7218b19e89ef38ffc01b1cdfd57651807366b:M3",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T159 protected implementation merge completed four days before its original planned finish. Typed scheduling identifies T158 as the completed predecessor, but T157 remains Authorized and unmerged and the full downstream task/capacity network is incomplete; no evidence-backed acceleration or deadline movement is justified. Retain low-confidence provisional forecast.",
+      "trigger": "T159 PR #301 protected implementation merge 9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4",
+      "trigger_key": "T159:9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4:M1",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T159 protected implementation merge completed four days before its original planned finish. Typed scheduling identifies T158 as the completed predecessor, but T157 remains Authorized and unmerged and the full downstream task/capacity network is incomplete; no evidence-backed acceleration or deadline movement is justified. Retain low-confidence provisional forecast.",
+      "trigger": "T159 PR #301 protected implementation merge 9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4",
+      "trigger_key": "T159:9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4:M2",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T159 protected implementation merge completed four days before its original planned finish. Typed scheduling identifies T158 as the completed predecessor, but T157 remains Authorized and unmerged and the full downstream task/capacity network is incomplete; no evidence-backed acceleration or deadline movement is justified. Retain low-confidence provisional forecast.",
+      "trigger": "T159 PR #301 protected implementation merge 9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4",
+      "trigger_key": "T159:9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4:M3",
+      "recalculated": "2026-10-18"
+    }
+  ],
   "planning_assumptions": [
     "Milestone dates are retained as unvalidated provisional planning targets, not evidence-backed achievable delivery commitments.",
-    "T157 is the first authorized prospective-calendar task; T158+ remains unselected/unauthorized and the dependency graph beyond T157 remains incomplete.",
+    "T157 remains Authorized/not Done with PR #296 frozen/open/unmerged. T158 is Done; T159 protected implementation PR #301 merged 2026-10-18, and its Done governance closeout is pending separate PR-3 protected merge. Downstream dependency graph remains incomplete.",
     "M1 excludes unfinished government/finance and Full V1 scope; M2 excludes deferred post-V1 enhancements; M3 requires all frozen V1 scope and operational stabilization.",
     "T157 is provisionally critical with zero slack within the current M1 Matter workspace lane; the complete project critical path cannot be asserted until additional authorized task estimates and dependencies exist.",
-    "Unresolved Required ADRs remain [12,15,16,17,20]."
+    "Unresolved Required ADRs remain [12,15,16,17,20].",
+    "T158 is tracked in existing M1 matter lane solely as a governance unblock for T157; lane taxonomy remains unchanged pending architectural review. T158 depends on T156 and T157 as defect-evidence predecessor, not on T157 becoming Done; no automatic forecast acceleration or protected completion is inferred.",
+    "T158 QA implementation advisories (ordinary §3 protected-completion lifecycle, typed scheduling/evidence dependencies and Asia/Kolkata clock authority) are implemented under T159 PR #301; T157 remains held for separate Control Tower release-readiness verification after T159 closeout protected merge.",
+    "T159 owner-authorized 2026-10-18 as M1 governance-enablement task planned 2026-10-19 through 2026-10-22 inclusive; T158 is its sole scheduling predecessor, ADR-0045 Accepted is its architecture prerequisite, and T157 is held pending T159 implementation/protected governance verification rather than a completed predecessor. T159/T157 same-lane overlap was reviewed: existing DELIVERY_CALENDAR.md and validator establish no exclusive-lane capacity or non-overlap rule; resource capacity and full critical path remain unproven. T157 PR #296 remains frozen/unmerged; provisional forecasts unchanged.",
+    "T159 protected implementation merge PR #301 at 2026-10-18T12:54:58Z, local 2026-10-18, four calendar days earlier than original planned finish; actual start evidenced by implementation commit on 2026-10-18, actual elapsed one inclusive day. Immutable, uniquely keyed unchanged forecast events appended for M1/M2/M3; incomplete downstream network and held T157 prevent justified movement. No T157 release or T160+ authorization in this closeout."
   ]
 }
