@@ -107,6 +107,28 @@
           "direction": "unchanged"
         },
         "reason": "T157 fits inside the existing provisional M1 window and introduces no current evidence requiring milestone movement."
+      },
+      "actual_start": "2026-10-18",
+      "actual_completion": "2026-10-18",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-21",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": true,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-18",
+      "completion_evidence": {
+        "implementation_pr": 296,
+        "protected_merge_sha": "4e855841816c732febd36a33fe1ecc3c77a91a69",
+        "protected_merge_parents": [
+          "f79ec455f5928c595f4198dbe8a008a44ddd9b0a",
+          "7937906c9ca46e2be5113dab3caac88871b7a8f8"
+        ],
+        "merged_at_utc": "2026-10-18T13:45:54Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "7937906c9ca46e2be5113dab3caac88871b7a8f8",
+        "actual_start_evidence": "Original T157 implementation commit 89bed9272f8cdd9d2909a0f195ca942fa4278ec5 authored 2026-10-18T08:10:41Z (13:40:41 Asia/Kolkata), containing MatterProperty backend service/repository/routes and integration tests; independent work evidence, not authorization date or PR-creation proxy. Original QA Approved with comments; focused integration QA Approved with comments, no blocking findings."
       }
     },
     {
@@ -318,17 +340,51 @@
       "trigger": "T159 PR #301 protected implementation merge 9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4",
       "trigger_key": "T159:9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4:M3",
       "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T157 PR #296 protected technical completion on 2026-10-18, three days before its original planned finish, does not justify adjusting low-confidence provisional milestone forecasts: M1 and downstream functional scope, resource/capacity, and Required ADR gates remain incompletely modeled. T158/T159 governance predecessors are already Done and typed defect-evidence references do not imply finish-to-start successors; no full dependency graph validates acceleration.",
+      "trigger": "T157 PR #296 protected implementation merge 4e855841816c732febd36a33fe1ecc3c77a91a69",
+      "trigger_key": "T157:4e855841816c732febd36a33fe1ecc3c77a91a69:M1",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T157 PR #296 protected technical completion on 2026-10-18, three days before its original planned finish, does not justify adjusting low-confidence provisional milestone forecasts: M1 and downstream functional scope, resource/capacity, and Required ADR gates remain incompletely modeled. T158/T159 governance predecessors are already Done and typed defect-evidence references do not imply finish-to-start successors; no full dependency graph validates acceleration.",
+      "trigger": "T157 PR #296 protected implementation merge 4e855841816c732febd36a33fe1ecc3c77a91a69",
+      "trigger_key": "T157:4e855841816c732febd36a33fe1ecc3c77a91a69:M2",
+      "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T157 PR #296 protected technical completion on 2026-10-18, three days before its original planned finish, does not justify adjusting low-confidence provisional milestone forecasts: M1 and downstream functional scope, resource/capacity, and Required ADR gates remain incompletely modeled. T158/T159 governance predecessors are already Done and typed defect-evidence references do not imply finish-to-start successors; no full dependency graph validates acceleration.",
+      "trigger": "T157 PR #296 protected implementation merge 4e855841816c732febd36a33fe1ecc3c77a91a69",
+      "trigger_key": "T157:4e855841816c732febd36a33fe1ecc3c77a91a69:M3",
+      "recalculated": "2026-10-18"
     }
   ],
   "planning_assumptions": [
     "Milestone dates are retained as unvalidated provisional planning targets, not evidence-backed achievable delivery commitments.",
-    "T157 remains Authorized/not Done with PR #296 frozen/open/unmerged. T158 is Done; T159 protected implementation PR #301 merged 2026-10-18, and its Done governance closeout is pending separate PR-3 protected merge. Downstream dependency graph remains incomplete.",
+    "T157 PR #296 has protected implementation merge 4e855841816c732febd36a33fe1ecc3c77a91a69 (2026-10-18) and its independent-governance closeout PR is pending protected merge; T157 is prospectively Done in this closeout candidate only. T158/T159 remain Done. Remaining downstream delivery network incomplete.",
     "M1 excludes unfinished government/finance and Full V1 scope; M2 excludes deferred post-V1 enhancements; M3 requires all frozen V1 scope and operational stabilization.",
     "T157 is provisionally critical with zero slack within the current M1 Matter workspace lane; the complete project critical path cannot be asserted until additional authorized task estimates and dependencies exist.",
     "Unresolved Required ADRs remain [12,15,16,17,20].",
     "T158 is tracked in existing M1 matter lane solely as a governance unblock for T157; lane taxonomy remains unchanged pending architectural review. T158 depends on T156 and T157 as defect-evidence predecessor, not on T157 becoming Done; no automatic forecast acceleration or protected completion is inferred.",
-    "T158 QA implementation advisories (ordinary §3 protected-completion lifecycle, typed scheduling/evidence dependencies and Asia/Kolkata clock authority) are implemented under T159 PR #301; T157 remains held for separate Control Tower release-readiness verification after T159 closeout protected merge.",
+    "T158 QA implementation advisories are implemented under T159 PR #301 and T159 closeout PR #302 is protected-merged; T157 protected implementation PR #296 is merged and the separate ordinary §3 completion-closeout remains pending independent QA and protected merge.",
     "T159 owner-authorized 2026-10-18 as M1 governance-enablement task planned 2026-10-19 through 2026-10-22 inclusive; T158 is its sole scheduling predecessor, ADR-0045 Accepted is its architecture prerequisite, and T157 is held pending T159 implementation/protected governance verification rather than a completed predecessor. T159/T157 same-lane overlap was reviewed: existing DELIVERY_CALENDAR.md and validator establish no exclusive-lane capacity or non-overlap rule; resource capacity and full critical path remain unproven. T157 PR #296 remains frozen/unmerged; provisional forecasts unchanged.",
-    "T159 protected implementation merge PR #301 at 2026-10-18T12:54:58Z, local 2026-10-18, four calendar days earlier than original planned finish; actual start evidenced by implementation commit on 2026-10-18, actual elapsed one inclusive day. Immutable, uniquely keyed unchanged forecast events appended for M1/M2/M3; incomplete downstream network and held T157 prevent justified movement. No T157 release or T160+ authorization in this closeout."
+    "T159 protected implementation merge PR #301 at 2026-10-18T12:54:58Z, local 2026-10-18, four calendar days earlier than original planned finish; actual start evidenced by implementation commit on 2026-10-18, actual elapsed one inclusive day. Immutable, uniquely keyed unchanged forecast events appended for M1/M2/M3; incomplete downstream network and held T157 prevent justified movement. No T157 release or T160+ authorization in this closeout.",
+    "T157 signed protected implementation merge PR #296 at 2026-10-18T13:45:54Z yields 2026-10-18 project-local technical completion, actual start evidenced by original implementation commit dated 2026-10-18, inclusive elapsed one day, -3 day finish variance Early. Append-only uniquely keyed zero-movement M1/M2/M3 history events, retention of provisional milestone forecasts due to incomplete downstream graph; queue Done only durably effective after separate protected closeout PR merge. T158/T159 completed; no T160+ authorization."
   ]
 }
