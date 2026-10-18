@@ -210,3 +210,11 @@ verbatim in future prose, per this task's own governing instruction.
 
 ## T156 prospective structured calendar validation
 The validator reads `docs/delivery_calendar.json` using `scripts/delivery_calendar.py`. Every queue row T157+ requires a structured schedule entry. T1–T155 and T156 bootstrap are exempt. Date format, inclusive planned duration, milestone/lane/dependency/critical-path metadata, Done actuals and signed classification, and forecast history consistency fail closed. See `docs/DELIVERY_CALENDAR.md`. This check does not independently prove the completeness of future unselected work, delivery feasibility or protected merge ancestry; those remain human gates.
+
+## T159 protected-merge closeout enforcement
+
+Calendar schema version 2 fixes project-local completion accounting to Asia/Kolkata, separates finish-to-start scheduling edges from defect-evidence references, and validates that only scheduling edges form cycles. For a schema-v2 Done task, calendar validation requires an auditable implementation PR, merge SHA with exactly two parents, GitHub UTC merge timestamp, fixed timezone conversion, QA publication head and actual-start evidence. It recomputes inclusive elapsed days and signed Early/On Time/Late variance from immutable planned finish.
+
+The validator also compares every schema-v2 Done task's protected implementation-merge tuple between the calendar and PROJECT_STATE.json governanceLedger.completionProvenance. A mismatch or missing snapshot tuple is an error. Forecast history requires a unique immutable trigger key and reconciles old/new movements in append order, preventing duplicate retry events. An Authorized task with actual completion data is rejected. A recorded protected_merge_pending_closeout state is reported as a warning so the merged technical completion cannot be silently forgotten while durable Done remains blocked.
+
+These are offline repository-evidence checks, not a claim that remote GitHub protections were verified. The Git/CI merge gate must still independently verify the live PR's exact head, merge record, ancestry, approvals, checks and protections before either implementation or closeout merge.

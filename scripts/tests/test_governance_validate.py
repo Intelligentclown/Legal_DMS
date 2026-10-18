@@ -14,6 +14,7 @@ import json
 import sys
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -702,6 +703,121 @@ class TestT156Calendar(unittest.TestCase):
                 self.assertTrue(self.errors([row]))
         self.data["tasks"] = [complete]
         self.assertEqual(self.errors([row]), [])
+
+class TestProtectedMergeCalendarV2(unittest.TestCase):
+    def setUp(self):
+        from delivery_calendar import PROJECT_TIMEZONE, check_calendar
+        self.check = check_calendar
+        self.row = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner; T157 is now Done | Done | T156 |")
+        self.data = {
+            "schema_version": 2, "activation_task_number": 157, "project_timezone": PROJECT_TIMEZONE,
+            "milestones": [{"id": key, "baseline": "2026-10-31", "forecast": "2026-10-31",
+                            "actual": None, "confidence": "low", "risk": "test",
+                            "last_recalculated": "2026-10-18"} for key in ("M1", "M2", "M3")],
+            "lanes": [{"id": "core"}], "history": [],
+            "tasks": [{
+                "id": "T157", "title": "synthetic", "milestone": "M1", "lane": "core",
+                "dependencies": {"finish_to_start": [], "defect_evidence": []},
+                "critical_path": {"is_critical": True, "slack_days": 0},
+                "planned_start": "2026-10-18", "planned_finish": "2026-10-20",
+                "planned_duration": 3, "forecast_start": "2026-10-18",
+                "forecast_finish": "2026-10-20", "forecast_impact": {},
+                "actual_start": "2026-10-18", "actual_completion": "2026-10-19",
+                "actual_elapsed": 2, "planned_finish_used": "2026-10-20",
+                "variance": -1, "classification": "Early", "critical_at_completion": True,
+                "milestone_impact": 0, "finalization_impact": 0, "recalculated": "2026-10-19",
+                "completion_evidence": {
+                    "implementation_pr": 1, "protected_merge_sha": "a" * 40,
+                    "protected_merge_parents": ["b" * 40, "c" * 40],
+                    "merged_at_utc": "2026-10-18T18:31:00Z", "timezone": PROJECT_TIMEZONE,
+                    "approved_qa_publication_head": "d" * 40,
+                    "actual_start_evidence": "PR opened 2026-10-18"
+                }
+            }]
+        }
+
+    def errors(self, rows=None):
+        return self.check(self.data, [self.row] if rows is None else rows)
+
+    def test_valid_protected_completion_and_utc_boundary(self):
+        self.assertEqual(self.errors(), [])
+
+    def test_rejects_missing_or_mismatched_protected_merge_provenance(self):
+        for key, value in (
+            ("protected_merge_sha", "not-a-sha"),
+            ("protected_merge_parents", ["b" * 40]),
+            ("merged_at_utc", "2026-10-18T18:31:00+00:00"),
+            ("timezone", "UTC"),
+        ):
+            with self.subTest(key=key):
+                copy = deepcopy(self.data)
+                copy["tasks"][0]["completion_evidence"][key] = value
+                self.assertTrue(self.check(copy, [self.row]))
+
+    def test_rejects_premature_done_data_on_authorized_task(self):
+        authorized = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner | Authorized | T156 |")
+        self.assertTrue(any("premature completion" in error for error in self.errors([authorized])))
+
+    def test_t157_hold_preserves_authorized_null_completion_state(self):
+        task = self.data["tasks"][0]
+        for key in ("actual_start", "actual_completion", "actual_elapsed", "planned_finish_used",
+                    "variance", "classification", "critical_at_completion", "milestone_impact",
+                    "finalization_impact", "recalculated", "completion_evidence"):
+            task.pop(key)
+        held = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner; frozen PR #296 | Authorized | T156 |")
+        self.assertEqual(self.errors([held]), [])
+
+    def test_evidence_edges_do_not_schedule_but_true_cycles_fail(self):
+        self.data["tasks"][0]["dependencies"]["defect_evidence"] = ["T158"]
+        second = deepcopy(self.data["tasks"][0])
+        second.update(id="T158", actual_start=None, actual_completion=None, actual_elapsed=None,
+                      planned_finish_used=None, variance=None, classification=None,
+                      critical_at_completion=None, milestone_impact=None,
+                      finalization_impact=None, recalculated=None)
+        second.pop("completion_evidence")
+        second["dependencies"] = {"finish_to_start": [], "defect_evidence": ["T157"]}
+        self.data["tasks"].append(second)
+        rows = [self.row, gv.TaskRow("T158", 2, "| T158 | Authorized by the project owner | Authorized | T157 |")]
+        self.assertEqual(self.errors(rows), [])
+        second["dependencies"]["finish_to_start"] = ["T157"]
+        self.data["tasks"][0]["dependencies"]["finish_to_start"] = ["T158"]
+        self.assertTrue(any("dependency cycle" in error for error in self.errors(rows)))
+
+    def test_duplicate_history_trigger_is_rejected(self):
+        self.data["history"] = [
+            {"milestone": "M1", "old": "2026-10-31", "new": "2026-10-31", "movement": 0,
+             "direction": "unchanged", "reason": "one", "trigger": "merge", "trigger_key": "event"},
+            {"milestone": "M2", "old": "2026-10-31", "new": "2026-10-31", "movement": 0,
+             "direction": "unchanged", "reason": "two", "trigger": "merge", "trigger_key": "event"},
+        ]
+        self.assertTrue(any("duplicate immutable" in error for error in self.errors()))
+
+    def test_snapshot_completion_tuple_must_match_calendar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "delivery_calendar.json").write_text(json.dumps(self.data), encoding="utf-8")
+            state = {"governanceLedger": {"completionProvenance": {"T157": {
+                "implementationPr": 1, "protectedMergeSha": "f" * 40,
+                "protectedMergeParents": ["b" * 40, "c" * 40],
+                "mergedAtUtc": "2026-10-18T18:31:00Z", "timezone": "Asia/Kolkata"
+            }}}}
+            violations = gv.check_calendar_completion_provenance(state, root, [self.row])
+            self.assertEqual([v.check for v in violations], ["completion-provenance-snapshot-drift"])
+
+    def test_pending_closeout_reports_without_fabricating_actuals(self):
+        from delivery_calendar import pending_closeout_alerts
+        task = self.data["tasks"][0]
+        for key in ("actual_start", "actual_completion", "actual_elapsed", "planned_finish_used",
+                    "variance", "classification", "critical_at_completion", "milestone_impact",
+                    "finalization_impact", "recalculated"):
+            task.pop(key)
+        task.pop("completion_evidence")
+        task["protected_merge_pending_closeout"] = {"protected_merge_sha": "a" * 40}
+        authorized = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner | Authorized | T156 |")
+        self.assertEqual(self.errors([authorized]), [])
+        self.assertEqual(len(pending_closeout_alerts(self.data, [authorized])), 1)
+
 
 def gv_date(value):
     from datetime import date
