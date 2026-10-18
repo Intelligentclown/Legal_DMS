@@ -41,7 +41,7 @@
       20
     ],
     "latestTaskDone": "T158",
-    "latestTaskAuthorized": "T158",
+    "latestTaskAuthorized": "T159",
     "asOfCommit": "T158 §3.1 PR-3 governance closeout candidate based on protected main dcb7218b19e89ef38ffc01b1cdfd57651807366b, architecture/QA PR #298 protected-merged 2026-10-18T09:49:29Z. T158 Done after PR-3 protected merge, ADR-0045 Accepted/Resolves None; QA Approved with comments (zero blocking, three downstream implementation advisories). Calendar actual start/completion 2026-10-18, elapsed 1 day, variance -2 Early; M1/M2/M3/finalization unchanged provisional forecasts and append-only history. T157 Authorized/not Done, PR #296 frozen/open/unmerged; T159+ unauthorized. Unresolved Required ADRs [12,15,16,17,20], migration frontier b155caa6d4e1 and transitions [] unchanged. Separate governance implementation is required before T157 resume; this PR is not itself protected-merged yet.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
