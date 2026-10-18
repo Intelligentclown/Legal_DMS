@@ -1,6 +1,6 @@
 {
   "project": "Legal Document & Matter Management System",
-  "lastUpdated": "2026-10-03",
+  "lastUpdated": "2026-10-18",
   "currentStage": {
     "id": "stage-3",
     "name": "Authentication & Authorization",
@@ -41,8 +41,8 @@
       20
     ],
     "latestTaskDone": "T156",
-    "latestTaskAuthorized": "T157",
-    "asOfCommit": "T157 authorization/calendar-registration candidate based on protected main 18a797766ac68d65ffe280c7b429573dbe6ea9ac (T156 PR #294 protected merge). Project Owner authorized T157 on 2026-10-17 after Control Tower readiness assessment. T156 remains latest Done; T157 is Authorized/not Done; prospective calendar entry registered for 2026-10-18 through 2026-10-21; unresolved Required ADRs [12,15,16,17,20], migration/provenance frontier b155caa6d4e1 and inProgressTransitions [] remain unchanged; T158+ unselected/unauthorized.",
+    "latestTaskAuthorized": "T158",
+    "asOfCommit": "T158 authorization/calendar-registration candidate based on protected main 202a2099a130e7e205b0f8e650291834cd13781e. Project Owner explicitly approved T158 on 2026-10-18 following Control Tower confirmation of T157 post-QA protected-completion sequencing deadlock. T156 latest Done; T157 Authorized/not Done and held with PR #296 frozen/unmerged; T158 Authorized/not Done; T159+ unauthorized. Unresolved Required ADRs [12,15,16,17,20], inProgressTransitions [], migration frontier b155caa6d4e1 and ADR-0044 Proposed / Resolves None unchanged. No actual completion data fabricated.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
