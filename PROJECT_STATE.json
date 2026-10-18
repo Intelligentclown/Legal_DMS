@@ -62,9 +62,19 @@
         ],
         "mergedAtUtc": "2026-10-18T12:54:58Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T157": {
+        "implementationPr": 296,
+        "protectedMergeSha": "4e855841816c732febd36a33fe1ecc3c77a91a69",
+        "protectedMergeParents": [
+          "f79ec455f5928c595f4198dbe8a008a44ddd9b0a",
+          "7937906c9ca46e2be5113dab3caac88871b7a8f8"
+        ],
+        "mergedAtUtc": "2026-10-18T13:45:54Z",
+        "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T159 §3.1 PR-3 governance closeout candidate based on protected main 9fd0d3f394eb9ecfa693e77f9bbff0fc0fb684a4 (PR #301 protected implementation merge on 2026-10-18T12:54:58Z / 18:24:58 Asia/Kolkata). Owner authorization 2026-10-18; implementation candidate 7b02001c49cd5b046aea5f7f06f095b34107c143, independent QA publication c1ac9112896d3800ee79681803b05b5fc17a166c, QA Approved with comments/zero blocking. T159 Done is pending PR-3 protected governance merge; implementation technical completion is protected PR #301 merge. Actual work start evidenced 2026-10-18 by implementation commit 12:14:12Z and PR #301 creation 12:14:22Z; actual protected completion 2026-10-18, elapsed one inclusive day, original planned finish 2026-10-22, finish variance -4 Early. Calendar schema 2 typed dependencies and immutable forecast events; M1/M2/M3/overall finalization unchanged due to incomplete downstream graph. T158 Done/provenance preserved; T157 Authorized/not Done, PR #296 frozen OPEN/unmerged. T157 safe resumption requires later Control Tower verification after protected closeout PR merge. Required ADRs [12,15,16,17,20] and migration frontier b155caa6d4e1 unchanged; T160+ not authorized.",
+    "asOfCommit": "T157 ordinary PROJECT_WORKFLOW.md §3 dedicated protected-implementation-merge completion closeout candidate based on verified protected main 4e855841816c732febd36a33fe1ecc3c77a91a69. PR #296 technically completed by signed GitHub merge 2026-10-18T13:45:54Z (2026-10-18 19:15:54 Asia/Kolkata), ordered parents f79ec455f5928c595f4198dbe8a008a44ddd9b0a, 7937906c9ca46e2be5113dab3caac88871b7a8f8. Original QA candidate 89bed9272f8cdd9d2909a0f195ca942fa4278ec5, original QA publication b6c4158b23744390dcc284010cff6aec8d59dd75, focused integration candidate 9e9e86ad3421c3038e58586325945f6e66980352, final QA publication 7937906c9ca46e2be5113dab3caac88871b7a8f8; both independent QA decisions Approved with comments/zero blocking. Actual implementation started 2026-10-18 as evidenced by original implementation commit authored 2026-10-18T08:10:41Z; protected technical completion 2026-10-18; elapsed 1 inclusive day; original planned finish 2026-10-21, variance -3 Early. T157 queue Done and snapshot T157 queue Done and completionProvenance are prospective until this distinct closeout PR is independently QA-reviewed and protected-merged. The validator-defined latestTaskDone remains T159 (highest numbered Done task), while T157 is the most recently completed task chronologically. latestTaskAuthorized remains T159 and T158/T159 remain Done with their canonical completionProvenance preserved; completion number ordering differs from authorization number ordering. M1/M2/M3/finalization provisional forecasts unchanged and immutable T157 history events appended (incomplete downstream planning network); unresolved Required ADRs [12,15,16,17,20], migration frontier b155caa6d4e1, no T160+ authorization.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
