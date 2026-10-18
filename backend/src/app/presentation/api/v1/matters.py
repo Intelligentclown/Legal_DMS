@@ -2,23 +2,37 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel, Field
 
 from app.application.common.pagination import DEFAULT_PAGE_SIZE, PageRequest, PageResult
 from app.application.errors.exceptions import ForbiddenError
 from app.application.interfaces.auth import CurrentUser
+from app.application.matter_property_service import MatterPropertyService
 from app.application.matter_service import MatterService
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
 from app.infrastructure.persistence.models.party import MatterParty
+from app.infrastructure.persistence.models.property import Property, PropertyOwner
+from app.infrastructure.persistence.sqlalchemy_matter_property_repository import (
+    SqlAlchemyMatterPropertyRepository,
+)
 from app.infrastructure.persistence.sqlalchemy_matter_repository import SqlAlchemyMatterRepository
 from app.infrastructure.persistence.sqlalchemy_party_repository import SqlAlchemyPartyRepository
+from app.infrastructure.persistence.sqlalchemy_property_repository import (
+    SqlAlchemyPropertyRepository,
+)
 from app.infrastructure.persistence.sqlalchemy_repository import SqlAlchemyRepository
-from app.presentation.api.deps import CurrentUserDep, DBSessionDep, RequirePermission
+from app.presentation.api.deps import (
+    AuditLoggerDep,
+    CurrentUserDep,
+    DBSessionDep,
+    RequirePermission,
+)
 from app.presentation.common.response import ApiResponse, paginated_response
 
 router = APIRouter(prefix="/matters")
@@ -34,6 +48,20 @@ async def get_matter_service(session: DBSessionDep) -> MatterService:
 
 
 MatterServiceDep = Annotated[MatterService, Depends(get_matter_service)]
+
+
+async def get_matter_property_service(
+    session: DBSessionDep, audit_logger: AuditLoggerDep
+) -> MatterPropertyService:
+    return MatterPropertyService(
+        SqlAlchemyMatterRepository(session),
+        SqlAlchemyPropertyRepository(session),
+        SqlAlchemyMatterPropertyRepository(session),
+        audit_logger,
+    )
+
+
+MatterPropertyServiceDep = Annotated[MatterPropertyService, Depends(get_matter_property_service)]
 
 
 class MatterParticipantCreate(BaseModel):
@@ -79,6 +107,34 @@ class MatterRead(BaseModel):
     participants: list[MatterParticipantRead]
 
 
+class MatterPropertyCreate(BaseModel):
+    property_id: UUID
+
+
+class AssociatedPropertyOwnerRead(BaseModel):
+    party_id: UUID | None
+    legacy_client_id: UUID | None
+    ownership_share: Decimal | None
+    ownership_type: str
+    from_date: date
+    to_date: date | None
+
+
+class AssociatedPropertyRead(BaseModel):
+    """Property response-compatible representation for Matter association APIs."""
+
+    id: UUID
+    property_type: str
+    survey_number: str
+    sub_division_number: str | None
+    area_value: Decimal | None
+    area_unit: str | None
+    address_id: UUID | None
+    village_id: UUID | None
+    registration_number: str | None
+    owners: list[AssociatedPropertyOwnerRead]
+
+
 def _require_organization(current_user: CurrentUser) -> UUID:
     if current_user.organization_id is None:
         raise ForbiddenError("No Organization context is resolved for this caller")
@@ -98,6 +154,31 @@ def _to_read(matter: Matter, participants: list[MatterParty]) -> MatterRead:
         legacy_client_id=matter.client_id,
         participants=[
             MatterParticipantRead(party_id=row.party_id, role=row.role) for row in participants
+        ],
+    )
+
+
+def _property_to_read(property_: Property, owners: list[PropertyOwner]) -> AssociatedPropertyRead:
+    return AssociatedPropertyRead(
+        id=property_.id,
+        property_type=property_.property_type,
+        survey_number=property_.survey_number,
+        sub_division_number=property_.sub_division_number,
+        area_value=property_.area_value,
+        area_unit=property_.area_unit,
+        address_id=property_.address_id,
+        village_id=property_.village_id,
+        registration_number=property_.registration_number,
+        owners=[
+            AssociatedPropertyOwnerRead(
+                party_id=row.party_id,
+                legacy_client_id=row.client_id,
+                ownership_share=row.ownership_share,
+                ownership_type=row.ownership_type,
+                from_date=row.from_date,
+                to_date=row.to_date,
+            )
+            for row in owners
         ],
     )
 
@@ -127,6 +208,69 @@ async def get_matter(
 ) -> ApiResponse[MatterRead]:
     matter = await service.get_in_organization(matter_id, _require_organization(current_user))
     return ApiResponse(data=_to_read(matter, list(await service.participants(matter))))
+
+
+@router.get(
+    "/{matter_id}/properties",
+    dependencies=[
+        Depends(RequirePermission("matters:read")),
+        Depends(RequirePermission("properties:read")),
+    ],
+)
+async def list_matter_properties(
+    matter_id: UUID,
+    current_user: CurrentUserDep,
+    service: MatterPropertyServiceDep,
+) -> ApiResponse[list[AssociatedPropertyRead]]:
+    """List only canonical MatterProperty-backed, tenant-visible Properties."""
+    organization_id = _require_organization(current_user)
+    properties = await service.list_properties(matter_id, organization_id)
+    reads = [
+        _property_to_read(property_, list(await service.owners(property_)))
+        for property_ in properties
+    ]
+    return ApiResponse(data=reads)
+
+
+@router.post(
+    "/{matter_id}/properties",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(RequirePermission("matters:write")),
+        Depends(RequirePermission("properties:read")),
+    ],
+)
+async def associate_matter_property(
+    matter_id: UUID,
+    payload: MatterPropertyCreate,
+    response: Response,
+    current_user: CurrentUserDep,
+    service: MatterPropertyServiceDep,
+) -> ApiResponse[AssociatedPropertyRead]:
+    organization_id = _require_organization(current_user)
+    property_, created = await service.associate(
+        matter_id, payload.property_id, organization_id, current_user
+    )
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return ApiResponse(data=_property_to_read(property_, list(await service.owners(property_))))
+
+
+@router.delete(
+    "/{matter_id}/properties/{property_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(RequirePermission("matters:write")),
+        Depends(RequirePermission("properties:read")),
+    ],
+)
+async def unlink_matter_property(
+    matter_id: UUID,
+    property_id: UUID,
+    current_user: CurrentUserDep,
+    service: MatterPropertyServiceDep,
+) -> None:
+    await service.unlink(matter_id, property_id, _require_organization(current_user), current_user)
 
 
 @router.post(
