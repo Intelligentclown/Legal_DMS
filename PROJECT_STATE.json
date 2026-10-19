@@ -41,7 +41,7 @@
       20
     ],
     "latestTaskDone": "T161",
-    "latestTaskAuthorized": "T161",
+    "latestTaskAuthorized": "T162",
     "completionProvenance": {
       "T158": {
         "implementationPr": 298,
@@ -94,7 +94,7 @@
         "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T160 governance closeout PR #309 durably merged as 4631ecc2aba63a384843e01ed829aad8df810542 on 2026-10-19T07:55:25Z; T160 Done and verified completion provenance preserved. T161 architecture PR #307 and QA approved; T161 PR #308 Done closeout remains prospective until independent QA of reconciled head and protected merge. ADR-0046 Accepted as architecture only; evidence-only QA non-operational. Required ADRs [12,15,16,17,20] unresolved; provisional milestone forecasts unchanged.",
+    "asOfCommit": "T161 governance closeout PR #308 protected-merged as 369c21286679e3d4c04a24ecf8fce7a7ab2acc0e on 2026-10-19T08:14:56Z (parents 4631ecc2aba63a384843e01ed829aad8df810542, 4ed288e168fdf9858ded60e5f430777e1d434c9a); T160/T161 Done provenance preserved. T162 owner-authorized 2026-10-19, authorization/calendar registration candidate only; not implemented or Done. Required ADRs [12,15,16,17,20] unresolved; provisional milestone forecasts unchanged.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
