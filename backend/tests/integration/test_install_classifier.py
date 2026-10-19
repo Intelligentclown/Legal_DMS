@@ -33,7 +33,7 @@ from tests.support.synthetic_migration import (
     provision_empty_disposable_database,
 )
 
-HEAD = "b8c4d2e1f7a9"
+HEAD = "b155caa6d4e1"
 pytestmark = pytest.mark.asyncio
 
 
@@ -154,6 +154,39 @@ async def test_bootstrapped_installation_classifies_operational_fresh(
             InstallationState.OPERATIONAL_FRESH
         )
         await PartyWriteGate(SqlAlchemyInstallationClassifier(session)).ensure_writable()
+
+
+@pytest.mark.parametrize(
+    "bootstrap_revision",
+    (
+        "c4e7a9b2d6f1",
+        "5d8a3f2e9c6b",
+        "7f1b9c3d4a2e",
+        "9e6a4b2c8d1f",
+        "b8c4d2e1f7a9",
+        "be439c0d6fdb",
+        "cdcfd7df5fde",
+        "e148c0f5a8b2",
+        "8d77007b9d7f",
+    ),
+)
+async def test_historical_approved_bootstrap_revisions_upgrade_to_current_head(
+    operational_engine: AsyncEngine, bootstrap_revision: str
+) -> None:
+    """T-REV-02/03/04: immutable historical bootstrap evidence remains valid."""
+    async with async_sessionmaker(operational_engine, expire_on_commit=False)() as session:
+        await session.execute(
+            text(
+                "CREATE OR REPLACE VIEW legal_dms_provenance.runtime_state AS "
+                "SELECT installation_id, event_kind, provenance_contract_version, "
+                f"'{bootstrap_revision}'::text AS observed_schema_revision, occurred_at "
+                "FROM legal_dms_provenance.installation_events "
+                "WHERE event_kind = 'OPERATIONAL_FRESH_ENTERED'"
+            )
+        )
+        classifier = SqlAlchemyInstallationClassifier(session)
+        assert await classifier.classify() == InstallationState.OPERATIONAL_FRESH
+        await PartyWriteGate(classifier).ensure_writable()
 
 
 async def test_classifier_holds_migration_evidence_locks_through_request_transaction(
@@ -280,6 +313,45 @@ async def test_operational_provenance_with_migration_evidence_fails_closed(
         await _seed_client(session, org, address)
         classifier = SqlAlchemyInstallationClassifier(session)
         with pytest.raises(InstallationClassificationError):
+            await classifier.classify()
+        with pytest.raises(ForbiddenError):
+            await PartyWriteGate(classifier).ensure_writable()
+
+
+async def test_operational_provenance_with_ledger_evidence_fails_closed(
+    operational_engine: AsyncEngine,
+) -> None:
+    """T-REV-11: a ledger row cannot coexist with operational-fresh provenance."""
+    async with async_sessionmaker(operational_engine, expire_on_commit=False)() as session:
+        org, _country, address = await _seed_org_country_address(session)
+        client = await _seed_client(session, org, address)
+        await _seed_party_and_ledger(session, org, address, client)
+        with pytest.raises(InstallationClassificationError):
+            await SqlAlchemyInstallationClassifier(session).classify()
+        with pytest.raises(ForbiddenError):
+            await PartyWriteGate(SqlAlchemyInstallationClassifier(session)).ensure_writable()
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    (
+        ("UPDATE public.alembic_version SET version_num = 'cdcfd7df5fde'", "downgrade"),
+        ("UPDATE public.alembic_version SET version_num = 'unapproved-head'", "divergent"),
+        (
+            "INSERT INTO public.alembic_version (version_num) VALUES ('cdcfd7df5fde')",
+            "multiple migration heads",
+        ),
+        ("DELETE FROM public.alembic_version", "schema version is missing"),
+    ),
+)
+async def test_invalid_live_schema_version_fails_closed(
+    operational_engine: AsyncEngine, mutation: str, message: str
+) -> None:
+    """T-REV-06/07/08/09: inspect the actual active connection's version table."""
+    async with async_sessionmaker(operational_engine, expire_on_commit=False)() as session:
+        await session.execute(text(mutation))
+        classifier = SqlAlchemyInstallationClassifier(session)
+        with pytest.raises(InstallationClassificationError, match=message):
             await classifier.classify()
         with pytest.raises(ForbiddenError):
             await PartyWriteGate(classifier).ensure_writable()

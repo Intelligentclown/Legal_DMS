@@ -19,16 +19,16 @@ from app.application.interfaces.install_classifier import (
     InstallationClassifier,
     InstallationState,
 )
+from app.infrastructure.persistence.schema_compatibility import SchemaCompatibilityAuthority
 
 # T126 binds both values into immutable operational-transition evidence. A
 # future revision must explicitly extend the supported runtime contract. T130
 # extended the contract to `5d8a3f2e9c6b`; T132 advances the supported head
 # while preserving the same immutable provenance contract.
 # by recreating the provenance functions' `alembic_version` guards.
-_PROVENANCE_CONTRACT_VERSION = "adr-0037.v1"
-_SUPPORTED_SCHEMA_REVISION = "cdcfd7df5fde"
 _OPERATIONAL_EVENT_KIND = "OPERATIONAL_FRESH_ENTERED"
 _RUNTIME_STATE_VIEW = "legal_dms_provenance.runtime_state"
+_ALEMBIC_VERSION_TABLE = "public.alembic_version"
 
 _BUSINESS_TABLES: tuple[str, ...] = (
     "clients",
@@ -55,6 +55,7 @@ class SqlAlchemyInstallationClassifier(InstallationClassifier):
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+        self._schema_compatibility = SchemaCompatibilityAuthority()
 
     async def _count_rows(self, table_name: str) -> int:
         """Count a literal, classifier-owned table name."""
@@ -64,9 +65,10 @@ class SqlAlchemyInstallationClassifier(InstallationClassifier):
     async def classify(self) -> InstallationState:
         try:
             await self._lock_migration_evidence()
+            current_schema_revision = await self._current_schema_revision()
             counts = {table: await self._count_rows(table) for table in _BUSINESS_TABLES}
             ledger_covered = await self._ledger_covered_clients_count()
-            operational = await self._operational_transition()
+            operational = await self._operational_transition(current_schema_revision)
         except InstallationClassificationError:
             raise
         except SQLAlchemyError as exc:
@@ -108,7 +110,21 @@ class SqlAlchemyInstallationClassifier(InstallationClassifier):
             text("LOCK TABLE clients, client_party_migration_ledger IN SHARE MODE")
         )
 
-    async def _operational_transition(self) -> tuple[str, str] | None:
+    async def _current_schema_revision(self) -> str:
+        """Read exactly one live Alembic revision from this request connection."""
+        result = await self._session.execute(
+            text(f"SELECT version_num FROM {_ALEMBIC_VERSION_TABLE}")
+        )
+        revisions = [str(revision) for revision in result.scalars().all()]
+        if not revisions:
+            raise InstallationClassificationError("schema version is missing")
+        if len(revisions) != 1:
+            raise InstallationClassificationError("schema has multiple migration heads")
+        current_revision = revisions[0]
+        self._schema_compatibility.validate_current_revision(current_revision)
+        return current_revision
+
+    async def _operational_transition(self, current_schema_revision: str) -> tuple[str, str] | None:
         result = await self._session.execute(
             text(
                 "SELECT installation_id, event_kind, provenance_contract_version, "
@@ -125,11 +141,15 @@ class SqlAlchemyInstallationClassifier(InstallationClassifier):
         if (
             row["installation_id"] is None
             or row["event_kind"] != _OPERATIONAL_EVENT_KIND
-            or row["provenance_contract_version"] != _PROVENANCE_CONTRACT_VERSION
-            or row["observed_schema_revision"] != _SUPPORTED_SCHEMA_REVISION
+            or row["provenance_contract_version"]
+            != self._schema_compatibility.provenance_contract_version
         ):
             raise InstallationClassificationError("operational provenance is unsupported")
-        return str(row["installation_id"]), str(row["observed_schema_revision"])
+        bootstrap_revision = str(row["observed_schema_revision"])
+        self._schema_compatibility.validate_bootstrap_ancestry(
+            bootstrap_revision, current_schema_revision
+        )
+        return str(row["installation_id"]), bootstrap_revision
 
     async def _ledger_covered_clients_count(self) -> int:
         stmt = select(func.count(func.distinct(text("legacy_client_id")))).select_from(
