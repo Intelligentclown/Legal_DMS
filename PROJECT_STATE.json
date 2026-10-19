@@ -40,7 +40,7 @@
       17,
       20
     ],
-    "latestTaskDone": "T162",
+    "latestTaskDone": "T163",
     "latestTaskAuthorized": "T163",
     "completionProvenance": {
       "T158": {
@@ -102,9 +102,19 @@
         ],
         "mergedAtUtc": "2026-10-19T09:22:02Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T163": {
+        "implementationPr": 314,
+        "protectedMergeSha": "7e5ec9e6cf47683078657d727503f6d3c535bb0c",
+        "protectedMergeParents": [
+          "25febc8b34751e45dcc781f6fccace7019ad18f5",
+          "3dcbb143fb824168a4872b0a523ea6b7f5f6cdda"
+        ],
+        "mergedAtUtc": "2026-10-19T11:07:30Z",
+        "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T162 governance closeout PR #312 protected-merged as 945bb9e3664c67e06eb410c8bb9ceadad41ddb7d on 2026-10-19; latestTaskDone T162. T163 separately owner-authorized on 2026-10-19 for ordinary §3 M1 operational dogfooding and end-to-end acceptance verification, planned 2026-10-20 through 2026-10-23. This is authorization/calendar registration only; no T163 implementation, acceptance execution, QA or completion evidence. Required ADRs [12,15,16,17,20] and migration frontier b155caa6d4e1 unchanged.",
+    "asOfCommit": "T163 post-implementation/evidence protected merge PR #314 signed as 7e5ec9e6cf47683078657d727503f6d3c535bb0c at 2026-10-19T11:07:30Z, ordered parents 25febc8b34751e45dcc781f6fccace7019ad18f5 and 3dcbb143fb824168a4872b0a523ea6b7f5f6cdda. T163 candidate Done in separate governance closeout PR only; latestTaskDone=T163 proposed, latestTaskAuthorized=T163, transitions []. Verification evidence 35 scenarios: 32 Pass, 2 Fail, 1 Blocked; QA Approved with comments, no blocking evidence-package findings; M1 remains NOT READY pending DEF-T163-01 and DEF-T163-02 remediation; BLK-T163-01 remains unexecuted. Actual work 2026-10-19 and protected completion 2026-10-19, 1 day inclusive, -4 days Early versus 2026-10-23. Provisional milestone forecasts unchanged. Required ADRs [12,15,16,17,20] and schema frontier b155caa6d4e1 preserved. Durable Done awaits distinct closeout QA and protected merge.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
