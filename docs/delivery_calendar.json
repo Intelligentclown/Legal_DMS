@@ -390,7 +390,29 @@
           "movement": 0,
           "direction": "unchanged"
         },
-        "reason": "Parallel QA-governance architecture is not a T160 prerequisite; no complete capacity or downstream task graph establishes a milestone movement."
+        "reason": "T161 architecture completed 2026-10-19 (two days before original planned finish), but parallel governance completion does not establish milestone acceleration: incomplete downstream dependency/capacity network and independently ongoing T160. Provisional M1/M2/M3/finalization forecasts unchanged."
+      },
+      "actual_start": "2026-10-19",
+      "actual_completion": "2026-10-19",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-21",
+      "variance": -2,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-19",
+      "completion_evidence": {
+        "implementation_pr": 307,
+        "protected_merge_sha": "cbf3a40c034f40a15b207ec7c43923daf4601d32",
+        "protected_merge_parents": [
+          "cddf869efc421a92ae7703ad7302b4b76d935cd7",
+          "f4a28d4a80251f9c0014b3536aa9a68d2278df82"
+        ],
+        "merged_at_utc": "2026-10-19T06:53:10Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "f4a28d4a80251f9c0014b3536aa9a68d2278df82",
+        "actual_start_evidence": "ADR-0046 architecture commit 0ac980b26735fa0cea8f278f2069307e8265cc33 authored/committed 2026-10-19T06:31:42Z (12:01:42 Asia/Kolkata), modifying the T161 architecture artifact; not authorization-date evidence. Independent QA Approved with comments, zero blockers, review publication f4a28d4a80251f9c0014b3536aa9a68d2278df82."
       }
     }
   ],
@@ -526,6 +548,39 @@
       "trigger": "T160 PR #306 protected implementation merge a8378b3f0253f3cfc1d4977bac27e8c055e660a9",
       "trigger_key": "T160:a8378b3f0253f3cfc1d4977bac27e8c055e660a9:M3",
       "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T161 PR #307 architecture protected-merged 2026-10-19, two days early. Its QA architecture acceptance does not activate the proposed evidence-only tier or change T160; downstream delivery network and resources are incomplete, so no validated acceleration of provisional forecasts.",
+      "trigger": "T161 PR #307 protected architecture merge cbf3a40c034f40a15b207ec7c43923daf4601d32",
+      "trigger_key": "T161:cbf3a40c034f40a15b207ec7c43923daf4601d32:M1",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T161 PR #307 architecture protected-merged 2026-10-19, two days early. Its QA architecture acceptance does not activate the proposed evidence-only tier or change T160; downstream delivery network and resources are incomplete, so no validated acceleration of provisional forecasts.",
+      "trigger": "T161 PR #307 protected architecture merge cbf3a40c034f40a15b207ec7c43923daf4601d32",
+      "trigger_key": "T161:cbf3a40c034f40a15b207ec7c43923daf4601d32:M2",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T161 PR #307 architecture protected-merged 2026-10-19, two days early. Its QA architecture acceptance does not activate the proposed evidence-only tier or change T160; downstream delivery network and resources are incomplete, so no validated acceleration of provisional forecasts.",
+      "trigger": "T161 PR #307 protected architecture merge cbf3a40c034f40a15b207ec7c43923daf4601d32",
+      "trigger_key": "T161:cbf3a40c034f40a15b207ec7c43923daf4601d32:M3",
+      "recalculated": "2026-10-19"
     }
   ],
   "planning_assumptions": [
@@ -540,6 +595,7 @@
     "T159 protected implementation merge PR #301 at 2026-10-18T12:54:58Z, local 2026-10-18, four calendar days earlier than original planned finish; actual start evidenced by implementation commit on 2026-10-18, actual elapsed one inclusive day. Immutable, uniquely keyed unchanged forecast events appended for M1/M2/M3; incomplete downstream network and held T157 prevent justified movement. No T157 release or T160+ authorization in this closeout.",
     "T157 signed protected implementation merge PR #296 at 2026-10-18T13:45:54Z yields 2026-10-18 project-local technical completion, actual start evidenced by original implementation commit dated 2026-10-18, inclusive elapsed one day, -3 day finish variance Early. Append-only uniquely keyed zero-movement M1/M2/M3 history events, retention of provisional milestone forecasts due to incomplete downstream graph; queue Done only durably effective after separate protected closeout PR merge. T158/T159 completed; no T160+ authorization.",
     "T160 owner-approved 2026-10-18, proposed M1 frontend/UX lane 2026-10-19 through 2026-10-22 inclusive; T145/T155/T157 scheduling prerequisites are completed. Critical/slack values provisional, not a validated project-wide critical path. No actuals, completion evidence, or forecast history created at authorization; provisional M1/M2/M3 targets unchanged.",
-    "T161 owner-approved 2026-10-19 as parallel QA-governance architecture; existing matter lane reused as governance precedent because schema-v2 has no governance lane and PR 1 cannot modify lane taxonomy. Proposed 2026-10-19 to 2026-10-21 inclusive (3 days); T159 is completed scheduling predecessor, T151 is a governance precedent only; T160 is independent and remains unchanged. Noncritical planning slack 25 days is a provisional date-to-M1 margin (2026-11-15 minus 2026-10-21), not validated resource capacity or complete-network critical-path slack. No actuals, forecast acceleration or history event at authorization."
+    "T161 owner-approved 2026-10-19 as parallel QA-governance architecture; existing matter lane reused as governance precedent because schema-v2 has no governance lane and PR 1 cannot modify lane taxonomy. Proposed 2026-10-19 to 2026-10-21 inclusive (3 days); T159 is completed scheduling predecessor, T151 is a governance precedent only; T160 is independent and remains unchanged. Noncritical planning slack 25 days is a provisional date-to-M1 margin (2026-11-15 minus 2026-10-21), not validated resource capacity or complete-network critical-path slack. No actuals, forecast acceleration or history event at authorization.",
+    "T161 protected PR #307 architecture completion 2026-10-19 (1 inclusive day; 2 days early against original 2026-10-21 finish); approved QA published at f4a28d4a80251f9c0014b3536aa9a68d2278df82. ADR-0046 accepted as architecture only; evidence-only QA remains non-operational. Independent T160 authorization, dependencies, dates and QA unchanged; M1/M2/M3 provisional forecasts retained and immutable unchanged milestone events appended."
   ]
 }

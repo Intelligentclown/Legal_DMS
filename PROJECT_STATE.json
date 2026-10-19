@@ -40,8 +40,8 @@
       17,
       20
     ],
-    "latestTaskDone": "T160",
-    "latestTaskAuthorized": "T160",
+    "latestTaskDone": "T161",
+    "latestTaskAuthorized": "T161",
     "completionProvenance": {
       "T158": {
         "implementationPr": 298,
@@ -82,9 +82,19 @@
         ],
         "mergedAtUtc": "2026-10-19T07:10:57Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T161": {
+        "implementationPr": 307,
+        "protectedMergeSha": "cbf3a40c034f40a15b207ec7c43923daf4601d32",
+        "protectedMergeParents": [
+          "cddf869efc421a92ae7703ad7302b4b76d935cd7",
+          "f4a28d4a80251f9c0014b3536aa9a68d2278df82"
+        ],
+        "mergedAtUtc": "2026-10-19T06:53:10Z",
+        "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T160 ordinary §3 dedicated governance closeout candidate, based on protected implementation merge a8378b3f0253f3cfc1d4977bac27e8c055e660a9 at 2026-10-19T07:10:57Z. Original QA and focused integration QA Approved with comments (zero blocking); separate closeout PR awaits Independent QA and protected merge. T161 remains Authorized and separate. No ADR or migration changes.",
+    "asOfCommit": "T160 governance closeout PR #309 durably merged as 4631ecc2aba63a384843e01ed829aad8df810542 on 2026-10-19T07:55:25Z; T160 Done and verified completion provenance preserved. T161 architecture PR #307 and QA approved; T161 PR #308 Done closeout remains prospective until independent QA of reconciled head and protected merge. ADR-0046 Accepted as architecture only; evidence-only QA non-operational. Required ADRs [12,15,16,17,20] unresolved; provisional milestone forecasts unchanged.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
