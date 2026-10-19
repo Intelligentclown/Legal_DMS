@@ -1,6 +1,6 @@
 # ADR-0046: Risk-Proportional Independent QA and Evidence Reuse Architecture
 
-**Status:** Proposed  
+**Status:** Accepted (T161 §3.1 governance closeout; architecture accepted, evidence-only QA remains non-operational pending separate authorization)  
 **Date:** 2026-10-19  
 **Task:** T161 — QA Proportionality & Evidence Reuse Governance  
 **Resolves:** None  
