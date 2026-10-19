@@ -23,10 +23,25 @@
     "result": "blocked_fail_closed",
     "sanitized_error": "permission denied for function enter_operational_fresh"
   },
+  "resumed_supported_bootstrap": {
+    "bootstrap_role": "legal_dms_bootstrap",
+    "bootstrap_role_non_privileged": true,
+    "application_role_bootstrap_execute": false,
+    "bootstrap_role_bootstrap_execute": true,
+    "fresh_birth": {
+      "event_sequence": 1,
+      "revision": "b155caa6d4e1"
+    },
+    "operational_fresh_entered": {
+      "event_sequence": 2,
+      "revision": "b155caa6d4e1"
+    },
+    "result": "passed"
+  },
   "scenarios": {
-    "freshly_passed": 0,
-    "validly_reused": 32,
-    "blocked": ["A3.2", "A9.2", "A11.3"],
+    "freshly_passed": ["A3.2", "A10.5"],
+    "validly_reused": 31,
+    "blocked": ["A9.2", "A11.3"],
     "failed": [],
     "superseded": []
   },
@@ -38,6 +53,18 @@
     "progress_at_last_observation": "23%",
     "observed_failures": true,
     "result": "not passed; no final total because non-fail-fast execution was stopped after failures"
+  },
+  "full_suite_controlled_failfast": {
+    "command": "uv run pytest tests -q --maxfail=1",
+    "result": "1 failed, 82 passed, 10 warnings in 66.07s",
+    "first_failure": "tests/integration/test_auth_login.py::TestLoginAuditing::test_successful_login_records_exactly_one_login_success_event",
+    "classification": "protected-baseline failure; root cause and historical baseline status unknown; not candidate-specific"
+  },
+  "defect_disposition": {
+    "DEF-T163-01": "operationally resolved for A3.2",
+    "DEF-T163-02": "blocked pending remote candidate verification",
+    "BLK-T163-01": "blocked pending native Windows Electron evidence",
+    "T166-OBS-01": "closed as acceptance setup error; no product defect"
   },
   "readiness": "NOT_READY"
 }
