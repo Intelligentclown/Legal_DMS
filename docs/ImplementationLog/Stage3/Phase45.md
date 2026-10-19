@@ -94,3 +94,13 @@ Establish the controlled local application environment, execute reproducible M1 
 ☑ Defect register and M1 readiness recommendation documented
 ☑ Governance and linters verified
 ☑ Ready for QA (Independent QA Reviewer evaluation)
+
+## QA Decision
+
+**Approved with comments** — Independent QA publication (`docs/reviews/T163_QA_Review.md`), evaluated frozen candidate `fd97356ff717cd7f772c8ef2ad01dc110e393656`; **zero blocking findings** on the acceptance evidence package. Three non-blocking advisories: (1) `docs/acceptance/scripts/run_acceptance_scenarios.py` line 542 hardcodes an absolute scratch path for local JSON dumping; (2) full continuous WebP video recordings from the browser subagent are stored in external IDE brain scratch directories outside git tracking; (3) executor narrative handoff reported an erroneous commit SHA string (`fd97356230f6...`), whereas independent git and GitHub inspection confirmed `fd97356ff717...` as the true PR head.
+
+QA independently verified all 35 operational acceptance scenarios (32 Passed, 2 Failed, 1 Blocked, 0 Out of Scope), confirmed tenant isolation and RBAC fail-closed boundaries, verified binary download stream matching, verified exact root causes for `DEF-T163-01` (stale `_SUPPORTED_SCHEMA_REVISION` in `SqlAlchemyInstallationClassifier`) and `DEF-T163-02` (unhandled `IntegrityError` on duplicate matter number), and confirmed environmental constraint `BLK-T163-01` (headless runner cannot automate native Electron window restart, following T79/T82 precedent).
+
+**Separate M1 Operational Readiness Verdict:** **NOT READY / PENDING REMEDIATION**. Milestone 1 cannot be accepted for operational office release until `DEF-T163-01` and `DEF-T163-02` are remediated by a Backend Developer.
+
+This QA approval **does not mark T163 Done**, does not record calendar completion actuals, does not declare M1 accepted, and does not merge PR #314. PR #314 remains open for post-QA Documentation Manager synchronization, collaborator review, and protected merge; separate post-merge governance closeout is required thereafter.
