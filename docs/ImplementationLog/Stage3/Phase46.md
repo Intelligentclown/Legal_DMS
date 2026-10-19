@@ -1,12 +1,12 @@
 # Phase 46 — T165 Operational-Fresh Schema Revision Compatibility
 
-**Status:** Implementation candidate ready for Independent QA  
-**Started:** 2026-10-19  
-**Completed:** 2026-10-19  
-**Related Tasks:** T165; DEF-T163-01  
-**Related ADRs:** ADR-0047  
-**Git Commit:**  
-**Pull Request:**  
+**Status:** Implementation candidate ready for Independent QA
+**Started:** 2026-10-19
+**Completed:** 2026-10-19
+**Related Tasks:** T165; DEF-T163-01
+**Related ADRs:** ADR-0047
+**Git Commit:** b1d2b1b75ff3877e5a82bf096a636530402d8a97
+**Pull Request:**
 **Release:**
 
 ## Objective
