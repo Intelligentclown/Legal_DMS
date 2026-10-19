@@ -464,19 +464,30 @@
           "movement": 0,
           "direction": "unchanged"
         },
-        "reason": "T162 bounded M1 office workflow integration fits the provisional target; downstream network and capacity remain incomplete, so no justified milestone acceleration or change."
+        "reason": "T162 signed protected implementation PR #311 completed 2026-10-19, five days before planned finish; M1/M2/M3/overall finalization provisional dates remain unchanged because the downstream task network, resource/capacity constraints and unresolved Required ADR gates prevent demonstrated milestone acceleration. Critical/slack remains provisional."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-19",
+      "actual_completion": "2026-10-19",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-24",
+      "variance": -5,
+      "classification": "Early",
+      "critical_at_completion": true,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-19",
+      "completion_evidence": {
+        "implementation_pr": 311,
+        "protected_merge_sha": "44ce92c3ae395690120ac744940db9584d1fa02e",
+        "protected_merge_parents": [
+          "94f2e249dcace0757deb4962df91a30035d0af2a",
+          "a9a8ab5089dfccfddee7bc22f9b2e04feacef3de"
+        ],
+        "merged_at_utc": "2026-10-19T09:22:02Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "c31b6ef54fc79dbd00161e10aafa1d9da2b6c44b",
+        "actual_start_evidence": "Original substantive frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 authored and committed 2026-10-19T09:03:02Z = 2026-10-19 14:33:02 Asia/Kolkata; modifies MatterDetailPage.tsx and MatterDetailPage.test.tsx. Phase44.md also records Started: 2026-10-19; authorization alone is not start evidence."
+      }
     }
   ],
   "history": [
@@ -644,6 +655,39 @@
       "trigger": "T161 PR #307 protected architecture merge cbf3a40c034f40a15b207ec7c43923daf4601d32",
       "trigger_key": "T161:cbf3a40c034f40a15b207ec7c43923daf4601d32:M3",
       "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T162 PR #311 signed protected technical completion on 2026-10-19, five days before original planned finish 2026-10-24, does not establish milestone acceleration because the downstream delivery network/resource capacity and Required ADR gates are incomplete. Retain provisional low-confidence forecasts unchanged.",
+      "trigger": "T162 PR #311 protected implementation merge 44ce92c3ae395690120ac744940db9584d1fa02e",
+      "trigger_key": "T162:44ce92c3ae395690120ac744940db9584d1fa02e:M1",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T162 PR #311 signed protected technical completion on 2026-10-19, five days before original planned finish 2026-10-24, does not establish milestone acceleration because the downstream delivery network/resource capacity and Required ADR gates are incomplete. Retain provisional low-confidence forecasts unchanged.",
+      "trigger": "T162 PR #311 protected implementation merge 44ce92c3ae395690120ac744940db9584d1fa02e",
+      "trigger_key": "T162:44ce92c3ae395690120ac744940db9584d1fa02e:M2",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T162 PR #311 signed protected technical completion on 2026-10-19, five days before original planned finish 2026-10-24, does not establish milestone acceleration because the downstream delivery network/resource capacity and Required ADR gates are incomplete. Retain provisional low-confidence forecasts unchanged.",
+      "trigger": "T162 PR #311 protected implementation merge 44ce92c3ae395690120ac744940db9584d1fa02e",
+      "trigger_key": "T162:44ce92c3ae395690120ac744940db9584d1fa02e:M3",
+      "recalculated": "2026-10-19"
     }
   ],
   "planning_assumptions": [
@@ -660,6 +704,7 @@
     "T160 owner-approved 2026-10-18, proposed M1 frontend/UX lane 2026-10-19 through 2026-10-22 inclusive; T145/T155/T157 scheduling prerequisites are completed. Critical/slack values provisional, not a validated project-wide critical path. No actuals, completion evidence, or forecast history created at authorization; provisional M1/M2/M3 targets unchanged.",
     "T161 owner-approved 2026-10-19 as parallel QA-governance architecture; existing matter lane reused as governance precedent because schema-v2 has no governance lane and PR 1 cannot modify lane taxonomy. Proposed 2026-10-19 to 2026-10-21 inclusive (3 days); T159 is completed scheduling predecessor, T151 is a governance precedent only; T160 is independent and remains unchanged. Noncritical planning slack 25 days is a provisional date-to-M1 margin (2026-11-15 minus 2026-10-21), not validated resource capacity or complete-network critical-path slack. No actuals, forecast acceleration or history event at authorization.",
     "T161 protected PR #307 architecture completion 2026-10-19 (1 inclusive day; 2 days early against original 2026-10-21 finish); approved QA published at f4a28d4a80251f9c0014b3536aa9a68d2278df82. ADR-0046 accepted as architecture only; evidence-only QA remains non-operational. Independent T160 authorization, dependencies, dates and QA unchanged; M1/M2/M3 provisional forecasts retained and immutable unchanged milestone events appended.",
-    "T162 owner-authorized 2026-10-19 for bounded M1 office workflow integration in existing ux lane, planned 2026-10-20 through 2026-10-24 (5 inclusive calendar days). Finish-to-start prerequisites T139/T145/T155/T157/T160 are completed; actuals remain null. Provisional M1/M2/M3 forecasts unchanged pending full downstream network/capacity. Required ADRs [12,15,16,17,20] unresolved."
+    "T162 owner-authorized 2026-10-19 for bounded M1 office workflow integration in existing ux lane, planned 2026-10-20 through 2026-10-24 (5 inclusive calendar days). Finish-to-start prerequisites T139/T145/T155/T157/T160 are completed; actuals remain null. Provisional M1/M2/M3 forecasts unchanged pending full downstream network/capacity. Required ADRs [12,15,16,17,20] unresolved.",
+    "T162 signed protected PR #311 merge 44ce92c3ae395690120ac744940db9584d1fa02e at 2026-10-19T09:22:02Z establishes project-local technical completion 2026-10-19. Substantive original frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 proves actual start 2026-10-19; elapsed one inclusive calendar day, finish variance -5 days Early versus 2026-10-24 original baseline. T162 Done is prospective until dedicated closeout QA and protected closeout merge; QA Approved with comments, zero blocking. Three immutable unchanged M1/M2/M3 forecast entries appended; full downstream network/capacity incomplete, no justified milestone acceleration. Required ADRs [12,15,16,17,20] unresolved."
   ]
 }
