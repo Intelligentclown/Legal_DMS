@@ -2,7 +2,7 @@
   "schema_version": 2,
   "activation_task_number": 157,
   "project_timezone": "Asia/Kolkata",
-  "as_of": "2026-10-19",
+  "as_of": "2026-10-20",
   "calendar_convention": "inclusive",
   "status": "provisional planning baseline; not an implementation authorization",
   "milestones": [
@@ -750,19 +750,30 @@
           "movement": 0,
           "direction": "unchanged"
         },
-        "reason": "T166 is provisional bounded M1 remediation/reacceptance; authorization adds no execution evidence or complete dependency/capacity network. Existing milestone and finalization forecasts remain unchanged."
+        "reason": "T166 implementation, acceptance and QA publication protected-merged on 2026-10-20 Asia/Kolkata, three calendar days before planned finish 2026-10-23. All 35 scenarios reconciled but M1 readiness remains a separate Control Tower decision. Incomplete downstream network/capacity prevents defensible milestone acceleration; provisional forecasts retained."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-19",
+      "actual_completion": "2026-10-20",
+      "actual_elapsed": 2,
+      "planned_finish_used": "2026-10-23",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-19",
+      "completion_evidence": {
+        "implementation_pr": 325,
+        "protected_merge_sha": "6d32428d6c0f62e0f1ef565e0aad2fff693deb12",
+        "protected_merge_parents": [
+          "f93a664624e5f3ac45ec7fb0279f88e1faaebf5c",
+          "08679e17b930ad69c508f34bcfc19d5f0151c511"
+        ],
+        "merged_at_utc": "2026-10-19T18:37:53Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "d2a1d59f759ac0072e0093ea2cdb609cbb434664",
+        "actual_start_evidence": "docs/ImplementationLog/Stage3/Phase47.md: Started 2026-10-19; docs/acceptance/T166_M1_Operational_Reacceptance_Report.md: Execution date 2026-10-19 Asia/Kolkata. Distinct implementation, evidence and QA protected merges all occurred on 2026-10-20 Asia/Kolkata; actual protected completion date is 2026-10-20, not the execution start."
+      }
     }
   ],
   "history": [
@@ -1062,6 +1073,39 @@
       "trigger": "T165 PR #321 protected implementation merge 736f8dc34234f8940a615bb13acdc86d22afe17b",
       "trigger_key": "T165:736f8dc34234f8940a615bb13acdc86d22afe17b:M3",
       "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T166 implementation, acceptance and QA publication protected-merged on 2026-10-20 Asia/Kolkata, three calendar days before planned finish 2026-10-23. All 35 scenarios reconciled but M1 readiness remains a separate Control Tower decision. Incomplete downstream network/capacity prevents defensible milestone acceleration; provisional forecasts retained.",
+      "trigger": "T166 PR #325 protected implementation merge 6d32428d6c0f62e0f1ef565e0aad2fff693deb12; PR #324 acceptance and PR #326 QA publication subsequently protected-merged",
+      "trigger_key": "T166:6d32428d6c0f62e0f1ef565e0aad2fff693deb12:M1",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T166 implementation, acceptance and QA publication protected-merged on 2026-10-20 Asia/Kolkata, three calendar days before planned finish 2026-10-23. All 35 scenarios reconciled but M1 readiness remains a separate Control Tower decision. Incomplete downstream network/capacity prevents defensible milestone acceleration; provisional forecasts retained.",
+      "trigger": "T166 PR #325 protected implementation merge 6d32428d6c0f62e0f1ef565e0aad2fff693deb12; PR #324 acceptance and PR #326 QA publication subsequently protected-merged",
+      "trigger_key": "T166:6d32428d6c0f62e0f1ef565e0aad2fff693deb12:M2",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T166 implementation, acceptance and QA publication protected-merged on 2026-10-20 Asia/Kolkata, three calendar days before planned finish 2026-10-23. All 35 scenarios reconciled but M1 readiness remains a separate Control Tower decision. Incomplete downstream network/capacity prevents defensible milestone acceleration; provisional forecasts retained.",
+      "trigger": "T166 PR #325 protected implementation merge 6d32428d6c0f62e0f1ef565e0aad2fff693deb12; PR #324 acceptance and PR #326 QA publication subsequently protected-merged",
+      "trigger_key": "T166:6d32428d6c0f62e0f1ef565e0aad2fff693deb12:M3",
+      "recalculated": "2026-10-20"
     }
   ],
   "planning_assumptions": [
