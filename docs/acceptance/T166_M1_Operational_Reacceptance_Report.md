@@ -3,7 +3,7 @@
 **Task:** T166 — M1 Final Remediation & Operational Reacceptance  
 **Role:** Operational Acceptance Executor  
 **Execution date:** 2026-10-19 (Asia/Kolkata)  
-**Status:** In progress — A3.2 and A11.3 freshly passed on independently isolated supported-role environments; A9.2 remains blocked; no readiness claim
+**Status:** Execution evidence updated — A3.2, A9.2, and A11.3 freshly passed; no readiness claim
 
 ## Preserved initial STOP history
 
@@ -79,7 +79,9 @@ The remotely published PR #325 checks were independently queried after execution
 
 ### C — Native Electron A9.2 / BLK-T163-01
 
-**Blocked / pending separate Windows Electron verification executor and Project Owner operator.** No browser-only, headless, static, or substitute result is claimed. The required native termination/relaunch restoration and logout non-restoration evidence has not been supplied to this executor.
+**Freshly passed on a native Windows Electron desktop session with Project Owner operator assistance.** The exact PR #325 candidate was run through Electron from `D:\Code\Legal_DMS_T166\node_modules\electron\dist\electron.exe`, with the local backend serving the isolated `legal_dms_t166_a92` PostgreSQL environment at the required `b155caa6d4e1` frontier. No browser tab, headless Electron, mock, token injection, or static-only substitute was used.
+
+The operator authenticated through the visible native application and confirmed protected content. The executor independently confirmed the candidate Electron main process and its renderer/GPU/utility children, then confirmed a complete first exit (zero candidate `electron.exe` processes) while the backend and Vite processes remained live. On native relaunch, the operator confirmed protected content returned without credentials. The executor then confirmed the normal logout left the app unauthenticated and cleared the encrypted Electron persistence artifact; after a second independently verified complete exit, the final native relaunch presented the login state and required authentication for protected access. The report contains metadata only: no password, access token, refresh token, JWT secret, or encrypted-file contents were inspected or recorded. See `docs/acceptance/evidence/T166_A9_2_Native_Windows_Evidence.md`.
 
 ## T163 scenario evidence reconciliation
 
@@ -92,13 +94,13 @@ The table uses the exact original T163 source `docs/acceptance/T163_M1_Acceptanc
 | A3.2 | Freshly executed — Passed | Supported `legal_dms_bootstrap` transition completed before fixtures; normal application runtime returned 201, then independent API retrieval 200 and separate committed-row verification. Cross-tenant 404 and Read Only 403 passed. |
 | A4.1–A8.2 | Validly reused | T163 acceptance evidence; protected T165 diff changes only schema compatibility/classifier and related tests. |
 | A9.1 | Validly reused | T163 browser evidence; no Electron result inferred. |
-| A9.2 | Blocked | Native Windows execution remains outstanding; original T163 `BLK-T163-01` cannot be reused as a pass. |
+| A9.2 | Freshly executed — Passed | Native Windows Electron authenticated login, complete exit, unauthenticated-process proof, session restoration after relaunch, normal logout, persistence clearing, second complete exit and final unauthenticated relaunch all passed. See `evidence/T166_A9_2_Native_Windows_Evidence.md`. |
 | A10.1–A10.4, A10.6–A10.7 | Validly reused | T163 tenant/RBAC evidence; no protected T165 change to RLS, roles, permissions, or Matter route authorization. |
 | A10.5 | Freshly executed — Passed | Read Only identity received 403 on Party create; existing `parties:write` RBAC boundary remained enforced. |
 | A11.1–A11.2 | Validly reused | T163 validation/not-found evidence; PR #325 changes only duplicate-constraint translation/aggregate savepoint behavior. |
 | A11.3 | Freshly executed — Passed | Exact PR #325 head was served from an isolated supported-role installation. Global duplicate returned structured 409; direct PostgreSQL probe proved `23505`/`uq_matters_matter_number`; persistence, recovery, tenant/RBAC and fail-closed checks passed. Original T163 failure is superseded by this fresh evidence. |
 
-Count: **31 validly reused; 3 freshly passed; 1 blocked; 0 failed in the resumed execution.** This is not a 35-scenario operational reacceptance pass because native A9.2 remains blocked.
+Count: **31 validly reused; 4 freshly passed; 0 blocked; 0 failed in the resumed execution.** This execution evidence is not an Independent QA decision and does not itself establish M1 readiness.
 
 ## Defect and gap disposition
 
@@ -106,7 +108,7 @@ Count: **31 validly reused; 3 freshly passed; 1 blocked; 0 failed in the resumed
 |---|---|
 | DEF-T163-01 | Resolved operationally for A3.2. Fresh supported-role, authenticated, persistence, retrieval, tenant-isolation, RBAC and PartyWriteGate-admission evidence passed. |
 | DEF-T163-02 | Resolved operationally for A11.3 against exact PR #325 head `dde7fdf9e011bd61677c4b0edc4dde875daba7f0`. Structured global-number 409, exact constraint targeting, atomicity, recovery, nondisclosure, RBAC and non-target fail-closed behavior passed. |
-| BLK-T163-01 | Pending native Windows Electron operator evidence. |
+| BLK-T163-01 | Operationally resolved for A9.2 by fresh native Windows Electron evidence; pending Independent QA assessment only. |
 | T166-OBS-01 | Closed as an acceptance setup error, not a product defect. `legal_dms_app` correctly lacks bootstrap execution; `legal_dms_bootstrap` is the supported role. |
 | Full suite | Not passed. The initial marker-only run remains unclassified. A fresh controlled, captured `uv run pytest tests -q --maxfail=1` run against protected baseline completed without orphaned workers: **82 passed, 1 failed, 10 warnings in 66.07s**. The first failure was `tests/integration/test_auth_login.py::TestLoginAuditing::test_successful_login_records_exactly_one_login_success_event`, which expected one `app.audit` log record but observed zero. Its sanitized identifier, assertion context and warnings are preserved in `docs/acceptance/evidence/T166_full_suite_failfast_sanitized.txt`. It is a protected-baseline failure, not candidate-specific; no historical-baseline comparison was run, so its root cause and age remain unclassified. |
 
@@ -115,7 +117,7 @@ Count: **31 validly reused; 3 freshly passed; 1 blocked; 0 failed in the resumed
 1. Verify this report against `f93a664…`, the separate disposable-environment evidence, and the PostgreSQL privilege/provenance queries.
 2. Independently reproduce the supported bootstrap-role A3.2 result; do not substitute owner-role bootstrap or expand application-role privileges.
 3. Reproduce A11.3 from PR #325 head, independently checking the HTTP 409 shape, `23505`/`uq_matters_matter_number`, no Matter/MatterParty residue, recovery, non-enumeration, RBAC and non-target integrity behavior. The sanitized procedure/results are in `docs/acceptance/evidence/T166_A11_3_sanitized.txt`.
-4. Obtain separately executed native Windows Electron A9.2 evidence; browser/headless evidence is insufficient.
+4. Independently assess the supplied A9.2 native Windows Electron evidence, including its process-identity, complete-exit, restoration, logout-clearing and final non-restoration observations; browser/headless evidence remains insufficient.
 5. Arrange a longer-running full-suite execution or record its exact time/platform limitation. Do not report the 941-test suite as passed.
 
 **M1 remains NOT READY.** This report does not self-approve, merge, mark T166 Done, or change protected governance state.
