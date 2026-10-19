@@ -40,7 +40,7 @@
       17,
       20
     ],
-    "latestTaskDone": "T163",
+    "latestTaskDone": "T164",
     "latestTaskAuthorized": "T164",
     "completionProvenance": {
       "T158": {
@@ -112,9 +112,19 @@
         ],
         "mergedAtUtc": "2026-10-19T11:07:30Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T164": {
+        "implementationPr": 317,
+        "protectedMergeSha": "5875b71137299a2be7f16d0fa2826efbdbb34c15",
+        "protectedMergeParents": [
+          "8116402356b38b65964bbfdb76ede475349eb7ec",
+          "4453a4c07f514cd027df622e041103e21c4bad20"
+        ],
+        "mergedAtUtc": "2026-10-19T12:33:18Z",
+        "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T163 post-implementation/evidence protected merge PR #314 signed as 7e5ec9e6cf47683078657d727503f6d3c535bb0c at 2026-10-19T11:07:30Z, ordered parents 25febc8b34751e45dcc781f6fccace7019ad18f5 and 3dcbb143fb824168a4872b0a523ea6b7f5f6cdda. T163 candidate Done in separate governance closeout PR only; latestTaskDone=T163 proposed. T164 is owner-authorized on 2026-10-19 as §3.1 PR 1 only: safe operational-fresh schema-revision compatibility architecture, with latestTaskAuthorized=T164 and transitions []. T164 authorizes neither implementation nor M1 acceptance; Required ADRs [12,15,16,17,20] and schema frontier b155caa6d4e1 remain unchanged. T163 verification evidence remains 35 scenarios: 32 Pass, 2 Fail, 1 Blocked; M1 remains NOT READY pending DEF-T163-01 and DEF-T163-02 remediation; BLK-T163-01 remains unexecuted. Provisional milestone forecasts remain unchanged. Durable Done awaits distinct closeout QA and protected merge.",
+    "asOfCommit": "Protected main verified at 5875b71137299a2be7f16d0fa2826efbdbb34c15 (PR #317 architecture merge, 2026-10-19T12:33:18Z; ordered parents 8116402356b38b65964bbfdb76ede475349eb7ec, 4453a4c07f514cd027df622e041103e21c4bad20). T163 is durably Done through protected closeout PR #315 merge 7087c5eabaf18bbccd18d0503998619e04333b06 at 2026-10-19T11:26:19Z, following evidence PR #314; its completionProvenance remains unchanged. T164 owner-authorized 2026-10-19 through PR #316 protected merge 8116402356b38b65964bbfdb76ede475349eb7ec at 2026-10-19T12:05:52Z. Architecture QA Approved with comments, zero blocking findings, publication 4453a4c07f514cd027df622e041103e21c4bad20. This dedicated PR 3 proposes latestTaskDone=T164, latestTaskAuthorized=T164, transitions []; T164 durable Done still requires separate closeout Independent QA and protected merge. No future closeout merge provenance is asserted. ADR-0047 remains Proposed; architecture only, no implementation. Required ADRs [12,15,16,17,20], frontier b155caa6d4e1 unchanged. DEF-T163-01/02 remain open, BLK-T163-01 Blocked, M1 NOT READY. T165 unauthorized; milestone/finalization forecasts unchanged.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
