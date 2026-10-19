@@ -322,6 +322,54 @@
         },
         "reason": "Frontend integration fits provisional M1 window; incomplete downstream capacity/network prevents a validated milestone shift."
       }
+    },
+    {
+      "id": "T161",
+      "title": "QA Proportionality & Evidence Reuse Governance",
+      "milestone": "M1",
+      "lane": "matter",
+      "dependencies": {
+        "finish_to_start": [
+          "T159"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 25
+      },
+      "planned_start": "2026-10-19",
+      "planned_finish": "2026-10-21",
+      "planned_duration": 3,
+      "forecast_start": "2026-10-19",
+      "forecast_finish": "2026-10-21",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "Parallel QA-governance architecture is not a T160 prerequisite; no complete capacity or downstream task graph establishes a milestone movement."
+      }
     }
   ],
   "history": [
@@ -436,6 +484,7 @@
     "T159 owner-authorized 2026-10-18 as M1 governance-enablement task planned 2026-10-19 through 2026-10-22 inclusive; T158 is its sole scheduling predecessor, ADR-0045 Accepted is its architecture prerequisite, and T157 is held pending T159 implementation/protected governance verification rather than a completed predecessor. T159/T157 same-lane overlap was reviewed: existing DELIVERY_CALENDAR.md and validator establish no exclusive-lane capacity or non-overlap rule; resource capacity and full critical path remain unproven. T157 PR #296 remains frozen/unmerged; provisional forecasts unchanged.",
     "T159 protected implementation merge PR #301 at 2026-10-18T12:54:58Z, local 2026-10-18, four calendar days earlier than original planned finish; actual start evidenced by implementation commit on 2026-10-18, actual elapsed one inclusive day. Immutable, uniquely keyed unchanged forecast events appended for M1/M2/M3; incomplete downstream network and held T157 prevent justified movement. No T157 release or T160+ authorization in this closeout.",
     "T157 signed protected implementation merge PR #296 at 2026-10-18T13:45:54Z yields 2026-10-18 project-local technical completion, actual start evidenced by original implementation commit dated 2026-10-18, inclusive elapsed one day, -3 day finish variance Early. Append-only uniquely keyed zero-movement M1/M2/M3 history events, retention of provisional milestone forecasts due to incomplete downstream graph; queue Done only durably effective after separate protected closeout PR merge. T158/T159 completed; no T160+ authorization.",
-    "T160 owner-approved 2026-10-18, proposed M1 frontend/UX lane 2026-10-19 through 2026-10-22 inclusive; T145/T155/T157 scheduling prerequisites are completed. Critical/slack values provisional, not a validated project-wide critical path. No actuals, completion evidence, or forecast history created at authorization; provisional M1/M2/M3 targets unchanged."
+    "T160 owner-approved 2026-10-18, proposed M1 frontend/UX lane 2026-10-19 through 2026-10-22 inclusive; T145/T155/T157 scheduling prerequisites are completed. Critical/slack values provisional, not a validated project-wide critical path. No actuals, completion evidence, or forecast history created at authorization; provisional M1/M2/M3 targets unchanged.",
+    "T161 owner-approved 2026-10-19 as parallel QA-governance architecture; existing matter lane reused as governance precedent because schema-v2 has no governance lane and PR 1 cannot modify lane taxonomy. Proposed 2026-10-19 to 2026-10-21 inclusive (3 days); T159 is completed scheduling predecessor, T151 is a governance precedent only; T160 is independent and remains unchanged. Noncritical planning slack 25 days is a provisional date-to-M1 margin (2026-11-15 minus 2026-10-21), not validated resource capacity or complete-network critical-path slack. No actuals, forecast acceleration or history event at authorization."
   ]
 }
