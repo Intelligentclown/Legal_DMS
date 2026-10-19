@@ -5,7 +5,7 @@
 **Completed:** 2026-10-19
 **Related Tasks:** T166; DEF-T163-02
 **Related ADRs:** ADR-0020; ADR-0021; ADR-0022
-**Git Commit:**
+**Git Commit:** a8fd172c710da6cfcef216502bcc1b2ab624910b
 **Pull Request:**
 **Release:**
 
