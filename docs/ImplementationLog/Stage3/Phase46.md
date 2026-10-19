@@ -38,6 +38,8 @@ upgrades, while live-schema and provenance failures remain default-deny.
 - `backend/tests/integration/test_install_classifier.py` — approved historical
   bootstrap lineage, live schema downgrade/unknown/multi-head/missing failures,
   and provenance contradiction coverage on disposable PostgreSQL databases.
+- `backend/tests/unit/test_schema_compatibility.py` — deterministic lineage and
+  directional-authority checks without a database dependency.
 - `backend/tests/integration/test_party_routes.py` — named T-REV-16 real current-head
   `POST /api/v1/parties` operational-fresh regression path.
 
@@ -50,6 +52,8 @@ upgrades, while live-schema and provenance failures remain default-deny.
   `pytest tests/integration/test_install_classifier.py -q` — 27 passed.
 - Candidate (isolated temporary environment, real PostgreSQL):
   `pytest tests/integration/test_party_routes.py -q` — 23 passed.
+- Candidate unit test (isolated temporary environment):
+  `pytest tests/unit/test_schema_compatibility.py -q` — 4 passed.
 - Candidate lint: `ruff check` for changed Python files — passed. Formatting:
   `black` for the changed classifier/authority/tests — passed.
 - A full-suite candidate attempt reached 23% and exposed existing failures outside
