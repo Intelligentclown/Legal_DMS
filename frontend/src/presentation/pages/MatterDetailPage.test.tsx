@@ -9,7 +9,11 @@ vi.mock("@/infrastructure/api/mattersApi", () => ({
   getMatter: vi.fn(),
   listMatters: vi.fn(),
   createMatter: vi.fn(),
+  listMatterProperties: vi.fn(),
+  linkMatterProperty: vi.fn(),
+  unlinkMatterProperty: vi.fn(),
 }));
+vi.mock("@/infrastructure/api/propertiesApi", () => ({ listProperties: vi.fn() }));
 vi.mock("@/infrastructure/api/partiesApi", () => ({
   getParty: vi.fn(),
   listParties: vi.fn(),
@@ -34,11 +38,20 @@ vi.mock("@/infrastructure/api/httpClient", () => {
       this.status = status;
     }
   }
-  return { httpClient: { get: vi.fn(), post: vi.fn() }, HttpError };
+  return {
+    httpClient: { get: vi.fn(), post: vi.fn(), postWithResponse: vi.fn(), delete: vi.fn() },
+    HttpError,
+  };
 });
 
-import { getMatter } from "@/infrastructure/api/mattersApi";
+import {
+  getMatter,
+  linkMatterProperty,
+  listMatterProperties,
+  unlinkMatterProperty,
+} from "@/infrastructure/api/mattersApi";
 import { getParty } from "@/infrastructure/api/partiesApi";
+import { listProperties } from "@/infrastructure/api/propertiesApi";
 import { listMatterStatuses, listMatterTypes } from "@/infrastructure/api/lookupsApi";
 import { createMatterFile, listMatterFiles } from "@/infrastructure/api/filesApi";
 import { HttpError } from "@/infrastructure/api/httpClient";
@@ -49,6 +62,10 @@ const mockedMatterTypes = listMatterTypes as unknown as Mock;
 const mockedMatterStatuses = listMatterStatuses as unknown as Mock;
 const mockedListFiles = listMatterFiles as unknown as Mock;
 const mockedCreateFile = createMatterFile as unknown as Mock;
+const mockedListAssociatedProperties = listMatterProperties as unknown as Mock;
+const mockedLinkProperty = linkMatterProperty as unknown as Mock;
+const mockedUnlinkProperty = unlinkMatterProperty as unknown as Mock;
+const mockedListProperties = listProperties as unknown as Mock;
 
 const MATTER = {
   id: "m1",
@@ -67,6 +84,19 @@ const FILES = [
   { id: "f1", matter_id: "m1", file_number: 1, title: "Pleadings", version: 1 },
   { id: "f2", matter_id: "m1", file_number: 2, title: "Discovery", version: 1 },
 ];
+
+const PROPERTY = {
+  id: "prop-1",
+  property_type: "residential",
+  survey_number: "42",
+  sub_division_number: "A",
+  area_value: "100",
+  area_unit: "sqm",
+  address_id: null,
+  village_id: null,
+  registration_number: "REG-42",
+  owners: [],
+};
 
 function filesPage(items: unknown[]) {
   return { items, pagination: { page: 1, page_size: 20, total: items.length, total_pages: 1 } };
@@ -98,6 +128,10 @@ describe("MatterDetailPage", () => {
       .mockResolvedValue([{ id: "ms-open", code: "OPEN", name: "Open", is_terminal: false }]);
     mockedListFiles.mockReset().mockResolvedValue(filesPage(FILES));
     mockedCreateFile.mockReset();
+    mockedListAssociatedProperties.mockReset().mockResolvedValue([PROPERTY]);
+    mockedLinkProperty.mockReset();
+    mockedUnlinkProperty.mockReset();
+    mockedListProperties.mockReset().mockResolvedValue(filesPage([PROPERTY]));
   });
 
   it("resolves the canonical client participant to the party's display name", async () => {
@@ -148,6 +182,97 @@ describe("MatterDetailPage", () => {
     renderPage();
 
     expect(await screen.findByText(/no files on this matter yet/i)).toBeInTheDocument();
+  });
+
+  it("lists canonical associated properties and only offers tenant-visible paginated properties", async () => {
+    renderPage();
+
+    expect(
+      await screen.findByRole("option", { name: "Survey 42/A (residential)" }),
+    ).toBeInTheDocument();
+    expect(mockedListAssociatedProperties).toHaveBeenCalledWith("m1");
+    expect(mockedListProperties).toHaveBeenCalledWith({ page: 1 });
+    expect(screen.getByText("Survey 42/A (residential)", { selector: "td" })).toBeInTheDocument();
+  });
+
+  it("shows an empty state when the canonical association list is empty", async () => {
+    mockedListAssociatedProperties.mockResolvedValue([]);
+    renderPage();
+
+    expect(
+      await screen.findByText(/no properties associated with this matter/i),
+    ).toBeInTheDocument();
+  });
+
+  it("filters the current page of tenant-visible Property options without inventing a search API", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.type(screen.getByLabelText(/search properties on this page/i), "commercial");
+
+    expect(
+      screen.queryByRole("option", { name: "Survey 42/A (residential)" }),
+    ).not.toBeInTheDocument();
+    expect(mockedListProperties).toHaveBeenCalledTimes(1);
+  });
+
+  it("links a selected property and refreshes the association list", async () => {
+    mockedLinkProperty.mockResolvedValue({ property: PROPERTY, created: true });
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+    const callsBefore = mockedListAssociatedProperties.mock.calls.length;
+
+    await user.selectOptions(screen.getByLabelText("Property"), "prop-1");
+    await user.click(screen.getByRole("button", { name: "Link property" }));
+
+    await waitFor(() => expect(mockedLinkProperty).toHaveBeenCalledWith("m1", "prop-1"));
+    expect(await screen.findByText("Property linked")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(mockedListAssociatedProperties.mock.calls.length).toBeGreaterThan(callsBefore),
+    );
+  });
+
+  it("reports the documented idempotent link response without claiming a duplicate was created", async () => {
+    mockedLinkProperty.mockResolvedValue({ property: PROPERTY, created: false });
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.selectOptions(screen.getByLabelText("Property"), "prop-1");
+    await user.click(screen.getByRole("button", { name: "Link property" }));
+
+    expect(await screen.findByText("Property already linked")).toBeInTheDocument();
+    expect(screen.getByText(/no duplicate was created/i)).toBeInTheDocument();
+  });
+
+  it("surfaces permission failures from association mutations", async () => {
+    mockedLinkProperty.mockRejectedValue(new HttpError(403, "You do not have matters:write"));
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.selectOptions(screen.getByLabelText("Property"), "prop-1");
+    await user.click(screen.getByRole("button", { name: "Link property" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("You do not have matters:write");
+  });
+
+  it("unlinks only the selected association and refreshes the list", async () => {
+    mockedUnlinkProperty.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+    const callsBefore = mockedListAssociatedProperties.mock.calls.length;
+
+    await user.click(screen.getByRole("button", { name: "Unlink" }));
+
+    await waitFor(() => expect(mockedUnlinkProperty).toHaveBeenCalledWith("m1", "prop-1"));
+    expect(await screen.findByText("Property unlinked")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(mockedListAssociatedProperties.mock.calls.length).toBeGreaterThan(callsBefore),
+    );
   });
 
   it("requires a title before creating a file", async () => {
