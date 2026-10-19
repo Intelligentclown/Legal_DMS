@@ -4,9 +4,16 @@ import { Link, useParams } from "react-router-dom";
 import { useNotifications } from "@/app/providers/NotificationProvider";
 import { createMatterFile, listMatterFiles } from "@/infrastructure/api/filesApi";
 import { listMatterStatuses, listMatterTypes } from "@/infrastructure/api/lookupsApi";
-import { getMatter } from "@/infrastructure/api/mattersApi";
+import {
+  getMatter,
+  linkMatterProperty,
+  listMatterProperties,
+  unlinkMatterProperty,
+} from "@/infrastructure/api/mattersApi";
 import { getParty } from "@/infrastructure/api/partiesApi";
+import { listProperties } from "@/infrastructure/api/propertiesApi";
 import type { Matter } from "@/domain/types/matter";
+import type { Property } from "@/domain/types/property";
 import type { MatterStatus, MatterType } from "@/domain/types/lookup";
 import type { Party } from "@/domain/types/party";
 import { Breadcrumbs } from "@/presentation/components/Breadcrumbs";
@@ -16,7 +23,7 @@ import { ErrorMessage } from "@/presentation/components/ErrorMessage";
 import { LoadingSpinner } from "@/presentation/components/LoadingSpinner";
 import { PageHeader } from "@/presentation/components/PageHeader";
 import { PaginationControls } from "@/presentation/components/PaginationControls";
-import { TextField } from "@/presentation/components/form/Fields";
+import { SelectField, TextField } from "@/presentation/components/form/Fields";
 import {
   cardClassName,
   cellClassName,
@@ -48,6 +55,11 @@ function nameOf<T extends { id: string; name: string }>(collection: T[], id: str
   return collection.find((entry) => entry.id === id)?.name ?? "Unknown";
 }
 
+function propertyLabel(property: Property): string {
+  const subdivision = property.sub_division_number ? `/${property.sub_division_number}` : "";
+  return `Survey ${property.survey_number}${subdivision} (${property.property_type})`;
+}
+
 /**
  * Matter read surface: the matter's own record with its client resolved to a
  * Party's display name, plus the File collection that hangs off it. File numbers
@@ -62,6 +74,12 @@ export function MatterDetailPage() {
   const [fileTitleError, setFileTitleError] = useState<string | null>(null);
   const [fileError, setFileError] = useState<unknown>(null);
   const [isCreatingFile, setIsCreatingFile] = useState(false);
+  const [propertiesPage, setPropertiesPage] = useState(1);
+  const [selectedPropertyId, setSelectedPropertyId] = useState("");
+  const [associationError, setAssociationError] = useState<unknown>(null);
+  const [unlinkError, setUnlinkError] = useState<unknown>(null);
+  const [isLinkingProperty, setIsLinkingProperty] = useState(false);
+  const [unlinkingPropertyId, setUnlinkingPropertyId] = useState<string | null>(null);
 
   const context = useAsyncResource<MatterContext>(`matter:${matterId}`, async () => {
     if (!matterId) {
@@ -88,6 +106,17 @@ export function MatterDetailPage() {
     }
     return listMatterFiles(matterId, { page: filesPage });
   });
+
+  const associatedProperties = useAsyncResource(`matter-properties:${matterId}`, () => {
+    if (!matterId) {
+      return Promise.resolve([]);
+    }
+    return listMatterProperties(matterId);
+  });
+
+  const availableProperties = useAsyncResource(`properties:${propertiesPage}`, () =>
+    listProperties({ page: propertiesPage }),
+  );
 
   async function handleCreateFile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -117,6 +146,54 @@ export function MatterDetailPage() {
       setFileError(error);
     } finally {
       setIsCreatingFile(false);
+    }
+  }
+
+  async function handleLinkProperty(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!matterId || !selectedPropertyId) {
+      return;
+    }
+
+    setAssociationError(null);
+    setIsLinkingProperty(true);
+    try {
+      const result = await linkMatterProperty(matterId, selectedPropertyId);
+      notify({
+        variant: "success",
+        title: result.created ? "Property linked" : "Property already linked",
+        description: result.created
+          ? `${propertyLabel(result.property)} is now associated with this matter.`
+          : `${propertyLabel(result.property)} was already associated; no duplicate was created.`,
+      });
+      setSelectedPropertyId("");
+      associatedProperties.reload();
+    } catch (error) {
+      setAssociationError(error);
+    } finally {
+      setIsLinkingProperty(false);
+    }
+  }
+
+  async function handleUnlinkProperty(property: Property) {
+    if (!matterId) {
+      return;
+    }
+
+    setUnlinkError(null);
+    setUnlinkingPropertyId(property.id);
+    try {
+      await unlinkMatterProperty(matterId, property.id);
+      notify({
+        variant: "success",
+        title: "Property unlinked",
+        description: `${propertyLabel(property)} is no longer associated with this matter.`,
+      });
+      associatedProperties.reload();
+    } catch (error) {
+      setUnlinkError(error);
+    } finally {
+      setUnlinkingPropertyId(null);
     }
   }
 
@@ -161,6 +238,105 @@ export function MatterDetailPage() {
           ]}
         />
       </div>
+
+      <section className="flex flex-col gap-3">
+        <PageHeader
+          title="Associated properties"
+          description="Link an existing tenant-visible property to this matter."
+        />
+
+        <form className={`${cardClassName} ${formClassName}`} onSubmit={handleLinkProperty}>
+          <SelectField
+            label="Property"
+            value={selectedPropertyId}
+            onChange={setSelectedPropertyId}
+            options={
+              availableProperties.data?.items.map((property) => ({
+                value: property.id,
+                label: propertyLabel(property),
+              })) ?? []
+            }
+            placeholder={
+              availableProperties.isLoading ? "Loading properties…" : "Select a property…"
+            }
+            disabled={availableProperties.isLoading || isLinkingProperty}
+            required
+            hint="Only properties visible in your organization are available."
+          />
+          <ErrorMessage error={availableProperties.error} title="Could not load properties" />
+          <ErrorMessage error={associationError} title="Could not link property" />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={
+                !selectedPropertyId || isLinkingProperty || Boolean(availableProperties.error)
+              }
+            >
+              {isLinkingProperty ? "Linking…" : "Link property"}
+            </Button>
+            {availableProperties.data?.pagination ? (
+              <PaginationControls
+                page={availableProperties.data.pagination.page}
+                totalPages={availableProperties.data.pagination.total_pages}
+                total={availableProperties.data.pagination.total}
+                onPageChange={setPropertiesPage}
+                isLoading={availableProperties.isLoading}
+              />
+            ) : null}
+          </div>
+        </form>
+
+        <ErrorMessage
+          error={associatedProperties.error}
+          title="Could not load associated properties"
+        />
+        <ErrorMessage error={unlinkError} title="Could not unlink property" />
+        {associatedProperties.isLoading ? (
+          <LoadingSpinner label="Loading associated properties…" />
+        ) : null}
+        {associatedProperties.data ? (
+          associatedProperties.data.length === 0 ? (
+            <EmptyState
+              title="No properties associated with this matter"
+              description="Select an existing property above to create an association."
+            />
+          ) : (
+            <table className={tableClassName}>
+              <thead>
+                <tr>
+                  <th className={headerCellClassName}>Property</th>
+                  <th className={headerCellClassName}>Registration number</th>
+                  <th className={headerCellClassName}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {associatedProperties.data.map((property) => (
+                  <tr key={property.id}>
+                    <td className={`${cellClassName} font-medium text-foreground`}>
+                      {propertyLabel(property)}
+                    </td>
+                    <td className={cellClassName}>
+                      {property.registration_number ?? "Not recorded"}
+                    </td>
+                    <td className={cellClassName}>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={unlinkingPropertyId !== null}
+                        onClick={() => void handleUnlinkProperty(property)}
+                      >
+                        {unlinkingPropertyId === property.id ? "Unlinking…" : "Unlink"}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        ) : null}
+      </section>
 
       <section className="flex flex-col gap-3">
         <PageHeader
