@@ -98,6 +98,14 @@ const PROPERTY = {
   owners: [],
 };
 
+const SECOND_PROPERTY = {
+  ...PROPERTY,
+  id: "prop-2",
+  property_type: "commercial",
+  survey_number: "84",
+  sub_division_number: null,
+};
+
 function filesPage(items: unknown[]) {
   return { items, pagination: { page: 1, page_size: 20, total: items.length, total_pages: 1 } };
 }
@@ -215,6 +223,42 @@ describe("MatterDetailPage", () => {
       screen.queryByRole("option", { name: "Survey 42/A (residential)" }),
     ).not.toBeInTheDocument();
     expect(mockedListProperties).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears a pending Property selection when the user changes the paginated API page", async () => {
+    mockedListProperties.mockImplementation(({ page }: { page: number }) =>
+      Promise.resolve({
+        items: page === 1 ? [PROPERTY] : [SECOND_PROPERTY],
+        pagination: { page, page_size: 20, total: 2, total_pages: 2 },
+      }),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    const select = await screen.findByLabelText("Property");
+
+    await user.selectOptions(select, "prop-1");
+    expect(select).toHaveValue("prop-1");
+    const propertyNext = screen
+      .getAllByRole("button", { name: "Next" })
+      .find((button) => !button.hasAttribute("disabled"));
+    expect(propertyNext).toBeDefined();
+    await user.click(propertyNext!);
+
+    await screen.findByRole("option", { name: "Survey 84 (commercial)" });
+    expect(select).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Link property" })).toBeDisabled();
+  });
+
+  it("clears a pending Property selection when filtering hides it", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const select = await screen.findByLabelText("Property");
+
+    await user.selectOptions(select, "prop-1");
+    await user.type(screen.getByLabelText(/search properties on this page/i), "commercial");
+
+    expect(select).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Link property" })).toBeDisabled();
   });
 
   it("links a selected property and refreshes the association list", async () => {

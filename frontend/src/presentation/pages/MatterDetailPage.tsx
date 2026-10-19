@@ -125,6 +125,19 @@ export function MatterDetailPage() {
         .includes(propertySearch.trim().toLocaleLowerCase()),
     ) ?? [];
 
+  function handlePropertyPageChange(page: number) {
+    setPropertiesPage(page);
+    setPropertySearch("");
+    setSelectedPropertyId("");
+    setAssociationError(null);
+  }
+
+  function handlePropertySearch(value: string) {
+    setPropertySearch(value);
+    setSelectedPropertyId("");
+    setAssociationError(null);
+  }
+
   async function handleCreateFile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -271,7 +284,7 @@ export function MatterDetailPage() {
           <TextField
             label="Search properties on this page"
             value={propertySearch}
-            onChange={setPropertySearch}
+            onChange={handlePropertySearch}
             placeholder="Survey number or property type"
             disabled={availableProperties.isLoading || isLinkingProperty}
             hint="Use Previous or Next to search another page of the existing Property API."
@@ -293,7 +306,7 @@ export function MatterDetailPage() {
                 page={availableProperties.data.pagination.page}
                 totalPages={availableProperties.data.pagination.total_pages}
                 total={availableProperties.data.pagination.total}
-                onPageChange={setPropertiesPage}
+                onPageChange={handlePropertyPageChange}
                 isLoading={availableProperties.isLoading}
               />
             ) : null}
