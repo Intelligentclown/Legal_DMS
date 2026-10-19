@@ -5,8 +5,8 @@
 **Completed:** 2026-10-19
 **Related Tasks:** T165; DEF-T163-01
 **Related ADRs:** ADR-0047
-**Git Commit:** b1d2b1b75ff3877e5a82bf096a636530402d8a97
-**Pull Request:**
+**Git Commit:** b1d2b1b75ff3877e5a82bf096a636530402d8a97; d4e539fc00e674bd12003191f66b7c9322a19218
+**Pull Request:** #321 — https://github.com/Intelligentclown/Legal_DMS/pull/321 (draft; open)
 **Release:**
 
 ## Objective
