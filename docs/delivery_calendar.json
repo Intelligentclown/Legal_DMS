@@ -272,6 +272,56 @@
         "approved_qa_publication_head": "c1ac9112896d3800ee79681803b05b5fc17a166c",
         "actual_start_evidence": "T159 implementation commit 7b02001c49cd5b046aea5f7f06f095b34107c143 authored/committed 2026-10-18T12:14:12Z (17:44:12 Asia/Kolkata) and changes 8 governance implementation files; PR #301 created 2026-10-18T12:14:22Z. Evidence establishes implementation activity on 2026-10-18, not owner authorization or mere planning."
       }
+    },
+    {
+      "id": "T160",
+      "title": "Matter–Property Frontend Integration",
+      "milestone": "M1",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T145",
+          "T155",
+          "T157"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-19",
+      "planned_finish": "2026-10-22",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-19",
+      "forecast_finish": "2026-10-22",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "Frontend integration fits provisional M1 window; incomplete downstream capacity/network prevents a validated milestone shift."
+      }
     }
   ],
   "history": [
@@ -385,6 +435,7 @@
     "T158 QA implementation advisories are implemented under T159 PR #301 and T159 closeout PR #302 is protected-merged; T157 protected implementation PR #296 is merged and the separate ordinary §3 completion-closeout remains pending independent QA and protected merge.",
     "T159 owner-authorized 2026-10-18 as M1 governance-enablement task planned 2026-10-19 through 2026-10-22 inclusive; T158 is its sole scheduling predecessor, ADR-0045 Accepted is its architecture prerequisite, and T157 is held pending T159 implementation/protected governance verification rather than a completed predecessor. T159/T157 same-lane overlap was reviewed: existing DELIVERY_CALENDAR.md and validator establish no exclusive-lane capacity or non-overlap rule; resource capacity and full critical path remain unproven. T157 PR #296 remains frozen/unmerged; provisional forecasts unchanged.",
     "T159 protected implementation merge PR #301 at 2026-10-18T12:54:58Z, local 2026-10-18, four calendar days earlier than original planned finish; actual start evidenced by implementation commit on 2026-10-18, actual elapsed one inclusive day. Immutable, uniquely keyed unchanged forecast events appended for M1/M2/M3; incomplete downstream network and held T157 prevent justified movement. No T157 release or T160+ authorization in this closeout.",
-    "T157 signed protected implementation merge PR #296 at 2026-10-18T13:45:54Z yields 2026-10-18 project-local technical completion, actual start evidenced by original implementation commit dated 2026-10-18, inclusive elapsed one day, -3 day finish variance Early. Append-only uniquely keyed zero-movement M1/M2/M3 history events, retention of provisional milestone forecasts due to incomplete downstream graph; queue Done only durably effective after separate protected closeout PR merge. T158/T159 completed; no T160+ authorization."
+    "T157 signed protected implementation merge PR #296 at 2026-10-18T13:45:54Z yields 2026-10-18 project-local technical completion, actual start evidenced by original implementation commit dated 2026-10-18, inclusive elapsed one day, -3 day finish variance Early. Append-only uniquely keyed zero-movement M1/M2/M3 history events, retention of provisional milestone forecasts due to incomplete downstream graph; queue Done only durably effective after separate protected closeout PR merge. T158/T159 completed; no T160+ authorization.",
+    "T160 owner-approved 2026-10-18, proposed M1 frontend/UX lane 2026-10-19 through 2026-10-22 inclusive; T145/T155/T157 scheduling prerequisites are completed. Critical/slack values provisional, not a validated project-wide critical path. No actuals, completion evidence, or forecast history created at authorization; provisional M1/M2/M3 targets unchanged."
   ]
 }
