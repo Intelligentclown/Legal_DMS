@@ -204,6 +204,19 @@ describe("MatterDetailPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("filters the current page of tenant-visible Property options without inventing a search API", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.type(screen.getByLabelText(/search properties on this page/i), "commercial");
+
+    expect(
+      screen.queryByRole("option", { name: "Survey 42/A (residential)" }),
+    ).not.toBeInTheDocument();
+    expect(mockedListProperties).toHaveBeenCalledTimes(1);
+  });
+
   it("links a selected property and refreshes the association list", async () => {
     mockedLinkProperty.mockResolvedValue({ property: PROPERTY, created: true });
     const user = userEvent.setup();

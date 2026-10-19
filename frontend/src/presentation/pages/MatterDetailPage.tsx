@@ -75,6 +75,7 @@ export function MatterDetailPage() {
   const [fileError, setFileError] = useState<unknown>(null);
   const [isCreatingFile, setIsCreatingFile] = useState(false);
   const [propertiesPage, setPropertiesPage] = useState(1);
+  const [propertySearch, setPropertySearch] = useState("");
   const [selectedPropertyId, setSelectedPropertyId] = useState("");
   const [associationError, setAssociationError] = useState<unknown>(null);
   const [unlinkError, setUnlinkError] = useState<unknown>(null);
@@ -117,6 +118,12 @@ export function MatterDetailPage() {
   const availableProperties = useAsyncResource(`properties:${propertiesPage}`, () =>
     listProperties({ page: propertiesPage }),
   );
+  const filteredProperties =
+    availableProperties.data?.items.filter((property) =>
+      propertyLabel(property)
+        .toLocaleLowerCase()
+        .includes(propertySearch.trim().toLocaleLowerCase()),
+    ) ?? [];
 
   async function handleCreateFile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -250,18 +257,24 @@ export function MatterDetailPage() {
             label="Property"
             value={selectedPropertyId}
             onChange={setSelectedPropertyId}
-            options={
-              availableProperties.data?.items.map((property) => ({
-                value: property.id,
-                label: propertyLabel(property),
-              })) ?? []
-            }
+            options={filteredProperties.map((property) => ({
+              value: property.id,
+              label: propertyLabel(property),
+            }))}
             placeholder={
               availableProperties.isLoading ? "Loading properties…" : "Select a property…"
             }
             disabled={availableProperties.isLoading || isLinkingProperty}
             required
             hint="Only properties visible in your organization are available."
+          />
+          <TextField
+            label="Search properties on this page"
+            value={propertySearch}
+            onChange={setPropertySearch}
+            placeholder="Survey number or property type"
+            disabled={availableProperties.isLoading || isLinkingProperty}
+            hint="Use Previous or Next to search another page of the existing Property API."
           />
           <ErrorMessage error={availableProperties.error} title="Could not load properties" />
           <ErrorMessage error={associationError} title="Could not link property" />
