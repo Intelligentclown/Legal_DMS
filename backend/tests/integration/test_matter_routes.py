@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -17,6 +17,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from app.application.errors.exceptions import ConflictError
+from app.application.matter_service import MatterService
 from app.infrastructure.cli.fresh_install_provenance import establish_fresh_installation
 from app.infrastructure.cli.operational_fresh_bootstrap import run_bootstrap
 from app.infrastructure.database.session import get_admin_db, get_db
@@ -31,6 +33,9 @@ from app.infrastructure.persistence.models.identity import (
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
 from app.infrastructure.persistence.models.organization import Organization
 from app.infrastructure.persistence.models.party import MatterParty, Party
+from app.infrastructure.persistence.sqlalchemy_matter_repository import SqlAlchemyMatterRepository
+from app.infrastructure.persistence.sqlalchemy_party_repository import SqlAlchemyPartyRepository
+from app.infrastructure.persistence.sqlalchemy_repository import SqlAlchemyRepository
 from app.infrastructure.security.password_hasher import hash_password
 from app.main import app
 from tests.support.synthetic_migration import (
@@ -210,6 +215,135 @@ async def test_cross_tenant_or_invalid_participant_does_not_persist(
     assert (await session.execute(select(func.count()).select_from(Matter))).scalar_one() == before
     assert (await session.execute(select(func.count()).select_from(MatterParty))).scalar_one() == 0
     assert other_headers  # proves the foreign Party belongs to a separately authenticated tenant.
+
+
+@pytest.mark.asyncio
+async def test_duplicate_matter_number_is_a_scoped_conflict_and_request_recovers(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    """The real PostgreSQL constraint is global, but its 409 discloses no tenant."""
+    headers_a, organization_a = await _headers(client, session, "matters:read", "matters:write")
+    party_a = await _party(session, organization_a)
+    matter_type, matter_status = await _lookups(session)
+    payload = _payload(matter_type, matter_status, party_a)
+    payload["matter_number"] = f"MAT-CONFLICT-{uuid4()}"
+
+    created = await client.post(_PATH, json=payload, headers=headers_a)
+    assert created.status_code == 201
+    created_id = UUID(created.json()["data"]["id"])
+
+    headers_b, organization_b = await _headers(client, session, "matters:read", "matters:write")
+    party_b = await _party(session, organization_b)
+    duplicate = {**payload, "client_party_id": str(party_b.id)}
+    rejected = await client.post(_PATH, json=duplicate, headers=headers_b)
+
+    assert rejected.status_code == 409
+    assert rejected.json() == {
+        "error": {"code": "conflict", "message": "Matter number is already in use"}
+    }
+    assert str(organization_a.id) not in rejected.text
+    assert str(organization_b.id) not in rejected.text
+    assert (
+        await session.execute(
+            select(Matter).where(Matter.matter_number == payload["matter_number"])
+        )
+    ).scalars().all() == [await session.get(Matter, created_id)]
+    assert (
+        await session.execute(select(MatterParty).where(MatterParty.matter_id == created_id))
+    ).scalars().all()[0].party_id == party_a.id
+
+    # A post-savepoint request on the same session remains usable.
+    recovered = await client.post(
+        _PATH, json=_payload(matter_type, matter_status, party_b), headers=headers_b
+    )
+    assert recovered.status_code == 201
+
+    # RBAC remains ahead of persistence: an unprivileged caller cannot use the
+    # conflict response to probe globally unique Matter numbers.
+    read_only_headers, _ = await _headers(client, session, "matters:read")
+    denied = await client.post(_PATH, json=duplicate, headers=read_only_headers)
+    assert denied.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_concurrent_duplicate_matter_number_keeps_global_integrity(
+    disposable_db: tuple[str, str], session: AsyncSession
+) -> None:
+    organization_a, organization_b = Organization(name=f"Org-{uuid4()}"), Organization(
+        name=f"Org-{uuid4()}"
+    )
+    session.add_all([organization_a, organization_b])
+    await session.flush()
+    party_a, party_b = await _party(session, organization_a), await _party(session, organization_b)
+    matter_type, matter_status = await _lookups(session)
+    await session.commit()
+
+    number = f"MAT-C-{uuid4().hex[:12]}"
+    engine = create_async_engine(disposable_db[0])
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async def create(organization: Organization, party: Party) -> str:
+        async with factory() as db:
+            service = MatterService(
+                SqlAlchemyMatterRepository(db),
+                SqlAlchemyPartyRepository(db),
+                SqlAlchemyRepository(db, MatterType),
+                SqlAlchemyRepository(db, MatterStatus),
+            )
+            try:
+                await service.create_in_organization(
+                    organization.id,
+                    {
+                        "matter_number": number,
+                        "matter_type_id": matter_type.id,
+                        "matter_status_id": matter_status.id,
+                        "title": "Concurrent Matter",
+                        "opened_at": datetime.now(UTC),
+                    },
+                    party.id,
+                    [],
+                )
+                await db.commit()
+                return "created"
+            except ConflictError:
+                await db.commit()
+                return "conflict"
+
+    try:
+        outcomes = await asyncio.gather(
+            create(organization_a, party_a), create(organization_b, party_b)
+        )
+        assert sorted(outcomes) == ["conflict", "created"]
+        async with factory() as verification:
+            matters = (
+                (await verification.execute(select(Matter).where(Matter.matter_number == number)))
+                .scalars()
+                .all()
+            )
+            assert len(matters) == 1
+            participants = (
+                (
+                    await verification.execute(
+                        select(MatterParty).where(MatterParty.matter_id == matters[0].id)
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            assert len(participants) == 1
+    finally:
+        async with factory() as cleanup:
+            matter_ids = select(Matter.id).where(Matter.matter_number == number)
+            await cleanup.execute(delete(MatterParty).where(MatterParty.matter_id.in_(matter_ids)))
+            await cleanup.execute(delete(Matter).where(Matter.matter_number == number))
+            await cleanup.execute(delete(Party).where(Party.id.in_((party_a.id, party_b.id))))
+            await cleanup.execute(
+                delete(Organization).where(
+                    Organization.id.in_((organization_a.id, organization_b.id))
+                )
+            )
+            await cleanup.commit()
+        await engine.dispose()
 
 
 @pytest.mark.asyncio
