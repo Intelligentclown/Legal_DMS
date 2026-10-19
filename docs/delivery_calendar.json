@@ -641,9 +641,7 @@
         "finish_to_start": [
           "T164"
         ],
-        "defect_evidence": [
-          "DEF-T163-01"
-        ]
+        "defect_evidence": []
       },
       "critical_path": {
         "is_critical": false,
