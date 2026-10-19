@@ -89,4 +89,13 @@ Expose canonical Matter–Property associations on the existing Matter detail pa
 
 ## QA Decision
 
-None — Independent QA has not yet been commissioned or performed.
+☑ Approved with comments
+□ Approved
+□ Rework required
+
+### QA Review Comments (Non-Blocking)
+
+1. **Page-Local Filter Scope vs Dataset Growth (Documented API Boundary):** The property selector filters only the current loaded page of properties (e.g. default page size 20 or 50 from `/api/v1/properties`) and clearly labels this limitation in the UI hint ("Use Previous or Next to search another page of the existing Property API."). This complies strictly with the T160 scope boundary and avoids inventing unsupported backend query parameters. Supporting a server-side searchable combobox for larger datasets should be evaluated under a future authorized backend task when property collections grow.
+2. **Selected Property Retention Across Pagination (Advisory Usability Note):** If a user selects a property on Page 1, then navigates to Page 2 using pagination controls without clicking "Link property", `selectedPropertyId` remains set in component state. Clicking "Link property" while on Page 2 still links the property selected on Page 1. This is safe and non-blocking, but resetting or visually indicating an active cross-page selection could provide clearer feedback in future UX polishing.
+3. **Pre-Existing Fast Refresh Linter Warnings (Existing Unrelated Warnings):** Four ESLint warnings (`react-refresh/only-export-components`) exist in pre-existing files (`AuthProvider.tsx`, `NotificationProvider.tsx`, `ThemeProvider.tsx`, `button.tsx`). They are completely unrelated to T160 and do not block.
+
