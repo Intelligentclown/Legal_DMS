@@ -1,12 +1,12 @@
 # Phase 47 — T166 Matter Duplicate-Number Conflict Remediation
 
-**Status:** Implementation candidate ready for Independent QA
+**Status:** Implementation and Independent QA completed; protected merge pending
 **Started:** 2026-10-19
 **Completed:** 2026-10-19
 **Related Tasks:** T166; DEF-T163-02
 **Related ADRs:** ADR-0020; ADR-0021; ADR-0022
 **Git Commit:** a8fd172c710da6cfcef216502bcc1b2ab624910b
-**Pull Request:**
+**Pull Request:** #325 — https://github.com/Intelligentclown/Legal_DMS/pull/325
 **Release:**
 
 ## Objective
@@ -105,21 +105,21 @@ aggregate atomicity, request transaction ownership, tenant isolation and RBAC.
 ☑ Architecture preserved
 ☑ Existing design patterns followed
 ☑ Tests added
-□ Existing tests pass
+☑ Existing tests pass (unit and focused PostgreSQL suites; full-suite result not established)
 ☑ Documentation updated
-□ ADR updated (if required)
-□ AI_BOOTSTRAP updated (if required)
-□ PROJECT_STATE updated (if required)
+☑ ADR updated (if required — not required)
+☑ AI_BOOTSTRAP updated (if required — not required)
+☑ PROJECT_STATE updated (if required — not required before protected closeout)
 ☑ No unrelated refactoring
 ☑ No scope creep
-☑ Ready for QA
+☑ Ready for QA (completed: Approved with comments)
 
-Notes: focused PostgreSQL and complete unit suites pass. The full candidate
-suite exceeded the local command window and therefore remains unchecked. No ADR,
-bootstrap or project-state change is required or authorized for this bounded fix.
+Notes: focused PostgreSQL and complete unit suites pass; independent QA verified 348 unit tests, 9 focused tests, Ruff/Black, sole Alembic head and governance validation. The full candidate suite exceeded the executor command window after collecting 941 tests; no full-suite pass is claimed. The operational evidence PR #324 freshly passed A11.3 against the exact reviewed PR #325 head. No ADR, bootstrap or project-state change is required or authorized for this bounded fix. QA-T166-NB-01 remains nonblocking and unresolved: pre-existing in-process Alembic fileConfig disables application audit logging during multi-file suites. This log synchronization changes no product code, tests, acceptance evidence or architecture.
 
 ## QA Decision
 
 □ Approved
-□ Approved with comments
+☑ Approved with comments
 □ Rework required
+
+**Independent QA:** Comprehensive / Risk Tier 1; zero blocking findings. Formal review artifact: `docs/reviews/T166_QA_Review.md` on dedicated PR #326 (`98f9d51c3a451d8e96b51f981b64373971d0426f`). Reviewed implementation PR #325 head: `dde7fdf9e011bd61677c4b0edc4dde875daba7f0`. Reviewed operational evidence PR #324 head: `66ec49f4c4ce12733b98f878e2370d5fe57d2761`. Nonblocking QA-T166-NB-01 remains open. GitHub's independent collaborator approval and protected-merge gates are distinct from this formal QA Decision; T166 Not Done and M1 NOT READY.
