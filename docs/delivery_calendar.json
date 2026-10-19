@@ -414,6 +414,69 @@
         "approved_qa_publication_head": "f4a28d4a80251f9c0014b3536aa9a68d2278df82",
         "actual_start_evidence": "ADR-0046 architecture commit 0ac980b26735fa0cea8f278f2069307e8265cc33 authored/committed 2026-10-19T06:31:42Z (12:01:42 Asia/Kolkata), modifying the T161 architecture artifact; not authorization-date evidence. Independent QA Approved with comments, zero blockers, review publication f4a28d4a80251f9c0014b3536aa9a68d2278df82."
       }
+    },
+    {
+      "id": "T162",
+      "title": "M1 Core Office Workflow Integration & Stabilization",
+      "milestone": "M1",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T139",
+          "T145",
+          "T155",
+          "T157",
+          "T160"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": true,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-20",
+      "planned_finish": "2026-10-24",
+      "planned_duration": 5,
+      "forecast_start": "2026-10-20",
+      "forecast_finish": "2026-10-24",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T162 bounded M1 office workflow integration fits the provisional target; downstream network and capacity remain incomplete, so no justified milestone acceleration or change."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
@@ -596,6 +659,7 @@
     "T157 signed protected implementation merge PR #296 at 2026-10-18T13:45:54Z yields 2026-10-18 project-local technical completion, actual start evidenced by original implementation commit dated 2026-10-18, inclusive elapsed one day, -3 day finish variance Early. Append-only uniquely keyed zero-movement M1/M2/M3 history events, retention of provisional milestone forecasts due to incomplete downstream graph; queue Done only durably effective after separate protected closeout PR merge. T158/T159 completed; no T160+ authorization.",
     "T160 owner-approved 2026-10-18, proposed M1 frontend/UX lane 2026-10-19 through 2026-10-22 inclusive; T145/T155/T157 scheduling prerequisites are completed. Critical/slack values provisional, not a validated project-wide critical path. No actuals, completion evidence, or forecast history created at authorization; provisional M1/M2/M3 targets unchanged.",
     "T161 owner-approved 2026-10-19 as parallel QA-governance architecture; existing matter lane reused as governance precedent because schema-v2 has no governance lane and PR 1 cannot modify lane taxonomy. Proposed 2026-10-19 to 2026-10-21 inclusive (3 days); T159 is completed scheduling predecessor, T151 is a governance precedent only; T160 is independent and remains unchanged. Noncritical planning slack 25 days is a provisional date-to-M1 margin (2026-11-15 minus 2026-10-21), not validated resource capacity or complete-network critical-path slack. No actuals, forecast acceleration or history event at authorization.",
-    "T161 protected PR #307 architecture completion 2026-10-19 (1 inclusive day; 2 days early against original 2026-10-21 finish); approved QA published at f4a28d4a80251f9c0014b3536aa9a68d2278df82. ADR-0046 accepted as architecture only; evidence-only QA remains non-operational. Independent T160 authorization, dependencies, dates and QA unchanged; M1/M2/M3 provisional forecasts retained and immutable unchanged milestone events appended."
+    "T161 protected PR #307 architecture completion 2026-10-19 (1 inclusive day; 2 days early against original 2026-10-21 finish); approved QA published at f4a28d4a80251f9c0014b3536aa9a68d2278df82. ADR-0046 accepted as architecture only; evidence-only QA remains non-operational. Independent T160 authorization, dependencies, dates and QA unchanged; M1/M2/M3 provisional forecasts retained and immutable unchanged milestone events appended.",
+    "T162 owner-authorized 2026-10-19 for bounded M1 office workflow integration in existing ux lane, planned 2026-10-20 through 2026-10-24 (5 inclusive calendar days). Finish-to-start prerequisites T139/T145/T155/T157/T160 are completed; actuals remain null. Provisional M1/M2/M3 forecasts unchanged pending full downstream network/capacity. Required ADRs [12,15,16,17,20] unresolved."
   ]
 }
