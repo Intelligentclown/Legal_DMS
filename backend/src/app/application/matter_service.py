@@ -6,8 +6,10 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
+from sqlalchemy.exc import IntegrityError
+
 from app.application.common.query import FilterOperator, FilterSpec, SearchQuery, SortSpec
-from app.application.errors.exceptions import NotFoundError, ValidationError
+from app.application.errors.exceptions import ConflictError, NotFoundError, ValidationError
 from app.application.interfaces.matter_repository import MatterRepository
 from app.application.interfaces.party_repository import PartyRepository
 from app.application.interfaces.repository import AbstractRepository
@@ -40,6 +42,28 @@ _CREATE_FIELDS = frozenset(
 _UPDATE_FIELDS = frozenset(
     {"matter_type_id", "matter_status_id", "title", "description", "opened_at", "closed_at"}
 )
+
+# This name is the protected migration's `op.f()` expansion on the current
+# PostgreSQL schema.  The historical T163 acceptance report used PostgreSQL's
+# default-name spelling, but that spelling was never present in the protected
+# migration chain and must not broaden this translation.
+_MATTER_NUMBER_UNIQUE_CONSTRAINT = "uq_matters_matter_number"
+_UNIQUE_VIOLATION_SQLSTATE = "23505"
+
+
+def _is_matter_number_unique_violation(exc: IntegrityError) -> bool:
+    """True only for the verified global Matter-number database constraint."""
+    original: BaseException | None = exc.orig
+    seen: set[int] = set()
+    while original is not None and id(original) not in seen:
+        seen.add(id(original))
+        if (
+            getattr(original, "sqlstate", None) == _UNIQUE_VIOLATION_SQLSTATE
+            and getattr(original, "constraint_name", None) == _MATTER_NUMBER_UNIQUE_CONSTRAINT
+        ):
+            return True
+        original = original.__cause__ or original.__context__
+    return False
 
 
 class MatterService:
@@ -107,7 +131,15 @@ class MatterService:
             )
             for party_id, role in participant_specs
         ]
-        return await self._repository.add_with_participants(matter, rows)
+        try:
+            return await self._repository.add_with_participants(matter, rows)
+        except IntegrityError as exc:
+            # The repository's nested transaction has already rolled back the
+            # failed aggregate.  Translate only the proven global-number
+            # collision; every other integrity failure remains fail-closed.
+            if _is_matter_number_unique_violation(exc):
+                raise ConflictError("Matter number is already in use") from None
+            raise
 
     async def update_in_organization(
         self, matter_id: UUID, organization_id: UUID, fields: Mapping[str, Any]

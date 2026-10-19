@@ -1,0 +1,48 @@
+T166 A11.3 fresh operational acceptance evidence (sanitized)
+
+Target and ancestry
+- Protected baseline: f93a664624e5f3ac45ec7fb0279f88e1faaebf5c (origin/main after fetch).
+- Candidate: PR #325 remote refs/pull/325/head = dde7fdf9e011bd61677c4b0edc4dde875daba7f0.
+- Implementation commit: a8fd172c710da6cfcef216502bcc1b2ab624910b.
+- f93a664 is an ancestor of the candidate. Candidate was checked out detached at its exact head.
+
+Environment and security posture
+- Newly created disposable PostgreSQL 16 container (postgres:16-alpine), loopback-only, blank database.
+- Ordinary legal_dms_app role and dedicated legal_dms_bootstrap role provisioned before guarded fresh installation.
+- Sole Alembic head: b155caa6d4e1.
+- Provenance ledger: FRESH_BIRTH sequence 1 and OPERATIONAL_FRESH_ENTERED sequence 2, both at b155caa6d4e1 / adr-0037.v1.
+- Both roles: LOGIN, non-superuser, non-CREATEROLE, non-CREATEDB, non-BYPASSRLS.
+- enter_operational_fresh(uuid) EXECUTE: legal_dms_app=false; legal_dms_bootstrap=true.
+- Bootstrap transition used the dedicated bootstrap connection only. No owner or application-role transition was used.
+
+Normal authenticated HTTP execution
+- Organization A Advocate login: 200.
+- Organization B Advocate login: 200.
+- Organization A Read Only login: 200.
+- Organization A creates a new Matter number: 201.
+- Organization B submits that same number with its own valid Party: 409.
+- Response body: {"error":{"code":"conflict","message":"Matter number is already in use"}}.
+- Organization B GET of Organization A Matter: 404.
+- Organization A Read Only POST of the duplicate: 403.
+- Organization B creates a distinct Matter after the conflict: 201.
+
+Independent PostgreSQL verification
+- Catalog constraint: uq_matters_matter_number, type unique.
+- Controlled duplicate INSERT against the accepted number: non-zero exit; SQLSTATE 23505 present; uq_matters_matter_number present.
+- Aggregate query after HTTP conflict and direct probe: 1 Matter, 1 MatterParty, Organization A only.
+- Thus neither conflict attempt left a partial Organization B Matter or MatterParty.
+
+Fail-closed regression check
+- uv run pytest tests/unit/test_matter_service.py::test_verified_matter_number_unique_violation_becomes_conflict tests/unit/test_matter_service.py::test_non_target_integrity_error_remains_untranslated -q
+- Result: 2 passed, 1 unrelated Starlette/httpx deprecation warning.
+- The non-target unique constraint remains an IntegrityError; it is not translated into the Matter-number 409.
+
+Candidate CI queried from GitHub PR #325
+- Backend validation: pass.
+- Frontend validation: pass.
+- Governance consistency validation: pass.
+- Release build verification: pass.
+
+Conclusion
+- A11.3 passed against the exact published candidate. DEF-T163-02 is operationally resolved for this scenario.
+- A9.2 native Electron remains blocked. The historical baseline login-audit fail-fast diagnostic remains separate; no complete-suite pass is claimed.
