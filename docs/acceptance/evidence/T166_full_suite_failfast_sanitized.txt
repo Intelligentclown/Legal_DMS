@@ -1,0 +1,46 @@
+T166 controlled protected-baseline diagnostic
+
+Command: uv run pytest tests -q --maxfail=1
+Target: protected baseline f93a664624e5f3ac45ec7fb0279f88e1faaebf5c
+Environment: isolated disposable PostgreSQL 16; captured before teardown
+Result: 1 failed, 82 passed, 10 warnings in 66.07s
+
+================================== FAILURES ===================================
+_ TestLoginAuditing.test_successful_login_records_exactly_one_login_success_event _
+
+self = <tests.integration.test_auth_login.TestLoginAuditing object>
+client = <httpx.AsyncClient object>
+db_session = <sqlalchemy.ext.asyncio.session.AsyncSession object>
+caplog = <_pytest.logging.LogCaptureFixture object>
+
+    async def test_successful_login_records_exactly_one_login_success_event(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        user = await _make_user(db_session)
+
+        with caplog.at_level(logging.INFO, logger="app.audit"):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": user.email, "password": _PASSWORD}
+            )
+
+        assert response.status_code == 200
+        audit_records = [record for record in caplog.records if record.name == "app.audit"]
+>       assert len(audit_records) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests/integration/test_auth_login.py:174: AssertionError
+
+Warnings observed:
+- Starlette TestClient/httpx deprecation warning.
+- Three HTTP 422 status-constant deprecation warnings.
+- Six JWT HMAC-key-length warnings from authentication-dependency tests.
+
+Classification:
+- This is an observed failure on protected baseline, before any verified T166 Matter candidate.
+- It is not candidate-specific evidence.
+- This run did not compare against an older protected baseline; the defect's historical age and root cause are unknown.
+- The run intentionally stopped at the first failure. It is not a complete-suite result.

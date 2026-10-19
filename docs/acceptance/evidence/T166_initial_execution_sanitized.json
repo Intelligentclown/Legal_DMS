@@ -58,7 +58,8 @@
     "command": "uv run pytest tests -q --maxfail=1",
     "result": "1 failed, 82 passed, 10 warnings in 66.07s",
     "first_failure": "tests/integration/test_auth_login.py::TestLoginAuditing::test_successful_login_records_exactly_one_login_success_event",
-    "classification": "protected-baseline failure; root cause and historical baseline status unknown; not candidate-specific"
+    "classification": "protected-baseline failure; root cause and historical baseline status unknown; not candidate-specific",
+    "sanitized_transcript": "docs/acceptance/evidence/T166_full_suite_failfast_sanitized.txt"
   },
   "defect_disposition": {
     "DEF-T163-01": "operationally resolved for A3.2",
