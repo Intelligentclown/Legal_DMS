@@ -12,9 +12,9 @@ Related Tasks: T163
 
 Related ADRs: ADR-0018, ADR-0021, ADR-0023, ADR-0024, ADR-0044, ADR-0046
 
-Git Commit:
+Git Commit: 51b8dbaee12ff194ca0446a578eb4fa979cfc95f
 
-Pull Request:
+Pull Request: #314 — https://github.com/Intelligentclown/Legal_DMS/pull/314 (OPEN, not merged)
 
 Release:
 
