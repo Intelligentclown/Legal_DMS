@@ -1,0 +1,108 @@
+{
+  "task": "T166",
+  "role": "Operational Acceptance Executor",
+  "execution_date_local": "2026-10-19",
+  "protected_baseline": "f93a664624e5f3ac45ec7fb0279f88e1faaebf5c",
+  "candidate": {
+    "implementation": "a8fd172c710da6cfcef216502bcc1b2ab624910b",
+    "documentation": "dde7fdf9e011bd61677c4b0edc4dde875daba7f0",
+    "descends_from_baseline": true,
+    "remote_ref_verified": true,
+    "remote_ref": "refs/pull/325/head",
+    "pull_request": "https://github.com/Intelligentclown/Legal_DMS/pull/325"
+  },
+  "environment": {
+    "database": "isolated disposable PostgreSQL 16",
+    "image": "postgres:16-alpine",
+    "alembic_heads": ["b155caa6d4e1"],
+    "installed_version": "b155caa6d4e1",
+    "matter_number_constraint": "uq_matters_matter_number: UNIQUE (matter_number)"
+  },
+  "restricted_role_bootstrap": {
+    "role_is_non_privileged": true,
+    "provenance_schema_usage": true,
+    "bootstrap_function_execute": false,
+    "result": "blocked_fail_closed",
+    "sanitized_error": "permission denied for function enter_operational_fresh"
+  },
+  "resumed_supported_bootstrap": {
+    "bootstrap_role": "legal_dms_bootstrap",
+    "bootstrap_role_non_privileged": true,
+    "application_role_bootstrap_execute": false,
+    "bootstrap_role_bootstrap_execute": true,
+    "fresh_birth": {
+      "event_sequence": 1,
+      "revision": "b155caa6d4e1"
+    },
+    "operational_fresh_entered": {
+      "event_sequence": 2,
+      "revision": "b155caa6d4e1"
+    },
+    "result": "passed"
+  },
+  "scenarios": {
+    "freshly_passed": ["A3.2", "A10.5", "A11.3"],
+    "validly_reused": 31,
+    "blocked": ["A9.2"],
+    "failed": [],
+    "superseded": []
+  },
+  "full_suite": {
+    "command": "uv run pytest tests -q",
+    "mode": "supported longer-running isolated execution",
+    "state_at_evidence_capture": "stopped after failed partial execution",
+    "elapsed_seconds_at_last_observation": 195,
+    "progress_at_last_observation": "23%",
+    "observed_failures": true,
+    "result": "not passed; no final total because non-fail-fast execution was stopped after failures"
+  },
+  "full_suite_controlled_failfast": {
+    "command": "uv run pytest tests -q --maxfail=1",
+    "result": "1 failed, 82 passed, 10 warnings in 66.07s",
+    "first_failure": "tests/integration/test_auth_login.py::TestLoginAuditing::test_successful_login_records_exactly_one_login_success_event",
+    "classification": "protected-baseline failure; root cause and historical baseline status unknown; not candidate-specific",
+    "sanitized_transcript": "docs/acceptance/evidence/T166_full_suite_failfast_sanitized.txt"
+  },
+  "defect_disposition": {
+    "DEF-T163-01": "operationally resolved for A3.2",
+    "DEF-T163-02": "operationally resolved for A11.3 against PR #325 head dde7fdf9e011bd61677c4b0edc4dde875daba7f0",
+    "BLK-T163-01": "blocked pending native Windows Electron evidence",
+    "T166-OBS-01": "closed as acceptance setup error; no product defect"
+  },
+  "a11_3_fresh_execution": {
+    "environment": "separate isolated disposable PostgreSQL 16 Docker environment (postgres:16-alpine); blank guarded install; no production or existing database",
+    "candidate_checkout": "detached exact PR #325 head dde7fdf9e011bd61677c4b0edc4dde875daba7f0",
+    "provenance": [
+      "FRESH_BIRTH sequence 1 at b155caa6d4e1",
+      "OPERATIONAL_FRESH_ENTERED sequence 2 at b155caa6d4e1"
+    ],
+    "role_posture": {
+      "legal_dms_app_bootstrap_execute": false,
+      "legal_dms_bootstrap_bootstrap_execute": true,
+      "both_roles_non_privileged": true
+    },
+    "http_results": {
+      "organization_a_create": 201,
+      "organization_b_duplicate": 409,
+      "duplicate_error": {"code": "conflict", "message": "Matter number is already in use"},
+      "organization_b_cross_tenant_get": 404,
+      "read_only_duplicate_post": 403,
+      "post_conflict_recovery_create": 201
+    },
+    "database_results": {
+      "constraint": "uq_matters_matter_number",
+      "direct_duplicate_probe_sqlstate": "23505",
+      "direct_duplicate_probe_constraint_match": true,
+      "matter_count_for_conflicted_number": 1,
+      "matter_party_count_for_conflicted_number": 1,
+      "persisted_organization": "Organization A"
+    },
+    "non_target_integrity_test": "tests/unit/test_matter_service.py::test_non_target_integrity_error_remains_untranslated passed",
+    "candidate_ci": {
+      "result": "all required PR #325 workflow categories passing",
+      "categories": ["Backend validation", "Frontend validation", "Governance consistency validation", "Release build verification"]
+    },
+    "sanitized_evidence": "docs/acceptance/evidence/T166_A11_3_sanitized.txt"
+  },
+  "readiness": "NOT_READY"
+}
