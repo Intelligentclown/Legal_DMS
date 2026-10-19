@@ -321,6 +321,28 @@
           "direction": "unchanged"
         },
         "reason": "Frontend integration fits provisional M1 window; incomplete downstream capacity/network prevents a validated milestone shift."
+      },
+      "actual_start": "2026-10-19",
+      "actual_completion": "2026-10-19",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-22",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": true,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-19",
+      "completion_evidence": {
+        "implementation_pr": 306,
+        "protected_merge_sha": "a8378b3f0253f3cfc1d4977bac27e8c055e660a9",
+        "protected_merge_parents": [
+          "cbf3a40c034f40a15b207ec7c43923daf4601d32",
+          "447402a2fbf761bba0ed0ee97ed201bdfbcecd25"
+        ],
+        "merged_at_utc": "2026-10-19T07:10:57Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "447402a2fbf761bba0ed0ee97ed201bdfbcecd25",
+        "actual_start_evidence": "Original T160 implementation commit 917378db4da380f8607365dc8f681513517ecb79 authored 2026-10-19T06:17:21Z and committed 2026-10-19T06:17:54Z, with seven frontend implementation/test/log files; establishes actual implementation start 2026-10-19 independently of authorization."
       }
     },
     {
@@ -493,6 +515,39 @@
       "trigger": "T157 PR #296 protected implementation merge 4e855841816c732febd36a33fe1ecc3c77a91a69",
       "trigger_key": "T157:4e855841816c732febd36a33fe1ecc3c77a91a69:M3",
       "recalculated": "2026-10-18"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T160 signed protected technical completion on 2026-10-19, three days before original planned finish, does not evidence milestone acceleration because downstream capacity and full task dependency graph are incomplete and Required ADR gates remain unresolved. Keep provisional low-confidence forecast.",
+      "trigger": "T160 PR #306 protected implementation merge a8378b3f0253f3cfc1d4977bac27e8c055e660a9",
+      "trigger_key": "T160:a8378b3f0253f3cfc1d4977bac27e8c055e660a9:M1",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T160 signed protected technical completion on 2026-10-19, three days before original planned finish, does not evidence milestone acceleration because downstream capacity and full task dependency graph are incomplete and Required ADR gates remain unresolved. Keep provisional low-confidence forecast.",
+      "trigger": "T160 PR #306 protected implementation merge a8378b3f0253f3cfc1d4977bac27e8c055e660a9",
+      "trigger_key": "T160:a8378b3f0253f3cfc1d4977bac27e8c055e660a9:M2",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T160 signed protected technical completion on 2026-10-19, three days before original planned finish, does not evidence milestone acceleration because downstream capacity and full task dependency graph are incomplete and Required ADR gates remain unresolved. Keep provisional low-confidence forecast.",
+      "trigger": "T160 PR #306 protected implementation merge a8378b3f0253f3cfc1d4977bac27e8c055e660a9",
+      "trigger_key": "T160:a8378b3f0253f3cfc1d4977bac27e8c055e660a9:M3",
+      "recalculated": "2026-10-19"
     },
     {
       "milestone": "M1",

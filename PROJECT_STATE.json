@@ -73,6 +73,16 @@
         "mergedAtUtc": "2026-10-18T13:45:54Z",
         "timezone": "Asia/Kolkata"
       },
+      "T160": {
+        "implementationPr": 306,
+        "protectedMergeSha": "a8378b3f0253f3cfc1d4977bac27e8c055e660a9",
+        "protectedMergeParents": [
+          "cbf3a40c034f40a15b207ec7c43923daf4601d32",
+          "447402a2fbf761bba0ed0ee97ed201bdfbcecd25"
+        ],
+        "mergedAtUtc": "2026-10-19T07:10:57Z",
+        "timezone": "Asia/Kolkata"
+      },
       "T161": {
         "implementationPr": 307,
         "protectedMergeSha": "cbf3a40c034f40a15b207ec7c43923daf4601d32",
@@ -84,7 +94,7 @@
         "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T161 §3.1 PR 3 closeout candidate from protected architecture merge cbf3a40c034f40a15b207ec7c43923daf4601d32 (signed, parents cddf869efc421a92ae7703ad7302b4b76d935cd7 and f4a28d4a80251f9c0014b3536aa9a68d2278df82), PR #307 merged 2026-10-19T06:53:10Z = 12:23:10 Asia/Kolkata. QA Decision Approved with comments; zero blockers; frozen candidate 0ac980b26735fa0cea8f278f2069307e8265cc33, QA publication f4a28d4a80251f9c0014b3536aa9a68d2278df82. First evidenced architecture activity 2026-10-19T06:31:42Z; elapsed one inclusive day, planned finish 2026-10-21, variance -2 Early. ADR-0046 Accepted as architecture only; proposed evidence-only QA is NOT operational and all current QA, CI, review and merge gates remain mandatory. T160 remains Authorized and independently active, no completion attribution or schedule modification. Unresolved Required ADRs [12,15,16,17,20] unchanged. Calendar M1/M2/M3/finalization forecasts unchanged, three immutable unchanged-movement history entries. T161 closeout is prospective until its separate PR 3 protected merge.",
+    "asOfCommit": "T160 governance closeout PR #309 durably merged as 4631ecc2aba63a384843e01ed829aad8df810542 on 2026-10-19T07:55:25Z; T160 Done and verified completion provenance preserved. T161 architecture PR #307 and QA approved; T161 PR #308 Done closeout remains prospective until independent QA of reconciled head and protected merge. ADR-0046 Accepted as architecture only; evidence-only QA non-operational. Required ADRs [12,15,16,17,20] unresolved; provisional milestone forecasts unchanged.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
