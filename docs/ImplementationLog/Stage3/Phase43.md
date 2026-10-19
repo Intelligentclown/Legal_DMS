@@ -12,7 +12,7 @@ Related Tasks: T160
 
 Related ADRs: ADR-0044, ADR-0021, ADR-0022
 
-Git Commit: 917378db4da380f8607365dc8f681513517ecb79
+Git Commit: 917378db4da380f8607365dc8f681513517ecb79, 806123e7849b019666deb5932cd907c067d25513
 
 Pull Request:
 
@@ -28,6 +28,7 @@ Expose canonical Matter–Property associations on the existing Matter detail pa
 
 - Added typed adapters for the paginated tenant-visible Property list and Matter-scoped association list, link, and unlink operations.
 - Added a Matter-detail association section that lists linked Properties, selects an existing paginated Property, links it, and unlinks only the relationship.
+- Added an accessible client-side filter over each loaded Property API page; no unsupported server-side search parameter is sent.
 - Preserved the backend's 201-created versus 200-idempotent link distinction in user-facing feedback.
 
 ## Files Modified
@@ -43,12 +44,12 @@ Expose canonical Matter–Property associations on the existing Matter detail pa
 ## Tests Added
 
 - Matter–Property API adapter tests cover canonical list, 201 creation, 200 idempotency, and relationship-only unlink paths.
-- Matter detail interaction tests cover list, empty, selection, mutation refresh, idempotent feedback, and permission-denied mutation feedback.
+- Matter detail interaction tests cover list, empty, page-local search, selection, mutation refresh, idempotent feedback, and permission-denied mutation feedback.
 
 ## Test Results
 
-- `npx vitest run src/infrastructure/api/mattersApi.test.ts src/presentation/pages/MatterDetailPage.test.tsx` — 22 passed.
-- `npm test` — 182 passed across 21 test files.
+- `npx vitest run src/infrastructure/api/mattersApi.test.ts src/presentation/pages/MatterDetailPage.test.tsx` — 23 passed.
+- `npm test` — 183 passed across 21 test files.
 - `npm run build` — passed (`tsc -b` and Vite production build).
 - `npm run lint` — passed with 0 errors and 4 pre-existing Fast Refresh warnings in unrelated provider/button files.
 - `npm run format:check` — passed.
@@ -66,7 +67,7 @@ Expose canonical Matter–Property associations on the existing Matter detail pa
 ## Deferred Work
 
 - Independent QA, documentation synchronization, merge, and post-merge governance closeout are separately commissioned lifecycle roles.
-- Property search filtering is not added because the protected Property API contract exposes pagination only, not a search query.
+- Server-side Property search remains excluded because the protected Property API contract exposes pagination only, not a search query; the implemented page-local filter makes that boundary explicit.
 
 ## Future Considerations
 
