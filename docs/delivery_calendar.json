@@ -488,6 +488,68 @@
         "approved_qa_publication_head": "c31b6ef54fc79dbd00161e10aafa1d9da2b6c44b",
         "actual_start_evidence": "Original substantive frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 authored and committed 2026-10-19T09:03:02Z = 2026-10-19 14:33:02 Asia/Kolkata; modifies MatterDetailPage.tsx and MatterDetailPage.test.tsx. Phase44.md also records Started: 2026-10-19; authorization alone is not start evidence."
       }
+    },
+    {
+      "id": "T163",
+      "title": "M1 Operational Dogfooding & End-to-End Acceptance Verification",
+      "milestone": "M1",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T145",
+          "T157",
+          "T160",
+          "T162"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 23
+      },
+      "planned_start": "2026-10-20",
+      "planned_finish": "2026-10-23",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-20",
+      "forecast_finish": "2026-10-23",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T163 operational acceptance is scheduled after all four completed predecessors and within the provisional M1 window. Date-to-milestone margin is 23 days, not validated complete-network slack; downstream scope, resource capacity and acceptance outcomes are unknown. No justified milestone movement."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
@@ -705,6 +767,7 @@
     "T161 owner-approved 2026-10-19 as parallel QA-governance architecture; existing matter lane reused as governance precedent because schema-v2 has no governance lane and PR 1 cannot modify lane taxonomy. Proposed 2026-10-19 to 2026-10-21 inclusive (3 days); T159 is completed scheduling predecessor, T151 is a governance precedent only; T160 is independent and remains unchanged. Noncritical planning slack 25 days is a provisional date-to-M1 margin (2026-11-15 minus 2026-10-21), not validated resource capacity or complete-network critical-path slack. No actuals, forecast acceleration or history event at authorization.",
     "T161 protected PR #307 architecture completion 2026-10-19 (1 inclusive day; 2 days early against original 2026-10-21 finish); approved QA published at f4a28d4a80251f9c0014b3536aa9a68d2278df82. ADR-0046 accepted as architecture only; evidence-only QA remains non-operational. Independent T160 authorization, dependencies, dates and QA unchanged; M1/M2/M3 provisional forecasts retained and immutable unchanged milestone events appended.",
     "T162 owner-authorized 2026-10-19 for bounded M1 office workflow integration in existing ux lane, planned 2026-10-20 through 2026-10-24 (5 inclusive calendar days). Finish-to-start prerequisites T139/T145/T155/T157/T160 are completed; actuals remain null. Provisional M1/M2/M3 forecasts unchanged pending full downstream network/capacity. Required ADRs [12,15,16,17,20] unresolved.",
-    "T162 signed protected PR #311 merge 44ce92c3ae395690120ac744940db9584d1fa02e at 2026-10-19T09:22:02Z establishes project-local technical completion 2026-10-19. Substantive original frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 proves actual start 2026-10-19; elapsed one inclusive calendar day, finish variance -5 days Early versus 2026-10-24 original baseline. T162 Done is prospective until dedicated closeout QA and protected closeout merge; QA Approved with comments, zero blocking. Three immutable unchanged M1/M2/M3 forecast entries appended; full downstream network/capacity incomplete, no justified milestone acceleration. Required ADRs [12,15,16,17,20] unresolved."
+    "T162 signed protected PR #311 merge 44ce92c3ae395690120ac744940db9584d1fa02e at 2026-10-19T09:22:02Z establishes project-local technical completion 2026-10-19. Substantive original frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 proves actual start 2026-10-19; elapsed one inclusive calendar day, finish variance -5 days Early versus 2026-10-24 original baseline. T162 Done is prospective until dedicated closeout QA and protected closeout merge; QA Approved with comments, zero blocking. Three immutable unchanged M1/M2/M3 forecast entries appended; full downstream network/capacity incomplete, no justified milestone acceleration. Required ADRs [12,15,16,17,20] unresolved.",
+    "T163 owner-authorized 2026-10-19 as ordinary §3 operational acceptance verification, existing ux lane; 2026-10-20 through 2026-10-23 inclusive (4 days), finish-to-start predecessors T145/T157/T160/T162 completed. Date-to-M1 margin 23 days is not validated network slack. No actuals, completion evidence or history event at authorization; M1/M2/M3/finalization provisional forecasts unchanged. Execution and independent QA separated; defects documented without unauthorized fixes; only real application-level evidence qualifies as Pass."
   ]
 }

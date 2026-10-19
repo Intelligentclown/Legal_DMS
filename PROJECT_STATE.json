@@ -41,7 +41,7 @@
       20
     ],
     "latestTaskDone": "T162",
-    "latestTaskAuthorized": "T162",
+    "latestTaskAuthorized": "T163",
     "completionProvenance": {
       "T158": {
         "implementationPr": 298,
@@ -104,7 +104,7 @@
         "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T162 implementation PR #311 signed and verified protected-merged at 44ce92c3ae395690120ac744940db9584d1fa02e on 2026-10-19T09:22:02Z (parents 94f2e249dcace0757deb4962df91a30035d0af2a, a9a8ab5089dfccfddee7bc22f9b2e04feacef3de). T162 proposed Done closeout requires independent QA and protected closeout merge before durable Done. Original substantive implementation start 2026-10-19 from commit 854596a334b4158d45c34c1c567f8438a3ff7148; candidate da66e4c5c3cb2001bab214cb7436d5964c2fbf09; QA publication c31b6ef54fc79dbd00161e10aafa1d9da2b6c44b, Approved with comments, zero blockers. T160/T161 completion tuples preserved. Required ADRs [12,15,16,17,20] unresolved; migration frontier b155caa6d4e1; provisional M1/M2/M3/finalization forecasts unchanged.",
+    "asOfCommit": "T162 governance closeout PR #312 protected-merged as 945bb9e3664c67e06eb410c8bb9ceadad41ddb7d on 2026-10-19; latestTaskDone T162. T163 separately owner-authorized on 2026-10-19 for ordinary §3 M1 operational dogfooding and end-to-end acceptance verification, planned 2026-10-20 through 2026-10-23. This is authorization/calendar registration only; no T163 implementation, acceptance execution, QA or completion evidence. Required ADRs [12,15,16,17,20] and migration frontier b155caa6d4e1 unchanged.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
