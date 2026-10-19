@@ -631,6 +631,67 @@
         "approved_qa_publication_head": "4453a4c07f514cd027df622e041103e21c4bad20",
         "actual_start_evidence": "Substantive architecture commit 09b738e4e417a2b6e21ddb3b229271b1c8cf21b6 authored/committed 2026-10-19T12:20:44Z (17:50:44 Asia/Kolkata), adding ADR-0047 and Software Architect report; evidence establishes the calendar date, not an exact work-start time. Not authorization-only evidence."
       }
+    },
+    {
+      "id": "T165",
+      "title": "Operational-Fresh Schema Revision Compatibility Implementation",
+      "milestone": "M1",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T164"
+        ],
+        "defect_evidence": [
+          "DEF-T163-01"
+        ]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 23
+      },
+      "planned_start": "2026-10-20",
+      "planned_finish": "2026-10-23",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-20",
+      "forecast_finish": "2026-10-23",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "Authorization only: no actual completion, no network-supported forecast revision; retain provisional targets."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
@@ -917,6 +978,7 @@
     "T162 signed protected PR #311 merge 44ce92c3ae395690120ac744940db9584d1fa02e at 2026-10-19T09:22:02Z establishes project-local technical completion 2026-10-19. Substantive original frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 proves actual start 2026-10-19; elapsed one inclusive calendar day, finish variance -5 days Early versus 2026-10-24 original baseline. T162 Done is prospective until dedicated closeout QA and protected closeout merge; QA Approved with comments, zero blocking. Three immutable unchanged M1/M2/M3 forecast entries appended; full downstream network/capacity incomplete, no justified milestone acceleration. Required ADRs [12,15,16,17,20] unresolved.",
     "T163 owner-authorized 2026-10-19 as ordinary §3 operational acceptance verification, existing ux lane; 2026-10-20 through 2026-10-23 inclusive (4 days), finish-to-start predecessors T145/T157/T160/T162 completed. Date-to-M1 margin 23 days is not validated network slack. No actuals, completion evidence or history event at authorization; M1/M2/M3/finalization provisional forecasts unchanged. Execution and independent QA separated; defects documented without unauthorized fixes; only real application-level evidence qualifies as Pass.",
     "T163 evidence PR #314 protected merge 7e5ec9e6cf47683078657d727503f6d3c535bb0c at 2026-10-19T11:07:30Z establishes project-local completion 2026-10-19; substantive execution occurred 2026-10-19 per Phase45 and operational report, 1 inclusive day, -4 days Early versus planned 2026-10-23. QA Approved with comments zero blocking evidence findings; 32 Passed, 2 Failed, 1 Blocked. Material defects DEF-T163-01/02 remain open and native Electron BLK-T163-01 remains Blocked. M1 NOT READY; zero-change M1/M2/M3 history appended, no forecast acceleration. T163 Done only as proposed dedicated closeout until independent closeout QA and protected merge.",
-    "T164 architecture actual start/completion 2026-10-19 from substantive commit 09b738e4e417a2b6e21ddb3b229271b1c8cf21b6 and protected PR #317 merge 5875b71137299a2be7f16d0fa2826efbdbb34c15 at 2026-10-19T12:33:18Z. One inclusive day, -2 days Early; baseline start/finish 2026-10-20/21 preserved. T163 predecessor protected closeout completed earlier on the same date; date-only schedule cannot express intraday ordering, and no baseline is rewritten. Noncritical 25-day date-to-M1 margin is not validated capacity slack. T164 architecture PR #317 protected-merged 2026-10-19, two days before original planned finish. ADR-0047 remains Proposed and unimplemented; DEF-T163-01/02 and BLK-T163-01 remain open, M1 NOT READY. Incomplete downstream dependency/capacity network provides no justified milestone or finalization acceleration; retain provisional low-confidence forecasts. T164 Done remains prospective pending PR 3 Independent QA and protected merge; T165 not authorized. T163 protected closeout PR #315 merged 2026-10-19 at 11:26:19Z; prior candidate-era assumptions are historical, superseded by this event."
+    "T164 architecture actual start/completion 2026-10-19 from substantive commit 09b738e4e417a2b6e21ddb3b229271b1c8cf21b6 and protected PR #317 merge 5875b71137299a2be7f16d0fa2826efbdbb34c15 at 2026-10-19T12:33:18Z. One inclusive day, -2 days Early; baseline start/finish 2026-10-20/21 preserved. T163 predecessor protected closeout completed earlier on the same date; date-only schedule cannot express intraday ordering, and no baseline is rewritten. Noncritical 25-day date-to-M1 margin is not validated capacity slack. T164 architecture PR #317 protected-merged 2026-10-19, two days before original planned finish. ADR-0047 remains Proposed and unimplemented; DEF-T163-01/02 and BLK-T163-01 remain open, M1 NOT READY. Incomplete downstream dependency/capacity network provides no justified milestone or finalization acceleration; retain provisional low-confidence forecasts. T164 Done remains prospective pending PR 3 Independent QA and protected merge; T165 not authorized. T163 protected closeout PR #315 merged 2026-10-19 at 11:26:19Z; prior candidate-era assumptions are historical, superseded by this event.",
+    "T165 owner-authorized 2026-10-19 as M1 operational-fresh schema compatibility remediation of DEF-T163-01 under Proposed ADR-0047; existing ux stabilization lane reused because schema v2 has no backend lane. Planned 2026-10-20 through 2026-10-23 inclusive, finish-to-start T164 Done; provisional 23-day date-to-M1 margin is not validated network slack. Authorization creates no actuals, completion or milestone history; all forecasts unchanged. DEF-T163-02 and BLK-T163-01 remain open, M1 NOT READY."
   ]
 }
