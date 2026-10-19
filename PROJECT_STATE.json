@@ -1,6 +1,6 @@
 {
   "project": "Legal Document & Matter Management System",
-  "lastUpdated": "2026-10-18",
+  "lastUpdated": "2026-10-19",
   "currentStage": {
     "id": "stage-3",
     "name": "Authentication & Authorization",
@@ -40,7 +40,7 @@
       17,
       20
     ],
-    "latestTaskDone": "T159",
+    "latestTaskDone": "T161",
     "latestTaskAuthorized": "T159",
     "completionProvenance": {
       "T158": {
@@ -72,9 +72,19 @@
         ],
         "mergedAtUtc": "2026-10-18T13:45:54Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T161": {
+        "implementationPr": 307,
+        "protectedMergeSha": "cbf3a40c034f40a15b207ec7c43923daf4601d32",
+        "protectedMergeParents": [
+          "cddf869efc421a92ae7703ad7302b4b76d935cd7",
+          "f4a28d4a80251f9c0014b3536aa9a68d2278df82"
+        ],
+        "mergedAtUtc": "2026-10-19T06:53:10Z",
+        "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T157 ordinary PROJECT_WORKFLOW.md §3 dedicated protected-implementation-merge completion closeout candidate based on verified protected main 4e855841816c732febd36a33fe1ecc3c77a91a69. PR #296 technically completed by signed GitHub merge 2026-10-18T13:45:54Z (2026-10-18 19:15:54 Asia/Kolkata), ordered parents f79ec455f5928c595f4198dbe8a008a44ddd9b0a, 7937906c9ca46e2be5113dab3caac88871b7a8f8. Original QA candidate 89bed9272f8cdd9d2909a0f195ca942fa4278ec5, original QA publication b6c4158b23744390dcc284010cff6aec8d59dd75, focused integration candidate 9e9e86ad3421c3038e58586325945f6e66980352, final QA publication 7937906c9ca46e2be5113dab3caac88871b7a8f8; both independent QA decisions Approved with comments/zero blocking. Actual implementation started 2026-10-18 as evidenced by original implementation commit authored 2026-10-18T08:10:41Z; protected technical completion 2026-10-18; elapsed 1 inclusive day; original planned finish 2026-10-21, variance -3 Early. T157 queue Done and snapshot T157 queue Done and completionProvenance are prospective until this distinct closeout PR is independently QA-reviewed and protected-merged. The validator-defined latestTaskDone remains T159 (highest numbered Done task), while T157 is the most recently completed task chronologically. latestTaskAuthorized remains T159 and T158/T159 remain Done with their canonical completionProvenance preserved; completion number ordering differs from authorization number ordering. M1/M2/M3/finalization provisional forecasts unchanged and immutable T157 history events appended (incomplete downstream planning network); unresolved Required ADRs [12,15,16,17,20], migration frontier b155caa6d4e1, no T160+ authorization.",
+    "asOfCommit": "T161 §3.1 PR 3 closeout candidate from protected architecture merge cbf3a40c034f40a15b207ec7c43923daf4601d32 (signed, parents cddf869efc421a92ae7703ad7302b4b76d935cd7 and f4a28d4a80251f9c0014b3536aa9a68d2278df82), PR #307 merged 2026-10-19T06:53:10Z = 12:23:10 Asia/Kolkata. QA Decision Approved with comments; zero blockers; frozen candidate 0ac980b26735fa0cea8f278f2069307e8265cc33, QA publication f4a28d4a80251f9c0014b3536aa9a68d2278df82. First evidenced architecture activity 2026-10-19T06:31:42Z; elapsed one inclusive day, planned finish 2026-10-21, variance -2 Early. ADR-0046 Accepted as architecture only; proposed evidence-only QA is NOT operational and all current QA, CI, review and merge gates remain mandatory. T160 remains Authorized and independently active, no completion attribution or schedule modification. Unresolved Required ADRs [12,15,16,17,20] unchanged. Calendar M1/M2/M3/finalization forecasts unchanged, three immutable unchanged-movement history entries. T161 closeout is prospective until its separate PR 3 protected merge.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },
