@@ -537,19 +537,30 @@
           "movement": 0,
           "direction": "unchanged"
         },
-        "reason": "T163 operational acceptance is scheduled after all four completed predecessors and within the provisional M1 window. Date-to-milestone margin is 23 days, not validated complete-network slack; downstream scope, resource capacity and acceptance outcomes are unknown. No justified milestone movement."
+        "reason": "T163 verification/evidence PR #314 protected-merged on 2026-10-19, four days before planned finish; task verification completed but M1 remains NOT READY with two material defects and one native Electron environmental blocker. An incomplete downstream task/capacity network prevents defensible acceleration of provisional M1/M2/M3/finalization forecasts; all movement zero."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-19",
+      "actual_completion": "2026-10-19",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-23",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-19",
+      "completion_evidence": {
+        "implementation_pr": 314,
+        "protected_merge_sha": "7e5ec9e6cf47683078657d727503f6d3c535bb0c",
+        "protected_merge_parents": [
+          "25febc8b34751e45dcc781f6fccace7019ad18f5",
+          "3dcbb143fb824168a4872b0a523ea6b7f5f6cdda"
+        ],
+        "merged_at_utc": "2026-10-19T11:07:30Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "a894d7bada5dfd66201fd7729f310d9641740058",
+        "actual_start_evidence": "Original operational acceptance report docs/acceptance/T163_M1_Acceptance_Report.md: Execution Dates 2026-10-19 and ImplementationLog Stage3 Phase45.md: Started 2026-10-19, with substantive 35-scenario execution evidenced by docs/acceptance/evidence/acceptance_results.json; not authorization-only event."
+      }
     }
   ],
   "history": [
@@ -750,6 +761,39 @@
       "trigger": "T162 PR #311 protected implementation merge 44ce92c3ae395690120ac744940db9584d1fa02e",
       "trigger_key": "T162:44ce92c3ae395690120ac744940db9584d1fa02e:M3",
       "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T163 operational verification evidence PR #314 protected-merged 2026-10-19 (-4 calendar days versus original plan), but M1 readiness is NOT READY pending DEF-T163-01 and DEF-T163-02 remediation, BLK-T163-01 remains Blocked, and the downstream network/capacity is incomplete. No justified movement of provisional forecasts.",
+      "trigger": "T163 PR #314 protected evidence merge 7e5ec9e6cf47683078657d727503f6d3c535bb0c",
+      "trigger_key": "T163:7e5ec9e6cf47683078657d727503f6d3c535bb0c:M1",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T163 operational verification evidence PR #314 protected-merged 2026-10-19 (-4 calendar days versus original plan), but M1 readiness is NOT READY pending DEF-T163-01 and DEF-T163-02 remediation, BLK-T163-01 remains Blocked, and the downstream network/capacity is incomplete. No justified movement of provisional forecasts.",
+      "trigger": "T163 PR #314 protected evidence merge 7e5ec9e6cf47683078657d727503f6d3c535bb0c",
+      "trigger_key": "T163:7e5ec9e6cf47683078657d727503f6d3c535bb0c:M2",
+      "recalculated": "2026-10-19"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T163 operational verification evidence PR #314 protected-merged 2026-10-19 (-4 calendar days versus original plan), but M1 readiness is NOT READY pending DEF-T163-01 and DEF-T163-02 remediation, BLK-T163-01 remains Blocked, and the downstream network/capacity is incomplete. No justified movement of provisional forecasts.",
+      "trigger": "T163 PR #314 protected evidence merge 7e5ec9e6cf47683078657d727503f6d3c535bb0c",
+      "trigger_key": "T163:7e5ec9e6cf47683078657d727503f6d3c535bb0c:M3",
+      "recalculated": "2026-10-19"
     }
   ],
   "planning_assumptions": [
@@ -768,6 +812,7 @@
     "T161 protected PR #307 architecture completion 2026-10-19 (1 inclusive day; 2 days early against original 2026-10-21 finish); approved QA published at f4a28d4a80251f9c0014b3536aa9a68d2278df82. ADR-0046 accepted as architecture only; evidence-only QA remains non-operational. Independent T160 authorization, dependencies, dates and QA unchanged; M1/M2/M3 provisional forecasts retained and immutable unchanged milestone events appended.",
     "T162 owner-authorized 2026-10-19 for bounded M1 office workflow integration in existing ux lane, planned 2026-10-20 through 2026-10-24 (5 inclusive calendar days). Finish-to-start prerequisites T139/T145/T155/T157/T160 are completed; actuals remain null. Provisional M1/M2/M3 forecasts unchanged pending full downstream network/capacity. Required ADRs [12,15,16,17,20] unresolved.",
     "T162 signed protected PR #311 merge 44ce92c3ae395690120ac744940db9584d1fa02e at 2026-10-19T09:22:02Z establishes project-local technical completion 2026-10-19. Substantive original frontend implementation commit 854596a334b4158d45c34c1c567f8438a3ff7148 proves actual start 2026-10-19; elapsed one inclusive calendar day, finish variance -5 days Early versus 2026-10-24 original baseline. T162 Done is prospective until dedicated closeout QA and protected closeout merge; QA Approved with comments, zero blocking. Three immutable unchanged M1/M2/M3 forecast entries appended; full downstream network/capacity incomplete, no justified milestone acceleration. Required ADRs [12,15,16,17,20] unresolved.",
-    "T163 owner-authorized 2026-10-19 as ordinary §3 operational acceptance verification, existing ux lane; 2026-10-20 through 2026-10-23 inclusive (4 days), finish-to-start predecessors T145/T157/T160/T162 completed. Date-to-M1 margin 23 days is not validated network slack. No actuals, completion evidence or history event at authorization; M1/M2/M3/finalization provisional forecasts unchanged. Execution and independent QA separated; defects documented without unauthorized fixes; only real application-level evidence qualifies as Pass."
+    "T163 owner-authorized 2026-10-19 as ordinary §3 operational acceptance verification, existing ux lane; 2026-10-20 through 2026-10-23 inclusive (4 days), finish-to-start predecessors T145/T157/T160/T162 completed. Date-to-M1 margin 23 days is not validated network slack. No actuals, completion evidence or history event at authorization; M1/M2/M3/finalization provisional forecasts unchanged. Execution and independent QA separated; defects documented without unauthorized fixes; only real application-level evidence qualifies as Pass.",
+    "T163 evidence PR #314 protected merge 7e5ec9e6cf47683078657d727503f6d3c535bb0c at 2026-10-19T11:07:30Z establishes project-local completion 2026-10-19; substantive execution occurred 2026-10-19 per Phase45 and operational report, 1 inclusive day, -4 days Early versus planned 2026-10-23. QA Approved with comments zero blocking evidence findings; 32 Passed, 2 Failed, 1 Blocked. Material defects DEF-T163-01/02 remain open and native Electron BLK-T163-01 remains Blocked. M1 NOT READY; zero-change M1/M2/M3 history appended, no forecast acceleration. T163 Done only as proposed dedicated closeout until independent closeout QA and protected merge."
   ]
 }
