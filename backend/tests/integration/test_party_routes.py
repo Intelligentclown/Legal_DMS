@@ -342,7 +342,7 @@ class TestOrganizationScoping:
 
 
 class TestPartyCrud:
-    async def test_create_get_list_partial_update_clear_address_and_delete(
+    async def test_t_rev_16_current_head_real_classifier_create_get_list_update_and_delete(
         self, client: AsyncClient, db_session: AsyncSession
     ) -> None:
         headers, _organization = await _headers_with_permissions(
