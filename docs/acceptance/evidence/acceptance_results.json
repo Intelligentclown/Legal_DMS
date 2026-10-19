@@ -1,0 +1,484 @@
+[
+  {
+    "scenario_id": "A1.1",
+    "area": "Authentication",
+    "description": "Valid login with Advocate Anita Roy (Org A)",
+    "outcome": "PASSED",
+    "details": "Status 200 OK, token_type=bearer, access_token present",
+    "evidence": {
+      "status": 200,
+      "token_type": "bearer"
+    }
+  },
+  {
+    "scenario_id": "A1.2",
+    "area": "Authentication",
+    "description": "Invalid login returns 401 with generic non-enumerating error",
+    "outcome": "PASSED",
+    "details": "Status 401, error=Invalid email or password",
+    "evidence": {
+      "status": 401,
+      "error": {
+        "error": {
+          "code": "unauthorized",
+          "message": "Invalid email or password"
+        }
+      }
+    }
+  },
+  {
+    "scenario_id": "A1.3",
+    "area": "Authentication",
+    "description": "Unauthenticated request to protected route is rejected with 401",
+    "outcome": "PASSED",
+    "details": "Status 401 Unauthorized",
+    "evidence": {
+      "status": 401
+    }
+  },
+  {
+    "scenario_id": "A1.4",
+    "area": "Authentication",
+    "description": "Refresh token rotation and access token reissue",
+    "outcome": "PASSED",
+    "details": "Status 200 OK, new access and refresh tokens issued",
+    "evidence": {
+      "status": 200,
+      "token_type": "bearer"
+    }
+  },
+  {
+    "scenario_id": "A1.5",
+    "area": "Authentication",
+    "description": "Logout revokes refresh token with 204 No Content",
+    "outcome": "PASSED",
+    "details": "Status 204 No Content",
+    "evidence": {
+      "status": 204
+    }
+  },
+  {
+    "scenario_id": "A2.1",
+    "area": "Organization context",
+    "description": "GET /auth/me returns authenticated identity & roles",
+    "outcome": "PASSED",
+    "details": "id=11111111-1111-4111-8111-000000000001, name=Anita Roy, roles=['Advocate']",
+    "evidence": {
+      "data": {
+        "id": "11111111-1111-4111-8111-000000000001",
+        "display_name": "Anita Roy",
+        "roles": [
+          "Advocate"
+        ]
+      },
+      "meta": null
+    }
+  },
+  {
+    "scenario_id": "A2.2",
+    "area": "Organization context",
+    "description": "Lookup vocabularies accessible with authenticated tenant context",
+    "outcome": "PASSED",
+    "details": "Found 8 matter types, 6 matter statuses, 10 doc types",
+    "evidence": {
+      "matter_types_count": 8,
+      "matter_statuses_count": 6,
+      "doc_types_count": 10
+    }
+  },
+  {
+    "scenario_id": "A3.1",
+    "area": "Party & Matter",
+    "description": "List parties within tenant returns Org A pre-seeded party",
+    "outcome": "PASSED",
+    "details": "Found party id=11111111-1111-4111-8111-000000000010, name=Sunita Sharma",
+    "evidence": {
+      "party_id": "11111111-1111-4111-8111-000000000010",
+      "name": "Sunita Sharma"
+    }
+  },
+  {
+    "scenario_id": "A3.2",
+    "area": "Party & Matter",
+    "description": "Create party succeeds with valid payload",
+    "outcome": "FAILED",
+    "details": "DEF-T163-01: Status 403, body={\"error\":{\"code\":\"forbidden\",\"message\":\"Party writes are not available in this installation: it is classified as 'legacy_with_business_data', not the ADR-0037 operational-fresh state. Ordinary Party writes remain denied outside a proven operational-fresh installation.\"}}",
+    "evidence": {}
+  },
+  {
+    "scenario_id": "A3.3",
+    "area": "Party & Matter",
+    "description": "Create matter with canonical client party succeeds",
+    "outcome": "PASSED",
+    "details": "Created matter id=595bde15-1cf5-4b63-b235-f930b6b5f86f, number=MAT-2026-1792406477, title=Sharma Land Title & Regulatory Clearance",
+    "evidence": {
+      "id": "595bde15-1cf5-4b63-b235-f930b6b5f86f",
+      "matter_number": "MAT-2026-1792406477",
+      "matter_type_id": "260039e3-1372-49df-810c-36c8493c3086",
+      "matter_status_id": "0cfaa401-7b81-4f0b-90c0-2fd27915f113",
+      "title": "Sharma Land Title & Regulatory Clearance",
+      "description": "Matter representing Mahesh Joshi for agricultural land acquisition.",
+      "opened_at": "2026-10-19T10:41:17.088937Z",
+      "closed_at": null,
+      "legacy_client_id": null,
+      "participants": [
+        {
+          "party_id": "11111111-1111-4111-8111-000000000010",
+          "role": "client"
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "A3.4",
+    "area": "Party & Matter",
+    "description": "Fetch matter details resolves canonical client participant",
+    "outcome": "PASSED",
+    "details": "Resolved 1 client participants (party_id=11111111-1111-4111-8111-000000000010)",
+    "evidence": {
+      "id": "595bde15-1cf5-4b63-b235-f930b6b5f86f",
+      "matter_number": "MAT-2026-1792406477",
+      "matter_type_id": "260039e3-1372-49df-810c-36c8493c3086",
+      "matter_status_id": "0cfaa401-7b81-4f0b-90c0-2fd27915f113",
+      "title": "Sharma Land Title & Regulatory Clearance",
+      "description": "Matter representing Mahesh Joshi for agricultural land acquisition.",
+      "opened_at": "2026-10-19T10:41:17.088937Z",
+      "closed_at": null,
+      "legacy_client_id": null,
+      "participants": [
+        {
+          "party_id": "11111111-1111-4111-8111-000000000010",
+          "role": "client"
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "A4.1",
+    "area": "Matter-Property",
+    "description": "List tenant properties returns Org A property",
+    "outcome": "PASSED",
+    "details": "Found property id=11111111-1111-4111-8111-000000000020, survey=SRV-AHM-2026-302",
+    "evidence": {
+      "id": "11111111-1111-4111-8111-000000000020",
+      "property_type": "commercial",
+      "survey_number": "SRV-AHM-2026-302",
+      "sub_division_number": "Plot-4",
+      "area_value": "1250.00",
+      "area_unit": "sq_ft",
+      "address_id": null,
+      "village_id": null,
+      "registration_number": null,
+      "owners": []
+    }
+  },
+  {
+    "scenario_id": "A4.2",
+    "area": "Matter-Property",
+    "description": "Associate property to matter creates canonical association",
+    "outcome": "PASSED",
+    "details": "Status 201, associated property 11111111-1111-4111-8111-000000000020 to matter 595bde15-1cf5-4b63-b235-f930b6b5f86f",
+    "evidence": {
+      "data": {
+        "id": "11111111-1111-4111-8111-000000000020",
+        "property_type": "commercial",
+        "survey_number": "SRV-AHM-2026-302",
+        "sub_division_number": "Plot-4",
+        "area_value": "1250.00",
+        "area_unit": "sq_ft",
+        "address_id": null,
+        "village_id": null,
+        "registration_number": null,
+        "owners": []
+      },
+      "meta": null
+    }
+  },
+  {
+    "scenario_id": "A4.3",
+    "area": "Matter-Property",
+    "description": "Matter properties endpoint reflects linked canonical property",
+    "outcome": "PASSED",
+    "details": "Matter properties count: 1",
+    "evidence": {
+      "properties": [
+        {
+          "id": "11111111-1111-4111-8111-000000000020",
+          "property_type": "commercial",
+          "survey_number": "SRV-AHM-2026-302",
+          "sub_division_number": "Plot-4",
+          "area_value": "1250.00",
+          "area_unit": "sq_ft",
+          "address_id": null,
+          "village_id": null,
+          "registration_number": null,
+          "owners": []
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "A4.4",
+    "area": "Matter-Property",
+    "description": "Re-associating same property returns 200 idempotent",
+    "outcome": "PASSED",
+    "details": "Status 200 OK on duplicate association request",
+    "evidence": {}
+  },
+  {
+    "scenario_id": "A5.1",
+    "area": "File Management",
+    "description": "Create File in Matter allocates sequential file number",
+    "outcome": "PASSED",
+    "details": "File id=579e487f-a702-4b8e-923c-6d203c18a49e, number=1, title=Title Deeds and Regulatory Clearances",
+    "evidence": {
+      "id": "579e487f-a702-4b8e-923c-6d203c18a49e",
+      "matter_id": "595bde15-1cf5-4b63-b235-f930b6b5f86f",
+      "file_number": 1,
+      "title": "Title Deeds and Regulatory Clearances",
+      "version": 1
+    }
+  },
+  {
+    "scenario_id": "A5.2",
+    "area": "File Management",
+    "description": "Fetch File details returns allocated file within matter context",
+    "outcome": "PASSED",
+    "details": "File 579e487f-a702-4b8e-923c-6d203c18a49e verified with matter_id=595bde15-1cf5-4b63-b235-f930b6b5f86f",
+    "evidence": {
+      "id": "579e487f-a702-4b8e-923c-6d203c18a49e",
+      "matter_id": "595bde15-1cf5-4b63-b235-f930b6b5f86f",
+      "file_number": 1,
+      "title": "Title Deeds and Regulatory Clearances",
+      "version": 1
+    }
+  },
+  {
+    "scenario_id": "A6.1",
+    "area": "Document Creation",
+    "description": "Create Document scoped to Matter and File",
+    "outcome": "PASSED",
+    "details": "Document id=454d7036-05df-4f3a-8de7-833893ec2762, title=Sale Deed Agreement Draft 2026, type=Affidavit",
+    "evidence": {
+      "id": "454d7036-05df-4f3a-8de7-833893ec2762",
+      "document_type_id": "c0e91ea5-d0ca-4b75-b0f0-db0b5c03c53a",
+      "title": "Sale Deed Agreement Draft 2026",
+      "status": "draft",
+      "version": 1
+    }
+  },
+  {
+    "scenario_id": "A6.2",
+    "area": "Document Upload",
+    "description": "Upload raw binary stream creates DocumentVersion 1",
+    "outcome": "PASSED",
+    "details": "Version id=b0e9f588-0237-47d1-9cf3-84fdbcabb67b, number=1, change_summary=Initial draft of conveyance deed",
+    "evidence": {
+      "id": "b0e9f588-0237-47d1-9cf3-84fdbcabb67b",
+      "version_number": 1,
+      "change_summary": "Initial draft of conveyance deed",
+      "created_at": "2026-10-19T10:41:17.448135Z"
+    }
+  },
+  {
+    "scenario_id": "A7.1",
+    "area": "Version History",
+    "description": "Upload subsequent version creates DocumentVersion 2",
+    "outcome": "PASSED",
+    "details": "Version id=0ac9fdd9-16bd-4d80-8db2-45f30452021e, number=2, change_summary=Revised clause 4 with milestone payment tranches",
+    "evidence": {
+      "id": "0ac9fdd9-16bd-4d80-8db2-45f30452021e",
+      "version_number": 2,
+      "change_summary": "Revised clause 4 with milestone payment tranches",
+      "created_at": "2026-10-19T10:41:17.517384Z"
+    }
+  },
+  {
+    "scenario_id": "A7.2",
+    "area": "Version History",
+    "description": "List versions returns complete chronological history",
+    "outcome": "PASSED",
+    "details": "Found 2 versions: v1=1, v2=2",
+    "evidence": {
+      "versions": [
+        {
+          "id": "b0e9f588-0237-47d1-9cf3-84fdbcabb67b",
+          "version_number": 1,
+          "change_summary": "Initial draft of conveyance deed",
+          "created_at": "2026-10-19T10:41:17.448135Z"
+        },
+        {
+          "id": "0ac9fdd9-16bd-4d80-8db2-45f30452021e",
+          "version_number": 2,
+          "change_summary": "Revised clause 4 with milestone payment tranches",
+          "created_at": "2026-10-19T10:41:17.517384Z"
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "A8.1",
+    "area": "Document Download",
+    "description": "Download DocumentVersion 1 matches exact uploaded stream and Content-Disposition",
+    "outcome": "PASSED",
+    "details": "Downloaded 159 bytes, Content-Disposition=attachment; filename=\"sale_deed_v1.txt\"",
+    "evidence": {
+      "length": 159,
+      "content_disposition": "attachment; filename=\"sale_deed_v1.txt\""
+    }
+  },
+  {
+    "scenario_id": "A8.2",
+    "area": "Document Download",
+    "description": "Download DocumentVersion 2 matches exact uploaded stream and Content-Disposition",
+    "outcome": "PASSED",
+    "details": "Downloaded 167 bytes, Content-Disposition=attachment; filename=\"sale_deed_v2.txt\"",
+    "evidence": {
+      "length": 167,
+      "content_disposition": "attachment; filename=\"sale_deed_v2.txt\""
+    }
+  },
+  {
+    "scenario_id": "A9.1",
+    "area": "Session Persistence",
+    "description": "Browser session persistence across full page reload",
+    "outcome": "PASSED",
+    "details": "Standard web browser runtime correctly returns to /login on full page reload per ADR-0018 D6 (in-memory state cleared; no safeStorage in browser).",
+    "evidence": {
+      "runtime": "browser",
+      "behavior": "redirect_to_login",
+      "standard": "ADR-0018 D6"
+    }
+  },
+  {
+    "scenario_id": "A9.2",
+    "area": "Session Persistence",
+    "description": "Electron desktop shell safeStorage session persistence",
+    "outcome": "BLOCKED",
+    "details": "Executor environment has no native desktop GUI bridge / Spectron tooling to launch and observe native Electron BrowserWindow; safeStorage IPC restoration was verified statically and via automated tests.",
+    "evidence": {
+      "runtime": "electron",
+      "status": "BLOCKED_ENVIRONMENT",
+      "reference": "T79/T82 precedent"
+    }
+  },
+  {
+    "scenario_id": "A10.1",
+    "area": "Tenant & RBAC",
+    "description": "Org B user cannot view Org A Matter (returns 404 Not Found)",
+    "outcome": "PASSED",
+    "details": "Cross-tenant access fails closed with HTTP 404, preventing information disclosure",
+    "evidence": {
+      "status": 404
+    }
+  },
+  {
+    "scenario_id": "A10.2",
+    "area": "Tenant & RBAC",
+    "description": "Org B user cannot view Org A Party (returns 404 Not Found)",
+    "outcome": "PASSED",
+    "details": "Cross-tenant Party access fails closed with HTTP 404",
+    "evidence": {
+      "status": 404
+    }
+  },
+  {
+    "scenario_id": "A10.3",
+    "area": "Tenant & RBAC",
+    "description": "Org B user cannot download Org A DocumentVersion (returns 404)",
+    "outcome": "PASSED",
+    "details": "Cross-tenant document download denied with HTTP 404",
+    "evidence": {
+      "status": 404
+    }
+  },
+  {
+    "scenario_id": "A10.4",
+    "area": "Tenant & RBAC",
+    "description": "Cross-tenant property association denied with 404/422",
+    "outcome": "PASSED",
+    "details": "Cross-tenant association prevented (status 404)",
+    "evidence": {
+      "status": 404
+    }
+  },
+  {
+    "scenario_id": "A10.5",
+    "area": "Tenant & RBAC",
+    "description": "Read-only identity denied party creation with 403 Forbidden",
+    "outcome": "PASSED",
+    "details": "Role 'Read Only' lacks 'parties:write' permission; request rejected with 403",
+    "evidence": {
+      "status": 403,
+      "error": {
+        "error": {
+          "code": "forbidden",
+          "message": "'Aaron Patel' lacks permission 'parties:write'"
+        }
+      }
+    }
+  },
+  {
+    "scenario_id": "A10.6",
+    "area": "Tenant & RBAC",
+    "description": "Read-only identity denied matter creation with 403 Forbidden",
+    "outcome": "PASSED",
+    "details": "Role 'Read Only' lacks 'matters:write' permission; request rejected with 403",
+    "evidence": {
+      "status": 403,
+      "error": {
+        "error": {
+          "code": "forbidden",
+          "message": "'Aaron Patel' lacks permission 'matters:write'"
+        }
+      }
+    }
+  },
+  {
+    "scenario_id": "A10.7",
+    "area": "Tenant & RBAC",
+    "description": "Read-only identity permitted read access with matters:read",
+    "outcome": "PASSED",
+    "details": "Read Only identity successfully reads tenant Matter 595bde15-1cf5-4b63-b235-f930b6b5f86f",
+    "evidence": {
+      "status": 200
+    }
+  },
+  {
+    "scenario_id": "A11.1",
+    "area": "Validation & Errors",
+    "description": "Invalid Party creation payload rejected with 422 Unprocessable Entity",
+    "outcome": "PASSED",
+    "details": "Validation errors returned: 0 issues",
+    "evidence": {
+      "error": {
+        "code": "validation_error",
+        "message": "Request validation failed."
+      }
+    }
+  },
+  {
+    "scenario_id": "A11.2",
+    "area": "Validation & Errors",
+    "description": "Non-existent entity access returns structured 404",
+    "outcome": "PASSED",
+    "details": "Returns clean 404 Not Found error without exposing internal traces",
+    "evidence": {
+      "status": 404,
+      "error": {
+        "error": {
+          "code": "not_found",
+          "message": "Matter with id 00000000-0000-0000-0000-000000000000 was not found"
+        }
+      }
+    }
+  },
+  {
+    "scenario_id": "A11.3",
+    "area": "Validation & Errors",
+    "description": "Duplicate matter number rejected with 409 Conflict",
+    "outcome": "FAILED",
+    "details": "Status 500, expected 409",
+    "evidence": {}
+  }
+]
