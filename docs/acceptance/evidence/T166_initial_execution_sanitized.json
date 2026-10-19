@@ -1,0 +1,43 @@
+{
+  "task": "T166",
+  "role": "Operational Acceptance Executor",
+  "execution_date_local": "2026-10-19",
+  "protected_baseline": "f93a664624e5f3ac45ec7fb0279f88e1faaebf5c",
+  "candidate": {
+    "implementation": "a8fd172c710da6cfcef216502bcc1b2ab624910b",
+    "documentation": "dde7fdf",
+    "descends_from_baseline": true,
+    "remote_ref_verified": false
+  },
+  "environment": {
+    "database": "isolated disposable PostgreSQL 16",
+    "image": "postgres:16-alpine",
+    "alembic_heads": ["b155caa6d4e1"],
+    "installed_version": "b155caa6d4e1",
+    "matter_number_constraint": "uq_matters_matter_number: UNIQUE (matter_number)"
+  },
+  "restricted_role_bootstrap": {
+    "role_is_non_privileged": true,
+    "provenance_schema_usage": true,
+    "bootstrap_function_execute": false,
+    "result": "blocked_fail_closed",
+    "sanitized_error": "permission denied for function enter_operational_fresh"
+  },
+  "scenarios": {
+    "freshly_passed": 0,
+    "validly_reused": 32,
+    "blocked": ["A3.2", "A9.2", "A11.3"],
+    "failed": [],
+    "superseded": []
+  },
+  "full_suite": {
+    "command": "uv run pytest tests -q",
+    "mode": "supported longer-running isolated execution",
+    "state_at_evidence_capture": "stopped after failed partial execution",
+    "elapsed_seconds_at_last_observation": 195,
+    "progress_at_last_observation": "23%",
+    "observed_failures": true,
+    "result": "not passed; no final total because non-fail-fast execution was stopped after failures"
+  },
+  "readiness": "NOT_READY"
+}
