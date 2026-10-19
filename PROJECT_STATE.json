@@ -41,7 +41,7 @@
       20
     ],
     "latestTaskDone": "T163",
-    "latestTaskAuthorized": "T163",
+    "latestTaskAuthorized": "T164",
     "completionProvenance": {
       "T158": {
         "implementationPr": 298,
@@ -114,7 +114,7 @@
         "timezone": "Asia/Kolkata"
       }
     },
-    "asOfCommit": "T163 post-implementation/evidence protected merge PR #314 signed as 7e5ec9e6cf47683078657d727503f6d3c535bb0c at 2026-10-19T11:07:30Z, ordered parents 25febc8b34751e45dcc781f6fccace7019ad18f5 and 3dcbb143fb824168a4872b0a523ea6b7f5f6cdda. T163 candidate Done in separate governance closeout PR only; latestTaskDone=T163 proposed, latestTaskAuthorized=T163, transitions []. Verification evidence 35 scenarios: 32 Pass, 2 Fail, 1 Blocked; QA Approved with comments, no blocking evidence-package findings; M1 remains NOT READY pending DEF-T163-01 and DEF-T163-02 remediation; BLK-T163-01 remains unexecuted. Actual work 2026-10-19 and protected completion 2026-10-19, 1 day inclusive, -4 days Early versus 2026-10-23. Provisional milestone forecasts unchanged. Required ADRs [12,15,16,17,20] and schema frontier b155caa6d4e1 preserved. Durable Done awaits distinct closeout QA and protected merge.",
+    "asOfCommit": "T163 post-implementation/evidence protected merge PR #314 signed as 7e5ec9e6cf47683078657d727503f6d3c535bb0c at 2026-10-19T11:07:30Z, ordered parents 25febc8b34751e45dcc781f6fccace7019ad18f5 and 3dcbb143fb824168a4872b0a523ea6b7f5f6cdda. T163 candidate Done in separate governance closeout PR only; latestTaskDone=T163 proposed. T164 is owner-authorized on 2026-10-19 as §3.1 PR 1 only: safe operational-fresh schema-revision compatibility architecture, with latestTaskAuthorized=T164 and transitions []. T164 authorizes neither implementation nor M1 acceptance; Required ADRs [12,15,16,17,20] and schema frontier b155caa6d4e1 remain unchanged. T163 verification evidence remains 35 scenarios: 32 Pass, 2 Fail, 1 Blocked; M1 remains NOT READY pending DEF-T163-01 and DEF-T163-02 remediation; BLK-T163-01 remains unexecuted. Provisional milestone forecasts remain unchanged. Durable Done awaits distinct closeout QA and protected merge.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []
   },

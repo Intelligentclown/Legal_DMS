@@ -561,6 +561,34 @@
         "approved_qa_publication_head": "a894d7bada5dfd66201fd7729f310d9641740058",
         "actual_start_evidence": "Original operational acceptance report docs/acceptance/T163_M1_Acceptance_Report.md: Execution Dates 2026-10-19 and ImplementationLog Stage3 Phase45.md: Started 2026-10-19, with substantive 35-scenario execution evidenced by docs/acceptance/evidence/acceptance_results.json; not authorization-only event."
       }
+    },
+    {
+      "id": "T164",
+      "title": "Operational-Fresh Schema Revision Compatibility Architecture",
+      "milestone": "M1",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T163"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 25
+      },
+      "planned_start": "2026-10-20",
+      "planned_finish": "2026-10-21",
+      "planned_duration": 2,
+      "forecast_start": "2026-10-20",
+      "forecast_finish": "2026-10-21",
+      "forecast_impact": {
+        "M1": {"old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged"},
+        "M2": {"old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged"},
+        "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "reason": "T164 is a bounded remediation architecture decision after completed T163 evidence. Its two-day plan fits within the incomplete provisional M1 network; no demonstrated dependency or capacity analysis justifies moving M1, M2, M3 or finalization forecasts."
+      }
     }
   ],
   "history": [
