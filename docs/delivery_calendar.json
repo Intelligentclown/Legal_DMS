@@ -701,6 +701,68 @@
         "approved_qa_publication_head": "88470fe0598c76dca57b25d06ecf370e6a031a19",
         "actual_start_evidence": "docs/ImplementationLog/Stage3/Phase46.md: Started 2026-10-19 and substantive T165 implementation commits b1d2b1b75ff3877e5a82bf096a636530402d8a97 / d4e539fc00e674bd12003191f66b7c9322a19218. Date supported by implementation record, not authorization or merge time; no execution-start clock time inferred."
       }
+    },
+    {
+      "id": "T166",
+      "title": "M1 Final Remediation & Operational Reacceptance",
+      "milestone": "M1",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T165"
+        ],
+        "defect_evidence": [
+          "T163",
+          "T164"
+        ]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 23
+      },
+      "planned_start": "2026-10-20",
+      "planned_finish": "2026-10-23",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-20",
+      "forecast_finish": "2026-10-23",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T166 is provisional bounded M1 remediation/reacceptance; authorization adds no execution evidence or complete dependency/capacity network. Existing milestone and finalization forecasts remain unchanged."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
