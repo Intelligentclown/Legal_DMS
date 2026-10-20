@@ -941,6 +941,28 @@
         "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
         "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
         "reason": "T170 is a bounded M2 governance-correction authorization. T168 is its completed scheduling predecessor; T167 is historical defect evidence only. The incomplete resource/capacity and downstream dependency graph provides no verified critical-path slack or justified milestone movement, so all provisional forecasts remain unchanged."
+      },
+      "actual_start": "2026-10-20",
+      "actual_completion": "2026-10-20",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-24",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-20",
+      "completion_evidence": {
+        "implementation_pr": 342,
+        "protected_merge_sha": "7fac6572e40ee35c5eec11550d1866fa9edac313",
+        "protected_merge_parents": [
+          "ffaaca70e252eb5b6990971c9664e5964ae2b3f8",
+          "f8d8d0c3e8ada08c78366607e191fd4698380f1b"
+        ],
+        "merged_at_utc": "2026-10-20T12:08:24Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "f8d8d0c3e8ada08c78366607e191fd4698380f1b",
+        "actual_start_evidence": "First substantive T170 implementation commit 411dcf4d22fe29baa783c9c2200ff261ae85af2e, authored and committed 2026-10-20T17:20:38+05:30 (Asia/Kolkata); docs/reviews/T170_QA_Review.md reviewed the final implementation candidate and its QA publication head f8d8d0c3e8ada08c78366607e191fd4698380f1b. This supports 2026-10-20 as the implementation activity date."
       }
     }
   ],
@@ -1306,6 +1328,39 @@
       "reason": "T168 governance implementation and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. Existing incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. No cancellation or T169 authorization.",
       "trigger": "T168 PR #335 protected implementation merge dae828405eb833ef0fcea0d8db4c22905bdfabdb; QA Approved with comments, docs/reviews/T168_QA_Review.md",
       "trigger_key": "T168:dae828405eb833ef0fcea0d8db4c22905bdfabdb:M3",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T170 governance correction and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. The incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. T167 remains Cancelled and T169 remains unauthorized.",
+      "trigger": "T170 PR #342 protected implementation merge 7fac6572e40ee35c5eec11550d1866fa9edac313; QA Approved with comments, docs/reviews/T170_QA_Review.md",
+      "trigger_key": "T170:7fac6572e40ee35c5eec11550d1866fa9edac313:M1",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T170 governance correction and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. The incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. T167 remains Cancelled and T169 remains unauthorized.",
+      "trigger": "T170 PR #342 protected implementation merge 7fac6572e40ee35c5eec11550d1866fa9edac313; QA Approved with comments, docs/reviews/T170_QA_Review.md",
+      "trigger_key": "T170:7fac6572e40ee35c5eec11550d1866fa9edac313:M2",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T170 governance correction and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. The incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. T167 remains Cancelled and T169 remains unauthorized.",
+      "trigger": "T170 PR #342 protected implementation merge 7fac6572e40ee35c5eec11550d1866fa9edac313; QA Approved with comments, docs/reviews/T170_QA_Review.md",
+      "trigger_key": "T170:7fac6572e40ee35c5eec11550d1866fa9edac313:M3",
       "recalculated": "2026-10-20"
     }
   ],
