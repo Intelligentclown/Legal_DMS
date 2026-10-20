@@ -1062,17 +1062,28 @@
         "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
         "reason": "T171 authorization registers bounded M2 scope, dependency and capacity baseline verification. T169 and T170 are completed finish-to-start predecessors; T167 remains historical defect evidence only. The dependency and capacity network remains incomplete, so no verified critical-path slack or justified milestone movement exists and all provisional forecasts remain unchanged."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-20",
+      "actual_completion": "2026-10-20",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-24",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-20",
+      "completion_evidence": {
+        "implementation_pr": 349,
+        "protected_merge_sha": "6eca0fb49da7cd75deb37412d51e39e1bb350dbc",
+        "protected_merge_parents": [
+          "884ba8a5523bc9fff15e3fb8290107c024d28ffa",
+          "33e772a31cabfbf6f55c2b076c8f8864e44bc7f7"
+        ],
+        "merged_at_utc": "2026-10-20T15:52:30Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "33e772a31cabfbf6f55c2b076c8f8864e44bc7f7",
+        "actual_start_evidence": "T171 Phase49 implementation log records Started: 2026-10-20 and Completed: 2026-10-20; first substantive implementation commit a596c4784d7dd1e5df39bf946850476f72f34edb; Independent QA review docs/reviews/T171_QA_Review.md."
+      }
     }
   ],
   "history": [
@@ -1503,6 +1514,39 @@
       "reason": "T169 independently QA-approved backend suite reconciliation protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts. T167 historical cancellation evidence unchanged; T170 remains highest-numbered Done.",
       "trigger": "T169 PR #345 protected implementation merge 78ae3513227d90a2b20e309792708d03201ef477; QA Approved with comments, docs/reviews/T169_QA_Review.md",
       "trigger_key": "T169:78ae3513227d90a2b20e309792708d03201ef477:M3",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T171 independently QA-approved M2 planning baseline verification protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts; M1/M2/M3/finalization forecasts remain unchanged. T167 historical cancellation evidence unchanged; T168, T169, T170 remain Done.",
+      "trigger": "T171 PR #349 protected implementation merge 6eca0fb49da7cd75deb37412d51e39e1bb350dbc; QA Approved with comments, docs/reviews/T171_QA_Review.md",
+      "trigger_key": "T171:6eca0fb49da7cd75deb37412d51e39e1bb350dbc:M1",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T171 independently QA-approved M2 planning baseline verification protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts; M1/M2/M3/finalization forecasts remain unchanged. T167 historical cancellation evidence unchanged; T168, T169, T170 remain Done.",
+      "trigger": "T171 PR #349 protected implementation merge 6eca0fb49da7cd75deb37412d51e39e1bb350dbc; QA Approved with comments, docs/reviews/T171_QA_Review.md",
+      "trigger_key": "T171:6eca0fb49da7cd75deb37412d51e39e1bb350dbc:M2",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T171 independently QA-approved M2 planning baseline verification protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts; M1/M2/M3/finalization forecasts remain unchanged. T167 historical cancellation evidence unchanged; T168, T169, T170 remain Done.",
+      "trigger": "T171 PR #349 protected implementation merge 6eca0fb49da7cd75deb37412d51e39e1bb350dbc; QA Approved with comments, docs/reviews/T171_QA_Review.md",
+      "trigger_key": "T171:6eca0fb49da7cd75deb37412d51e39e1bb350dbc:M3",
       "recalculated": "2026-10-20"
     }
   ],
