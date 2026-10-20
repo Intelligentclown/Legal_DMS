@@ -16,6 +16,10 @@ REQUIRED = ("id", "title", "milestone", "lane", "dependencies", "critical_path",
 DONE = ("actual_start", "actual_completion", "actual_elapsed", "planned_finish_used",
         "variance", "classification", "critical_at_completion", "milestone_impact",
         "finalization_impact", "recalculated")
+QUEUE_STATES = ("Authorized", "Done", "Cancelled")
+CANCELLATION_REQUIRED = ("cancelled_task_id", "owner_approval_provenance",
+                         "cancellation_date", "reason", "evidence_reference")
+TASK_ID_RE = re.compile(r"^T\d+$")
 
 
 def day(value):
@@ -87,7 +91,7 @@ def queue_status(row):
     cells = [cell.strip() for cell in row.text.strip().split("|")]
     if len(cells) != 6 or cells[0] or cells[-1] or cells[1] != row.task_id:
         raise ValueError("malformed four-column task queue row")
-    if cells[3] not in ("Authorized", "Done"):
+    if cells[3] not in QUEUE_STATES:
         raise ValueError("unsupported task queue status: " + cells[3])
     return cells[3]
 
@@ -110,6 +114,42 @@ def completion_evidence(task):
     if evidence["timezone"] != PROJECT_TIMEZONE: raise ValueError("completion timezone must be " + PROJECT_TIMEZONE)
     if local_completion_date(evidence["merged_at_utc"]) != task["actual_completion"]:
         raise ValueError("actual_completion does not match project-local merge date")
+    return evidence
+
+
+def cancellation_evidence(task, rowmap):
+    """Validate the sole canonical cancellation record.
+
+    A successor is provenance only.  A missing queue row is permitted solely
+    when it is explicitly labelled proposed_unapproved; this prevents a
+    planning reference from being mistaken for task authorization.
+    """
+    evidence = task.get("cancellation_evidence")
+    if not isinstance(evidence, dict):
+        raise ValueError("Cancelled missing cancellation_evidence")
+    if any(not isinstance(evidence.get(key), str) or not evidence[key].strip()
+           for key in CANCELLATION_REQUIRED):
+        raise ValueError("incomplete cancellation_evidence")
+    if evidence["cancelled_task_id"] != task["id"]:
+        raise ValueError("cancellation_evidence task ID does not match calendar task")
+    day(evidence["cancellation_date"])
+    successor = evidence.get("successor_task_id")
+    successor_state = evidence.get("successor_state")
+    if successor is None:
+        if successor_state is not None:
+            raise ValueError("successor_state requires successor_task_id")
+    else:
+        if not isinstance(successor, str) or not TASK_ID_RE.fullmatch(successor):
+            raise ValueError("invalid successor_task_id")
+        if successor == task["id"]:
+            raise ValueError("task cannot supersede itself")
+        if successor in rowmap:
+            if successor_state != "authorized" or queue_status(rowmap[successor]) not in ("Authorized", "Done"):
+                raise ValueError("successor provenance contradicts queue authorization state")
+        elif successor_state != "proposed_unapproved":
+            raise ValueError("unknown successor must be explicit proposed_unapproved provenance")
+    if "successor_task_id" in task or "superseded_by" in task:
+        raise ValueError("successor assignment belongs only in cancellation_evidence")
     return evidence
 
 
@@ -186,6 +226,8 @@ def check_calendar(data, rows):
             if any(dep not in taskmap and dep not in rowmap for dep in scheduling + evidence): raise ValueError("unknown dependency")
             status = queue_status(rowmap[task_id])
             if status == "Done":
+                if task.get("cancellation_evidence") is not None:
+                    raise ValueError("Done task has contradictory cancellation evidence")
                 for key in DONE:
                     if task.get(key) is None: raise ValueError("Done missing " + key)
                 if task["planned_finish_used"] != task["planned_finish"]: raise ValueError("planned finish baseline changed")
@@ -194,14 +236,28 @@ def check_calendar(data, rows):
                 if task["variance"] != delta or task["classification"] != classification(delta): raise ValueError("variance/classification mismatch")
                 day(task["recalculated"])
                 if schema == SCHEMA_VERSION: completion_evidence(task)
-            elif any(key in task and task[key] is not None for key in DONE + ("completion_evidence",)):
-                raise ValueError("Authorized task has premature completion data")
+            elif status == "Cancelled":
+                if any(key in task and task[key] is not None for key in DONE + ("completion_evidence",)):
+                    raise ValueError("Cancelled task has contradictory completion data")
+                cancellation_evidence(task, rowmap)
+            else:
+                if task.get("cancellation_evidence") is not None:
+                    raise ValueError("Authorized task has premature cancellation data")
+                if any(key in task and task[key] is not None for key in DONE + ("completion_evidence",)):
+                    raise ValueError("Authorized task has premature completion data")
         except (ValueError, KeyError, TypeError, AttributeError) as exc: errors.append(f"{task_id}: {exc}")
     if schema == SCHEMA_VERSION:
         try:
             check_scheduling_cycles(taskmap)
         except (ValueError, KeyError, TypeError) as exc:
             errors.append(f"scheduling topology: {exc}")
+        for task_id, task in taskmap.items():
+            # This is deliberately direct after the main per-task validation:
+            # malformed/overlapping edges already produce their own diagnostic,
+            # but must not prevent cycle diagnostics for the rest of the graph.
+            for predecessor in task["dependencies"]["finish_to_start"]:
+                if predecessor in rowmap and queue_status(rowmap[predecessor]) == "Cancelled":
+                    errors.append(f"{task_id}: finish-to-start predecessor {predecessor} is Cancelled, not Done")
     return errors
 
 
