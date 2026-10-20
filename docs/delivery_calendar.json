@@ -916,6 +916,32 @@
         "approved_qa_publication_head": "92d0b1d7194a83c0e40f221686a4badcad650a5b",
         "actual_start_evidence": "First substantive T168 governance implementation commit 5dd04697c7bd037184e7b219419b7d4308feb301, GitHub UTC 2026-10-20T10:16:41Z (Asia/Kolkata 2026-10-20); docs/reviews/T168_QA_Review.md reviewed that exact substantive candidate. This supports 2026-10-20 as the implementation activity date, without inferring earlier execution."
       }
+    },
+    {
+      "id": "T170",
+      "title": "Successor-Provenance Temporal Semantics and Governance Validator Correction",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": ["T168"],
+        "defect_evidence": ["T167"]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-21",
+      "planned_finish": "2026-10-24",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-21",
+      "forecast_finish": "2026-10-24",
+      "forecast_impact": {
+        "M1": {"old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged"},
+        "M2": {"old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged"},
+        "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "reason": "T170 is a bounded M2 governance-correction authorization. T168 is its completed scheduling predecessor; T167 is historical defect evidence only. The incomplete resource/capacity and downstream dependency graph provides no verified critical-path slack or justified milestone movement, so all provisional forecasts remain unchanged."
+      }
     }
   ],
   "history": [
