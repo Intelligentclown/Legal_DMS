@@ -834,7 +834,16 @@
       "milestone_impact": null,
       "finalization_impact": null,
       "recalculated": null,
-      "completion_evidence": null
+      "completion_evidence": null,
+      "cancellation_evidence": {
+        "cancelled_task_id": "T167",
+        "owner_approval_provenance": "GitHub Issue #337 — Project Owner approval dated 2026-10-20: https://github.com/Intelligentclown/Legal_DMS/issues/337",
+        "cancellation_date": "2026-10-20",
+        "reason": "Original bounded T167 scope cannot be expanded to encompass the 45 outstanding backend test failures.",
+        "evidence_reference": "GitHub Issue #337 https://github.com/Intelligentclown/Legal_DMS/issues/337; T167 Independent QA Rework required, implementation PR #332 https://github.com/Intelligentclown/Legal_DMS/pull/332 (897 passed, 45 failed, 87 warnings)",
+        "successor_task_id": "T169",
+        "successor_state": "proposed_unapproved"
+      }
     },
     {
       "id": "T168",
