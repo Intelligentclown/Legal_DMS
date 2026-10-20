@@ -885,17 +885,28 @@
         },
         "reason": "T168 authorization-only governance enablement under M2 preparation, existing ux stabilization lane; T166 is Done predecessor, T167 is governance motivation/evidence only and not a completed predecessor. Four inclusive planned calendar days 2026-10-21 to 2026-10-24 are provisional, not execution actuals. No cancellation, implementation, or milestone completion; downstream graph and resource capacity incomplete; provisional 68-day date-to-M2 margin is not validated network slack. Preserve all existing milestone forecasts and immutable history."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-20",
+      "actual_completion": "2026-10-20",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-24",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-20",
+      "completion_evidence": {
+        "implementation_pr": 335,
+        "protected_merge_sha": "dae828405eb833ef0fcea0d8db4c22905bdfabdb",
+        "protected_merge_parents": [
+          "762fba25fd99d6832e39966b6c0d3b8c612bf7cc",
+          "92d0b1d7194a83c0e40f221686a4badcad650a5b"
+        ],
+        "merged_at_utc": "2026-10-20T10:29:06Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "92d0b1d7194a83c0e40f221686a4badcad650a5b",
+        "actual_start_evidence": "First substantive T168 governance implementation commit 5dd04697c7bd037184e7b219419b7d4308feb301, GitHub UTC 2026-10-20T10:16:41Z (Asia/Kolkata 2026-10-20); docs/reviews/T168_QA_Review.md reviewed that exact substantive candidate. This supports 2026-10-20 as the implementation activity date, without inferring earlier execution."
+      }
     }
   ],
   "history": [
@@ -1227,6 +1238,39 @@
       "reason": "T166 implementation, acceptance and QA publication protected-merged on 2026-10-20 Asia/Kolkata, three calendar days before planned finish 2026-10-23. All 35 scenarios reconciled but M1 readiness remains a separate Control Tower decision. Incomplete downstream network/capacity prevents defensible milestone acceleration; provisional forecasts retained.",
       "trigger": "T166 PR #325 protected implementation merge 6d32428d6c0f62e0f1ef565e0aad2fff693deb12; PR #324 acceptance and PR #326 QA publication subsequently protected-merged",
       "trigger_key": "T166:6d32428d6c0f62e0f1ef565e0aad2fff693deb12:M3",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T168 governance implementation and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. Existing incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. No cancellation or T169 authorization.",
+      "trigger": "T168 PR #335 protected implementation merge dae828405eb833ef0fcea0d8db4c22905bdfabdb; QA Approved with comments, docs/reviews/T168_QA_Review.md",
+      "trigger_key": "T168:dae828405eb833ef0fcea0d8db4c22905bdfabdb:M1",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T168 governance implementation and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. Existing incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. No cancellation or T169 authorization.",
+      "trigger": "T168 PR #335 protected implementation merge dae828405eb833ef0fcea0d8db4c22905bdfabdb; QA Approved with comments, docs/reviews/T168_QA_Review.md",
+      "trigger_key": "T168:dae828405eb833ef0fcea0d8db4c22905bdfabdb:M2",
+      "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T168 governance implementation and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. Existing incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. No cancellation or T169 authorization.",
+      "trigger": "T168 PR #335 protected implementation merge dae828405eb833ef0fcea0d8db4c22905bdfabdb; QA Approved with comments, docs/reviews/T168_QA_Review.md",
+      "trigger_key": "T168:dae828405eb833ef0fcea0d8db4c22905bdfabdb:M3",
       "recalculated": "2026-10-20"
     }
   ],
