@@ -27,7 +27,7 @@ class TestCurrentContextManifest(unittest.TestCase):
 
     def test_frontier_and_required_adrs_use_governance_derivation(self) -> None:
         payload = manifest.build(self._root())
-        self.assertEqual(payload["governance_frontier"]["latest_done"], "T168")
+        self.assertEqual(payload["governance_frontier"]["latest_done"], "T170")
         self.assertEqual(payload["governance_frontier"]["latest_authorized"], "T170")
         self.assertEqual(payload["required_adrs"]["unresolved"], [12, 15, 16, 17, 20])
 

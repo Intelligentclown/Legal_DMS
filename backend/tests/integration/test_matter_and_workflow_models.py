@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.persistence.models.client import Client
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
+from app.infrastructure.persistence.models.organization import Organization
 from app.infrastructure.persistence.models.workflow import (
     WorkflowDefinition,
     WorkflowHistory,
@@ -32,8 +33,8 @@ async def _make_matter_status(session: AsyncSession) -> MatterStatus:
     return status
 
 
-async def _make_client(session: AsyncSession) -> Client:
-    client = Client(full_name="Client", primary_phone="9876543210")
+async def _make_client(session: AsyncSession, organization: Organization) -> Client:
+    client = Client(organization_id=organization.id, full_name="Client", primary_phone="9876543210")
     session.add(client)
     await session.flush()
     return client
@@ -42,12 +43,16 @@ async def _make_client(session: AsyncSession) -> Client:
 async def _make_matter(session: AsyncSession, **overrides: object) -> Matter:
     matter_type = await _make_matter_type(session)
     status = await _make_matter_status(session)
-    client = await _make_client(session)
+    organization = Organization(name=f"Org-{uuid4()}")
+    session.add(organization)
+    await session.flush()
+    client = await _make_client(session, organization)
     defaults = {
         "matter_number": f"M-{uuid4()}",
         "matter_type_id": matter_type.id,
         "matter_status_id": status.id,
         "client_id": client.id,
+        "organization_id": organization.id,
         "title": "Test matter",
         "opened_at": datetime.now(UTC),
     }
@@ -72,9 +77,13 @@ class TestMatter:
 
     async def test_requires_a_valid_matter_type(self, db_session: AsyncSession) -> None:
         status = await _make_matter_status(db_session)
-        client = await _make_client(db_session)
+        organization = Organization(name=f"Org-{uuid4()}")
+        db_session.add(organization)
+        await db_session.flush()
+        client = await _make_client(db_session, organization)
         db_session.add(
             Matter(
+                organization_id=organization.id,
                 matter_number=f"M-{uuid4()}",
                 matter_type_id=uuid4(),
                 matter_status_id=status.id,
