@@ -163,6 +163,11 @@ async def seed_client_graph(
         updated_by=created_by,
     )
     property_row = Property(
+        **(
+            {"organization_id": organization.id}
+            if organization is not None and not legacy_org_less_address
+            else {}
+        ),
         property_type="agricultural",
         survey_number=f"SN-{uuid4()}",
         address_id=address.id,

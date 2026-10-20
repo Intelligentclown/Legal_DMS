@@ -21,7 +21,11 @@ config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Alembic may run in-process after the application has configured its
+    # structured audit logger (for example, the guarded fresh-install path).
+    # Keep those application loggers enabled while still applying Alembic's
+    # own logging configuration from alembic.ini.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # The DB URL always comes from our validated app settings (env vars / .env),
 # never from a hardcoded value in alembic.ini.
