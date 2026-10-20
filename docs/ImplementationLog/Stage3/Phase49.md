@@ -12,7 +12,7 @@ Related Tasks: T171; Issue #347; authorization PR #348
 
 Related ADRs: ADR-0021, ADR-0022, ADR-0030, ADR-0047 (all consulted; no status changed)
 
-Git Commit:
+Git Commit: `a596c4784d7dd1e5df39bf946850476f72f34edb`
 
 Pull Request:
 
