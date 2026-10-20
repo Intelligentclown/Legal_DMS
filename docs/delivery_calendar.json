@@ -923,8 +923,12 @@
       "milestone": "M2",
       "lane": "ux",
       "dependencies": {
-        "finish_to_start": ["T168"],
-        "defect_evidence": ["T167"]
+        "finish_to_start": [
+          "T168"
+        ],
+        "defect_evidence": [
+          "T167"
+        ]
       },
       "critical_path": {
         "is_critical": false,
@@ -936,11 +940,53 @@
       "forecast_start": "2026-10-21",
       "forecast_finish": "2026-10-24",
       "forecast_impact": {
-        "M1": {"old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged"},
-        "M2": {"old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged"},
-        "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
-        "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
         "reason": "T169 authorization registers bounded backend full-suite failure reproduction and test-contract reconciliation. T168 is its completed scheduling predecessor; T167 is historical defect evidence only. The incomplete resource/capacity and downstream dependency graph provides no verified critical-path slack or justified milestone movement, so all provisional forecasts remain unchanged."
+      },
+      "actual_start": "2026-10-20",
+      "actual_completion": "2026-10-20",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-24",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-20",
+      "completion_evidence": {
+        "implementation_pr": 345,
+        "protected_merge_sha": "78ae3513227d90a2b20e309792708d03201ef477",
+        "protected_merge_parents": [
+          "284bccad1d3a6024b964c3f420fe7f3e53330c4e",
+          "ed4efe0c7f4ecd5b416266d2a64af3991d0b4528"
+        ],
+        "merged_at_utc": "2026-10-20T14:27:24Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "ed4efe0c7f4ecd5b416266d2a64af3991d0b4528",
+        "actual_start_evidence": "T169 Phase48 implementation log records Started: 2026-10-20 and Completed: 2026-10-20; first substantive implementation commit 602460a2add8d9f6b122919adb417dc4dcfb528a; Independent QA review docs/reviews/T169_QA_Review.md."
       }
     },
     {
@@ -1387,6 +1433,39 @@
       "reason": "T170 governance correction and independent QA protected-merged on 2026-10-20 Asia/Kolkata, four calendar days before planned finish 2026-10-24. The incomplete downstream task network and resource capacity do not justify milestone acceleration; provisional forecasts remain unchanged. T167 remains Cancelled and T169 remains unauthorized.",
       "trigger": "T170 PR #342 protected implementation merge 7fac6572e40ee35c5eec11550d1866fa9edac313; QA Approved with comments, docs/reviews/T170_QA_Review.md",
       "trigger_key": "T170:7fac6572e40ee35c5eec11550d1866fa9edac313:M3",
+      "recalculated": "2026-10-20"
+    },
+{
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T169 independently QA-approved backend suite reconciliation protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts. T167 historical cancellation evidence unchanged; T170 remains highest-numbered Done.",
+      "trigger": "T169 PR #345 protected implementation merge 78ae3513227d90a2b20e309792708d03201ef477; QA Approved with comments, docs/reviews/T169_QA_Review.md",
+      "trigger_key": "T169:78ae3513227d90a2b20e309792708d03201ef477:M1",
+      "recalculated": "2026-10-20"
+    },
+{
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T169 independently QA-approved backend suite reconciliation protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts. T167 historical cancellation evidence unchanged; T170 remains highest-numbered Done.",
+      "trigger": "T169 PR #345 protected implementation merge 78ae3513227d90a2b20e309792708d03201ef477; QA Approved with comments, docs/reviews/T169_QA_Review.md",
+      "trigger_key": "T169:78ae3513227d90a2b20e309792708d03201ef477:M2",
+      "recalculated": "2026-10-20"
+    },
+{
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T169 independently QA-approved backend suite reconciliation protected-merged 2026-10-20 Asia/Kolkata, four days before the original planned finish 2026-10-24. Incomplete downstream dependencies and capacity do not justify acceleration of provisional forecasts. T167 historical cancellation evidence unchanged; T170 remains highest-numbered Done.",
+      "trigger": "T169 PR #345 protected implementation merge 78ae3513227d90a2b20e309792708d03201ef477; QA Approved with comments, docs/reviews/T169_QA_Review.md",
+      "trigger_key": "T169:78ae3513227d90a2b20e309792708d03201ef477:M3",
       "recalculated": "2026-10-20"
     }
   ],
