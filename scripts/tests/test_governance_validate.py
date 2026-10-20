@@ -874,7 +874,27 @@ class TestCancelledTaskGovernance(unittest.TestCase):
         data["tasks"][0]["cancellation_evidence"]["successor_state"] = "authorized"
         self.assertTrue(any("unknown successor" in error for error in self.check(data, [self.row])))
 
-    def test_existing_authorized_successor_is_valid_provenance(self):
+    def test_historical_proposed_successor_survives_independent_authorization_and_done(self):
+        data = deepcopy(self.data)
+        evidence_at_cancellation = {
+            **data["tasks"][0]["cancellation_evidence"],
+            "successor_task_id": "T169", "successor_state": "proposed_unapproved",
+        }
+        data["tasks"][0]["cancellation_evidence"] = deepcopy(evidence_at_cancellation)
+        successor = deepcopy(data["tasks"][0])
+        successor["id"] = "T169"
+        successor.pop("cancellation_evidence")
+        data["tasks"].append(successor)
+        rows = [self.row, gv.TaskRow("T169", 2, "| T169 | Authorized by the project owner | Authorized | T157 |")]
+        self.assertEqual(self.check(data, rows), [])
+        self.assertEqual(data["tasks"][0]["cancellation_evidence"], evidence_at_cancellation)
+        rows[1] = gv.TaskRow("T169", 2, "| T169 | Authorized by the project owner; T169 is now Done | Done | T157 |")
+        from delivery_calendar import cancellation_evidence
+        self.assertEqual(cancellation_evidence(data["tasks"][0], {row.task_id: row for row in rows}),
+                         evidence_at_cancellation)
+        self.assertEqual(data["tasks"][0]["cancellation_evidence"], evidence_at_cancellation)
+
+    def test_existing_authorized_successor_is_valid_historical_provenance(self):
         data = deepcopy(self.data)
         successor = deepcopy(data["tasks"][0])
         successor["id"] = "T158"
@@ -884,6 +904,21 @@ class TestCancelledTaskGovernance(unittest.TestCase):
             successor_task_id="T158", successor_state="authorized")
         rows = [self.row, gv.TaskRow("T158", 2, "| T158 | Authorized by the project owner | Authorized | T157 |")]
         self.assertEqual(self.check(data, rows), [])
+
+    def test_invalid_historical_or_current_successor_state_is_rejected(self):
+        data = deepcopy(self.data)
+        data["tasks"][0]["cancellation_evidence"].update(
+            successor_task_id="T169", successor_state="future_state")
+        self.assertTrue(any("unsupported historical" in error for error in self.check(data, [self.row])))
+        data = deepcopy(self.data)
+        successor = deepcopy(data["tasks"][0])
+        successor["id"] = "T169"
+        successor.pop("cancellation_evidence")
+        data["tasks"].append(successor)
+        data["tasks"][0]["cancellation_evidence"].update(
+            successor_task_id="T169", successor_state="proposed_unapproved")
+        rows = [self.row, gv.TaskRow("T169", 2, "| T169 | Authorized by the project owner; T169 is Cancelled | Cancelled | T157 |")]
+        self.assertTrue(any("not currently independently authorized" in error for error in self.check(data, rows)))
 
     def test_invalid_self_or_contradictory_successor_assignments_are_rejected(self):
         data = deepcopy(self.data)

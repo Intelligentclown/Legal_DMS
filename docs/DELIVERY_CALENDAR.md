@@ -26,14 +26,17 @@ distinct from `completion_evidence`; a Cancelled task must contain neither compl
 actual start/completion/variance fields, so cancellation never invents calendar actuals or counts as
 Done.
 
-An optional `successor_task_id` is provenance, not authorization. An existing successor must carry
-its own Authorized or Done queue state and uses `successor_state: "authorized"`. A not-yet-created
-successor is valid only with `successor_state: "proposed_unapproved"`; it remains non-executable
-planning context until separately owner-authorized in the queue. Self-supersession, duplicate/top-level
-successor fields, unknown successors labelled authorized, and status/evidence contradictions fail
-validation. A Cancelled task cannot be a finish-to-start predecessor: scheduling edges require a
-completed predecessor. Defect-evidence references remain provenance only and do not make cancellation
-or successor authorization implicit.
+An optional `successor_task_id` is provenance, not authorization. Its `successor_state` records the
+successor's state **at cancellation time** and is immutable historical evidence: an initially
+`"proposed_unapproved"` successor remains so recorded even after it is independently Authorized or
+Done. Current readiness is determined separately from the successor's own authoritative queue row,
+which must be Authorized or Done whenever that row exists. A not-yet-created successor is valid only
+with `successor_state: "proposed_unapproved"`; it remains non-executable planning context until
+separately owner-authorized in the queue. `"authorized"` is invalid for an unknown successor.
+Self-supersession, unsupported historical states, duplicate/top-level successor fields, and
+current-status/evidence contradictions fail validation. A Cancelled task cannot be a finish-to-start
+predecessor: scheduling edges require a completed predecessor. Defect-evidence references remain
+provenance only and do not make cancellation or successor authorization implicit.
 
 ## M1 operational acceptance decision (2026-10-20)
 
