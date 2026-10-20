@@ -12,7 +12,7 @@ Related Tasks: T169; Issue #339; authorization PR #344
 
 Related ADRs: ADR-0020; ADR-0021; ADR-0022
 
-Git Commit:
+Git Commit: 602460a2add8d9f6b122919adb417dc4dcfb528a
 
 Pull Request:
 
