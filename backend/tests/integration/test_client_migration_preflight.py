@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.cli.client_migration_preflight import run_client_migration_preflight
@@ -75,6 +76,7 @@ async def _make_client_graph(
     await session.flush()
 
     client = Client(
+        organization_id=organization.id,
         full_name="Client",
         primary_phone="9876543210",
         address_id=address.id,
@@ -92,6 +94,7 @@ async def _make_client_graph(
         updated_by=None if client_user is None else client_user.id,
     )
     property_row = Property(
+        organization_id=organization.id,
         property_type="agricultural",
         survey_number=f"SN-{uuid4()}",
         address_id=address.id,
@@ -102,6 +105,7 @@ async def _make_client_graph(
     await session.flush()
 
     owner = PropertyOwner(
+        organization_id=organization.id,
         property_id=property_row.id,
         client_id=client.id,
         ownership_share=Decimal("100.00"),
@@ -110,6 +114,7 @@ async def _make_client_graph(
         updated_by=None if property_user is None else property_user.id,
     )
     matter = Matter(
+        organization_id=organization.id,
         matter_number=f"M-{uuid4()}",
         matter_type_id=matter_type.id,
         matter_status_id=matter_status.id,
@@ -237,7 +242,9 @@ class TestClientMigrationPreflight:
         assert client_report.classification == "ambiguous"
         assert set(client_report.candidate_organization_ids) == {str(org_a.id), str(org_b.id)}
 
-    async def test_cross_tenant_address_is_ambiguous(self, db_session: AsyncSession) -> None:
+    async def test_cross_tenant_address_assignment_is_rejected_by_current_contract(
+        self, db_session: AsyncSession
+    ) -> None:
         org_a = Organization(name=f"OrgA-{uuid4()}")
         org_b = Organization(name=f"OrgB-{uuid4()}")
         db_session.add_all([org_a, org_b])
@@ -265,10 +272,5 @@ class TestClientMigrationPreflight:
         shared_address_id = client_a.address_id
         assert shared_address_id is not None
         client_b.address_id = shared_address_id
-        await db_session.flush()
-
-        report = await run_client_migration_preflight(db_session)
-        address_report = _address_result(report, str(shared_address_id))
-
-        assert address_report.classification == "ambiguous"
-        assert set(address_report.candidate_organization_ids) == {str(org_a.id), str(org_b.id)}
+        with pytest.raises(IntegrityError, match="fk_clients_organization_id_addresses"):
+            await db_session.flush()

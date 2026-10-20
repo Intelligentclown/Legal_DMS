@@ -335,12 +335,13 @@ async def test_partial_bridge_state_without_ledger_fails_closed(db_session: Asyn
 
 async def test_conflicting_matter_party_fails_closed(db_session: AsyncSession) -> None:
     organization = await make_org(db_session)
+    conflicting_organization = await make_org(db_session)
     user = await make_user(db_session, organization)
     _client, rows = await seed_client_graph(db_session, organization=organization, user=user)
     matter = await db_session.get(Matter, rows["matter"].id)
     assert matter is not None
-    matter.organization_id = organization.id
-    with pytest.raises(IntegrityError):
+    matter.organization_id = conflicting_organization.id
+    with pytest.raises(IntegrityError, match="fk_matters_organization_id"):
         await db_session.flush()
 
 
@@ -362,16 +363,12 @@ async def test_client_address_cross_tenant_fails_closed(db_session: AsyncSession
     organization_a = await make_org(db_session)
     organization_b = await make_org(db_session)
     user = await make_user(db_session, organization_a)
-    client, rows = await seed_client_graph(db_session, organization=organization_a, user=user)
+    _client, rows = await seed_client_graph(db_session, organization=organization_a, user=user)
     address = await db_session.get(Address, rows["address"].id)
     assert address is not None
     address.organization_id = organization_b.id
-    await db_session.flush()
-
-    result = await apply_anchor_against(db_session, client, organization_a)
-
-    assert result.status == "failed"
-    assert result.failure_code == "tenant_disagreement"
+    with pytest.raises(IntegrityError, match="fk_clients_organization_id_addresses"):
+        await db_session.flush()
 
 
 async def test_organization_client_with_aadhaar_is_incompatible(db_session: AsyncSession) -> None:

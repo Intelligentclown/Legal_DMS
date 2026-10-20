@@ -141,6 +141,9 @@ async def seed_client_graph(
     await session.flush()
 
     client = Client(
+        organization_id=(
+            None if organization is None or legacy_org_less_address else organization.id
+        ),
         client_type=client_type,
         full_name="Test Client",
         primary_phone="9876543210",
@@ -163,6 +166,9 @@ async def seed_client_graph(
         updated_by=created_by,
     )
     property_row = Property(
+        organization_id=(
+            None if organization is None or legacy_org_less_address else organization.id
+        ),
         property_type="agricultural",
         survey_number=f"SN-{uuid4()}",
         address_id=address.id,
@@ -173,6 +179,9 @@ async def seed_client_graph(
     await session.flush()
 
     owner = PropertyOwner(
+        organization_id=(
+            None if organization is None or legacy_org_less_address else organization.id
+        ),
         property_id=property_row.id,
         client_id=client.id,
         ownership_share=Decimal("100.00"),
@@ -181,6 +190,9 @@ async def seed_client_graph(
         updated_by=created_by,
     )
     matter = Matter(
+        organization_id=(
+            None if organization is None or legacy_org_less_address else organization.id
+        ),
         matter_number=f"M-{uuid4()}",
         matter_type_id=matter_type.id,
         matter_status_id=matter_status.id,

@@ -14,16 +14,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.persistence.models.client import Client
 from app.infrastructure.persistence.models.financial import Invoice, Payment, PaymentMethod, Receipt
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
+from app.infrastructure.persistence.models.organization import Organization
 
 
 async def _make_matter_and_client(session: AsyncSession) -> tuple[Matter, Client]:
     matter_type = MatterType(code=f"TYPE-{uuid4()}", name="Sale")
     status = MatterStatus(code=f"STATUS-{uuid4()}", name="Open")
-    client = Client(full_name="Client", primary_phone="9876543210")
+    organization = Organization(name=f"Org-{uuid4()}")
+    session.add(organization)
+    await session.flush()
+    client = Client(organization_id=organization.id, full_name="Client", primary_phone="9876543210")
     session.add_all([matter_type, status, client])
     await session.flush()
 
     matter = Matter(
+        organization_id=organization.id,
         matter_number=f"M-{uuid4()}",
         matter_type_id=matter_type.id,
         matter_status_id=status.id,
