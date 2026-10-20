@@ -1036,6 +1036,43 @@
         "approved_qa_publication_head": "f8d8d0c3e8ada08c78366607e191fd4698380f1b",
         "actual_start_evidence": "First substantive T170 implementation commit 411dcf4d22fe29baa783c9c2200ff261ae85af2e, authored and committed 2026-10-20T17:20:38+05:30 (Asia/Kolkata); docs/reviews/T170_QA_Review.md reviewed the final implementation candidate and its QA publication head f8d8d0c3e8ada08c78366607e191fd4698380f1b. This supports 2026-10-20 as the implementation activity date."
       }
+    },
+    {
+      "id": "T171",
+      "title": "M2 Scope, Dependency and Capacity Baseline Verification",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": ["T169", "T170"],
+        "defect_evidence": ["T167"]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-21",
+      "planned_finish": "2026-10-24",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-21",
+      "forecast_finish": "2026-10-24",
+      "forecast_impact": {
+        "M1": {"old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged"},
+        "M2": {"old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged"},
+        "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "reason": "T171 authorization registers bounded M2 scope, dependency and capacity baseline verification. T169 and T170 are completed finish-to-start predecessors; T167 remains historical defect evidence only. The dependency and capacity network remains incomplete, so no verified critical-path slack or justified milestone movement exists and all provisional forecasts remain unchanged."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
