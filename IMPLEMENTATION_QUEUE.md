@@ -5,7 +5,12 @@ dependency-ordered work items, distinct from [docs/Roadmap.md](docs/Roadmap.md) 
 multi-session scope) and [PROJECT_STATE.json](PROJECT_STATE.json) (point-in-time snapshot). This
 file is expected to be rewritten at the start of each new stage.
 
-Status values: `Not Started`, `In Progress`, `Done`, `Deferred`, `Blocked`.
+Legacy backlog labels include `Not Started`, `In Progress`, `Done`, `Deferred`, and `Blocked`.
+For the authoritative four-column numbered-task rows at the delivery-calendar boundary (T157+),
+the Status cell is the task-state representation: `Authorized`, `Done`, or terminal `Cancelled`.
+`Cancelled` preserves the task ID and authorization history, never means Done, and requires the
+canonical calendar cancellation evidence defined in `docs/DELIVERY_CALENDAR.md`; it never authorizes
+a referenced successor.
 
 **Task IDs are immutable and permanently reserved.** A completed or cancelled task ID (e.g. `T44`)
 is never reassigned to different work, even under direct instruction — see `AI_BOOTSTRAP.md`'s

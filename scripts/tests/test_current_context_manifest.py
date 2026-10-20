@@ -27,9 +27,9 @@ class TestCurrentContextManifest(unittest.TestCase):
 
     def test_frontier_and_required_adrs_use_governance_derivation(self) -> None:
         payload = manifest.build(self._root())
-        self.assertEqual(payload["governance_frontier"]["latest_done"], "T128")
-        self.assertEqual(payload["governance_frontier"]["latest_authorized"], "T129")
-        self.assertEqual(payload["required_adrs"]["unresolved"], [10, 11, 12, 15, 16, 17, 20])
+        self.assertEqual(payload["governance_frontier"]["latest_done"], "T166")
+        self.assertEqual(payload["governance_frontier"]["latest_authorized"], "T168")
+        self.assertEqual(payload["required_adrs"]["unresolved"], [12, 15, 16, 17, 20])
 
     def test_ledger_drift_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

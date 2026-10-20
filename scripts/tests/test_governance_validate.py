@@ -819,6 +819,111 @@ class TestProtectedMergeCalendarV2(unittest.TestCase):
         self.assertEqual(len(pending_closeout_alerts(self.data, [authorized])), 1)
 
 
+class TestCancelledTaskGovernance(unittest.TestCase):
+    def setUp(self):
+        from delivery_calendar import PROJECT_TIMEZONE, check_calendar
+        self.check = check_calendar
+        self.row = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner; T157 is Cancelled | Cancelled | T156 |")
+        self.data = {
+            "schema_version": 2, "activation_task_number": 157, "project_timezone": PROJECT_TIMEZONE,
+            "milestones": [{"id": key, "baseline": "2026-10-31", "forecast": "2026-10-31",
+                            "actual": None, "confidence": "low", "risk": "test",
+                            "last_recalculated": "2026-10-20"} for key in ("M1", "M2", "M3")],
+            "lanes": [{"id": "core"}], "history": [], "tasks": [{
+                "id": "T157", "title": "synthetic", "milestone": "M1", "lane": "core",
+                "dependencies": {"finish_to_start": [], "defect_evidence": []},
+                "critical_path": {"is_critical": False, "slack_days": 1},
+                "planned_start": "2026-10-20", "planned_finish": "2026-10-22",
+                "planned_duration": 3, "forecast_start": "2026-10-20",
+                "forecast_finish": "2026-10-22", "forecast_impact": {},
+                "cancellation_evidence": {
+                    "cancelled_task_id": "T157", "owner_approval_provenance": "Issue #1 owner approval",
+                    "cancellation_date": "2026-10-20", "reason": "Superseded scope",
+                    "evidence_reference": "governance record #1"
+                }
+            }]
+        }
+
+    def errors(self, rows=None):
+        return self.check(self.data, [self.row] if rows is None else rows)
+
+    def test_valid_cancelled_state_requires_no_completion_actuals(self):
+        self.assertEqual(self.errors(), [])
+
+    def test_missing_or_invalid_cancellation_evidence_is_rejected(self):
+        for key, value in (("owner_approval_provenance", None), ("cancellation_date", "not-a-date"),
+                           ("cancelled_task_id", "T158"), ("reason", ""), ("evidence_reference", "")):
+            with self.subTest(key=key):
+                data = deepcopy(self.data)
+                if value is None:
+                    data["tasks"][0]["cancellation_evidence"].pop(key)
+                else:
+                    data["tasks"][0]["cancellation_evidence"][key] = value
+                self.assertTrue(self.check(data, [self.row]))
+
+    def test_cancelled_completion_evidence_is_mutually_exclusive(self):
+        data = deepcopy(self.data)
+        data["tasks"][0]["actual_completion"] = "2026-10-20"
+        self.assertTrue(any("contradictory completion" in error for error in self.check(data, [self.row])))
+
+    def test_successor_provenance_is_not_authorization(self):
+        data = deepcopy(self.data)
+        data["tasks"][0]["cancellation_evidence"].update(
+            successor_task_id="T169", successor_state="proposed_unapproved")
+        self.assertEqual(self.check(data, [self.row]), [])
+        data["tasks"][0]["cancellation_evidence"]["successor_state"] = "authorized"
+        self.assertTrue(any("unknown successor" in error for error in self.check(data, [self.row])))
+
+    def test_existing_authorized_successor_is_valid_provenance(self):
+        data = deepcopy(self.data)
+        successor = deepcopy(data["tasks"][0])
+        successor["id"] = "T158"
+        successor.pop("cancellation_evidence")
+        data["tasks"].append(successor)
+        data["tasks"][0]["cancellation_evidence"].update(
+            successor_task_id="T158", successor_state="authorized")
+        rows = [self.row, gv.TaskRow("T158", 2, "| T158 | Authorized by the project owner | Authorized | T157 |")]
+        self.assertEqual(self.check(data, rows), [])
+
+    def test_invalid_self_or_contradictory_successor_assignments_are_rejected(self):
+        data = deepcopy(self.data)
+        data["tasks"][0]["cancellation_evidence"].update(
+            successor_task_id="T157", successor_state="proposed_unapproved")
+        self.assertTrue(any("cannot supersede itself" in error for error in self.check(data, [self.row])))
+        data = deepcopy(self.data)
+        data["tasks"][0]["successor_task_id"] = "T169"
+        self.assertTrue(any("successor assignment belongs" in error for error in self.check(data, [self.row])))
+
+    def test_cancelled_finish_to_start_predecessor_is_rejected(self):
+        data = deepcopy(self.data)
+        dependent = deepcopy(data["tasks"][0])
+        dependent["id"] = "T158"
+        dependent["dependencies"] = {"finish_to_start": ["T157"], "defect_evidence": []}
+        dependent.pop("cancellation_evidence")
+        data["tasks"].append(dependent)
+        rows = [self.row, gv.TaskRow("T158", 2, "| T158 | Authorized by the project owner | Authorized | T157 |")]
+        self.assertTrue(any("predecessor T157 is Cancelled" in error for error in self.check(data, rows)))
+
+
+class TestQueueStateTransitions(unittest.TestCase):
+    def test_authorized_done_and_cancelled_states_are_compatible(self):
+        rows = [
+            gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner | Authorized | T156 |"),
+            gv.TaskRow("T158", 2, "| T158 | Authorized by the project owner; T158 is now Done | Done | T157 |"),
+            gv.TaskRow("T159", 3, "| T159 | Authorized by the project owner; T159 is Cancelled | Cancelled | T158 |"),
+        ]
+        self.assertEqual(gv.check_task_states(rows), [])
+        state = {"governanceLedger": {"latestTaskDone": "T158", "latestTaskAuthorized": "T159"}}
+        self.assertEqual(gv.check_governance_ledger(state, set(), rows), [])
+
+    def test_cancelled_cannot_claim_done_or_skip_prior_authorization(self):
+        contradictory = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner; T157 is now Done; T157 is Cancelled | Cancelled | T156 |")
+        unauthorised = gv.TaskRow("T158", 2, "| T158 | T158 is Cancelled | Cancelled | T157 |")
+        errors = gv.check_task_states([contradictory, unauthorised])
+        self.assertTrue(any(error.check == "task-state-contradiction" for error in errors))
+        self.assertTrue(any(error.check == "cancelled-without-authorization" for error in errors))
+
+
 def gv_date(value):
     from datetime import date
     return date.fromisoformat(value)

@@ -92,6 +92,7 @@ def build(root: Path) -> dict[str, object]:
     rows = governance.parse_task_rows(queue)
     adrs, violations = governance.parse_adr_files(root / "ADR")
     violations += governance.check_duplicate_task_ids(rows)
+    violations += governance.check_task_states(rows)
     violations += governance.check_done_requires_authorization(rows)
     violations += governance.check_done_requires_qa_evidence(rows)
     violations += governance.check_duplicate_required_adr_resolution(adrs)

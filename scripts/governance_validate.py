@@ -191,6 +191,42 @@ def latest_task_number(rows: list[TaskRow], marker_fn) -> str | None:
     return max(candidates, key=lambda r: int(r.task_id[1:])).task_id
 
 
+def check_task_states(rows: list[TaskRow]) -> list[Violation]:
+    """Check the modern queue's terminal states without reinterpreting history.
+
+    The four-column status cell is authoritative for T157+ queue rows.  The
+    validator can verify only a committed state, not the temporal git history;
+    authorization ancestry remains a live pre-merge gate.
+    """
+    violations = []
+    for row in rows:
+        try:
+            number = int(row.task_id[1:])
+        except ValueError:
+            continue
+        if number < 157:
+            continue
+        cells = [cell.strip() for cell in row.text.strip().split("|")]
+        if len(cells) != 6 or cells[0] or cells[-1] or cells[1] != row.task_id:
+            violations.append(Violation("task-state-malformed", f"{row.task_id} (IMPLEMENTATION_QUEUE.md line {row.line_no}) has no valid four-column queue state row."))
+            continue
+        state = cells[3]
+        done = f"{row.task_id} is now Done" in row.text
+        cancelled = f"{row.task_id} is Cancelled" in row.text
+        if state not in ("Authorized", "Done", "Cancelled"):
+            violations.append(Violation("task-state-invalid", f"{row.task_id} has unsupported queue status {state!r}."))
+        elif state == "Authorized" and (done or cancelled):
+            violations.append(Violation("task-state-contradiction", f"{row.task_id} is Authorized but declares a terminal state."))
+        elif state == "Done" and (not done or cancelled):
+            violations.append(Violation("task-state-contradiction", f"{row.task_id} Done status must declare only its own Done marker."))
+        elif state == "Cancelled":
+            if not cancelled or done:
+                violations.append(Violation("task-state-contradiction", f"{row.task_id} Cancelled status must declare only its own Cancelled marker."))
+            if AUTHORIZATION_PHRASE not in row.text:
+                violations.append(Violation("cancelled-without-authorization", f"{row.task_id} is Cancelled without prior repository-recorded authorization."))
+    return violations
+
+
 ADR_REFERENCE_RE = re.compile(r"ADR/(\d{4})\b")
 
 
@@ -634,6 +670,7 @@ def validate(root: Path) -> list[Violation]:
     queue_text = queue_path.read_text(encoding="utf-8")
     rows = parse_task_rows(queue_text)
     violations += check_duplicate_task_ids(rows)
+    violations += check_task_states(rows)
     violations += check_done_requires_authorization(rows)
     violations += check_done_requires_qa_evidence(rows)
 

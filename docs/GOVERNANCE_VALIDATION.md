@@ -68,6 +68,18 @@ below failed, with every violation printed, not just the first.
    The whole `governanceLedger` object is optional; its absence is not an error, but any sub-field
    present must stay accurate. See "In-progress transition declarations" below for the one narrow,
    mechanically-verified exception to "must stay accurate at all times."
+8. **T157+ queue-state consistency.** The authoritative four-column Status cell permits only
+   `Authorized`, `Done`, or terminal `Cancelled`. An Authorized row cannot declare a terminal marker;
+   Done and Cancelled must each declare only their own marker; and a Cancelled row must retain its
+   repository-recorded authorization phrase. The delivery-calendar validator validates the canonical
+   cancellation evidence, mutual exclusion with completion evidence/actuals, successor provenance,
+   and the rule that a Cancelled task cannot satisfy a finish-to-start edge.
+
+Cancellation is deliberately not a completion shortcut. `latestTaskDone` continues to derive solely
+from a task's own `TNN is now Done` marker. `latestTaskAuthorized` continues to derive from the
+authorization phrase, preserving the highest historically authorized task even if that task later
+becomes Cancelled. Static validation cannot prove the chronological Git transition; authorization
+ancestry and owner approval remain live review/merge-gate evidence.
 
 Run `python scripts/governance_validate.py --report` for a plain-language "which Required ADRs are
 resolved, by which file" summary — the fast, mechanically-verified answer to a question this

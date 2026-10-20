@@ -146,6 +146,23 @@ exact mechanism and the incident history that motivated it.
 
 **T157 recovery readiness (bounded):** PR #296 remains frozen until T159's implementation PR is protected-merged and its enforcement is live on protected main. Resumption requires a fresh check that its implementation tree is still the QA-covered tree at b6c4158b23744390dcc284010cff6aec8d59dd75, or that any descendants are documentation-only; fresh exact-head CI, approvals, protection and ancestry verification; and no product-code mutation. Re-review is required only if candidate code changes or the independent QA authority identifies a concrete reason. After its protected implementation merge, T157 follows the separate ordinary §3 closeout; it must not be marked Done or assigned actuals beforehand.
 
+### 3.1.1 Terminal Cancellation and Successor Provenance
+
+An authorized task may transition to terminal **Cancelled** only with durable, verifiable Project
+Owner approval, a cancellation date, reason, and evidence reference. The queue's existing Status
+cell is authoritative: a modern task is `Authorized`, `Done`, or `Cancelled`; cancellation never
+means Done and does not change or reuse the task ID. The cancellation record is distinct from
+completion evidence, must contain no completion actuals, and leaves `latestTaskDone` Done-only.
+`latestTaskAuthorized` remains the highest historically authorized task, including a later-cancelled
+task.
+
+If the cancellation names a successor, that reference is provenance only. A prospective successor
+must be explicitly marked unapproved planning context and cannot execute until it receives its own
+queue authorization. A Cancelled predecessor cannot satisfy a finish-to-start scheduling dependency;
+the Project Manager must re-plan the dependency network without treating cancellation as successful
+completion. Validation of the status/evidence/dependency mechanics is automated, but live review
+still verifies approval provenance and Git authorization ancestry.
+
 ### 3.2 Non-Task Documentation/Governance Action Exception ("Option A")
 
 *(Added by `T104`. Prospective only — see "History" below.)*
