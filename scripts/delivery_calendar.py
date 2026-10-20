@@ -120,9 +120,15 @@ def completion_evidence(task):
 def cancellation_evidence(task, rowmap):
     """Validate the sole canonical cancellation record.
 
-    A successor is provenance only.  A missing queue row is permitted solely
-    when it is explicitly labelled proposed_unapproved; this prevents a
-    planning reference from being mistaken for task authorization.
+    ``successor_state`` is immutable, cancellation-time provenance; it is not
+    a claim about the successor's current authorization.  Current readiness
+    is instead derived independently from the authoritative queue row.  This
+    keeps a truthful ``proposed_unapproved`` record valid when that successor
+    is later independently Authorized or Done.
+
+    A missing queue row is permitted solely when it is explicitly labelled
+    ``proposed_unapproved``; this prevents a planning reference from being
+    mistaken for task authorization.
     """
     evidence = task.get("cancellation_evidence")
     if not isinstance(evidence, dict):
@@ -143,9 +149,11 @@ def cancellation_evidence(task, rowmap):
             raise ValueError("invalid successor_task_id")
         if successor == task["id"]:
             raise ValueError("task cannot supersede itself")
+        if successor_state not in ("proposed_unapproved", "authorized"):
+            raise ValueError("unsupported historical successor_state")
         if successor in rowmap:
-            if successor_state != "authorized" or queue_status(rowmap[successor]) not in ("Authorized", "Done"):
-                raise ValueError("successor provenance contradicts queue authorization state")
+            if queue_status(rowmap[successor]) not in ("Authorized", "Done"):
+                raise ValueError("successor is not currently independently authorized")
         elif successor_state != "proposed_unapproved":
             raise ValueError("unknown successor must be explicit proposed_unapproved provenance")
     if "successor_task_id" in task or "superseded_by" in task:

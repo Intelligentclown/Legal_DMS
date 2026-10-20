@@ -73,7 +73,9 @@ below failed, with every violation printed, not just the first.
    Done and Cancelled must each declare only their own marker; and a Cancelled row must retain its
    repository-recorded authorization phrase. The delivery-calendar validator validates the canonical
    cancellation evidence, mutual exclusion with completion evidence/actuals, successor provenance,
-   and the rule that a Cancelled task cannot satisfy a finish-to-start edge.
+   and the rule that a Cancelled task cannot satisfy a finish-to-start edge. A cancellation record's
+   successor state is historical evidence from cancellation time, while any present successor
+   authorization is independently derived from that successor's authoritative queue row.
 
 Cancellation is deliberately not a completion shortcut. `latestTaskDone` continues to derive solely
 from a task's own `TNN is now Done` marker. `latestTaskAuthorized` continues to derive from the
