@@ -14,7 +14,7 @@ Related ADRs: ADR-0020; ADR-0021; ADR-0022
 
 Git Commit: 602460a2add8d9f6b122919adb417dc4dcfb528a
 
-Pull Request:
+Pull Request: #345 — https://github.com/Intelligentclown/Legal_DMS/pull/345
 
 Release:
 
