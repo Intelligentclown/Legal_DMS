@@ -835,6 +835,67 @@
       "finalization_impact": null,
       "recalculated": null,
       "completion_evidence": null
+    },
+    {
+      "id": "T168",
+      "title": "Task Cancellation and Successor Governance Transition Enablement",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T166"
+        ],
+        "defect_evidence": [
+          "T167"
+        ]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 68
+      },
+      "planned_start": "2026-10-21",
+      "planned_finish": "2026-10-24",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-21",
+      "forecast_finish": "2026-10-24",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T168 authorization-only governance enablement under M2 preparation, existing ux stabilization lane; T166 is Done predecessor, T167 is governance motivation/evidence only and not a completed predecessor. Four inclusive planned calendar days 2026-10-21 to 2026-10-24 are provisional, not execution actuals. No cancellation, implementation, or milestone completion; downstream graph and resource capacity incomplete; provisional 68-day date-to-M2 margin is not validated network slack. Preserve all existing milestone forecasts and immutable history."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
