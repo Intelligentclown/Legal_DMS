@@ -1084,6 +1084,67 @@
         "approved_qa_publication_head": "33e772a31cabfbf6f55c2b076c8f8864e44bc7f7",
         "actual_start_evidence": "T171 Phase49 implementation log records Started: 2026-10-20 and Completed: 2026-10-20; first substantive implementation commit a596c4784d7dd1e5df39bf946850476f72f34edb; Independent QA review docs/reviews/T171_QA_Review.md."
       }
+    },
+    {
+      "id": "T172",
+      "title": "M2 Executable Task-Network and Capacity Evidence Capture",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T171"
+        ],
+        "defect_evidence": [
+          "T167"
+        ]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-24",
+      "planned_finish": "2026-10-27",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-24",
+      "forecast_finish": "2026-10-27",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T172 authorization registers bounded M2 executable task-network and capacity evidence capture. T171 is the completed finish-to-start predecessor; T167 remains historical defect evidence only. The downstream task and capacity network remains incomplete, so no verified critical-path slack or justified milestone movement exists and all provisional forecasts remain unchanged."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
