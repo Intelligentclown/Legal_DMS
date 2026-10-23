@@ -1134,17 +1134,28 @@
         },
         "reason": "T172 authorization registers bounded M2 executable task-network and capacity evidence capture. T171 is the completed finish-to-start predecessor; T167 remains historical defect evidence only. The downstream task and capacity network remains incomplete, so no verified critical-path slack or justified milestone movement exists and all provisional forecasts remain unchanged."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-23",
+      "actual_completion": "2026-10-23",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-27",
+      "variance": -4,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-23",
+      "completion_evidence": {
+        "implementation_pr": 353,
+        "protected_merge_sha": "08e761450511a7798de7b2dff88281eda4c247f8",
+        "protected_merge_parents": [
+          "751f016cdaf999163f22c225538a1e216c586f96",
+          "ad9e9c68e99ff750eb696a6c1fd120e3f1d05e1f"
+        ],
+        "merged_at_utc": "2026-10-23T11:51:56Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "ad9e9c68e99ff750eb696a6c1fd120e3f1d05e1f",
+        "actual_start_evidence": "T172 Phase50 implementation log records Started: 2026-10-23 and Completed: 2026-10-23; first substantive implementation commit a89e5c47180bb1010248af08141eeb9fbf630c1f; Independent QA review docs/reviews/T172_QA_Review.md."
+      }
     }
   ],
   "history": [
@@ -1609,6 +1620,39 @@
       "trigger": "T171 PR #349 protected implementation merge 6eca0fb49da7cd75deb37412d51e39e1bb350dbc; QA Approved with comments, docs/reviews/T171_QA_Review.md",
       "trigger_key": "T171:6eca0fb49da7cd75deb37412d51e39e1bb350dbc:M3",
       "recalculated": "2026-10-20"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T172 independently QA-approved M2 executable task-network and capacity evidence protected-merged 2026-10-23 Asia/Kolkata, four days before the original planned finish 2026-10-27. The downstream dependency and capacity network remains incomplete, so no certified critical-path slack or justified forecast movement exists; provisional forecasts remain unchanged.",
+      "trigger": "T172 PR #353 protected implementation merge 08e761450511a7798de7b2dff88281eda4c247f8; QA Approved with comments, docs/reviews/T172_QA_Review.md",
+      "trigger_key": "T172:08e761450511a7798de7b2dff88281eda4c247f8:M1",
+      "recalculated": "2026-10-23"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T172 independently QA-approved M2 executable task-network and capacity evidence protected-merged 2026-10-23 Asia/Kolkata, four days before the original planned finish 2026-10-27. The downstream dependency and capacity network remains incomplete, so no certified critical-path slack or justified forecast movement exists; provisional forecasts remain unchanged.",
+      "trigger": "T172 PR #353 protected implementation merge 08e761450511a7798de7b2dff88281eda4c247f8; QA Approved with comments, docs/reviews/T172_QA_Review.md",
+      "trigger_key": "T172:08e761450511a7798de7b2dff88281eda4c247f8:M2",
+      "recalculated": "2026-10-23"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T172 independently QA-approved M2 executable task-network and capacity evidence protected-merged 2026-10-23 Asia/Kolkata, four days before the original planned finish 2026-10-27. The downstream dependency and capacity network remains incomplete, so no certified critical-path slack or justified forecast movement exists; provisional forecasts remain unchanged.",
+      "trigger": "T172 PR #353 protected implementation merge 08e761450511a7798de7b2dff88281eda4c247f8; QA Approved with comments, docs/reviews/T172_QA_Review.md",
+      "trigger_key": "T172:08e761450511a7798de7b2dff88281eda4c247f8:M3",
+      "recalculated": "2026-10-23"
     }
   ],
   "planning_assumptions": [
