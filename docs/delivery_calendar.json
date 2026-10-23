@@ -995,8 +995,12 @@
       "milestone": "M2",
       "lane": "ux",
       "dependencies": {
-        "finish_to_start": ["T168"],
-        "defect_evidence": ["T167"]
+        "finish_to_start": [
+          "T168"
+        ],
+        "defect_evidence": [
+          "T167"
+        ]
       },
       "critical_path": {
         "is_critical": false,
@@ -1008,10 +1012,30 @@
       "forecast_start": "2026-10-21",
       "forecast_finish": "2026-10-24",
       "forecast_impact": {
-        "M1": {"old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged"},
-        "M2": {"old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged"},
-        "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
-        "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
         "reason": "T170 is a bounded M2 governance-correction authorization. T168 is its completed scheduling predecessor; T167 is historical defect evidence only. The incomplete resource/capacity and downstream dependency graph provides no verified critical-path slack or justified milestone movement, so all provisional forecasts remain unchanged."
       },
       "actual_start": "2026-10-20",
@@ -1043,8 +1067,13 @@
       "milestone": "M2",
       "lane": "ux",
       "dependencies": {
-        "finish_to_start": ["T169", "T170"],
-        "defect_evidence": ["T167"]
+        "finish_to_start": [
+          "T169",
+          "T170"
+        ],
+        "defect_evidence": [
+          "T167"
+        ]
       },
       "critical_path": {
         "is_critical": false,
@@ -1056,10 +1085,30 @@
       "forecast_start": "2026-10-21",
       "forecast_finish": "2026-10-24",
       "forecast_impact": {
-        "M1": {"old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged"},
-        "M2": {"old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged"},
-        "M3": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
-        "overall_finalization": {"old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged"},
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
         "reason": "T171 authorization registers bounded M2 scope, dependency and capacity baseline verification. T169 and T170 are completed finish-to-start predecessors; T167 remains historical defect evidence only. The dependency and capacity network remains incomplete, so no verified critical-path slack or justified milestone movement exists and all provisional forecasts remain unchanged."
       },
       "actual_start": "2026-10-20",
@@ -1228,6 +1277,67 @@
         "approved_qa_publication_head": "91987e67e7fd0c68a7f24406e3d449baf7c703ae",
         "actual_start_evidence": "T173 Phase51 implementation log records Started: 2026-10-23 and Completed: 2026-10-23; first substantive implementation commit fb4e810a40589f5faee776d78ff016b0f338e9b8; Independent QA review docs/reviews/T173_QA_Review.md."
       }
+    },
+    {
+      "id": "T174",
+      "title": "M2-V3 Enquiry / Quotation Conversion Contract and Architectural Gate Assessment",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T173"
+        ],
+        "defect_evidence": [
+          "T167"
+        ]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-24",
+      "planned_finish": "2026-10-27",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-24",
+      "forecast_finish": "2026-10-27",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T174 authorization registers owner-approved M2-V3 conversion-contract and architecture-gate assessment only. T173 is completed finish-to-start predecessor; T167 is historical defect evidence. All capacity and estimate inputs remain Unknown, so no certified critical path, slack or milestone movement exists."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
@@ -1627,7 +1737,7 @@
       "trigger_key": "T170:7fac6572e40ee35c5eec11550d1866fa9edac313:M3",
       "recalculated": "2026-10-20"
     },
-{
+    {
       "milestone": "M1",
       "old": "2026-11-15",
       "new": "2026-11-15",
@@ -1638,7 +1748,7 @@
       "trigger_key": "T169:78ae3513227d90a2b20e309792708d03201ef477:M1",
       "recalculated": "2026-10-20"
     },
-{
+    {
       "milestone": "M2",
       "old": "2026-12-31",
       "new": "2026-12-31",
@@ -1649,7 +1759,7 @@
       "trigger_key": "T169:78ae3513227d90a2b20e309792708d03201ef477:M2",
       "recalculated": "2026-10-20"
     },
-{
+    {
       "milestone": "M3",
       "old": "2027-02-28",
       "new": "2027-02-28",
