@@ -65,7 +65,7 @@ Do not infer M1 or M2 acceptance from this phase. Keep `QA-T166-NB-01` historica
 
 ☑ Architecture preserved  
 ☑ Existing design patterns followed  
-☑ Tests added — two test-only integration scenarios cover rollback/no-orphan and lost-response replay.  
+☑ Tests added — two test-only integration scenarios cover rollback/no-orphan and lost-response replay.
 ☑ Existing tests pass  
 ☑ Documentation updated  
 □ ADR updated (if required) — no architectural decision made  
