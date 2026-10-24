@@ -199,14 +199,21 @@ Because the return value was immediately followed by raising a simulated `Runtim
 
 ---
 
-## 9. Remote Publication Proof
+## 9. Remote Publication Verification & Proof Reconciliation
 
-*(Populated upon push to remote PR branch `codex/t175-operational-verification` per `PROJECT_WORKFLOW.md §6`)*
+*(Reconciled per `PROJECT_WORKFLOW.md §6` and repository governance precedent)*
 
 - **Implementation PR:** [#369](https://github.com/Intelligentclown/Legal_DMS/pull/369)
-- **Substantive Candidate HEAD Evaluated:** `c9e19f75987222167adb51e69660ba0ef7c7c0fc`
-- **QA Publication Commit SHA:** `[PENDING COMMIT]`
-- **QA Commit Parent SHA:** `c9e19f75987222167adb51e69660ba0ef7c7c0fc`
-- **New Remote PR HEAD SHA After Push:** `[PENDING PUSH]`
-- **QA Commit Ancestor of Remote PR HEAD:** `[PENDING VERIFICATION]`
-- **QA Decision Read Directly from Remote PR HEAD:** `[PENDING VERIFICATION]`
+- **Reviewed Substantive Candidate SHA:** `c9e19f75987222167adb51e69660ba0ef7c7c0fc`
+- **Original QA Publication Commit SHA:** `bb1f981129a26fce358885db7fab683b0cdf40c5`
+- **Original QA Publication Commit Parent:** `c9e19f75987222167adb51e69660ba0ef7c7c0fc`
+- **Actual Remote HEAD at Initial Verification:** `bb1f981129a26fce358885db7fab683b0cdf40c5`
+- **QA Decision Present in Remote PR HEAD:** YES — re-read directly from remote PR HEAD (`Approved with comments`)
+- **QA Commit Ancestor of Remote PR HEAD:** YES — verified via `git merge-base --is-ancestor bb1f981129a26fce358885db7fab683b0cdf40c5 origin/codex/t175-operational-verification`
+- **QA Decision Read Directly from Remote PR HEAD:** YES — verified via `git show origin/codex/t175-operational-verification:docs/reviews/T175_QA_Review.md`
+- **Publication Proof Reconciliation & Lineage:**
+  - *Original Substantive Candidate:* `c9e19f75987222167adb51e69660ba0ef7c7c0fc` (adds two recovery integration tests, 5 native Electron screenshots, and implementation evidence update; cleans Ruff F841).
+  - *Original QA Decision Publication Commit:* `bb1f981129a26fce358885db7fab683b0cdf40c5` (publishes `docs/reviews/T175_QA_Review.md` with formal QA decision `Approved with comments` and logs final QA decision summary in `docs/ImplementationLog/Stage3/Phase53.md`).
+  - *Documentation Reconciliation Commit:* Follow-up child commit applied directly on top of `bb1f981129a26fce358885db7fab683b0cdf40c5` solely to reconcile publication proof metadata in `docs/reviews/T175_QA_Review.md`, eliminating pre-commit template placeholders while avoiding self-referential commit SHA claims that cannot be recorded in the same commit.
+  - *Lineage Preservation:* The original substantive candidate `c9e19f75987222167adb51e69660ba0ef7c7c0fc` and original QA publication commit `bb1f981129a26fce358885db7fab683b0cdf40c5` remain strict immutable ancestors of the reconciled remote PR HEAD.
+  - *Substantive Governance Integrity:* Zero application code, database migrations, runtime packages, queue states, or calendar calculations are modified; the scope of the reconciliation commit is strictly confined to `docs/reviews/T175_QA_Review.md`.
