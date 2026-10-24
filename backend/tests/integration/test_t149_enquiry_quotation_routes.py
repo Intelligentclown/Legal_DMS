@@ -394,7 +394,7 @@ async def test_t175_acceptance_fault_rolls_back_entire_conversion_and_leaves_no_
     async def fail_after_acceptance_flush(
         repository: SqlAlchemyEnquiryRepository, acceptance: Acceptance
     ) -> Acceptance:
-        persisted = await original_add_acceptance(repository, acceptance)
+        await original_add_acceptance(repository, acceptance)
         raise RuntimeError("T175 injected post-flush conversion fault")
 
     monkeypatch.setattr(SqlAlchemyEnquiryRepository, "add_acceptance", fail_after_acceptance_flush)
