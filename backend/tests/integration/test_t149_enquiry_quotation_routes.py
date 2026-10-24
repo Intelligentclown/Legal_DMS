@@ -28,6 +28,9 @@ from app.infrastructure.persistence.models.identity import (
 from app.infrastructure.persistence.models.matter import Matter, MatterStatus, MatterType
 from app.infrastructure.persistence.models.organization import Organization
 from app.infrastructure.persistence.models.party import MatterParty, Party
+from app.infrastructure.persistence.sqlalchemy_enquiry_repository import (
+    SqlAlchemyEnquiryRepository,
+)
 from app.infrastructure.security.password_hasher import hash_password
 from app.main import app
 from tests.support.synthetic_migration import (
@@ -238,8 +241,7 @@ async def _t152_setup(
 
 def _accept_path(enquiry_id: UUID, quotation_id: UUID, revision_id: UUID) -> str:
     return (
-        f"/api/v1/enquiries/{enquiry_id}/quotations/{quotation_id}/revisions/"
-        f"{revision_id}/accept"
+        f"/api/v1/enquiries/{enquiry_id}/quotations/{quotation_id}/revisions/{revision_id}/accept"
     )
 
 
@@ -365,5 +367,138 @@ async def test_t152_requires_party_and_both_authorities_and_serializes_concurren
         assert (
             await db.execute(
                 select(func.count()).select_from(Matter).where(Matter.organization_id == _org)
+            )
+        ).scalar_one() == 1
+
+
+@pytest.mark.asyncio
+async def test_t175_acceptance_fault_rolls_back_entire_conversion_and_leaves_no_orphans(
+    t149_client: tuple[AsyncClient, async_sessionmaker[AsyncSession]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Inject a failure after all conversion rows flush but before request commit.
+
+    This is deliberately an integration-only fault hook.  It proves the
+    request-owned transaction rolls back the Matter, Acceptance and canonical
+    MatterParty together; it does not change the application path.
+    """
+    client, factory = t149_client
+    headers, organization_id, _party_id, enquiry_id, quotation_id, values = await _t152_setup(
+        client,
+        factory,
+        ("enquiries:write", "quotations:write", "quotations:accept", "matters:write"),
+    )
+    path = _accept_path(enquiry_id, quotation_id, values["revision_id"])
+    original_add_acceptance = SqlAlchemyEnquiryRepository.add_acceptance
+
+    async def fail_after_acceptance_flush(
+        repository: SqlAlchemyEnquiryRepository, acceptance: Acceptance
+    ) -> Acceptance:
+        await original_add_acceptance(repository, acceptance)
+        raise RuntimeError("T175 injected post-flush conversion fault")
+
+    monkeypatch.setattr(SqlAlchemyEnquiryRepository, "add_acceptance", fail_after_acceptance_flush)
+    with pytest.raises(RuntimeError, match="T175 injected post-flush conversion fault"):
+        await client.post(
+            path,
+            headers={**headers, "Idempotency-Key": "t175-rollback"},
+            json=values["matter"],
+        )
+
+    async with factory() as db:
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(Acceptance)
+                .where(Acceptance.enquiry_id == enquiry_id)
+            )
+        ).scalar_one() == 0
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(Matter)
+                .where(Matter.organization_id == organization_id)
+            )
+        ).scalar_one() == 0
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(MatterParty)
+                .where(MatterParty.organization_id == organization_id)
+            )
+        ).scalar_one() == 0
+
+
+@pytest.mark.asyncio
+async def test_t175_lost_response_after_commit_replays_existing_conversion_once(
+    t149_client: tuple[AsyncClient, async_sessionmaker[AsyncSession]],
+) -> None:
+    """Drop the response only after the route transaction has committed.
+
+    The first request reaches the production ASGI app and its response is
+    intentionally withheld at ASGI send time.  The retry uses the original
+    key and payload and must return the persisted aggregate as a replay.
+    """
+    client, factory = t149_client
+    headers, organization_id, party_id, enquiry_id, quotation_id, values = await _t152_setup(
+        client,
+        factory,
+        ("enquiries:write", "quotations:write", "quotations:accept", "matters:write"),
+    )
+    path = _accept_path(enquiry_id, quotation_id, values["revision_id"])
+
+    async def lose_response_after_commit(scope, receive, send):
+        async def drop_first_response_start(message):
+            if message["type"] == "http.response.start":
+                raise RuntimeError("T175 simulated lost HTTP response after commit")
+            await send(message)
+
+        await app(scope, receive, drop_first_response_start)
+
+    lost_transport = ASGITransport(app=lose_response_after_commit, raise_app_exceptions=True)
+    async with AsyncClient(transport=lost_transport, base_url="http://test") as lost_client:
+        with pytest.raises(RuntimeError, match="simulated lost HTTP response after commit"):
+            await lost_client.post(
+                path,
+                headers={**headers, "Idempotency-Key": "t175-uncertain-commit"},
+                json=values["matter"],
+            )
+
+    replay = await client.post(
+        path,
+        headers={**headers, "Idempotency-Key": "t175-uncertain-commit"},
+        json=values["matter"],
+    )
+    assert replay.status_code == 200
+    replayed = replay.json()["data"]
+    assert replayed["replayed"] is True
+
+    async with factory() as db:
+        acceptance = (
+            await db.execute(select(Acceptance).where(Acceptance.enquiry_id == enquiry_id))
+        ).scalar_one()
+        assert str(acceptance.id) == replayed["id"]
+        assert str(acceptance.matter_id) == replayed["matter_id"]
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(Matter)
+                .where(Matter.organization_id == organization_id)
+            )
+        ).scalar_one() == 1
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(Acceptance)
+                .where(Acceptance.enquiry_id == enquiry_id)
+            )
+        ).scalar_one() == 1
+        assert (
+            await db.execute(
+                select(func.count())
+                .select_from(MatterParty)
+                .where(
+                    MatterParty.matter_id == acceptance.matter_id, MatterParty.party_id == party_id
+                )
             )
         ).scalar_one() == 1
