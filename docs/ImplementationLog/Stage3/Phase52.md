@@ -29,12 +29,15 @@ Remediate the packaged Electron renderer asset-path defect with the smallest con
 ## Tasks Implemented
 
 - Scoped Vite's relative asset base (`--base=./`) to the root Electron packaging build, preserving direct web-build behavior.
+- Switched only packaged `file:` routing to React Router's hash router after user-observed evidence showed the loaded renderer resolving the absolute on-disk HTML path as a 404 route.
 - Added and wired an artifact check for root-absolute or missing renderer assets.
 - Built an unpacked Windows package and inspected its archive contents.
 
 ## Files Modified
 
 - `package.json`
+- `frontend/src/app/routes.tsx`
+- `frontend/src/app/routes.test.ts`
 - `scripts/verify_packaged_renderer_assets.cjs`
 - `docs/reviews/T176_Implementation_Evidence.md`
 - `docs/ImplementationLog/Stage3/Phase52.md`
@@ -46,17 +49,18 @@ Remediate the packaged Electron renderer asset-path defect with the smallest con
 ## Test Results
 
 - `npm run build`: passed; three local references were relative and present.
-- `npx vitest run src` from `frontend/`: 42 files / 370 tests passed.
+- `npx vitest run src` from `frontend/`: 42 files / 372 tests passed.
+- `npx vitest run src/app/routes.test.ts` from `frontend/`: 2 files / 14 tests passed, including file- and HTTPS-protocol router selection.
 - `npx eslint src vite.config.ts vitest.config.ts` from `frontend/`: 0 errors; 4 pre-existing warnings.
 - `npx prettier --check src package.json vite.config.ts vitest.config.ts index.html` from `frontend/`: passed.
 - Direct `npm --prefix frontend run build`: passed and retained root-absolute web asset paths.
 - `npm --prefix frontend run dev -- --host 127.0.0.1`: passed; returned HTTP 200 with the application title.
-- `npx electron-builder --win --dir --config.directories.output=release/t176-win-final`: passed; `app.asar` contains the HTML and bundled assets.
+- `npx electron-builder --win --dir --config.directories.output=release/t176-win-router`: passed; `app.asar` contains the HTML and bundled assets.
 - Native Windows visual verification: unavailable; see `docs/reviews/T176_Implementation_Evidence.md`.
 
 ## Design Decisions
 
-Pass Vite's standard relative production base only to the Electron packaging build rather than change Electron load paths. This provides `file://`-relative URLs without changing direct browser development or production builds.
+Pass Vite's standard relative production base only to the Electron packaging build rather than change Electron load paths. Select hash routing only for Electron's `file:` protocol, preventing the on-disk HTML pathname from being treated as an application route; HTTP(S) behavior remains browser-router based.
 
 ## Problems Encountered
 
