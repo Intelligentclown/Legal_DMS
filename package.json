@@ -12,11 +12,12 @@
     "electron:build:main": "tsc -p electron/tsconfig.json",
     "electron:build:preload": "esbuild electron/preload.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/preload.js",
     "electron:build": "npm run electron:build:main && npm run electron:build:preload",
+    "frontend:verify-packaged-assets": "node scripts/verify_packaged_renderer_assets.cjs frontend/dist/index.html",
     "electron:watch": "concurrently -k -n tsc,preload \"npm run electron:build:main -- --watch\" \"npm run electron:build:preload -- --watch\"",
     "electron:dev": "npm run electron:build && wait-on http://localhost:5173 && electron .",
     "electron:start": "electron .",
     "dev": "concurrently -k -n frontend,electron \"npm --prefix frontend run dev\" \"npm run electron:dev\"",
-    "build": "npm run electron:build && npm --prefix frontend run build",
+    "build": "npm run electron:build && npm --prefix frontend run build -- --base=./ && npm run frontend:verify-packaged-assets",
     "dist": "npm run build && electron-builder"
   },
   "devDependencies": {
