@@ -183,14 +183,21 @@ All workflows passed on candidate head `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e
 - [ ] Changes requested
 - [ ] Rejected
 
-### Remote Publication Verification
+### Remote Publication Verification & Proof Reconciliation
 - **Closeout PR:** [#368](https://github.com/Intelligentclown/Legal_DMS/pull/368)
-- **PR Remote HEAD before QA commit:** `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e`
-- **QA Publication Commit:** *[To be populated upon commit]*
-- **QA Commit Parent:** `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e`
-- **New Remote PR HEAD after push:** *[To be populated upon push]*
-- **QA COMMIT IS ANCESTOR OF REMOTE PR HEAD:** YES (verified via `git merge-base --is-ancestor`)
-- **QA DECISION READ FROM REMOTE PR HEAD:** YES (verified via `git show <remote-head>:docs/reviews/T176_Closeout_QA_Review.md`)
+- **Reviewed Substantive Candidate SHA:** `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e`
+- **Original QA Publication Commit SHA:** `adc041ee4b480de46fe7651099d53be32c4a8efd`
+- **Original QA Publication Commit Parent:** `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e`
+- **Actual Remote HEAD at Verification:** `adc041ee4b480de46fe7651099d53be32c4a8efd`
+- **QA Decision Present in Remote PR HEAD:** YES — re-read directly from remote PR HEAD (`Approved with comments`)
+- **QA COMMIT IS ANCESTOR OF REMOTE PR HEAD:** YES — verified via `git merge-base --is-ancestor adc041ee4b480de46fe7651099d53be32c4a8efd origin/docs/t176-governance-closeout`
+- **QA DECISION READ FROM REMOTE PR HEAD:** YES — verified via `git show origin/docs/t176-governance-closeout:docs/reviews/T176_Closeout_QA_Review.md`
+- **Publication Proof Reconciliation & Lineage:**
+  - *Original Substantive Candidate:* `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e` (PR 3 closeout metadata changes).
+  - *Original QA Decision Publication Commit:* `adc041ee4b480de46fe7651099d53be32c4a8efd` (adds `docs/reviews/T176_Closeout_QA_Review.md` with formal QA decision `Approved with comments`).
+  - *Documentation Correction Commit:* Follow-up child commit applied directly on top of `adc041ee4b480de46fe7651099d53be32c4a8efd` solely to reconcile publication proof metadata in `docs/reviews/T176_Closeout_QA_Review.md`, eliminating pre-commit template placeholders while avoiding self-referential commit SHA paradoxes.
+  - *Lineage Preservation:* The original substantive candidate `6a6ca45c6015b16b303d669d2b74ce39dfdf6f2e` and original QA publication commit `adc041ee4b480de46fe7651099d53be32c4a8efd` remain strict immutable ancestors of the corrected remote PR HEAD.
+  - *Substantive Governance Integrity:* Zero application code, database migrations, runtime packages, queue states, or calendar calculations are modified; the scope of the correction commit is strictly confined to `docs/reviews/T176_Closeout_QA_Review.md`.
 
 ---
 
