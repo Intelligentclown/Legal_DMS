@@ -942,6 +942,12 @@ T80 reflects reality; `IMPLEMENTATION_QUEUE.md` and `PROJECT_STATE.json` mark St
 
 ## Documentation Backlog & Governance/Required-ADR Tasks
 
+### Authorized Packaging Remediation
+
+| ID | Task | Status | Depends on |
+| --- | --- | --- | --- |
+| T176 | **Packaged Electron Renderer Asset-Path Remediation. Authorized by the project owner on 2026-10-24; Issue #365; PROJECT_WORKFLOW.md §3.1 authorization PR 1 of 3 and calendar registration only.** **Bounded scope:** correct only the frontend build/packaging configuration required for the packaged Windows Electron `file://` renderer to resolve its shipped assets and reach the existing login screen; produce reproducible package and regression evidence. **Exclusions:** no application feature, API, conversion workflow, database, schema, Alembic migration, auth/session redesign, ADR resolution, M1/M2 acceptance, forecast change, T175 Done marker, or successor authorization. **Lifecycle:** this row is authorization-only; implementation may begin only after this PR has Independent QA approval, required CI, collaborator approval, and protected merge. T175 remains Authorized/not Done; its native Electron workstream remains blocked by the observed packaged-renderer defect. **Candidate state:** latestTaskDone=T174; latestTaskAuthorized=T176; inProgressTransitions=[]. | Authorized | T175 |
+
 *(Header corrected by T95 — see [`docs/GOVERNANCE_VALIDATION.md`](docs/GOVERNANCE_VALIDATION.md).
 This section's original title, "flagged, not scheduled — unrelated to any single stage," was
 accurate only for its first entry (`T81`) and became stale as `T86`–`T95` were appended below it
