@@ -1400,17 +1400,28 @@
         },
         "reason": "T175 authorization registers owner-approved bounded M1 operational reacceptance and M2-V3 conversion verification across two distinct workstreams. T174 is completed finish-to-start predecessor; T176 remediation enables T175 verification to resume; T167 is historical defect evidence. All provisional milestone forecasts remain unchanged without acceleration or premature completion claims."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-24",
+      "actual_completion": "2026-10-25",
+      "actual_elapsed": 2,
+      "planned_finish_used": "2026-10-27",
+      "variance": -2,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-25",
+      "completion_evidence": {
+        "implementation_pr": 369,
+        "protected_merge_sha": "78c2ee36363e9ddd25a5e4517afeb8df9882250f",
+        "protected_merge_parents": [
+          "cc5a9ef20929c5723df9b4320d44bdc76bc02400",
+          "bd248823575c99eaec1a5aafdb7f13567963e5d2"
+        ],
+        "merged_at_utc": "2026-10-24T20:07:59Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "bd248823575c99eaec1a5aafdb7f13567963e5d2",
+        "actual_start_evidence": "T175 Phase 53 log docs/ImplementationLog/Stage3/Phase53.md records Started: 2026-10-24; evidence note docs/reviews/T175_Implementation_Evidence.md records Execution dates: 2026-10-24 and 2026-10-25 (Asia/Kolkata); initial evidence commit 1b52fb1 authored 2026-10-24 21:25:57 +0530; PR #369 created 2026-10-24T15:56:14Z (21:26:14 Asia/Kolkata); Independent QA review docs/reviews/T175_QA_Review.md completed 2026-10-25."
+      }
     },
     {
       "id": "T176",
@@ -2055,6 +2066,39 @@
       "trigger": "T176 PR #367 protected implementation merge e7ccd7ce5333eaabb48c4d06fa12fa69cefc177b; QA Approved with comments, docs/reviews/T176_QA_Review.md",
       "trigger_key": "T176:e7ccd7ce5333eaabb48c4d06fa12fa69cefc177b:M3",
       "recalculated": "2026-10-24"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T175 independently QA-approved operational reacceptance and M2-V3 conversion verification protected-merged 2026-10-25 Asia/Kolkata, two days before original planned finish 2026-10-27. Workstream A verified 35 operational scenarios including native Electron session restoration and logout. Workstream B verified conversion contract, isolated PostgreSQL rollback and uncertain-commit retry recovery. Unresolved ADR gates [12,15,16,17,20] and separate milestone acceptance boundaries remain; provisional forecasts remain unchanged.",
+      "trigger": "T175 PR #369 protected implementation merge 78c2ee36363e9ddd25a5e4517afeb8df9882250f; QA Approved with comments, docs/reviews/T175_QA_Review.md",
+      "trigger_key": "T175:78c2ee36363e9ddd25a5e4517afeb8df9882250f:M1",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T175 independently QA-approved operational reacceptance and M2-V3 conversion verification protected-merged 2026-10-25 Asia/Kolkata, two days before original planned finish 2026-10-27. Workstream A verified 35 operational scenarios including native Electron session restoration and logout. Workstream B verified conversion contract, isolated PostgreSQL rollback and uncertain-commit retry recovery. Unresolved ADR gates [12,15,16,17,20] and separate milestone acceptance boundaries remain; provisional forecasts remain unchanged.",
+      "trigger": "T175 PR #369 protected implementation merge 78c2ee36363e9ddd25a5e4517afeb8df9882250f; QA Approved with comments, docs/reviews/T175_QA_Review.md",
+      "trigger_key": "T175:78c2ee36363e9ddd25a5e4517afeb8df9882250f:M2",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T175 independently QA-approved operational reacceptance and M2-V3 conversion verification protected-merged 2026-10-25 Asia/Kolkata, two days before original planned finish 2026-10-27. Workstream A verified 35 operational scenarios including native Electron session restoration and logout. Workstream B verified conversion contract, isolated PostgreSQL rollback and uncertain-commit retry recovery. Unresolved ADR gates [12,15,16,17,20] and separate milestone acceptance boundaries remain; provisional forecasts remain unchanged.",
+      "trigger": "T175 PR #369 protected implementation merge 78c2ee36363e9ddd25a5e4517afeb8df9882250f; QA Approved with comments, docs/reviews/T175_QA_Review.md",
+      "trigger_key": "T175:78c2ee36363e9ddd25a5e4517afeb8df9882250f:M3",
+      "recalculated": "2026-10-25"
     }
   ],
   "planning_assumptions": [
