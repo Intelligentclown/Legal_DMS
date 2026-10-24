@@ -4162,3 +4162,35 @@ T165 operational-fresh schema revision compatibility is **implemented in the PR 
 The Project Owner **conditionally accepted M1 for operational dogfooding** on 2026-10-20, independently of T166's durable Done status. Authorization: [Issue #328](https://github.com/Intelligentclown/Legal_DMS/issues/328); documentation candidate: [PR #329](https://github.com/Intelligentclown/Legal_DMS/pull/329); canonical decision: [M1 Conditional Operational Acceptance](acceptance/M1_Conditional_Operational_Acceptance.md). The 35 scenarios were reconciled: 31 evidence-reused with rationale and four freshly passed (A3.2, A10.5, A11.3, A9.2); zero reported failed or blocked. T166 Independent QA: **Approved with comments**, zero blockers.
 
 **Limitations remain open:** full backend suite **not certified** (controlled fail-fast: 82 passed, one failed); QA-T166-NB-01 audit-logger test-infrastructure defect and T165 synthetic migration-fixture/future compatibility-lineage advisories unresolved. Required ADRs [12,15,16,17,20] remain unresolved; ADR-0047 remains Proposed. **Conditional operational acceptance is not production-release approval.** No T167 authorization, implementation, defect closure, governance policy change, or new task is implied. Provisional milestone forecasts, calendar actuals and immutable historical entries are unchanged; 2026-10-20 is the owner decision date, not a fabricated milestone execution/completion timestamp. This PR remains a candidate until separate Independent QA, required CI, collaborator review and protected merge; historical earlier M1 NOT READY entries describe their then-current state and are not rewritten.
+
+
+## Session: 2026-10-25 — Full M1 Operational Acceptance Publication (§3.2 Documentation Synchronization)
+
+**Assigned Role:** Documentation Manager
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.2` — Owner-authorized non-task documentation-only action ("Option A")
+**Authorization:** [GitHub Issue #371](https://github.com/Intelligentclown/Legal_DMS/issues/371) (Project Owner decision granted in Legal_DMS Control Tower on 2026-10-25, Asia/Kolkata)
+**Baseline:** Protected `main` at `422ee7ebc79eddab462f0030f128cb072540dfc4` (T175 governance closeout PR #370)
+**Branch:** `docs/m1-full-operational-acceptance`
+
+### 1. Published Decision
+The Project Owner upgraded **M1 — Office Dogfooding** from **Conditional Operational Acceptance** to **Full Operational Acceptance**, **for the defined office-dogfooding boundary only**.
+Canonical decision record published: [`docs/acceptance/M1_Full_Operational_Acceptance.md`](acceptance/M1_Full_Operational_Acceptance.md).
+
+### 2. Supporting Durable Evidence Accepted
+- **T175 Authorization & Implementation:** Authorization PR #364; implementation PR #369 protected merge `78c2ee36363e9ddd25a5e4517afeb8df9882250f`; [`docs/reviews/T175_QA_Review.md`](reviews/T175_QA_Review.md); [`docs/reviews/T175_Implementation_Evidence.md`](reviews/T175_Implementation_Evidence.md).
+- **T175 Governance Closeout:** Closeout PR #370 protected merge `422ee7ebc79eddab462f0030f128cb072540dfc4`; [`docs/reviews/T175_Closeout_QA_Review.md`](reviews/T175_Closeout_QA_Review.md); [`docs/closeout/T175_Governance_Closeout.md`](closeout/T175_Governance_Closeout.md).
+- **35 Reconciled Scenarios:** 35 operational scenarios re-verified across Workstream A and Workstream B; zero reported failed or blocked (`docs/acceptance/T166_M1_Operational_Reacceptance_Report.md`).
+- **Complete Suite Certification:** Full backend test suite on isolated PostgreSQL 16.15: 942 passed, 0 failed, 0 errors; disclosed warnings (T169 reconciliation PR #342 and T175 verification).
+- **Packaged Electron Remediation:** Production renderer crash resolved under T176 (PRs #367/#368).
+- **Native Windows Electron Operational Evidence:** Packaged Electron executable (`Legal DMS Setup 0.2.0.exe`) runtime verification on native Windows host: interactive login, protected navigation, conversion, session persistence/restoration across reload (Ctrl+R) and application restart backed by DPAPI/safeStorage IPC refresh token, logout, and operator-recovery fault injection (transaction rollback and uncertain-commit retry against isolated PostgreSQL 16.15).
+- **Multi-Tenant & Security Boundary:** Tenant isolation, RBAC role-permission matrix, and directional schema revision compatibility lineage terminating at migration frontier `b155caa6d4e1`.
+
+### 3. Preserved Invariants and Exclusions
+- **Office Dogfooding Boundary Only:** Certified strictly for office dogfooding; does not constitute unrestricted production release readiness, public availability, or Full V1 commercial readiness.
+- **No M2 Milestone Acceptance:** Workstream B conversion verification satisfies T175 task verification criteria, but does not constitute M2 milestone acceptance or production release certification.
+- **Historical Provenance Preserved:** Prior M1 Conditional Operational Acceptance record ([`docs/acceptance/M1_Conditional_Operational_Acceptance.md`](acceptance/M1_Conditional_Operational_Acceptance.md), Issue #328) is preserved intact as historical provenance.
+- **Pre-existing Debt Preserved:** Test manifest assertion debt (`scripts/tests/test_current_context_manifest.py:30` expecting historical `T170`) remains accepted baseline debt across T171–T176.
+- **Unresolved Required ADRs:** Required ADRs `[12, 15, 16, 17, 20]` remain strictly unresolved; ADR-0043 and ADR-0047 remain `Proposed`.
+- **Sole Migration Frontier:** Migration frontier remains solely `b155caa6d4e1`. No database schema, migration, or model changes are authorized or introduced.
+- **Governance & Calendar Invariants:** No new, reserved, implied, or consumed `T##` task number; T177 remains unauthorized. Milestone forecasts (`2026-11-15`) and milestone actual (`null`) in `docs/delivery_calendar.json` remain untouched.
+- **Candidate Status:** This PR candidate records the Project Owner's already-granted approval (Issue #371) and becomes durable in repository history upon Independent QA, mandatory CI, collaborator review, and protected merge.
