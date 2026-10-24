@@ -18,27 +18,29 @@ Produce separated, independently reviewable evidence for T175 Workstream A (M1 o
 - Reverified protected baseline, T175 authorization, T176 remediation/closeout, and the sole migration frontier.
 - Executed the focused PostgreSQL/FastAPI conversion route suite and a fresh complete backend suite against an isolated PostgreSQL 16.15 container.
 - Built the packaged Windows Electron application, verified relative renderer assets, and directly observed packaged cold start plus unauthenticated restart.
-- Published the full evidence/disposition matrix in `docs/reviews/T175_Implementation_Evidence.md`.
+- Added two test-only conversion-recovery scenarios and published the evidence/disposition matrix plus five human-operated Electron screenshots.
 
 ## Files Modified
 
+- `backend/tests/integration/test_t149_enquiry_quotation_routes.py`
 - `docs/reviews/T175_Implementation_Evidence.md`
 - `docs/ImplementationLog/Stage3/Phase53.md`
+- `docs/acceptance/evidence/T175/*`
 
 ## Tests Added
 
-None. T175 is constrained to evidence publication and executed existing test contracts rather than adding application or test behavior.
+Two test-only integration scenarios: acceptance-specific fault rollback/no-orphan verification and lost-response/uncertain-commit retry recovery. No production behavior changed.
 
 ## Test Results
 
-- `uv run pytest tests/integration/test_t149_enquiry_quotation_routes.py -q`: **4 passed, 1 warning**.
+- `uv run pytest tests/integration/test_t149_enquiry_quotation_routes.py -q`: **4 passed, 1 warning** (2026-10-24 baseline) and **6 passed, 1 warning in 9.43s** (2026-10-25 isolated PostgreSQL 16 rerun including controlled-fault and uncertain-commit scenarios).
 - `uv run pytest -q`: **942 passed, 87 warnings in 799.60s**.
 - `uv run alembic upgrade head`, `heads`, and `current`: sole head **`b155caa6d4e1`**.
 - `npm run dist`: passed; packaged-renderer asset verifier passed and Windows x64 package produced.
 - `npm --prefix frontend run test -- --run`: **21 files / 187 tests passed**; lint: **0 errors, 4 pre-existing warnings**; format check passed.
 - Native Windows packaged cold start and unauthenticated restart: visually verified at `file:///.../index.html#/login`.
 
-Authenticated Electron login, navigation, logout, persistence and operator-recovery evidence were not executed because desktop automation must not enter credentials. Acceptance-specific rollback/no-orphan and uncertain-commit retry were not directly exercised.
+Human-operated packaged Electron verification is complete: login, protected navigation, Enquiry → Quotation → Acceptance → Matter, visible Party-write denial recovery, authenticated restart persistence, logout, and logged-out restart persistence. Acceptance-specific rollback/no-orphan and uncertain-commit retry are directly exercised by test-only integration protocols; no production source, schema, or conversion semantic changed.
 
 ## Design Decisions
 
@@ -53,8 +55,7 @@ None. Evidence distinguishes verified application behavior, valid historical evi
 
 ## Deferred Work
 
-- Human-operator authenticated packaged-Electron walkthrough, including logout and restart persistence, before operational-completeness recommendation.
-- Direct acceptance-specific fault injection for rollback/no-orphan and a controlled lost-response/uncertain-commit retry. Revisit only under the existing T175 verification scope with an approved safe protocol; request separate authorization if a product change is required.
+- Fresh Independent QA of the completed 2026-10-25 evidence package before any PR merge recommendation. The earlier QA decision does not cover later evidence.
 
 ## Future Considerations
 
