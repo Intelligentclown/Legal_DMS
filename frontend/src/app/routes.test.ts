@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { RouteObject } from "react-router-dom";
 
-import { router } from "@/app/routes";
+import { createAppRouter, router } from "@/app/routes";
+
+const LOGIN_LOCATION = {
+  pathname: "/login",
+  search: "",
+  hash: "",
+  state: null,
+  key: "test",
+};
 
 const T145_PATHS = [
   "parties",
@@ -18,6 +26,14 @@ const layout = guard[0]?.children?.find((route) => route.children);
 const slice = (layout?.children ?? []).map((child) => child.path);
 
 describe("router", () => {
+  it("uses hash routing for the packaged Electron file protocol", () => {
+    expect(createAppRouter("file:").createHref(LOGIN_LOCATION)).toBe("#/login");
+  });
+
+  it("keeps browser routing for HTTP(S) application builds", () => {
+    expect(createAppRouter("https:").createHref(LOGIN_LOCATION)).toBe("/login");
+  });
+
   it("keeps login outside the authenticated guard", () => {
     expect(router.routes.filter((route) => route.path).map((route) => route.path)).toEqual([
       "/login",

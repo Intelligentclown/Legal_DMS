@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, createHashRouter } from "react-router-dom";
 
 import { ProtectedRoute } from "@/app/ProtectedRoute";
 import { MainLayout } from "@/presentation/layouts/MainLayout";
@@ -16,7 +16,7 @@ import { PartiesPage } from "@/presentation/pages/PartiesPage";
 import { PartyCreatePage } from "@/presentation/pages/PartyCreatePage";
 import { QuotationDetailPage } from "@/presentation/pages/QuotationDetailPage";
 
-export const router = createBrowserRouter([
+const routes = [
   {
     element: <ProtectedRoute />,
     children: [
@@ -71,4 +71,11 @@ export const router = createBrowserRouter([
     path: "/login",
     element: <LoginPage />,
   },
-]);
+];
+
+export function createAppRouter(protocol = window.location.protocol) {
+  const createRouter = protocol === "file:" ? createHashRouter : createBrowserRouter;
+  return createRouter(routes);
+}
+
+export const router = createAppRouter();
