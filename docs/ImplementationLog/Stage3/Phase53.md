@@ -92,6 +92,13 @@ Do not infer M1 or M2 acceptance from this phase. Keep `QA-T166-NB-01` historica
 - **Unresolved Gates & Blockers:** Four mandatory verification gates remain unresolved: (1) Authenticated native Electron session walkthrough (A9.2 / Conversion UI); (2) Acceptance-specific rollback and zero-orphan fault injection; (3) Lost-response / uncertain-commit retry recovery; and (4) Operator error recovery.
 - **Lifecycle Determination:** Evidence publication is approved with comments. Full M1 operational acceptance is withheld; complete M2-V3 verification is withheld; T175 completion and protected merge are withheld pending a human-operated verification session.
 
-### Post-QA Evidence Addendum (2026-10-25)
+### Final QA Reassessment Decision (2026-10-25)
 
-The preceding QA Decision is preserved as the historical decision for head `1b52fb1`; it does **not** cover commit `79f486e` or its successor after push. The four then-unresolved gates are now evidenced: the two backend recovery scenarios pass against isolated PostgreSQL 16, and the human-operated packaged Electron walkthrough verified login, protected navigation, complete conversion, visible guarded Party-write recovery, authenticated restart, logout, and logged-out restart. A new Independent QA decision is mandatory before any PR merge recommendation. M1 and M2 acceptance remain withheld.
+- **Formal QA Decision:** Approved with comments
+- **Reviewed Candidate Head:** `c9e19f75987222167adb51e69660ba0ef7c7c0fc`
+- **Reviewer:** Independent QA Reviewer (Antigravity)
+- **Review Report:** [`docs/reviews/T175_QA_Review.md`](../../reviews/T175_QA_Review.md)
+- **Date:** 2026-10-25
+- **Verification Summary:** All four previously unresolved verification findings (QA-T175-BLK-01 through BLK-04) are fully resolved. Human-operated native Windows Electron session verified authenticated login, protected navigation, Enquiry → Quotation → revision issuance → Acceptance → Matter completion (`T175-M-001`), visible Party-write denial recovery under ADR-0037, restart with safeStorage session restoration, logout, and logged-out restart. Two new integration test scenarios verify acceptance rollback with zero orphan records under simulated post-flush fault and idempotent replay recovery under lost response after commit. Minimal Ruff F841 cleanup in commit `c9e19f7` preserved test semantics.
+- **Findings Status:** All four blocking findings (BLK-01 through BLK-04) are RESOLVED. Zero blocking findings remain. Residual advisories (QA-T175-ADV-01, QA-T175-ADV-02, QA-T175-HIST-01, QA-T175-HIST-02) are non-blocking.
+- **Lifecycle & Merge Determination:** The authorized T175 implementation deliverable is COMPLETE. PR #369 is ELIGIBLE FOR PROTECTED MERGE. Full M1 operational acceptance and M2 milestone acceptance remain separate future governance decisions.
