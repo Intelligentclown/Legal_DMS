@@ -1699,3 +1699,41 @@ Following the protected merge of T177 implementation PR #375 (merge commit `0da4
 - **Calendar Accounting:** Actual start `2026-10-25`, actual completion `2026-10-25`, elapsed 1 inclusive day, variance `-3` days Early versus planned finish `2026-10-28`. Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
 - **Governance Frontier:** Advances to `latestTaskDone=T177`, `latestTaskAuthorized=T177`, `inProgressTransitions=[]`.
 - **Candidate Status:** This dedicated closeout PR records the completion evidence and requires separate Independent QA, CI, collaborator review, and protected merge before durable T177 Done.
+
+## 2026-10-25 — T178 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T178 — M1 Calendar Reconciliation & M2/M3 Delivery Forecast Recalibration** on 2026-10-25 under `PROJECT_WORKFLOW.md §3.1` ([Issue #377](https://github.com/Intelligentclown/Legal_DMS/issues/377)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T177"`
+- `latestTaskAuthorized = "T178"`
+- `inProgressTransitions = []`
+
+**Authorized assessment scope (3 workstreams):**
+- **Workstream A — M1 Milestone Reconciliation:**
+  - Verify Project Owner's Full M1 Operational Acceptance decision dated 2026-10-25, Issue #371, and protected publication (PR #372).
+  - Preserve M1 original baseline of 2026-11-15.
+  - Determine how to represent accepted milestone date 2026-10-25 and 21-day early variance.
+  - Inspect delivery-calendar schema, validators, and historical forecast records before proposing changes.
+  - Distinguish milestone acceptance from production-release approval.
+- **Workstream B — Historical Delivery Performance Analysis:**
+  - Analyze completed tasks T157–T177, excluding cancelled T167 from completion statistics while preserving its cancellation provenance.
+  - Distinguish elapsed calendar days, estimated person-days, parallel execution, and critical-path impact.
+  - Compare task categories and complexity (operational verification, schema remediation, governance, architecture/assessment).
+  - Do not extrapolate historical averages blindly to future work.
+- **Workstream C — M2/M3 Delivery Forecast Recalibration:**
+  - Inspect remaining M2 and M3 feature inventory against implemented application capabilities.
+  - Identify missing functionality, architectural gates, unresolved ADRs, integration dependencies, and acceptance requirements.
+  - Determine task estimates, dependency order, resource capacity, and opportunities for parallel execution.
+  - Produce earliest plausible, most likely, and conservative forecast scenarios with explicit assumptions.
+  - Assign evidence-based forecast confidence and explain unresolved uncertainty.
+  - Identify minimum further evidence needed before an official forecast change is justified.
+
+**Explicit restrictions & non-authorization boundaries:**
+- This authorization PR does NOT modify existing milestone baselines, forecasts, actual dates, or historical calendar events.
+- Does NOT declare M2 or M3 accepted.
+- Does NOT modify production application code, database schema, migrations, tests, security policies, or ADR statuses.
+- Required ADRs `[12, 15, 16, 17, 20]` remain unresolved; Proposed ADR-0043 and ADR-0047 remain `Proposed`; sole Alembic migration frontier remains `b155caa6d4e1`.
+- Preserves Full M1 Operational Acceptance for office dogfooding only.
+- Does NOT automatically authorize or implement unrelated successor tasks.
+- Candidate state: `latestTaskDone=T177`, `latestTaskAuthorized=T178`, `inProgressTransitions=[]`. T178 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.

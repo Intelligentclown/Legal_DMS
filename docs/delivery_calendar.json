@@ -1565,6 +1565,65 @@
         "approved_qa_publication_head": "ac70b7437b84319cdd4736331f3314ba59367c03",
         "actual_start_evidence": "T177 Phase 54 log docs/ImplementationLog/Stage3/Phase54.md and evidence note docs/reviews/T177_Implementation_Evidence.md record Started/Execution date: 2026-10-25 (Asia/Kolkata); substantive candidate commit d890787a17743cbd3e70824492210ab1874dd1d6 authored 2026-10-25 13:22:25 +0530; PR #375 created 2026-10-25T07:54:19Z (13:24:19 Asia/Kolkata); Independent QA review docs/reviews/T177_QA_Review.md dated 2026-10-25."
       }
+    },
+    {
+      "id": "T178",
+      "title": "M1 Calendar Reconciliation & M2/M3 Delivery Forecast Recalibration",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T177"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-25",
+      "planned_finish": "2026-10-28",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-25",
+      "forecast_finish": "2026-10-28",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T178 is an owner-approved assessment task addressing M1 calendar reconciliation and M2/M3 delivery forecast recalibration. T177 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; any forecast recalibration is subject to subsequent evidence and separate authorization."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
