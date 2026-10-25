@@ -870,3 +870,30 @@ The Project Owner approved **Full M1 Operational Acceptance** on 2026-10-25 unde
 - **Sole Migration Frontier:** Migration frontier remains solely `b155caa6d4e1`. No database schema, migration, or model changes are authorized or introduced.
 - **Governance & Calendar:** No new, reserved, implied, or consumed `T##` task number; T177 remains unauthorized. Milestone forecasts (`2026-11-15`) and milestone actual (`null`) in `docs/delivery_calendar.json` remain untouched.
 - **Candidate Status:** This PR candidate records the Project Owner's already-granted approval (Issue #371) and becomes durable in repository history upon Independent QA, mandatory CI, collaborator review, and protected merge.
+
+
+## 2026-10-25 — T177 Authorization Publication (PROJECT_WORKFLOW.md §3.1 PR 1 of 3)
+
+The Project Owner explicitly approved **T177 — M2 Post-Conversion Office Journey Verification & Gap Disposition** on 2026-10-25 under `PROJECT_WORKFLOW.md §3.1` ([Issue #373](https://github.com/Intelligentclown/Legal_DMS/issues/373)). This authorization PR (PR 1 of 3) performs governance registration and documentation synchronization only.
+
+**Authorized scope & acceptance criteria:**
+- Independently verify one continuous post-conversion office journey: Accepted Quotation → Converted Matter → Canonical Client Party → Associated Property → File → Document → Document Version.
+- Ten reproducible acceptance criteria AC-01 through AC-10 preserved from Issue #373:
+  - AC-01 Exact issued quotation revision converts once to a Matter.
+  - AC-02 Operator opens converted Matter without manually copying its ID.
+  - AC-03 Matter displays correct canonical client Party.
+  - AC-04 Existing tenant-visible Property can be associated and retrieved without duplication.
+  - AC-05 File can be created and reopened under correct Matter.
+  - AC-06 Document can be created under that File.
+  - AC-07 Document version can be uploaded and downloaded with content integrity preserved.
+  - AC-08 Unauthorized and cross-tenant access is denied without data disclosure.
+  - AC-09 Application restart restores permitted authenticated workflow.
+  - AC-10 Independent QA records pass/fail/blocked results with reproducible evidence.
+- Verification-first: targeted test/fixture coverage added only where necessary to establish verification evidence. Discovered defects/gaps must be explicitly classified with disposition recommendations, without automatic substantive production remediation.
+- Complete three-PR §3.1 lifecycle: this authorization PR 1/3, subsequent implementation PR 2/3, and dedicated governance closeout PR 3/3, each with Independent QA.
+
+**Exclusions and invariant boundaries:**
+- No automatic substantive defect remediation, Party-detail page/navigation, server-side Property search, database schema/migration changes, ADR status changes, transaction redesign, security permission expansion, unrelated feature development, M2 milestone acceptance, or production-release approval.
+- Preserves Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; T175 conversion idempotency/atomicity/canonical associations; and Full M1 Operational Acceptance for internal office dogfooding only.
+- Approved provisional planning envelope of 6–11 person-days is an estimate, not a committed calendar duration; milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
+- Candidate state: `latestTaskDone=T176`, `latestTaskAuthorized=T177`, `inProgressTransitions=[]`. T177 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, CI, collaborator approval, and protected merge.
