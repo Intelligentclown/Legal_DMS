@@ -1048,3 +1048,37 @@ Following the protected merge of T179 implementation PR #383 (merge commit `a4da
 - Invariants strictly preserved: Required ADRs `[12, 15, 16, 17, 20]` unresolved; Proposed ADR-0043 and ADR-0047 remain Proposed; migration frontier solely `b155caa6d4e1`; Full M1 Operational Acceptance for office dogfooding only; T167 cancellation provenance immutable; M1 calendar actual remains `null`.
 - Zero production application code, schema, migration, or security policy changes.
 - Candidate Status: This dedicated closeout PR records the completion evidence and requires separate Independent QA, exact-head CI, collaborator review, and protected merge before durable T179 Done. No successor task is authorized (T180 unauthorized).
+
+## 2026-10-25 — T180 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T180 — M1 Acceptance-Date and Schema V3 Completion-Provenance Reconciliation** on 2026-10-25 under `PROJECT_WORKFLOW.md §3.1` ([Issue #385](https://github.com/Intelligentclown/Legal_DMS/issues/385)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T179"`
+- `latestTaskAuthorized = "T180"`
+- `inProgressTransitions = []`
+
+**Authorized future PR 2 scope (only after PR 1 protected merge):**
+- Verify canonical Project Owner acceptance Issue #371, acceptance publication PR #372 and `docs/acceptance/M1_Full_Operational_Acceptance.md`; verify the exact UTC acceptance/publication timestamp and its Asia/Kolkata date without fabrication.
+- Assemble immutable evidence references and a reproducible SHA-256 digest of a clearly defined evidence package; independently verify source accessibility, identity, integrity and the existing `internal_office_dogfooding` acceptance boundary.
+- Reconcile M1 `actual` to the evidence-supported local acceptance date `2026-10-25`, conditional on successful timestamp/evidence verification, and populate the complete eleven-field Schema V3 `completion_provenance` tuple. Preserve the original M1 baseline/forecast `2026-11-15`, confidence snapshot `low`, and derive variance `-21` calendar days / `Early` under the validator.
+- Add focused positive and fail-closed negative regression tests, governance consumer checks and documentation/audit traceability. Validate all affected governance and calendar invariants.
+- Preserve immutable historical events, existing task completion provenance and the three-PR lifecycle. Document any remaining evidence or semantic ambiguity as a STOP condition rather than guessing.
+
+**Acceptance criteria for eventual implementation:**
+1. Owner decision, acceptance scope, authoritative timestamp and publication evidence are independently verifiable and date-consistent.
+2. M1 actual and complete V3 provenance are mutually consistent; evidence SHA-256 package is reproducible and referenced.
+3. Variance `-21`/`Early` is mechanically validated against the frozen `2026-11-15` forecast, without changing baselines, forecasts or confidence.
+4. Fail-closed negative cases and backward compatibility are tested; governance/calendar/CI checks pass.
+5. Comprehensive / Risk Tier 1 independent QA returns zero blocking findings before protected implementation merge; separate PR 3 governance closeout records completion.
+
+**Explicit restrictions & non-authorization boundaries:**
+- No new Schema V4 or redesign of T179's Schema V3 contract unless a separately authorized change is required.
+- No re-performance or expansion of M1 operational acceptance; no production-release acceptance, M2/M3 acceptance or Full V1 release claim.
+- No changes to official M1/M2/M3/finalization forecast or baseline dates; no unsupported critical-path acceleration.
+- No application/backend/frontend/Electron implementation, database migrations, security/RBAC changes, unrelated ADR resolutions or M2 feature work.
+- No T181 authorization.
+- PR 1 is authorization/planning only: no milestone actual mutation, provenance tuple insertion, tests/validator changes, implementation, completion actuals or T180 Done claim.
+- Required ADRs `[12, 15, 16, 17, 20]` remain unresolved; Proposed ADR-0043 and ADR-0047 remain `Proposed`; sole Alembic migration frontier remains `b155caa6d4e1`.
+- Preserves Full M1 Operational Acceptance for office dogfooding only.
+- Candidate state: `latestTaskDone=T179`, `latestTaskAuthorized=T180`, `inProgressTransitions=[]`. T180 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
