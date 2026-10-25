@@ -819,6 +819,52 @@ class TestProtectedMergeCalendarV2(unittest.TestCase):
         self.assertEqual(len(pending_closeout_alerts(self.data, [authorized])), 1)
 
 
+class TestMilestoneCompletionProvenanceV3(unittest.TestCase):
+    def setUp(self):
+        from delivery_calendar import PROJECT_TIMEZONE, check_calendar
+        self.check = check_calendar
+        self.row = gv.TaskRow("T157", 1, "| T157 | Authorized by the project owner | Authorized | T156 |")
+        self.data = {"schema_version": 3, "activation_task_number": 157, "project_timezone": PROJECT_TIMEZONE,
+            "milestones": [{"id": key, "baseline": "2026-10-31", "forecast": "2026-10-31", "actual": None,
+                            "confidence": "low", "risk": "test", "last_recalculated": "2026-10-18"} for key in ("M1", "M2", "M3")],
+            "lanes": [{"id": "core"}], "history": [], "tasks": [{
+                "id": "T157", "title": "synthetic", "milestone": "M1", "lane": "core",
+                "dependencies": {"finish_to_start": [], "defect_evidence": []}, "critical_path": {"is_critical": False, "slack_days": 1},
+                "planned_start": "2026-10-18", "planned_finish": "2026-10-20", "planned_duration": 3,
+                "forecast_start": "2026-10-18", "forecast_finish": "2026-10-20", "forecast_impact": {}}]}
+    def provenance(self):
+        return {"accepted_at_utc": "2026-10-18T18:31:00Z", "acceptance_scope": "internal_office_dogfooding",
+            "acceptance_reference": "Issue #1 Project Owner acceptance", "evidence_references": ["docs/acceptance/M1.md", "PR #1"],
+            "evidence_sha256": "a" * 64, "baseline_at_completion": "2026-10-31", "forecast_at_completion": "2026-10-31",
+            "actual_completion": "2026-10-19", "variance_days": -12, "variance_classification": "Early", "confidence_at_completion": "low"}
+    def completed(self):
+        data = deepcopy(self.data)
+        data["milestones"][0].update(actual="2026-10-19", completion_provenance=self.provenance())
+        return data
+    def test_v3_valid_completion_and_null_milestones_are_supported(self):
+        self.assertEqual(self.check(self.completed(), [self.row]), [])
+    def test_v2_record_remains_valid_without_v3_milestone_provenance(self):
+        legacy = deepcopy(self.data); legacy["schema_version"] = 2
+        self.assertEqual(self.check(legacy, [self.row]), [])
+    def test_rejects_missing_malformed_or_unsupported_provenance(self):
+        for key, value in (("completion_provenance", None), ("acceptance_scope", "production_like"),
+                           ("evidence_sha256", "not-a-digest"), ("evidence_references", ["same", "same"])):
+            with self.subTest(key=key):
+                data = self.completed()
+                if key == "completion_provenance": data["milestones"][0][key] = value
+                else: data["milestones"][0]["completion_provenance"][key] = value
+                self.assertTrue(self.check(data, [self.row]))
+    def test_rejects_contradictory_snapshot_variance_and_confidence(self):
+        for key, value in (("forecast_at_completion", "2026-10-30"), ("actual_completion", "2026-10-18"),
+                           ("variance_days", 0), ("variance_classification", "On Time"), ("confidence_at_completion", "high")):
+            with self.subTest(key=key):
+                data = self.completed(); data["milestones"][0]["completion_provenance"][key] = value
+                self.assertTrue(self.check(data, [self.row]))
+    def test_null_actual_cannot_smuggle_completion_provenance(self):
+        data = deepcopy(self.data); data["milestones"][0]["completion_provenance"] = self.provenance()
+        self.assertTrue(self.check(data, [self.row]))
+
+
 class TestCancelledTaskGovernance(unittest.TestCase):
     def setUp(self):
         from delivery_calendar import PROJECT_TIMEZONE, check_calendar

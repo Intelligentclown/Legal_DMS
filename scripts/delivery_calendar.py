@@ -8,7 +8,7 @@ import re
 from zoneinfo import ZoneInfo
 
 PROJECT_TIMEZONE = "Asia/Kolkata"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 REQUIRED = ("id", "title", "milestone", "lane", "dependencies", "critical_path",
             "planned_start", "planned_finish", "planned_duration", "forecast_start",
@@ -20,6 +20,9 @@ QUEUE_STATES = ("Authorized", "Done", "Cancelled")
 CANCELLATION_REQUIRED = ("cancelled_task_id", "owner_approval_provenance",
                          "cancellation_date", "reason", "evidence_reference")
 TASK_ID_RE = re.compile(r"^T\d+$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+MILESTONE_CONFIDENCE = ("low", "medium", "high")
+MILESTONE_ACCEPTANCE_SCOPES = ("internal_office_dogfooding", "production_release")
 
 
 def day(value):
@@ -42,6 +45,37 @@ def local_completion_date(merged_at_utc):
     if instant.tzinfo is None or instant.utcoffset() != timedelta(0):
         raise ValueError("merged_at_utc must be UTC")
     return instant.astimezone(ZoneInfo(PROJECT_TIMEZONE)).date().isoformat()
+
+
+def milestone_completion_provenance(milestone):
+    """Validate the V3 completion tuple without silently reclassifying acceptance.
+
+    The tuple snapshots the baseline, forecast and confidence that were in
+    force at acceptance. Those snapshot values are immutable evidence used
+    for variance rather than today's recalculated planning values.
+    """
+    provenance = milestone.get("completion_provenance")
+    actual = milestone.get("actual")
+    if actual is None:
+        if provenance is not None: raise ValueError("null actual must not carry completion_provenance")
+        return
+    if not isinstance(provenance, dict): raise ValueError("completed milestone missing completion_provenance")
+    required = {"accepted_at_utc", "acceptance_scope", "acceptance_reference", "evidence_references", "evidence_sha256", "baseline_at_completion", "forecast_at_completion", "actual_completion", "variance_days", "variance_classification", "confidence_at_completion"}
+    if set(provenance) != required: raise ValueError("unsupported or incomplete completion_provenance fields")
+    if local_completion_date(provenance["accepted_at_utc"]) != actual: raise ValueError("milestone actual must match project-local acceptance date")
+    if provenance["actual_completion"] != actual: raise ValueError("provenance actual_completion must match milestone actual")
+    if provenance["acceptance_scope"] not in MILESTONE_ACCEPTANCE_SCOPES: raise ValueError("unsupported milestone acceptance_scope")
+    if not isinstance(provenance["acceptance_reference"], str) or not provenance["acceptance_reference"].strip(): raise ValueError("missing milestone acceptance_reference")
+    references = provenance["evidence_references"]
+    if (not isinstance(references, list) or not references or not all(isinstance(reference, str) and reference.strip() for reference in references) or len(set(references)) != len(references)):
+        raise ValueError("invalid immutable milestone evidence_references")
+    if not isinstance(provenance["evidence_sha256"], str) or not SHA256_RE.fullmatch(provenance["evidence_sha256"]): raise ValueError("invalid immutable milestone evidence_sha256")
+    if provenance["baseline_at_completion"] != milestone["baseline"]: raise ValueError("milestone baseline changed after completion")
+    if provenance["forecast_at_completion"] != milestone["forecast"]: raise ValueError("milestone forecast changed after completion")
+    variance = movement(provenance["forecast_at_completion"], actual)
+    if provenance["variance_days"] != variance or provenance["variance_classification"] != classification(variance): raise ValueError("milestone completion variance/classification mismatch")
+    if provenance["confidence_at_completion"] not in MILESTONE_CONFIDENCE: raise ValueError("invalid completion confidence")
+    if provenance["confidence_at_completion"] != milestone["confidence"]: raise ValueError("milestone confidence changed after completion")
 
 
 def dependencies(task, schema_version):
@@ -180,9 +214,9 @@ def check_scheduling_cycles(taskmap):
 def check_calendar(data, rows):
     errors = []
     schema = data.get("schema_version")
-    if schema not in (1, SCHEMA_VERSION) or data.get("activation_task_number") != 157:
+    if schema not in (1, 2, SCHEMA_VERSION) or data.get("activation_task_number") != 157:
         return ["invalid schema/activation boundary"]
-    if schema == SCHEMA_VERSION and data.get("project_timezone") != PROJECT_TIMEZONE:
+    if schema >= 2 and data.get("project_timezone") != PROJECT_TIMEZONE:
         errors.append("project timezone must be " + PROJECT_TIMEZONE)
     milestones = {m.get("id"): m for m in data.get("milestones", [])}
     lanes = {lane.get("id") for lane in data.get("lanes", [])}
@@ -194,12 +228,15 @@ def check_calendar(data, rows):
             if milestone.get("actual") is not None: day(milestone["actual"])
             day(milestone["last_recalculated"])
             if not milestone.get("confidence") or not milestone.get("risk"): raise ValueError("missing confidence/risk")
+            if schema == SCHEMA_VERSION:
+                if milestone["confidence"] not in MILESTONE_CONFIDENCE: raise ValueError("unsupported confidence")
+                milestone_completion_provenance(milestone)
             history = [h for h in data.get("history", []) if h.get("milestone") == mid]
             if delta and not history: raise ValueError("forecast moved without history")
             previous = milestone["baseline"]
             for entry in history:
                 key = entry.get("trigger_key")
-                if schema == SCHEMA_VERSION and not key: raise ValueError("history missing immutable trigger_key")
+                if schema >= 2 and not key: raise ValueError("history missing immutable trigger_key")
                 if key and key in trigger_keys: raise ValueError("duplicate immutable history trigger_key")
                 if key: trigger_keys.add(key)
                 if (entry["old"] != previous or movement(entry["old"], entry["new"]) != entry["movement"]
@@ -243,7 +280,7 @@ def check_calendar(data, rows):
                 delta = movement(task["planned_finish_used"], task["actual_completion"])
                 if task["variance"] != delta or task["classification"] != classification(delta): raise ValueError("variance/classification mismatch")
                 day(task["recalculated"])
-                if schema == SCHEMA_VERSION: completion_evidence(task)
+                if schema >= 2: completion_evidence(task)
             elif status == "Cancelled":
                 if any(key in task and task[key] is not None for key in DONE + ("completion_evidence",)):
                     raise ValueError("Cancelled task has contradictory completion data")
@@ -254,7 +291,7 @@ def check_calendar(data, rows):
                 if any(key in task and task[key] is not None for key in DONE + ("completion_evidence",)):
                     raise ValueError("Authorized task has premature completion data")
         except (ValueError, KeyError, TypeError, AttributeError) as exc: errors.append(f"{task_id}: {exc}")
-    if schema == SCHEMA_VERSION:
+    if schema >= 2:
         try:
             check_scheduling_cycles(taskmap)
         except (ValueError, KeyError, TypeError) as exc:
@@ -271,7 +308,7 @@ def check_calendar(data, rows):
 
 def pending_closeout_alerts(data, rows):
     """Operational alert only: static validation cannot remotely prove a merge."""
-    if data.get("schema_version") != SCHEMA_VERSION: return []
+    if data.get("schema_version", 0) < 2: return []
     alerts = []
     rowmap = {row.task_id: row for row in rows}
     for task in data.get("tasks", []):
