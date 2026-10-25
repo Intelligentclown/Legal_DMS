@@ -11,10 +11,30 @@
       "name": "Office Dogfooding",
       "baseline": "2026-11-15",
       "forecast": "2026-11-15",
-      "actual": null,
+      "actual": "2026-10-25",
       "confidence": "low",
       "risk": "Core office slice integration and operational smoke not yet decomposed into authorized tasks",
-      "last_recalculated": "2026-10-19"
+      "last_recalculated": "2026-10-19",
+      "completion_provenance": {
+        "accepted_at_utc": "2026-10-24T20:40:09Z",
+        "acceptance_scope": "internal_office_dogfooding",
+        "acceptance_reference": "https://github.com/Intelligentclown/Legal_DMS/issues/371",
+        "evidence_references": [
+          "https://github.com/Intelligentclown/Legal_DMS/blob/422ee7ebc79eddab462f0030f128cb072540dfc4/docs/reviews/T175_Closeout_QA_Review.md",
+          "https://github.com/Intelligentclown/Legal_DMS/blob/78c2ee36363e9ddd25a5e4517afeb8df9882250f/docs/reviews/T175_Implementation_Evidence.md",
+          "https://github.com/Intelligentclown/Legal_DMS/blob/78c2ee36363e9ddd25a5e4517afeb8df9882250f/docs/reviews/T175_QA_Review.md",
+          "https://github.com/Intelligentclown/Legal_DMS/blob/b5ec4be7473556e1cd4c721f1a7b182649f56e75/docs/acceptance/M1_Full_Operational_Acceptance.md",
+          "https://github.com/Intelligentclown/Legal_DMS/issues/371",
+          "https://github.com/Intelligentclown/Legal_DMS/pull/372"
+        ],
+        "evidence_sha256": "aed7462d9d90b9a97133e33166c536129df280568fa36f4a4b07261e0bb47131",
+        "baseline_at_completion": "2026-11-15",
+        "forecast_at_completion": "2026-11-15",
+        "actual_completion": "2026-10-25",
+        "variance_days": -21,
+        "variance_classification": "Early",
+        "confidence_at_completion": "low"
+      }
     },
     {
       "id": "M2",
