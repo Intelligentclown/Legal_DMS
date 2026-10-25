@@ -1863,3 +1863,31 @@ The Project Owner explicitly approved **T180 — M1 Acceptance-Date and Schema V
 - Required ADRs `[12, 15, 16, 17, 20]` remain unresolved; Proposed ADR-0043 and ADR-0047 remain `Proposed`; sole Alembic migration frontier remains `b155caa6d4e1`.
 - Preserves Full M1 Operational Acceptance for office dogfooding only.
 - Candidate state: `latestTaskDone=T179`, `latestTaskAuthorized=T180`, `inProgressTransitions=[]`. T180 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
+
+## 2026-10-25 — T180 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+Following the protected merge of T180 implementation PR #387 (merge commit `5be37be48e599a9da70a945f6bd8b46937808e86`), the Documentation Manager prepared and published the dedicated post-implementation governance closeout under `PROJECT_WORKFLOW.md §3.1` (PR 3 of 3).
+
+**Governance Frontier:**
+- `latestTaskDone = "T180"`
+- `latestTaskAuthorized = "T180"`
+- `inProgressTransitions = []`
+
+**Supporting durable evidence & verification scope:**
+- T180 authorization PR #386, protected merge `f134f53464218cf968308dcd7fb0efcdbb43820a`; Issue [#385](https://github.com/Intelligentclown/Legal_DMS/issues/385).
+- T180 implementation PR #387, protected merge `5be37be48e599a9da70a945f6bd8b46937808e86` (GitHub UTC `2026-10-25T17:17:08Z` = `2026-10-25 22:47:08` Asia/Kolkata); [`docs/reviews/T180_QA_Review.md`](reviews/T180_QA_Review.md); [`docs/closeout/T180_Governance_Closeout.md`](closeout/T180_Governance_Closeout.md).
+- Formal Independent QA Decision: **Approved with comments**, zero blocking findings, QA-reviewed substantive candidate `861cef1316824b0a0206f662f95c373592b4e44f`, publication commit `796e66384a07990188213731d299bcc9b611e1b4`.
+- Implementation deliverables completed across all approved areas:
+  - Authoritative acceptance timestamp `2026-10-24T20:40:09Z` from Issue #371 verified converting to `2026-10-25 02:10:09 Asia/Kolkata`.
+  - Commit-pinned canonical evidence package assembled and verified in `docs/acceptance/M1_Completion_Provenance_Evidence_Package.md` matching reproducible lowercase SHA-256 digest `aed7462d9d90b9a97133e33166c536129df280568fa36f4a4b07261e0bb47131`.
+  - M1 milestone actual date reconciled to `2026-10-25` with full eleven-field Schema V3 completion provenance tuple, snapshotting baseline `2026-11-15`, forecast `2026-11-15`, and confidence `low`, and deriving completion variance `-21` calendar days / `Early`.
+  - Acceptance scope strictly preserved as `internal_office_dogfooding` without production release or M2/M3 claims.
+  - Focused positive and fail-closed negative regression tests added (88 unit tests passed).
+  - Full traceability documented across governance validation and delivery calendar docs.
+
+**Invariants & Preserved Boundaries:**
+- Frontiers advance to `latestTaskDone=T180` and `latestTaskAuthorized=T180` with `inProgressTransitions=[]`.
+- Actual completion: `2026-10-25` Asia/Kolkata, 1 inclusive day (started `2026-10-25`), 3 days Early versus planned finish `2026-10-28`.
+- Invariants strictly preserved: Required ADRs `[12, 15, 16, 17, 20]` unresolved; Proposed ADR-0043 and ADR-0047 remain Proposed; migration frontier solely `b155caa6d4e1`; Full M1 Operational Acceptance for office dogfooding only; T167 cancellation provenance immutable; M2 and M3 forecasts remain unchanged.
+- Zero production application code, schema, migration, or security policy changes.
+- Candidate Status: This dedicated closeout PR records the completion evidence and requires separate Independent QA, exact-head CI, collaborator review, and protected merge before durable T180 Done. No successor task is authorized (T181 unauthorized).
