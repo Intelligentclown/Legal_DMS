@@ -4194,3 +4194,28 @@ Canonical decision record published: [`docs/acceptance/M1_Full_Operational_Accep
 - **Sole Migration Frontier:** Migration frontier remains solely `b155caa6d4e1`. No database schema, migration, or model changes are authorized or introduced.
 - **Governance & Calendar Invariants:** No new, reserved, implied, or consumed `T##` task number; T177 remains unauthorized. Milestone forecasts (`2026-11-15`) and milestone actual (`null`) in `docs/delivery_calendar.json` remain untouched.
 - **Candidate Status:** This PR candidate records the Project Owner's already-granted approval (Issue #371) and becomes durable in repository history upon Independent QA, mandatory CI, collaborator review, and protected merge.
+
+
+## Session: 2026-10-25 — T177 Authorization Publication (PROJECT_WORKFLOW.md §3.1 PR 1 of 3)
+
+**Assigned Role:** Documentation Manager
+**Task:** T177 — M2 Post-Conversion Office Journey Verification & Gap Disposition
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Authorization PR 1 of 3
+**Authorization:** [GitHub Issue #373](https://github.com/Intelligentclown/Legal_DMS/issues/373) (Project Owner decision granted 2026-10-25, Asia/Kolkata)
+**Baseline:** Protected `main` at `b5ec4be7473556e1cd4c721f1a7b182649f56e75` (Full M1 Operational Acceptance PR #372)
+**Branch:** `docs/t177-authorization-calendar`
+
+### 1. Published Action
+Registered the Project Owner's explicit approval of **T177 — M2 Post-Conversion Office Journey Verification & Gap Disposition** through the repository's standard three-PR governance lifecycle (`PROJECT_WORKFLOW.md §3.1` PR 1 of 3).
+- Registered T177 as `Authorized` in `IMPLEMENTATION_QUEUE.md` with complete scope, exclusions, resources, and candidate state.
+- Preserved all ten acceptance criteria AC-01 through AC-10 from Issue #373 covering the continuous journey from Accepted Quotation through Converted Matter, Canonical Client Party, Associated Property, File, Document, and Document Version.
+- Synchronized `PROJECT_STATE.json` (`latestTaskAuthorized="T177"`, `latestTaskDone="T176"`, `inProgressTransitions=[]`).
+- Registered structured delivery-calendar record in `docs/delivery_calendar.json` with finish-to-start predecessors T175 and T176 (both Done), planned window 2026-10-25 through 2026-10-28 (4 days), provisional planning envelope of 6–11 person-days noted as an estimate (not a committed calendar duration), and zero milestone movement.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Preserved Invariants and Exclusions
+- **Exclusions:** No automatic substantive defect remediation, Party-detail page/navigation, server-side Property search, database schema/migration changes, ADR status changes, transaction redesign, security permission expansion, unrelated feature development, M2 milestone acceptance, or production-release approval.
+- **Architectural & Security Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole Alembic migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; T175 conversion idempotency/atomicity/canonical associations; and Full M1 Operational Acceptance for internal office dogfooding only.
+- **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
+- **Candidate State:** `latestTaskDone=T176`, `latestTaskAuthorized=T177`, `inProgressTransitions=[]`.
+- **Mandatory STOP Boundary:** T177 is Authorized, not Done. No implementation, operational acceptance execution, or authorization PR merge is performed. Independent QA and collaborator review are required before protected merge.

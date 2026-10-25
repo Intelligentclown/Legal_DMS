@@ -1470,6 +1470,46 @@
         "approved_qa_publication_head": "33cd51cf81d0322e9d542f109d9985137e62a81b",
         "actual_start_evidence": "T176 implementation Phase 52 log docs/ImplementationLog/Stage3/Phase52.md and evidence note docs/reviews/T176_Implementation_Evidence.md record Date: 2026-10-24; implementation commit 9e35196 authored 2026-10-24 16:53:06 +0530; substantive candidate commit f01de26df11d5297e539c589bd30e130e8711a5c authored 2026-10-24 17:51:30 +0530; PR #367 created 2026-10-24T12:25:21Z; Independent QA review docs/reviews/T176_QA_Review.md dated 2026-10-24."
       }
+    },
+    {
+      "id": "T177",
+      "title": "M2 Post-Conversion Office Journey Verification & Gap Disposition",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T175",
+          "T176"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-25",
+      "planned_finish": "2026-10-28",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-25",
+      "forecast_finish": "2026-10-28",
+      "forecast_impact": {
+        "M1": { "old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged" },
+        "M2": { "old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged" },
+        "M3": { "old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged" },
+        "overall_finalization": { "old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged" },
+        "reason": "T177 is an owner-approved verification task covering the continuous post-conversion office journey (Quotation through Document Version) and gap disposition. T175 and T176 are completed finish-to-start predecessors. Provisional planning envelope of 6-11 person-days is an estimate, not a committed calendar duration. Milestone forecasts remain provisional and unchanged."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
