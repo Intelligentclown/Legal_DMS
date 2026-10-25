@@ -1110,3 +1110,45 @@ Following the protected merge of T180 implementation PR #387 (merge commit `5be3
 - Invariants strictly preserved: Required ADRs `[12, 15, 16, 17, 20]` unresolved; Proposed ADR-0043 and ADR-0047 remain Proposed; migration frontier solely `b155caa6d4e1`; Full M1 Operational Acceptance for office dogfooding only; T167 cancellation provenance immutable; M2 and M3 forecasts remain unchanged.
 - Zero production application code, schema, migration, or security policy changes.
 - Candidate Status: This dedicated closeout PR records the completion evidence and requires separate Independent QA, exact-head CI, collaborator review, and protected merge before durable T180 Done. No successor task is authorized (T181 unauthorized).
+
+## 2026-10-25 — T181 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T181 — M2 Core V1 Acceptance Boundary, ADR Applicability and Execution Readiness** on 2026-10-25 under `PROJECT_WORKFLOW.md §3.1` ([Issue #389](https://github.com/Intelligentclown/Legal_DMS/issues/389)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T180"`
+- `latestTaskAuthorized = "T181"`
+- `inProgressTransitions = []`
+
+**Authorized future PR 2 scope (only after PR 1 protected merge):**
+1. **M2 acceptance boundary:** Map the frozen specification's Tasks A–O to required M2 outcomes, existing evidence, exclusions and unresolved decisions. Do not silently reduce the approved Core V1 scope.
+2. **Current capability inventory:** Distinguish implemented, partially implemented, missing and operationally unverified functionality across Enquiry, Quotation, Party, Property, Matter, File, Document, Workflow and Government Process surfaces.
+3. **ADR applicability matrix:** Assess specification-level Required ADRs #12, #15, #16, #17 and #20. Distinguish these from technical ADR file numbers. Classify each as blocking, conditionally avoidable or non-blocking for each selected M2 work package.
+4. **Operational verification requirements:** Determine the necessary fresh evidence for authenticated Windows Electron workflows, physical storage durability, PostgreSQL integration, tenant/RBAC security, regression coverage and complete backend-suite certification. Reuse valid T175/T177 evidence without inventing fresh test results.
+5. **Resource readiness:** Record explicit availability or Unknown for the Software Architect, backend/frontend executor, Independent QA, Documentation Manager, Git/CI PR Manager, collaborator, PostgreSQL environment, Windows operator and acceptance participants.
+6. **Executable task network:** Identify the smallest safe next implementation or verification task, with dependencies, acceptance criteria, exclusions, risk tier, effort estimates and critical path.
+7. **Delivery feasibility:** Reassess the M2 target of 31 December 2026 and M3 target of 28 February 2027 without modifying the official dates.
+8. **Final recommendation:** Return GO, CONDITIONAL GO or HOLD for the next separately owner-authorizable task.
+
+**Acceptance criteria for eventual implementation:**
+- Every material conclusion has traceable protected-repository evidence.
+- T177's verified API journey is not duplicated without a demonstrated need.
+- Missing functionality is distinguished from missing verification.
+- Required ADR applicability and proposed ADR status are accurately preserved.
+- Resource Unknowns are not represented as confirmed commitments.
+- Estimates include QA, governance, rework and operational acceptance overhead.
+- The resulting task network identifies a defensible first executable successor.
+- No M2 or M3 acceptance is asserted.
+- Comprehensive / Risk Tier 1 independent QA returns zero blocking findings before protected implementation merge.
+
+**Explicit restrictions & non-authorization boundaries:**
+- Authorization PR 1 contains governance and planning registration only.
+- No backend, frontend, Electron or database implementation.
+- No migrations, schema changes or ADR status changes.
+- No change to M1 acceptance scope.
+- No change to M2/M3 milestone baseline, forecast or actual dates.
+- No implementation or closeout PR for T181 yet.
+- No successor task authorization.
+- Required ADRs `[12, 15, 16, 17, 20]` remain unresolved; Proposed ADR-0043 and ADR-0047 remain `Proposed`; sole Alembic migration frontier remains `b155caa6d4e1`.
+- Preserves Full M1 Operational Acceptance for office dogfooding only (reconciled in T180 to `2026-10-25` with SHA-256 digest `aed7462d9d90b9a97133e33166c536129df280568fa36f4a4b07261e0bb47131`).
+- Candidate state: `latestTaskDone=T180`, `latestTaskAuthorized=T181`, `inProgressTransitions=[]`. T181 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.

@@ -1795,6 +1795,65 @@
         "approved_qa_publication_head": "796e66384a07990188213731d299bcc9b611e1b4",
         "actual_start_evidence": "T180 substantive implementation candidate commit 861cef1316824b0a0206f662f95c373592b4e44f authored 2026-10-25 22:37:06 +0530; PR #387 opened 2026-10-25T17:07:23Z (22:37:23 Asia/Kolkata); Independent QA review docs/reviews/T180_QA_Review.md dated 2026-10-25."
       }
+    },
+    {
+      "id": "T181",
+      "title": "M2 Core V1 Acceptance Boundary, ADR Applicability and Execution Readiness",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T180"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-25",
+      "planned_finish": "2026-10-28",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-25",
+      "forecast_finish": "2026-10-28",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T181 is an owner-approved task addressing M2 Core V1 acceptance boundary, ADR applicability, and execution readiness assessment. T180 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
