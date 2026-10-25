@@ -4302,3 +4302,27 @@ Registered the Project Owner's explicit approval of **T178 — M1 Calendar Recon
 ### 3. Candidate Status & Mandatory STOP Boundary
 - Candidate PR published from branch `docs/t178-governance-closeout` for Comprehensive / Risk Tier 1 Independent QA review.
 - Mandatory STOP boundary: Closeout PR must not be merged. T179 must not be authorized. No production changes or milestone forecast modifications. STOP after closeout PR publication and Independent QA handoff.
+
+## Session: 2026-10-25 — T179 Authorization Publication (PROJECT_WORKFLOW.md §3.1 PR 1 of 3)
+
+**Assigned Role:** Documentation Manager  
+**Task:** T179 — Milestone Completion-Provenance Schema and Governance Validation  
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Authorization PR 1 of 3  
+**Authorization:** [GitHub Issue #381](https://github.com/Intelligentclown/Legal_DMS/issues/381) (Project Owner decision granted 2026-10-25, Asia/Kolkata)  
+**Baseline:** Protected `main` at `497c8ceffa39a8a9c8da5a488e19b16c858c7dff` (T178 Closeout PR #380)  
+**Branch:** `docs/t179-authorization-calendar`  
+
+### 1. Published Action
+Registered the Project Owner's explicit approval of **T179 — Milestone Completion-Provenance Schema and Governance Validation** through the repository's standard three-PR governance lifecycle (`PROJECT_WORKFLOW.md §3.1` PR 1 of 3).
+- Created durable pre-implementation authorization record on GitHub ([Issue #381](https://github.com/Intelligentclown/Legal_DMS/issues/381)).
+- Registered T179 as `Authorized` in `IMPLEMENTATION_QUEUE.md` with complete approved scope, acceptance criteria, exclusions, resources, and candidate state.
+- Synchronized `PROJECT_STATE.json` (`latestTaskAuthorized="T179"`, `latestTaskDone="T178"`, `inProgressTransitions=[]`).
+- Registered structured delivery-calendar record in `docs/delivery_calendar.json` with finish-to-start predecessor T178 (Done), planned window 2026-10-25 through 2026-10-28 (4 days), null actuals/completion fields, and zero milestone forecast movement.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Preserved Invariants and Exclusions
+- **Exclusions:** The authorization PR must not modify existing milestone baselines, forecasts, actual dates, or historical calendar events; must not reconcile M1 actual date (M1 actual remains null); must not declare M2 or M3 accepted; must not modify production application code, database schema, migrations, tests, security policies, or ADR statuses; and must not automatically authorize or implement unrelated successor tasks.
+- **Architectural & Security Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole Alembic migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; and Full M1 Operational Acceptance for internal office dogfooding only.
+- **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
+- **Candidate State:** `latestTaskDone=T178`, `latestTaskAuthorized=T179`, `inProgressTransitions=[]`.
+- **Mandatory STOP Boundary:** T179 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.

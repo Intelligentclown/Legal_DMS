@@ -1769,3 +1769,36 @@ Following the protected merge of T178 implementation PR #379 (merge commit `2353
 - Invariants strictly preserved: Required ADRs `[12, 15, 16, 17, 20]` unresolved; Proposed ADR-0043 and ADR-0047 remain Proposed; migration frontier solely `b155caa6d4e1`; Full M1 Operational Acceptance for office dogfooding only; T167 cancellation provenance immutable.
 - Zero production application code, schema, migration, or security policy changes.
 - Candidate Status: This dedicated closeout PR records the completion evidence and requires separate Independent QA, exact-head CI, collaborator review, and protected merge before durable T178 Done. No successor task is authorized (T179 unauthorized).
+
+## 2026-10-25 — T179 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T179 — Milestone Completion-Provenance Schema and Governance Validation** on 2026-10-25 under `PROJECT_WORKFLOW.md §3.1` ([Issue #381](https://github.com/Intelligentclown/Legal_DMS/issues/381)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T178"`
+- `latestTaskAuthorized = "T179"`
+- `inProgressTransitions = []`
+
+**Authorized future PR 2 scope (only after PR 1 protected merge):**
+- Versioned Calendar Schema V3 milestone completion-provenance contract and validators.
+- Explicit milestone completion evidence, acceptance scope, forecast-at-completion, variance and confidence semantics.
+- Backward compatibility for V1/V2 calendar records and bounded migration/consumer behavior.
+- Consumer impact remediation, regression tests, governance CI enforcement and documentation.
+- Fail-closed rejection of malformed or contradictory provenance while preserving immutable historical evidence.
+
+**Acceptance criteria for eventual implementation:**
+1. V3 completion-provenance schema validates valid records and rejects invalid/contradictory ones.
+2. V1/V2 records remain supported under the approved compatibility/migration contract.
+3. All affected consumers and governance validators are updated with focused regression coverage and CI enforcement.
+4. Existing milestone dates, forecast history, acceptance boundaries and unrelated governance records remain unchanged.
+5. Comprehensive / Risk Tier 1 independent QA returns zero blocking findings before protected implementation merge.
+
+**Explicit restrictions & non-authorization boundaries:**
+- Do not set M1 calendar `actual` or reconcile its actual date in T179 (separately owner-authorized successor).
+- No official M1/M2/M3/finalization forecast or baseline change; M1 `actual` remains null.
+- No M2 application feature implementation, production acceptance, unrelated ADR resolution, migration unrelated to the approved calendar contract, or T180 authorization.
+- No implementation, QA Decision, completion actuals, Done marker or protected merge assertion in PR 1.
+- Required ADRs `[12, 15, 16, 17, 20]` remain unresolved; Proposed ADR-0043 and ADR-0047 remain `Proposed`; sole Alembic migration frontier remains `b155caa6d4e1`.
+- Preserves Full M1 Operational Acceptance for office dogfooding only.
+- Does NOT automatically authorize or implement unrelated successor tasks.
+- Candidate state: `latestTaskDone=T178`, `latestTaskAuthorized=T179`, `inProgressTransitions=[]`. T179 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
