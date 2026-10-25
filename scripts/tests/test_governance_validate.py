@@ -865,6 +865,90 @@ class TestMilestoneCompletionProvenanceV3(unittest.TestCase):
         self.assertTrue(self.check(data, [self.row]))
 
 
+class TestT180M1CompletionReconciliation(unittest.TestCase):
+    """Regression coverage for the owner-authorized M1 reconciliation only."""
+
+    def setUp(self):
+        from delivery_calendar import check_calendar
+
+        self.check = check_calendar
+        self.root = Path(__file__).resolve().parents[2]
+        self.data = json.loads(
+            (self.root / "docs" / "delivery_calendar.json").read_text(encoding="utf-8")
+        )
+        self.rows = gv.parse_task_rows(
+            (self.root / "IMPLEMENTATION_QUEUE.md").read_text(encoding="utf-8")
+        )
+
+    def m1(self, data):
+        return next(milestone for milestone in data["milestones"] if milestone["id"] == "M1")
+
+    def test_authoritative_m1_package_is_valid_and_digest_is_reproducible(self):
+        m1 = self.m1(self.data)
+        provenance = m1["completion_provenance"]
+        package = {
+            key: provenance[key]
+            for key in (
+                "accepted_at_utc",
+                "acceptance_reference",
+                "acceptance_scope",
+                "evidence_references",
+            )
+        }
+        import hashlib
+
+        serialized = json.dumps(package, sort_keys=True, separators=(",", ":")) + "\n"
+        self.assertEqual(
+            hashlib.sha256(serialized.encode("utf-8")).hexdigest(),
+            provenance["evidence_sha256"],
+        )
+        self.assertEqual(m1["actual"], "2026-10-25")
+        self.assertEqual(provenance["acceptance_scope"], "internal_office_dogfooding")
+        self.assertEqual(self.check(self.data, self.rows), [])
+
+    def test_rejects_missing_or_malformed_m1_evidence(self):
+        for key, value in (("evidence_references", []), ("evidence_sha256", "bad")):
+            with self.subTest(key=key):
+                data = deepcopy(self.data)
+                self.m1(data)["completion_provenance"][key] = value
+                self.assertTrue(self.check(data, self.rows))
+
+    def test_rejects_utc_local_scope_variance_and_snapshot_contradictions(self):
+        cases = (
+            ("accepted_at_utc", "2026-10-24T17:00:00Z"),
+            ("acceptance_scope", "production_like"),
+            ("variance_days", -20),
+            ("variance_classification", "On Time"),
+            ("baseline_at_completion", "2026-11-14"),
+            ("forecast_at_completion", "2026-11-14"),
+            ("confidence_at_completion", "high"),
+        )
+        for key, value in cases:
+            with self.subTest(key=key):
+                data = deepcopy(self.data)
+                self.m1(data)["completion_provenance"][key] = value
+                self.assertTrue(self.check(data, self.rows))
+
+    def test_m2_and_m3_are_unchanged(self):
+        milestones = {milestone["id"]: milestone for milestone in self.data["milestones"]}
+        self.assertEqual(
+            (
+                milestones["M2"]["baseline"],
+                milestones["M2"]["forecast"],
+                milestones["M2"]["actual"],
+            ),
+            ("2026-12-31", "2026-12-31", None),
+        )
+        self.assertEqual(
+            (
+                milestones["M3"]["baseline"],
+                milestones["M3"]["forecast"],
+                milestones["M3"]["actual"],
+            ),
+            ("2027-02-28", "2027-02-28", None),
+        )
+
+
 class TestCancelledTaskGovernance(unittest.TestCase):
     def setUp(self):
         from delivery_calendar import PROJECT_TIMEZONE, check_calendar
