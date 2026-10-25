@@ -1843,17 +1843,28 @@
         },
         "reason": "T181 is an owner-approved task addressing M2 Core V1 acceptance boundary, ADR applicability, and execution readiness assessment. T180 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-25",
+      "actual_completion": "2026-10-26",
+      "actual_elapsed": 2,
+      "planned_finish_used": "2026-10-28",
+      "variance": -2,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-26",
+      "completion_evidence": {
+        "implementation_pr": 391,
+        "protected_merge_sha": "77667bf29a527cf64014753644541c5b6b48fc2d",
+        "protected_merge_parents": [
+          "4eb428e9a81bc7232481707b665e6bf0527024df",
+          "9fb1af46eb97309ad5b52bff91f04de7e9544c86"
+        ],
+        "merged_at_utc": "2026-10-25T18:52:34Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "9fb1af46eb97309ad5b52bff91f04de7e9544c86",
+        "actual_start_evidence": "Phase56.md records T181 assessment started 2026-10-25; PR #391 opened 2026-10-25T18:29:39Z (23:59:39 Asia/Kolkata), independently QA-reviewed substantive candidate c5bbb5dfa1012999ce1ba698e5f880e02c43ea9f; docs/reviews/T181_QA_Review.md dated 2026-10-26."
+      }
     }
   ],
   "history": [

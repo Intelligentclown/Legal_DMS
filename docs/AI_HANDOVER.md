@@ -1933,3 +1933,7 @@ The Project Owner explicitly approved **T181 — M2 Core V1 Acceptance Boundary,
 - Required ADRs `[12, 15, 16, 17, 20]` remain unresolved; Proposed ADR-0043 and ADR-0047 remain `Proposed`; sole Alembic migration frontier remains `b155caa6d4e1`.
 - Preserves Full M1 Operational Acceptance for office dogfooding only (reconciled in T180 to `2026-10-25` with SHA-256 digest `aed7462d9d90b9a97133e33166c536129df280568fa36f4a4b07261e0bb47131`).
 - Candidate state: `latestTaskDone=T180`, `latestTaskAuthorized=T181`, `inProgressTransitions=[]`. T181 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
+
+## T181 dedicated governance closeout candidate — 2026-10-26
+
+T181 implementation PR [#391](https://github.com/Intelligentclown/Legal_DMS/pull/391) protected-merged at `77667bf29a527cf64014753644541c5b6b48fc2d` (2026-10-26 Asia/Kolkata). Independent QA [T181 review](docs/reviews/T181_QA_Review.md) Approved with comments, zero blockers; the dedicated PR 3 proposes T181 Done and synchronizes queue, state, calendar and Phase56. Calendar actual 2026-10-25–2026-10-26, 2 inclusive days, 2 days Early. This is not durable until closeout QA and protected merge. Required ADRs #12/#15/#16/#17/#20 and milestone forecasts remain unchanged; P1/T182 not authorized.
