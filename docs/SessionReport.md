@@ -4274,3 +4274,31 @@ Registered the Project Owner's explicit approval of **T178 — M1 Calendar Recon
 - **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
 - **Candidate State:** `latestTaskDone=T177`, `latestTaskAuthorized=T178`, `inProgressTransitions=[]`.
 - **Mandatory STOP Boundary:** T178 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.
+
+## Session: 2026-10-25 — T178 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+**Assigned Role:** Documentation Manager
+**Task:** T178 — M1 Calendar Reconciliation & M2/M3 Delivery Forecast Recalibration
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Dedicated Governance Closeout PR 3 of 3
+**Authorization:** Issue [#377](https://github.com/Intelligentclown/Legal_DMS/issues/377); authorization PR #378 (merged `c0862cfa4f6eb60bc89f8f19562221ab9b004671`)
+**Implementation:** PR #379 protected merge `235359cc66b94c90877243468e0eb761d7c6592a` (GitHub merge UTC `2026-10-25T09:44:00Z` = `2026-10-25 15:14:00` Asia/Kolkata)
+**Baseline:** Protected `main` at `235359cc66b94c90877243468e0eb761d7c6592a`
+**Branch:** `docs/t178-governance-closeout`
+
+### 1. Closeout Deliverables & Governance Synchronization
+- **`IMPLEMENTATION_QUEUE.md`:** Transitioned T178 from `Authorized` to `Done`, recording implementation PR #379 merge `235359cc66b94c90877243468e0eb761d7c6592a`, ordered parents `c0862cfa4f6eb60bc89f8f19562221ab9b004671` and `d8114e35900192c576157f81f4b70729dfff7291`, Independent QA Decision **Approved with comments** (zero blockers), completion of all three assessment workstreams (Workstreams A, B, and C), five outstanding Project Owner decisions, preserved invariants, actuals `2026-10-25`, 1 inclusive day, and -3 days Early variance.
+- **`PROJECT_STATE.json`:** Advanced governance frontier to `latestTaskDone="T178"`, `latestTaskAuthorized="T178"`, `inProgressTransitions=[]`. Recorded T178 protected implementation merge tuple in `completionProvenance`. Preserved T167 cancellation provenance, historical completion records, and Required ADR invariants.
+- **`docs/delivery_calendar.json`:** Recorded evidence-backed actual start `2026-10-25`, actual completion `2026-10-25`, elapsed duration 1 inclusive day, planned finish used `2026-10-28`, variance `-3` days, classification **Early**, critical_at_completion false, milestone_impact 0, and full completion evidence tuple. Retained `M1.actual = null` pending owner approval of versioned milestone completion provenance policy. Appended three immutable history entries for M1, M2, and M3 preserving zero movement for provisional forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28).
+- **Closeout Documentation Artifact:** Created [`docs/closeout/T178_Governance_Closeout.md`](closeout/T178_Governance_Closeout.md) capturing full closeout evidence, assessment workstream findings, calendar accounting, and five outstanding Project Owner decisions.
+- **Documentation Synchronization:** Updated [`docs/DELIVERY_CALENDAR.md`](DELIVERY_CALENDAR.md), [`docs/ProjectStatus.md`](ProjectStatus.md), and [`docs/AI_HANDOVER.md`](AI_HANDOVER.md).
+
+### 2. Carried Forward Advisories & Boundaries
+- **QA-T178-ADV-01 / QA-T176-AUTH-ADV-01:** Historical hardcoded `T170` test manifest assertion debt in `scripts/tests/test_current_context_manifest.py:30` remains open.
+- **QA-T178-ADV-02 / QA-T172-ADV-02:** Downstream M2 capacity and dependency network remains incomplete pending Project Owner decisions.
+- **QA-T178-ADV-03:** Official milestone forecasts remain provisional and unchanged until the Project Owner acts on the five identified decisions.
+- **Five Outstanding Owner Decisions:** (1) versioned M1 completion-provenance policy; (2) finite remaining M2 scope selection; (3) confirmed role/environment capacity; (4) unresolved ADR gates `[12, 15, 16, 17, 20]` disposition; (5) official milestone forecast amendment approval.
+- **Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole migration frontier `b155caa6d4e1`; Full M1 dogfooding-only boundary preserved; zero production code, schema, migration, or permission changes.
+
+### 3. Candidate Status & Mandatory STOP Boundary
+- Candidate PR published from branch `docs/t178-governance-closeout` for Comprehensive / Risk Tier 1 Independent QA review.
+- Mandatory STOP boundary: Closeout PR must not be merged. T179 must not be authorized. No production changes or milestone forecast modifications. STOP after closeout PR publication and Independent QA handoff.
