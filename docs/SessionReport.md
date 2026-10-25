@@ -4378,3 +4378,30 @@ Registered the Project Owner's explicit approval of **T180 — M1 Acceptance-Dat
 - **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
 - **Candidate State:** `latestTaskDone=T179`, `latestTaskAuthorized=T180`, `inProgressTransitions=[]`.
 - **Mandatory STOP Boundary:** T180 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.
+
+## Session: 2026-10-25 — T180 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+- **Assigned Role:** Documentation Manager
+- **Task:** T180 — M1 Acceptance-Date and Schema V3 Completion-Provenance Reconciliation
+- **Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Dedicated Governance Closeout PR 3 of 3
+- **Authorization:** Issue [#385](https://github.com/Intelligentclown/Legal_DMS/issues/385); authorization PR #386 (merged `f134f53464218cf968308dcd7fb0efcdbb43820a`)
+- **Implementation:** PR #387 protected merge `5be37be48e599a9da70a945f6bd8b46937808e86` (GitHub merge UTC `2026-10-25T17:17:08Z` = `2026-10-25 22:47:08` Asia/Kolkata)
+- **Baseline:** Protected `main` at `5be37be48e599a9da70a945f6bd8b46937808e86`
+- **Branch:** `docs/t180-governance-closeout`
+
+### 1. Closeout Deliverables & Governance Synchronization
+- **`IMPLEMENTATION_QUEUE.md`:** Transitioned T180 from `Authorized` to `Done`, recording implementation PR #387 merge `5be37be48e599a9da70a945f6bd8b46937808e86`, ordered parents `f134f53464218cf968308dcd7fb0efcdbb43820a` and `796e66384a07990188213731d299bcc9b611e1b4`, Independent QA Decision **Approved with comments** (zero blockers), completion of all approved deliverable areas, preserved non-blocking advisories QA-T180-IMP-ADV-01 through 03, actual completion `2026-10-25`, 1 inclusive day, and -3 days Early variance.
+- **`PROJECT_STATE.json`:** Advanced governance frontier to `latestTaskDone="T180"`, `latestTaskAuthorized="T180"`, `inProgressTransitions=[]`. Recorded T180 protected implementation merge tuple in `completionProvenance`. Preserved T167 cancellation provenance, historical completion records, and Required ADR invariants.
+- **`docs/delivery_calendar.json`:** Recorded evidence-backed actual start `2026-10-25`, actual completion `2026-10-25`, elapsed duration 1 inclusive day, planned finish used `2026-10-28`, variance `-3` days, classification **Early**, critical_at_completion false, milestone_impact 0, and full completion evidence tuple. Retained M1 milestone completion record reconciled in PR #387 (`actual: "2026-10-25"`, scope `internal_office_dogfooding`, evidence digest `aed7462d9d90b9a97133e33166c536129df280568fa36f4a4b07261e0bb47131`, variance `-21` days Early). Appended three immutable history entries for M1, M2, and M3 preserving zero movement for provisional forecasts (M1 2026-11-15, M2 2026-12-31, M3 2027-02-28).
+- **Closeout Documentation Artifact:** Created [`docs/closeout/T180_Governance_Closeout.md`](closeout/T180_Governance_Closeout.md) capturing full closeout evidence, contract deliverables, calendar accounting, and outstanding successor dependencies.
+- **Documentation Synchronization:** Updated [`docs/DELIVERY_CALENDAR.md`](DELIVERY_CALENDAR.md), [`docs/ProjectStatus.md`](ProjectStatus.md), and [`docs/AI_HANDOVER.md`](AI_HANDOVER.md).
+
+### 2. Carried Forward Advisories & Boundaries
+- **QA-T180-IMP-ADV-01:** Evidence package digest `aed7462d...` scope and authentication vs. GitHub repository controls.
+- **QA-T180-IMP-ADV-02:** Historical hardcoded `T170` test manifest assertion debt in `scripts/tests/test_current_context_manifest.py:30` remains open.
+- **QA-T180-IMP-ADV-03:** Three-PR governance lifecycle preservation.
+- **Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole migration frontier `b155caa6d4e1`; Full M1 dogfooding-only boundary preserved; zero production code, schema, migration, or permission changes.
+
+### 3. Candidate Status & Mandatory STOP Boundary
+- Candidate PR published from branch `docs/t180-governance-closeout` for Comprehensive / Risk Tier 1 Independent QA review.
+- Mandatory STOP boundary: Closeout PR must not be merged. T181 must not be authorized. No production changes or milestone forecast modifications. STOP after closeout PR publication and Independent QA handoff.
