@@ -1663,3 +1663,39 @@ The Project Owner explicitly approved **T177 — M2 Post-Conversion Office Journ
 - Preserves Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; T175 conversion idempotency/atomicity/canonical associations; and Full M1 Operational Acceptance for internal office dogfooding only.
 - Approved provisional planning envelope of 6–11 person-days is an estimate, not a committed calendar duration; milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
 - Candidate state: `latestTaskDone=T176`, `latestTaskAuthorized=T177`, `inProgressTransitions=[]`. T177 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, CI, collaborator approval, and protected merge.
+
+
+## 2026-10-25 — T177 Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+Following the protected merge of T177 implementation PR #375 (merge commit `0da4471cf45166200b350ff2c040e3e35ed2ab41`), the Documentation Manager prepared and published the dedicated post-implementation governance closeout under `PROJECT_WORKFLOW.md §3.1` (PR 3 of 3).
+
+**Supporting durable evidence & verification scope:**
+- T177 authorization PR #374, protected merge `0cba800f1c01c4156059d076874dca88e921ef79`; Issue [#373](https://github.com/Intelligentclown/Legal_DMS/issues/373).
+- T177 implementation PR #375, protected merge `0da4471cf45166200b350ff2c040e3e35ed2ab41` (GitHub UTC `2026-10-25T08:07:00Z` = `2026-10-25 13:37:00` Asia/Kolkata); [`docs/reviews/T177_QA_Review.md`](reviews/T177_QA_Review.md); [`docs/reviews/T177_Implementation_Evidence.md`](reviews/T177_Implementation_Evidence.md); [`docs/ImplementationLog/Stage3/Phase54.md`](ImplementationLog/Stage3/Phase54.md); [`docs/closeout/T177_Governance_Closeout.md`](closeout/T177_Governance_Closeout.md).
+- Formal Independent QA Decision: **Approved with comments**, zero blocking findings, QA-reviewed candidate `d890787a17743cbd3e70824492210ab1874dd1d6`, publication commit `ac70b7437b84319cdd4736331f3314ba59367c03`.
+- Continuous office journey verification: [`backend/tests/integration/test_t177_post_conversion_office_journey.py`](../backend/tests/integration/test_t177_post_conversion_office_journey.py) (299 lines, 1 passed in 5.92s against isolated PostgreSQL 16.15) and native Windows Electron unpacked package (`release/t177-win/win-unpacked`), proving all ten acceptance criteria AC-01 through AC-10:
+  - AC-01: Issued quotation revision accepted via canonical route with idempotent replay (201 Created first, 200 OK replay with identical aggregate).
+  - AC-02: Direct Matter reopening via `GET /api/v1/matters/{matter_id}` without copying or re-entering identifier.
+  - AC-03: Matter displays correct canonical client Party (`participants == [{"party_id": ..., "role": "client"}]`) with null `client_id` and zero legacy Client row creation.
+  - AC-04: Idempotent Property association with existing tenant-visible Property (201 first, 200 replay, exactly 1 association returned on list).
+  - AC-05: File created and reopened under converted Matter confirming scoping to `matter_id`.
+  - AC-06: Document created with valid `DocumentType` under File and reopened via canonical nested API; unfiled legacy documents not surfaced.
+  - AC-07: Raw bytes uploaded to nested Version route (`X-Filename`, MIME type, idempotency key); byte-identical payload (`b"T177 office journey evidence: immutable bytes\n"`), `text/plain`, and original filename downloaded with storage item verification.
+  - AC-08: Disjoint tenant requests fail closed with non-enumerating HTTP 404 Not Found for both Matter and Version content; authenticated operator lacking `files:read` receives HTTP 403 Forbidden without data leakage.
+  - AC-09: Packaged Electron cold-start observation at `file:///.../index.html#/login` with email/password/Sign-in controls; authenticated restart verified via approved traceable reuse of protected T175 human-operated evidence based on zero code changes in auth/Electron layers.
+  - AC-10: Evidence matrix, environment isolation, and gap disposition register committed for Comprehensive / Risk Tier 1 Independent QA review.
+
+**Carried forward advisories & accepted limitations:**
+- **QA-T177-IMPL-ADV-01 / T177-LIM-02:** AC-07 in-memory `FileStorage` port contract verification does not establish physical filesystem or cloud storage durability.
+- **QA-T177-IMPL-ADV-02 / T177-LIM-01:** AC-09 authenticated Electron restart relies on approved T175 human-operated evidence reuse based on zero changes in auth/Electron code.
+- **QA-T177-IMPL-ADV-03 / QA-T176-AUTH-ADV-01:** Historical hardcoded `T170` test manifest assertion debt in `scripts/tests/test_current_context_manifest.py:30` remains open.
+- **QA-T177-IMPL-ADV-04 / T177-ADV-01:** Usability suggestion for Property search / Party detail UI is an operational enhancement for future tasks, not a defect.
+- **T177-ADV-02:** Full backend-suite certification was not established by T177 evidence due to runner observation limits; focused suites (26 passed) and CI backend validation passed.
+
+**Boundaries, exclusions, and retained invariants:**
+- **Explicit Milestone Distinction:** T177 verifies post-conversion journey readiness and dispositions gaps; it does **not** constitute full M2 milestone acceptance or production release certification.
+- **Unresolved Required ADRs:** Required ADRs `[12, 15, 16, 17, 20]` remain strictly unresolved; ADR-0043 and ADR-0047 remain `Proposed`.
+- **Sole Migration Frontier:** Migration frontier remains solely `b155caa6d4e1`. Zero schema, migration, or model changes.
+- **Calendar Accounting:** Actual start `2026-10-25`, actual completion `2026-10-25`, elapsed 1 inclusive day, variance `-3` days Early versus planned finish `2026-10-28`. Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
+- **Governance Frontier:** Advances to `latestTaskDone=T177`, `latestTaskAuthorized=T177`, `inProgressTransitions=[]`.
+- **Candidate Status:** This dedicated closeout PR records the completion evidence and requires separate Independent QA, CI, collaborator review, and protected merge before durable T177 Done.

@@ -4219,3 +4219,34 @@ Registered the Project Owner's explicit approval of **T177 — M2 Post-Conversio
 - **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28) remain unchanged.
 - **Candidate State:** `latestTaskDone=T176`, `latestTaskAuthorized=T177`, `inProgressTransitions=[]`.
 - **Mandatory STOP Boundary:** T177 is Authorized, not Done. No implementation, operational acceptance execution, or authorization PR merge is performed. Independent QA and collaborator review are required before protected merge.
+
+
+## Session: 2026-10-25 — T177 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+**Assigned Role:** Documentation Manager
+**Task:** T177 — M2 Post-Conversion Office Journey Verification & Gap Disposition
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Dedicated Governance Closeout PR 3 of 3
+**Authorization:** Issue [#373](https://github.com/Intelligentclown/Legal_DMS/issues/373); authorization PR #374 (merged `0cba800f1c01c4156059d076874dca88e921ef79`)
+**Implementation:** PR #375 protected merge `0da4471cf45166200b350ff2c040e3e35ed2ab41` (GitHub merge UTC `2026-10-25T08:07:00Z` = `2026-10-25 13:37:00` Asia/Kolkata)
+**Baseline:** Protected `main` at `0da4471cf45166200b350ff2c040e3e35ed2ab41`
+**Branch:** `docs/t177-governance-closeout`
+
+### 1. Closeout Deliverables & Governance Synchronization
+- **`IMPLEMENTATION_QUEUE.md`:** Transitioned T177 from `Authorized` to `Done`, recording implementation PR #375 merge `0da4471cf45166200b350ff2c040e3e35ed2ab41`, ordered parents `0cba800f1c01c4156059d076874dca88e921ef79` and `ac70b7437b84319cdd4736331f3314ba59367c03`, Independent QA Decision **Approved with comments** (zero blockers), verified continuous office journey (AC-01 through AC-10), accepted limitations and advisories, explicit distinction from full M2 milestone acceptance, actuals `2026-10-25`, 1 inclusive day, and -3 days Early variance.
+- **`PROJECT_STATE.json`:** Advanced governance frontier to `latestTaskDone="T177"`, `latestTaskAuthorized="T177"`, `inProgressTransitions=[]`. Recorded T177 protected implementation merge tuple in `completionProvenance`. Preserved T167 cancellation provenance, historical completion records, and Required ADR invariants.
+- **`docs/delivery_calendar.json`:** Recorded evidence-backed actual start `2026-10-25`, actual completion `2026-10-25`, elapsed duration 1 inclusive day, planned finish used `2026-10-28`, variance `-3` days, classification **Early**, critical_at_completion false, milestone_impact 0, and full completion evidence tuple. Appended three immutable history entries for M1, M2, and M3 preserving zero movement for provisional forecasts (M1 2026-11-15 actual null, M2 2026-12-31, M3 2027-02-28).
+- **Closeout Documentation Artifact:** Created [`docs/closeout/T177_Governance_Closeout.md`](closeout/T177_Governance_Closeout.md) capturing full closeout evidence, journey verification matrix, calendar accounting, and advisory register.
+- **Documentation Synchronization:** Updated [`docs/DELIVERY_CALENDAR.md`](DELIVERY_CALENDAR.md), [`docs/ProjectStatus.md`](ProjectStatus.md), and [`docs/AI_HANDOVER.md`](AI_HANDOVER.md).
+
+### 2. Carried Forward Advisories & Boundaries
+- **QA-T177-IMPL-ADV-01 / T177-LIM-02:** AC-07 in-memory `FileStorage` port contract verification does not establish physical filesystem or cloud storage durability.
+- **QA-T177-IMPL-ADV-02 / T177-LIM-01:** AC-09 authenticated Electron restart relies on approved T175 human-operated evidence reuse based on zero changes in auth/Electron code.
+- **QA-T177-IMPL-ADV-03 / QA-T176-AUTH-ADV-01:** Historical hardcoded `T170` test manifest assertion debt in `scripts/tests/test_current_context_manifest.py:30` remains open.
+- **QA-T177-IMPL-ADV-04 / T177-ADV-01:** Usability suggestion for Property search / Party detail UI is an operational enhancement for future tasks, not a defect.
+- **T177-ADV-02:** Full backend-suite certification was not established by T177 evidence due to runner observation limits; focused suites (26 passed) and CI backend validation passed.
+- **Milestone Distinction:** T177 verifies post-conversion journey readiness and dispositions gaps; it does not constitute full M2 milestone acceptance or production release certification.
+- **Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole migration frontier `b155caa6d4e1`; Full M1 dogfooding-only boundary preserved; zero production code, schema, migration, or permission changes.
+
+### 3. Candidate Status & Mandatory STOP Boundary
+- Candidate PR published from branch `docs/t177-governance-closeout` for Comprehensive / Risk Tier 1 Independent QA review.
+- Mandatory STOP boundary: Closeout PR must not be merged. T178 must not be authorized. No production changes or milestone forecast modifications. STOP after closeout PR publication and Independent QA handoff.
