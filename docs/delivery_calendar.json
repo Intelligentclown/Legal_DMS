@@ -1613,17 +1613,28 @@
         },
         "reason": "T178 is an owner-approved assessment task addressing M1 calendar reconciliation and M2/M3 delivery forecast recalibration. T177 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; any forecast recalibration is subject to subsequent evidence and separate authorization."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-25",
+      "actual_completion": "2026-10-25",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-28",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-25",
+      "completion_evidence": {
+        "implementation_pr": 379,
+        "protected_merge_sha": "235359cc66b94c90877243468e0eb761d7c6592a",
+        "protected_merge_parents": [
+          "c0862cfa4f6eb60bc89f8f19562221ab9b004671",
+          "d8114e35900192c576157f81f4b70729dfff7291"
+        ],
+        "merged_at_utc": "2026-10-25T09:44:00Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "d8114e35900192c576157f81f4b70729dfff7291",
+        "actual_start_evidence": "T178 Phase 55 log docs/ImplementationLog/Stage3/Phase55.md and planning assessment docs/planning/T178_M1_Calendar_Reconciliation_and_M2_M3_Forecast_Assessment.md record Started/Execution date: 2026-10-25 (Asia/Kolkata); substantive candidate commit 239c91d3dec6b91980ff59833da21eb28b7d6bbd authored 2026-10-25 14:52:40 +0530; PR #379 created 2026-10-25T09:24:20Z (14:54:20 Asia/Kolkata); Independent QA review docs/reviews/T178_QA_Review.md dated 2026-10-25."
+      }
     }
   ],
   "history": [
@@ -2285,6 +2296,39 @@
       "reason": "T177 independently QA-approved M2 post-conversion office journey verification and gap disposition protected-merged 2026-10-25 Asia/Kolkata, three days before original planned finish 2026-10-28. Verification confirmed the continuous operator journey (Quotation through Document Version) over isolated PostgreSQL 16 with byte-for-byte binary download fidelity and non-enumerating tenant/RBAC boundaries, with traceable reuse of protected T175 packaged Electron restart evidence. Unresolved ADR gates [12,15,16,17,20], downstream capacity unknowns, and distinction from full M2 milestone acceptance remain; provisional forecasts remain unchanged.",
       "trigger": "T177 PR #375 protected implementation merge 0da4471cf45166200b350ff2c040e3e35ed2ab41; QA Approved with comments, docs/reviews/T177_QA_Review.md",
       "trigger_key": "T177:0da4471cf45166200b350ff2c040e3e35ed2ab41:M3",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T178 independently QA-approved M1 calendar reconciliation and M2/M3 delivery forecast recalibration assessment protected-merged 2026-10-25 Asia/Kolkata, three days before planned finish 2026-10-28. Assessment confirmed M1 operational acceptance provenance while preserving null calendar actual date pending owner versioned provenance policy, analyzed 20 completed tasks (22 actual vs 77 planned task-days), established non-official M2 sensitivity scenarios (Earliest Plausible 14–30 Dec 2026, Most Likely 23 Jan–20 Feb 2027, Conservative 27 Mar–22 May 2027), and identified five outstanding owner decisions. Official milestone forecasts remain unchanged.",
+      "trigger": "T178 PR #379 protected implementation merge 235359cc66b94c90877243468e0eb761d7c6592a; QA Approved with comments, docs/reviews/T178_QA_Review.md",
+      "trigger_key": "T178:235359cc66b94c90877243468e0eb761d7c6592a:M1",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T178 independently QA-approved M1 calendar reconciliation and M2/M3 delivery forecast recalibration assessment protected-merged 2026-10-25 Asia/Kolkata, three days before planned finish 2026-10-28. Assessment confirmed M1 operational acceptance provenance while preserving null calendar actual date pending owner versioned provenance policy, analyzed 20 completed tasks (22 actual vs 77 planned task-days), established non-official M2 sensitivity scenarios (Earliest Plausible 14–30 Dec 2026, Most Likely 23 Jan–20 Feb 2027, Conservative 27 Mar–22 May 2027), and identified five outstanding owner decisions. Official milestone forecasts remain unchanged.",
+      "trigger": "T178 PR #379 protected implementation merge 235359cc66b94c90877243468e0eb761d7c6592a; QA Approved with comments, docs/reviews/T178_QA_Review.md",
+      "trigger_key": "T178:235359cc66b94c90877243468e0eb761d7c6592a:M2",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T178 independently QA-approved M1 calendar reconciliation and M2/M3 delivery forecast recalibration assessment protected-merged 2026-10-25 Asia/Kolkata, three days before planned finish 2026-10-28. Assessment confirmed M1 operational acceptance provenance while preserving null calendar actual date pending owner versioned provenance policy, analyzed 20 completed tasks (22 actual vs 77 planned task-days), established non-official M2 sensitivity scenarios (Earliest Plausible 14–30 Dec 2026, Most Likely 23 Jan–20 Feb 2027, Conservative 27 Mar–22 May 2027), and identified five outstanding owner decisions. Official milestone forecasts remain unchanged.",
+      "trigger": "T178 PR #379 protected implementation merge 235359cc66b94c90877243468e0eb761d7c6592a; QA Approved with comments, docs/reviews/T178_QA_Review.md",
+      "trigger_key": "T178:235359cc66b94c90877243468e0eb761d7c6592a:M3",
       "recalculated": "2026-10-25"
     }
   ],
