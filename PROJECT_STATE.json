@@ -40,7 +40,7 @@
       17,
       20
     ],
-    "latestTaskDone": "T176",
+    "latestTaskDone": "T177",
     "latestTaskAuthorized": "T177",
     "completionProvenance": {
       "T158": {
@@ -163,7 +163,7 @@
         "mergedAtUtc": "2026-10-20T12:08:24Z",
         "timezone": "Asia/Kolkata"
       },
-    "T169": {
+      "T169": {
         "implementationPr": 345,
         "protectedMergeSha": "78ae3513227d90a2b20e309792708d03201ef477",
         "protectedMergeParents": [
@@ -232,8 +232,18 @@
         ],
         "mergedAtUtc": "2026-10-24T14:45:17Z",
         "timezone": "Asia/Kolkata"
+      },
+      "T177": {
+        "implementationPr": 375,
+        "protectedMergeSha": "0da4471cf45166200b350ff2c040e3e35ed2ab41",
+        "protectedMergeParents": [
+          "0cba800f1c01c4156059d076874dca88e921ef79",
+          "ac70b7437b84319cdd4736331f3314ba59367c03"
+        ],
+        "mergedAtUtc": "2026-10-25T08:07:00Z",
+        "timezone": "Asia/Kolkata"
       }
-  },
+    },
     "asOfCommit": "Protected main verified at 5875b71137299a2be7f16d0fa2826efbdbb34c15 (PR #317 architecture merge, 2026-10-19T12:33:18Z; ordered parents 8116402356b38b65964bbfdb76ede475349eb7ec, 4453a4c07f514cd027df622e041103e21c4bad20). T163 is durably Done through protected closeout PR #315 merge 7087c5eabaf18bbccd18d0503998619e04333b06 at 2026-10-19T11:26:19Z, following evidence PR #314; its completionProvenance remains unchanged. T164 owner-authorized 2026-10-19 through PR #316 protected merge 8116402356b38b65964bbfdb76ede475349eb7ec at 2026-10-19T12:05:52Z. Architecture QA Approved with comments, zero blocking findings, publication 4453a4c07f514cd027df622e041103e21c4bad20. This dedicated PR 3 proposes latestTaskDone=T164, latestTaskAuthorized=T164, transitions []; T164 durable Done still requires separate closeout Independent QA and protected merge. No future closeout merge provenance is asserted. ADR-0047 remains Proposed; architecture only, no implementation. Required ADRs [12,15,16,17,20], frontier b155caa6d4e1 unchanged. DEF-T163-01/02 remain open, BLK-T163-01 Blocked, M1 NOT READY. T165 unauthorized; milestone/finalization forecasts unchanged. T165 owner-authorized 2026-10-19 for bounded ADR-0047 operational-fresh schema compatibility implementation; this authorization candidate has no implementation, QA, protected merge, actuals or M1 readiness claim. T164 remains Done; T165 Authorized/not Done; Required ADRs [12,15,16,17,20] and migration frontier b155caa6d4e1 unchanged. No T166 authorization. T165 post-protected-implementation-merge closeout candidate: PR #321 verified merged as 736f8dc34234f8940a615bb13acdc86d22afe17b (ordered parents 18e98dea285585e46ae5befa0f4699dc1c2449ec, 549ae57d8b50cd1d0ee8525ef30953cd9f1b0a66, GitHub UTC 2026-10-19T15:13:09Z = 20:43:09 Asia/Kolkata). Dedicated closeout proposes latestTaskDone=T165, latestTaskAuthorized=T165, transitions []; durable Done awaits independent closeout QA and protected merge. QA Approved with comments, zero blocking; DEF-T163-01 candidate remediation protected-merged but operational confirmation pending. DEF-T163-02/BLK-T163-01 unresolved, M1 NOT READY, ADR-0047 Proposed, frontier b155caa6d4e1, Required ADRs [12,15,16,17,20], no T166 authorization. Calendar actual start/completion 2026-10-19, elapsed 1 inclusive day, -4 days Early; forecasts unchanged, see Phase46 and T165 QA review. T166 owner-authorized 2026-10-19 for bounded M1 final remediation and operational reacceptance; this authorization candidate contains only queue/state/calendar registration, no implementation, QA acceptance, actuals, Done or M1 readiness. T165 remains Done; T166 Authorized pending independent QA and protected merge. Required ADRs [12,15,16,17,20], ADR-0047 Proposed, migration frontier b155caa6d4e1 and M1 NOT READY unchanged. T166 dedicated completion-governance closeout candidate: implementation PR #325 protected merge 6d32428d6c0f62e0f1ef565e0aad2fff693deb12; operational evidence PR #324 merge c3b0c3479ef16cf13ce491e298958705d0eeced8; independent QA PR #326 merge 194a70d79a8efe8d336e840488eee1c066722d89. Formal QA Approved with comments, zero blockers. QA-T166-NB-01 audit-logger defect open; complete backend test-suite pass not certified. M1 NOT READY; T167 unauthorized. T166 Done proposed in dedicated closeout pending independent QA and protected merge. T167 owner-authorized 2026-10-20 (Issue #330) for bounded backend test-infrastructure reliability and complete-suite certification. This authorization-only candidate advances latestTaskAuthorized to T167 while latestTaskDone remains T166 and inProgressTransitions remains []; no T167 implementation, QA, actuals, protected merge or Done is asserted. Calendar M2 preparation 2026-10-21 through 2026-10-24, ux stabilization lane, T166 predecessor; all provisional milestone forecasts unchanged. QA-T166-NB-01 and QA-T165-ADV-01 remain open until independently verified implementation; QA-T165-ADV-02 remains deferred. Required ADRs [12,15,16,17,20], ADR-0047 Proposed, Alembic frontier b155caa6d4e1, and M1 conditional dogfooding-only acceptance preserved. T168 owner-authorized 2026-10-20 (Issue #333) for governance cancellation/successor transition enablement under PROJECT_WORKFLOW.md §3.1 PR 1 authorization only. T167 remains Authorized/not Done; implementation PR #332 remains Draft/unmerged and QA Rework required; no cancellation, implementation, T169 authorization, actuals or Done. T168 planned M2 ux lane 2026-10-21 through 2026-10-24 inclusive, T166 Done predecessor, T167 defect evidence only. Prospective latestTaskAuthorized=T168; latestTaskDone=T166; Required ADRs [12,15,16,17,20], ADR-0047 Proposed, frontier b155caa6d4e1 and milestone forecasts unchanged. T168 PR #335 implementation protected-merged as dae828405eb833ef0fcea0d8db4c22905bdfabdb at 2026-10-20T10:29:06Z (2026-10-20 Asia/Kolkata), formal independent QA Approved with comments (docs/reviews/T168_QA_Review.md, publication head 92d0b1d7194a83c0e40f221686a4badcad650a5b), zero blockers; advisories QA-T168-IMP-ADV-01 and QA-T168-IMP-ADV-02 remain nonblocking. Dedicated closeout proposes latestTaskDone=T168, latestTaskAuthorized=T168, no cancellations, T167 Authorized and T169 unauthorized; durable Done only after independent closeout QA and protected merge. Required ADRs [12,15,16,17,20], ADR-0047 Proposed, migration b155caa6d4e1 and milestone forecasts unchanged. T169 owner-authorized 2026-10-20 (Issue #339) for bounded backend full-suite failure reproduction and test-contract reconciliation; this authorization candidate registers no implementation, QA, completion or actuals. T167 remains Cancelled with immutable historical successor provenance `T169` / `proposed_unapproved`; T168 and T170 remain Done. `latestTaskDone` and `latestTaskAuthorized` remain T170 under highest-numbered authorization semantics; Required ADRs [12,15,16,17,20] remain unresolved.",
     "validator": "scripts/governance_validate.py",
     "inProgressTransitions": []

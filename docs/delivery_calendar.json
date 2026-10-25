@@ -1429,8 +1429,12 @@
       "milestone": "M2",
       "lane": "ux",
       "dependencies": {
-        "finish_to_start": ["T174"],
-        "defect_evidence": ["T175"]
+        "finish_to_start": [
+          "T174"
+        ],
+        "defect_evidence": [
+          "T175"
+        ]
       },
       "critical_path": {
         "is_critical": false,
@@ -1442,10 +1446,30 @@
       "forecast_start": "2026-10-24",
       "forecast_finish": "2026-10-27",
       "forecast_impact": {
-        "M1": { "old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged" },
-        "M2": { "old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged" },
-        "M3": { "old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged" },
-        "overall_finalization": { "old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged" },
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
         "reason": "T176 is a bounded packaging remediation following T175's observed packaged Electron renderer asset-path defect. T174 is completed finish-to-start predecessor; T175 is defect evidence; T176 remediation enables T175 verification to resume. Forecasts remain provisional and unchanged."
       },
       "actual_start": "2026-10-24",
@@ -1493,23 +1517,54 @@
       "forecast_start": "2026-10-25",
       "forecast_finish": "2026-10-28",
       "forecast_impact": {
-        "M1": { "old": "2026-11-15", "new": "2026-11-15", "movement": 0, "direction": "unchanged" },
-        "M2": { "old": "2026-12-31", "new": "2026-12-31", "movement": 0, "direction": "unchanged" },
-        "M3": { "old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged" },
-        "overall_finalization": { "old": "2027-02-28", "new": "2027-02-28", "movement": 0, "direction": "unchanged" },
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
         "reason": "T177 is an owner-approved verification task covering the continuous post-conversion office journey (Quotation through Document Version) and gap disposition. T175 and T176 are completed finish-to-start predecessors. Provisional planning envelope of 6-11 person-days is an estimate, not a committed calendar duration. Milestone forecasts remain provisional and unchanged."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-25",
+      "actual_completion": "2026-10-25",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-28",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-25",
+      "completion_evidence": {
+        "implementation_pr": 375,
+        "protected_merge_sha": "0da4471cf45166200b350ff2c040e3e35ed2ab41",
+        "protected_merge_parents": [
+          "0cba800f1c01c4156059d076874dca88e921ef79",
+          "ac70b7437b84319cdd4736331f3314ba59367c03"
+        ],
+        "merged_at_utc": "2026-10-25T08:07:00Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "ac70b7437b84319cdd4736331f3314ba59367c03",
+        "actual_start_evidence": "T177 Phase 54 log docs/ImplementationLog/Stage3/Phase54.md and evidence note docs/reviews/T177_Implementation_Evidence.md record Started/Execution date: 2026-10-25 (Asia/Kolkata); substantive candidate commit d890787a17743cbd3e70824492210ab1874dd1d6 authored 2026-10-25 13:22:25 +0530; PR #375 created 2026-10-25T07:54:19Z (13:24:19 Asia/Kolkata); Independent QA review docs/reviews/T177_QA_Review.md dated 2026-10-25."
+      }
     }
   ],
   "history": [
@@ -2138,6 +2193,39 @@
       "reason": "T175 independently QA-approved operational reacceptance and M2-V3 conversion verification protected-merged 2026-10-25 Asia/Kolkata, two days before original planned finish 2026-10-27. Workstream A verified 35 operational scenarios including native Electron session restoration and logout. Workstream B verified conversion contract, isolated PostgreSQL rollback and uncertain-commit retry recovery. Unresolved ADR gates [12,15,16,17,20] and separate milestone acceptance boundaries remain; provisional forecasts remain unchanged.",
       "trigger": "T175 PR #369 protected implementation merge 78c2ee36363e9ddd25a5e4517afeb8df9882250f; QA Approved with comments, docs/reviews/T175_QA_Review.md",
       "trigger_key": "T175:78c2ee36363e9ddd25a5e4517afeb8df9882250f:M3",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T177 independently QA-approved M2 post-conversion office journey verification and gap disposition protected-merged 2026-10-25 Asia/Kolkata, three days before original planned finish 2026-10-28. Verification confirmed the continuous operator journey (Quotation through Document Version) over isolated PostgreSQL 16 with byte-for-byte binary download fidelity and non-enumerating tenant/RBAC boundaries, with traceable reuse of protected T175 packaged Electron restart evidence. Unresolved ADR gates [12,15,16,17,20], downstream capacity unknowns, and distinction from full M2 milestone acceptance remain; provisional forecasts remain unchanged.",
+      "trigger": "T177 PR #375 protected implementation merge 0da4471cf45166200b350ff2c040e3e35ed2ab41; QA Approved with comments, docs/reviews/T177_QA_Review.md",
+      "trigger_key": "T177:0da4471cf45166200b350ff2c040e3e35ed2ab41:M1",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T177 independently QA-approved M2 post-conversion office journey verification and gap disposition protected-merged 2026-10-25 Asia/Kolkata, three days before original planned finish 2026-10-28. Verification confirmed the continuous operator journey (Quotation through Document Version) over isolated PostgreSQL 16 with byte-for-byte binary download fidelity and non-enumerating tenant/RBAC boundaries, with traceable reuse of protected T175 packaged Electron restart evidence. Unresolved ADR gates [12,15,16,17,20], downstream capacity unknowns, and distinction from full M2 milestone acceptance remain; provisional forecasts remain unchanged.",
+      "trigger": "T177 PR #375 protected implementation merge 0da4471cf45166200b350ff2c040e3e35ed2ab41; QA Approved with comments, docs/reviews/T177_QA_Review.md",
+      "trigger_key": "T177:0da4471cf45166200b350ff2c040e3e35ed2ab41:M2",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T177 independently QA-approved M2 post-conversion office journey verification and gap disposition protected-merged 2026-10-25 Asia/Kolkata, three days before original planned finish 2026-10-28. Verification confirmed the continuous operator journey (Quotation through Document Version) over isolated PostgreSQL 16 with byte-for-byte binary download fidelity and non-enumerating tenant/RBAC boundaries, with traceable reuse of protected T175 packaged Electron restart evidence. Unresolved ADR gates [12,15,16,17,20], downstream capacity unknowns, and distinction from full M2 milestone acceptance remain; provisional forecasts remain unchanged.",
+      "trigger": "T177 PR #375 protected implementation merge 0da4471cf45166200b350ff2c040e3e35ed2ab41; QA Approved with comments, docs/reviews/T177_QA_Review.md",
+      "trigger_key": "T177:0da4471cf45166200b350ff2c040e3e35ed2ab41:M3",
       "recalculated": "2026-10-25"
     }
   ],
