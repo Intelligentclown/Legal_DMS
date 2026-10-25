@@ -1802,3 +1802,30 @@ The Project Owner explicitly approved **T179 — Milestone Completion-Provenance
 - Preserves Full M1 Operational Acceptance for office dogfooding only.
 - Does NOT automatically authorize or implement unrelated successor tasks.
 - Candidate state: `latestTaskDone=T178`, `latestTaskAuthorized=T179`, `inProgressTransitions=[]`. T179 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
+
+## 2026-10-25 — T179 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+Following the protected merge of T179 implementation PR #383 (merge commit `a4daa2d7a50196a7ded2f360764e530be4431f26`), the Documentation Manager prepared and published the dedicated post-implementation governance closeout under `PROJECT_WORKFLOW.md §3.1` (PR 3 of 3).
+
+**Governance Frontier:**
+- `latestTaskDone = "T179"`
+- `latestTaskAuthorized = "T179"`
+- `inProgressTransitions = []`
+
+**Supporting durable evidence & verification scope:**
+- T179 authorization PR #382, protected merge `006bdfb4f3c78677cedd1faf939e21a419475369`; Issue [#381](https://github.com/Intelligentclown/Legal_DMS/issues/381).
+- T179 implementation PR #383, protected merge `a4daa2d7a50196a7ded2f360764e530be4431f26` (GitHub UTC `2026-10-25T12:12:45Z` = `2026-10-25 17:42:45` Asia/Kolkata); [`docs/reviews/T179_QA_Review.md`](reviews/T179_QA_Review.md); [`docs/closeout/T179_Governance_Closeout.md`](closeout/T179_Governance_Closeout.md).
+- Formal Independent QA Decision: **Approved with comments**, zero blocking findings, QA-reviewed substantive candidate `9f142ede62eaa26c67b05f01f9e80549425c7774`, publication commit `ea3f1399cf52fe8d30a4b2c92b123a08f1b99496`.
+- Implementation deliverables completed across all five approved areas:
+  - Deliverable 1: Versioned Calendar Schema V3 milestone completion-provenance contract and validators in `scripts/delivery_calendar.py`, `docs/DELIVERY_CALENDAR.md`, and `docs/GOVERNANCE_VALIDATION.md`.
+  - Deliverable 2: Explicit 11-field milestone completion provenance tuple enforcing acceptance scope, references, SHA-256 evidence digest, baseline/forecast/confidence snapshots, and derived variance.
+  - Deliverable 3: Backward compatibility for Schema V1 and V2 records.
+  - Deliverable 4: Consumer impact remediation, regression test coverage (84 unit tests), and CI enforcement.
+  - Deliverable 5: Fail-closed anti-smuggling rules preventing completion provenance on null actuals and rejecting missing provenance on non-null actuals.
+
+**Invariants & Preserved Boundaries:**
+- Frontiers advance to `latestTaskDone=T179` and `latestTaskAuthorized=T179` with `inProgressTransitions=[]`.
+- Actual completion: `2026-10-25` Asia/Kolkata, 1 inclusive day (started `2026-10-25`), 3 days Early versus planned finish `2026-10-28`.
+- Invariants strictly preserved: Required ADRs `[12, 15, 16, 17, 20]` unresolved; Proposed ADR-0043 and ADR-0047 remain Proposed; migration frontier solely `b155caa6d4e1`; Full M1 Operational Acceptance for office dogfooding only; T167 cancellation provenance immutable; M1 calendar actual remains `null`.
+- Zero production application code, schema, migration, or security policy changes.
+- Candidate Status: This dedicated closeout PR records the completion evidence and requires separate Independent QA, exact-head CI, collaborator review, and protected merge before durable T179 Done. No successor task is authorized (T180 unauthorized).

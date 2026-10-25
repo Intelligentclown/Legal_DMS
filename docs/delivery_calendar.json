@@ -1683,17 +1683,28 @@
         },
         "reason": "T179 is an owner-approved task addressing milestone completion-provenance schema and governance validation. T178 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-25",
+      "actual_completion": "2026-10-25",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-28",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-25",
+      "completion_evidence": {
+        "implementation_pr": 383,
+        "protected_merge_sha": "a4daa2d7a50196a7ded2f360764e530be4431f26",
+        "protected_merge_parents": [
+          "006bdfb4f3c78677cedd1faf939e21a419475369",
+          "ea3f1399cf52fe8d30a4b2c92b123a08f1b99496"
+        ],
+        "merged_at_utc": "2026-10-25T12:12:45Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "ea3f1399cf52fe8d30a4b2c92b123a08f1b99496",
+        "actual_start_evidence": "T179 substantive implementation candidate commit 9f142ede62eaa26c67b05f01f9e80549425c7774 authored 2026-10-25 17:23:46 +0530; PR #383 opened 2026-10-25T11:55:00Z (17:25:00 Asia/Kolkata); Independent QA review docs/reviews/T179_QA_Review.md dated 2026-10-25."
+      }
     }
   ],
   "history": [
@@ -2388,6 +2399,39 @@
       "reason": "T178 independently QA-approved M1 calendar reconciliation and M2/M3 delivery forecast recalibration assessment protected-merged 2026-10-25 Asia/Kolkata, three days before planned finish 2026-10-28. Assessment confirmed M1 operational acceptance provenance while preserving null calendar actual date pending owner versioned provenance policy, analyzed 20 completed tasks (22 actual vs 77 planned task-days), established non-official M2 sensitivity scenarios (Earliest Plausible 14–30 Dec 2026, Most Likely 23 Jan–20 Feb 2027, Conservative 27 Mar–22 May 2027), and identified five outstanding owner decisions. Official milestone forecasts remain unchanged.",
       "trigger": "T178 PR #379 protected implementation merge 235359cc66b94c90877243468e0eb761d7c6592a; QA Approved with comments, docs/reviews/T178_QA_Review.md",
       "trigger_key": "T178:235359cc66b94c90877243468e0eb761d7c6592a:M3",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M1",
+      "old": "2026-11-15",
+      "new": "2026-11-15",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T179 independently QA-approved milestone completion-provenance schema and validation contract protected-merged 2026-10-25 Asia/Kolkata (PR #383, merge a4daa2d7a50196a7ded2f360764e530be4431f26), three days before planned finish 2026-10-28. Delivery calendar Schema Version 3 activated with fail-closed completion-provenance validation; M1 calendar actual remains null pending separately authorized milestone actual reconciliation; provisional milestone forecasts remain unchanged.",
+      "trigger": "T179 PR #383 protected implementation merge a4daa2d7a50196a7ded2f360764e530be4431f26; QA Approved with comments, docs/reviews/T179_QA_Review.md",
+      "trigger_key": "T179:a4daa2d7a50196a7ded2f360764e530be4431f26:M1",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M2",
+      "old": "2026-12-31",
+      "new": "2026-12-31",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T179 independently QA-approved milestone completion-provenance schema and validation contract protected-merged 2026-10-25 Asia/Kolkata (PR #383, merge a4daa2d7a50196a7ded2f360764e530be4431f26), three days before planned finish 2026-10-28. Delivery calendar Schema Version 3 activated with fail-closed completion-provenance validation; M1 calendar actual remains null pending separately authorized milestone actual reconciliation; provisional milestone forecasts remain unchanged.",
+      "trigger": "T179 PR #383 protected implementation merge a4daa2d7a50196a7ded2f360764e530be4431f26; QA Approved with comments, docs/reviews/T179_QA_Review.md",
+      "trigger_key": "T179:a4daa2d7a50196a7ded2f360764e530be4431f26:M2",
+      "recalculated": "2026-10-25"
+    },
+    {
+      "milestone": "M3",
+      "old": "2027-02-28",
+      "new": "2027-02-28",
+      "movement": 0,
+      "direction": "unchanged",
+      "reason": "T179 independently QA-approved milestone completion-provenance schema and validation contract protected-merged 2026-10-25 Asia/Kolkata (PR #383, merge a4daa2d7a50196a7ded2f360764e530be4431f26), three days before planned finish 2026-10-28. Delivery calendar Schema Version 3 activated with fail-closed completion-provenance validation; M1 calendar actual remains null pending separately authorized milestone actual reconciliation; provisional milestone forecasts remain unchanged.",
+      "trigger": "T179 PR #383 protected implementation merge a4daa2d7a50196a7ded2f360764e530be4431f26; QA Approved with comments, docs/reviews/T179_QA_Review.md",
+      "trigger_key": "T179:a4daa2d7a50196a7ded2f360764e530be4431f26:M3",
       "recalculated": "2026-10-25"
     }
   ],
