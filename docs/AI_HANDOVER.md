@@ -1937,3 +1937,49 @@ The Project Owner explicitly approved **T181 — M2 Core V1 Acceptance Boundary,
 ## T181 dedicated governance closeout candidate — 2026-10-26
 
 T181 implementation PR [#391](https://github.com/Intelligentclown/Legal_DMS/pull/391) protected-merged at `77667bf29a527cf64014753644541c5b6b48fc2d` (2026-10-26 Asia/Kolkata). Independent QA [T181 review](docs/reviews/T181_QA_Review.md) Approved with comments, zero blockers; the dedicated PR 3 proposes T181 Done and synchronizes queue, state, calendar and Phase56. Calendar actual 2026-10-25–2026-10-26, 2 inclusive days, 2 days Early. This is not durable until closeout QA and protected merge. Required ADRs #12/#15/#16/#17/#20 and milestone forecasts remain unchanged; P1/T182 not authorized.
+
+## 2026-10-26 — T182 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T182 — M2 Document Physical Storage Durability, Restart Recovery and Current-Head Backend Certification** on 2026-10-26 under `PROJECT_WORKFLOW.md §3.1` ([Issue #393](https://github.com/Intelligentclown/Legal_DMS/issues/393)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T181"`
+- `latestTaskAuthorized = "T182"`
+- `inProgressTransitions = []`
+
+**Authorized future PR 2 scope (only after PR 1 protected merge):**
+1. Real `LocalFileStorage` integration tests using physical disk I/O.
+2. Document-version persistence across fresh service/container initialization.
+3. Idempotent upload replay and conflicting-key rejection.
+4. Rollback compensation and prevention of orphan physical blobs.
+5. Storage-write failure handling and prevention of orphan database metadata.
+6. Corruption detection and fail-closed downloads.
+7. Multi-tenant path isolation, traversal prevention and RBAC enforcement.
+8. Full backend-suite certification against isolated PostgreSQL 16.
+9. Native Windows Electron physical upload/download smoke verification.
+
+**Acceptance criteria for eventual implementation (AC-01 through AC-08):**
+- **AC-01 (Physical Storage Durability):** Real `LocalFileStorage` integration tests write and read document versions to/from physical disk I/O, verifying byte-exact round-trip integrity, correct SHA-256 computation, MIME detection, and metadata consistency.
+- **AC-02 (Restart Recovery & Service Re-initialization):** Document versions uploaded to physical storage persist across complete backend service, dependency-injection container, and application restarts; re-initialized services successfully retrieve and download persisted files with byte-for-byte integrity preserved.
+- **AC-03 (Idempotency & Replay Consistency):** Upload replays using identical idempotency key and file payload succeed with HTTP 200/201 and identical metadata without duplicate physical blob creation; replays with mismatched payloads or conflicting keys are rejected fail-closed with HTTP 409 Conflict.
+- **AC-04 (Rollback Compensation & Orphan Blob Prevention):** Failures occurring during or after file storage write but before database transaction commit trigger rollback compensation, reliably cleaning up physical disk blobs and leaving zero orphan files on disk.
+- **AC-05 (Storage Write Failure & Orphan Metadata Prevention):** Simulated or real storage-write failures abort cleanly, fail closed with appropriate error response, roll back the database transaction, and leave zero orphan DocumentVersion or Document metadata rows in the database.
+- **AC-06 (Corruption Detection & Fail-Closed Download):** Downloads verify physical blob integrity against persisted checksums/metadata; altered, truncated, or corrupted physical blobs trigger fail-closed handling rather than returning damaged data.
+- **AC-07 (Multi-Tenant Isolation, Traversal Defense & RBAC Enforcement):** Physical storage paths strictly isolate tenant files under organization directories; directory traversal attacks are rejected fail-closed; cross-tenant document access is denied; and RBAC permissions (`document:read`, `document:create`) are strictly enforced for physical operations.
+- **AC-08 (Current-Head Backend Certification & Windows Electron Smoke):** Complete backend test suite runs cleanly and is certified against isolated PostgreSQL 16 at candidate HEAD; native Windows Electron physical upload/download smoke verification is executed without regressions; and Comprehensive / Risk Tier 1 Independent QA records zero blocking findings before protected implementation merge.
+
+**Explicit restrictions & non-authorization boundaries:**
+- Authorization PR 1 contains governance and planning registration only.
+- No backend, frontend, Electron or database product implementation.
+- No database migrations or schema redesign.
+- No new HTTP endpoints or route changes.
+- Cloud-storage provider integration is strictly excluded.
+- No new frontend features.
+- No workflow or Government Process implementation.
+- No changes to Required ADR decisions or statuses (#12, #15, #16, #17, #20 remain unresolved).
+- No changes to Proposed ADR-0043 or ADR-0047 (remain Proposed).
+- No M2 milestone acceptance or production release claims.
+- No unapproved delivery-forecast changes (M2: 2026-12-31, M3: 2027-02-28 remain unchanged).
+- Preserve migration frontier `b155caa6d4e1`.
+- Preserve Full M1 Operational Acceptance for internal office dogfooding only.
+- Candidate state: `latestTaskDone=T181`, `latestTaskAuthorized=T182`, `inProgressTransitions=[]`. T182 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.

@@ -1865,6 +1865,65 @@
         "approved_qa_publication_head": "9fb1af46eb97309ad5b52bff91f04de7e9544c86",
         "actual_start_evidence": "Phase56.md records T181 assessment started 2026-10-25; PR #391 opened 2026-10-25T18:29:39Z (23:59:39 Asia/Kolkata), independently QA-reviewed substantive candidate c5bbb5dfa1012999ce1ba698e5f880e02c43ea9f; docs/reviews/T181_QA_Review.md dated 2026-10-26."
       }
+    },
+    {
+      "id": "T182",
+      "title": "M2 Document Physical Storage Durability, Restart Recovery and Current-Head Backend Certification",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T181"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-26",
+      "planned_finish": "2026-10-29",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-26",
+      "forecast_finish": "2026-10-29",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T182 is an owner-approved task addressing M2 document physical storage durability, restart recovery, and current-head backend certification. T181 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
