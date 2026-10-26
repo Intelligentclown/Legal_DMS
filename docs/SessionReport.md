@@ -4433,3 +4433,27 @@ Registered the Project Owner's explicit approval of **T181 — M2 Core V1 Accept
 ## Session: 2026-10-26 — T181 Dedicated Governance Closeout PR 3 candidate
 
 Documentation Manager verified protected main `77667bf29a527cf64014753644541c5b6b48fc2d`, merged PR #391, QA-reviewed substantive `c5bbb5dfa1012999ce1ba698e5f880e02c43ea9f`, QA publication head `9fb1af46eb97309ad5b52bff91f04de7e9544c86`, and formal independent QA Approved with comments (zero blockers). Proposed queue T181 Done, ledger latestTaskDone=T181/latestTaskAuthorized=T181/transitions=[], and T181 calendar actual 2026-10-25–2026-10-26 (2 inclusive days; 2 days Early). The implementation log and handover/status/calendar narrative were synchronized. T182 and P1 remain unauthorized; Required ADRs and M2/M3 forecasts unchanged. Closeout QA and protected merge are pending.
+
+## Session: 2026-10-26 — T182 Authorization Publication (PROJECT_WORKFLOW.md §3.1 PR 1 of 3)
+
+**Assigned Role:** Documentation Manager
+**Task:** T182 — M2 Document Physical Storage Durability, Restart Recovery and Current-Head Backend Certification
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Authorization PR 1 of 3
+**Authorization:** [GitHub Issue #393](https://github.com/Intelligentclown/Legal_DMS/issues/393) (Project Owner decision granted 2026-10-26, Asia/Kolkata)
+**Baseline:** Protected `main` at `b4faafe3ef48c09da735c36163017cb73abc38e5` (T181 Closeout PR #392)
+**Branch:** `docs/t182-authorization-calendar`
+
+### 1. Published Action
+Registered the Project Owner's explicit approval of **T182 — M2 Document Physical Storage Durability, Restart Recovery and Current-Head Backend Certification** through the repository's standard three-PR governance lifecycle (`PROJECT_WORKFLOW.md §3.1` PR 1 of 3).
+- Verified durable pre-implementation authorization record on GitHub ([Issue #393](https://github.com/Intelligentclown/Legal_DMS/issues/393)).
+- Registered T182 as `Authorized` in `IMPLEMENTATION_QUEUE.md` with complete approved scope, acceptance criteria (AC-01 through AC-08), exclusions, resources, and candidate state.
+- Synchronized `PROJECT_STATE.json` (`latestTaskAuthorized="T182"`, `latestTaskDone="T181"`, `inProgressTransitions=[]`).
+- Registered structured delivery-calendar record in `docs/delivery_calendar.json` with finish-to-start predecessor T181 (Done), planned window 2026-10-26 through 2026-10-29 (4 days), null actuals/completion fields, and zero milestone forecast movement.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Preserved Invariants and Exclusions
+- **Exclusions:** The authorization PR must not modify existing milestone baselines, forecasts, actual dates, or historical calendar events; must not declare M2 or M3 accepted; must not modify production application code, database schema, migrations, tests, security policies, or ADR statuses; and must not automatically authorize or implement unrelated successor tasks.
+- **Architectural & Security Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole Alembic migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; and Full M1 Operational Acceptance for internal office dogfooding only.
+- **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31 actual null, M3 2027-02-28 actual null) remain unchanged.
+- **Candidate State:** `latestTaskDone=T181`, `latestTaskAuthorized=T182`, `inProgressTransitions=[]`.
+- **Mandatory STOP Boundary:** T182 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.
