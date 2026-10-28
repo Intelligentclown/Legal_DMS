@@ -212,17 +212,20 @@ describe("MatterDetailPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("filters the current page of tenant-visible Property options without inventing a search API", async () => {
+  it("forwards Property searches to the server, including a match beyond the original page", async () => {
+    mockedListProperties.mockImplementation(({ search }: { search?: string }) =>
+      Promise.resolve(filesPage(search === "REG-OFF-PAGE" ? [SECOND_PROPERTY] : [PROPERTY])),
+    );
     const user = userEvent.setup();
     renderPage();
     await screen.findByRole("option", { name: "Survey 42/A (residential)" });
 
-    await user.type(screen.getByLabelText(/search properties on this page/i), "commercial");
+    await user.type(screen.getByLabelText("Search properties"), "REG-OFF-PAGE");
 
     expect(
-      screen.queryByRole("option", { name: "Survey 42/A (residential)" }),
-    ).not.toBeInTheDocument();
-    expect(mockedListProperties).toHaveBeenCalledTimes(1);
+      await screen.findByRole("option", { name: "Survey 84 (commercial)" }),
+    ).toBeInTheDocument();
+    expect(mockedListProperties).toHaveBeenLastCalledWith({ page: 1, search: "REG-OFF-PAGE" });
   });
 
   it("clears a pending Property selection when the user changes the paginated API page", async () => {
@@ -249,16 +252,141 @@ describe("MatterDetailPage", () => {
     expect(screen.getByRole("button", { name: "Link property" })).toBeDisabled();
   });
 
-  it("clears a pending Property selection when filtering hides it", async () => {
+  it("resets pagination and clears a pending Property selection when the search changes", async () => {
+    mockedListProperties.mockImplementation(({ page, search }: { page: number; search?: string }) =>
+      Promise.resolve({
+        items: search ? [SECOND_PROPERTY] : page === 1 ? [PROPERTY] : [SECOND_PROPERTY],
+        pagination: { page, page_size: 20, total: search ? 1 : 2, total_pages: search ? 1 : 2 },
+      }),
+    );
     const user = userEvent.setup();
     renderPage();
     const select = await screen.findByLabelText("Property");
 
     await user.selectOptions(select, "prop-1");
-    await user.type(screen.getByLabelText(/search properties on this page/i), "commercial");
+    await user.type(screen.getByLabelText("Search properties"), "REG-42");
 
-    expect(select).toHaveValue("");
+    expect(
+      await screen.findByRole("option", { name: "Survey 84 (commercial)" }),
+    ).toBeInTheDocument();
+    expect(mockedListProperties).toHaveBeenLastCalledWith({ page: 1, search: "REG-42" });
+    expect(screen.getByLabelText("Property")).toHaveValue("");
     expect(screen.getByRole("button", { name: "Link property" })).toBeDisabled();
+  });
+
+  it.each([
+    ["SURVEY-42", "survey"],
+    ["SUBDIVISION-A", "subdivision"],
+    ["REG-42", "registration number"],
+  ])("searches by %s (%s)", async (search) => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.type(screen.getByLabelText("Search properties"), search);
+
+    await waitFor(() => expect(mockedListProperties).toHaveBeenLastCalledWith({ page: 1, search }));
+  });
+
+  it("shows a no-results state with filtered pagination totals", async () => {
+    mockedListProperties.mockImplementation(({ search }: { search?: string }) =>
+      Promise.resolve(filesPage(search === "NO-MATCH" ? [] : [PROPERTY])),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.type(screen.getByLabelText("Search properties"), "NO-MATCH");
+
+    expect(await screen.findByText("No matching properties")).toBeInTheDocument();
+    expect(screen.getByText(/page 1 of 1 · 0 total/i)).toBeInTheDocument();
+  });
+
+  it("shows a loading state while a server-side Property search is pending", async () => {
+    let resolveSearch!: (value: ReturnType<typeof filesPage>) => void;
+    const pendingSearch = new Promise<ReturnType<typeof filesPage>>((resolve) => {
+      resolveSearch = resolve;
+    });
+    mockedListProperties.mockImplementation(({ search }: { search?: string }) =>
+      search === "PENDING" ? pendingSearch : Promise.resolve(filesPage([PROPERTY])),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.type(screen.getByLabelText("Search properties"), "PENDING");
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getAllByRole("status")
+          .some((status) => status.textContent === "Loading properties…"),
+      ).toBe(true),
+    );
+    resolveSearch(filesPage([SECOND_PROPERTY]));
+    expect(
+      await screen.findByRole("option", { name: "Survey 84 (commercial)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a Property-search error and retries the current server query", async () => {
+    mockedListProperties.mockImplementation(({ search }: { search?: string }) => {
+      if (search === "BROKEN") {
+        return Promise.reject(new HttpError(503, "Property search is temporarily unavailable"));
+      }
+      return Promise.resolve(filesPage([PROPERTY]));
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    await user.type(screen.getByLabelText("Search properties"), "BROKEN");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Property search is temporarily unavailable",
+    );
+
+    mockedListProperties.mockResolvedValue(filesPage([SECOND_PROPERTY]));
+    await user.click(screen.getByRole("button", { name: "Retry property search" }));
+
+    expect(
+      await screen.findByRole("option", { name: "Survey 84 (commercial)" }),
+    ).toBeInTheDocument();
+    expect(mockedListProperties).toHaveBeenLastCalledWith({ page: 1, search: "BROKEN" });
+  });
+
+  it("does not let a stale server response replace the current search options", async () => {
+    let resolveOld!: (value: ReturnType<typeof filesPage>) => void;
+    const oldResult = new Promise<ReturnType<typeof filesPage>>((resolve) => {
+      resolveOld = resolve;
+    });
+    mockedListProperties.mockImplementation(({ search }: { search?: string }) => {
+      if (search === "OLD") {
+        return oldResult;
+      }
+      if (search === "NEW") {
+        return Promise.resolve(filesPage([SECOND_PROPERTY]));
+      }
+      return Promise.resolve(filesPage([PROPERTY]));
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole("option", { name: "Survey 42/A (residential)" });
+
+    const search = screen.getByLabelText("Search properties");
+    await user.type(search, "OLD");
+    await user.clear(search);
+    await user.type(search, "NEW");
+    expect(
+      await screen.findByRole("option", { name: "Survey 84 (commercial)" }),
+    ).toBeInTheDocument();
+
+    resolveOld(filesPage([PROPERTY]));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("option", { name: "Survey 42/A (residential)" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText("Property")).toHaveValue("");
   });
 
   it("links a selected property and refreshes the association list", async () => {
