@@ -1873,7 +1873,8 @@
       "lane": "ux",
       "dependencies": {
         "finish_to_start": [
-          "T181"
+          "T181",
+          "T183"
         ],
         "defect_evidence": []
       },
@@ -1911,7 +1912,68 @@
           "movement": 0,
           "direction": "unchanged"
         },
-        "reason": "T182 is an owner-approved task addressing M2 document physical storage durability, restart recovery, and current-head backend certification. T181 is the completed finish-to-start predecessor. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
+        "reason": "T182 is an owner-approved task addressing M2 document physical storage durability, restart recovery, and current-head backend certification. T181 is the completed finish-to-start predecessor; final backend certification is blocked by the independently reproduced allocator defect; T183 remediation unblocks T182 certification upon protected merge. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
+    },
+    {
+      "id": "T183",
+      "title": "PostgreSQL File-Number Allocator Concurrency Remediation",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T181"
+        ],
+        "defect_evidence": [
+          "T182"
+        ]
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-28",
+      "planned_finish": "2026-10-31",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-28",
+      "forecast_finish": "2026-10-31",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T183 is an owner-approved task addressing PostgreSQL file-number allocator concurrency remediation discovered during T182 certification. T181 is the completed finish-to-start predecessor; T182 is defect evidence; T183 remediation unblocks T182 backend certification. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
       },
       "actual_start": null,
       "actual_completion": null,
