@@ -4555,3 +4555,30 @@ Prepared dedicated post-implementation governance closeout PR under `PROJECT_WOR
 - **Exclusions:** No product implementation or modification; no database migrations or schema alterations; no application-process locking; no changes to Required ADRs `[12, 15, 16, 17, 20]` (remain unresolved) or Proposed ADRs (0043, 0047); no changes to provisional milestone dates (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31, M3 2027-02-28); no successor task authorization.
 - **Candidate State:** `latestTaskDone=T183`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`. T182 is proposed Done; durable Done requires independent closeout QA and protected merge.
 - **Mandatory STOP Boundary:** Do not merge this closeout PR. Do not authorize T184. Stop after publishing closeout PR.
+
+## Session: 2026-10-28 — T184 Authorization Publication (PROJECT_WORKFLOW.md §3.1 PR 1 of 3)
+
+**Assigned Role:** Documentation Manager  
+**Task:** T184 — Tenant-Scoped Property Search in the Matter Workspace  
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Authorization PR 1 of 3  
+**Authorization:** [GitHub Issue #401](https://github.com/Intelligentclown/Legal_DMS/issues/401) (Project Owner decision granted 2026-10-28, Asia/Kolkata)  
+**Baseline:** Protected `main` at `3b8cdce5138371851d897e8b054f6d38b5fd6de7` (T182 Closeout PR #400)  
+**Branch:** `docs/t184-authorization-calendar`  
+
+### 1. Published Action
+Registered the Project Owner's explicit approval of **T184 — Tenant-Scoped Property Search in the Matter Workspace** through the repository's standard three-PR governance lifecycle (`PROJECT_WORKFLOW.md §3.1` PR 1 of 3).
+- Verified protected `main` baseline SHA `3b8cdce5138371851d897e8b054f6d38b5fd6de7` and governance frontier (`latestTaskDone=T183`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`).
+- Verified that all predecessor tasks (T182, T183) are Done and closed out.
+- Allocated next sequential task identifier T184.
+- Created durable pre-implementation authorization record on GitHub ([Issue #401](https://github.com/Intelligentclown/Legal_DMS/issues/401)).
+- Registered T184 as `Authorized` in `IMPLEMENTATION_QUEUE.md` with complete approved scope, acceptance criteria (AC-01 through AC-10), exclusions, resources, ADR disposition, and candidate state.
+- Synchronized `PROJECT_STATE.json` (`latestTaskAuthorized="T184"`, `latestTaskDone="T183"`, `inProgressTransitions=[]`).
+- Registered structured delivery-calendar record in `docs/delivery_calendar.json` with finish-to-start predecessors T182 and T183 (both Done), planned window 2026-10-28 through 2026-10-31 (4 days), null actuals/completion fields, and zero milestone forecast movement.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Preserved Invariants and Exclusions
+- **Exclusions:** The authorization PR must not modify existing milestone baselines, forecasts, actual dates, or historical calendar events; must not declare M2 or M3 accepted; must not modify production application code, database schema, migrations, tests, security policies, or ADR statuses; must not repair accepted manifest test debt (`QA-T182-AUTH-ADV-01`); installation boundary remains operational-fresh only.
+- **Architectural & Security Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole Alembic migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; and Full M1 Operational Acceptance for internal office dogfooding only. Bounded T184 scope requires no new architectural decisions.
+- **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31 actual null, M3 2027-02-28 actual null) remain unchanged.
+- **Candidate State:** `latestTaskDone=T183`, `latestTaskAuthorized=T184`, `inProgressTransitions=[]`.
+- **Mandatory STOP Boundary:** T184 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.

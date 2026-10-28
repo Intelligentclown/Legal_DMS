@@ -2039,3 +2039,48 @@ T183 implementation PR [#397](https://github.com/Intelligentclown/Legal_DMS/pull
 ## T182 dedicated governance closeout candidate — 2026-10-28
 
 T182 implementation PR [#399](https://github.com/Intelligentclown/Legal_DMS/pull/399) protected-merged at `421652eeb5a6062b3b8d3ee41e75d8df1efbc2a4` (ordered parents `012796947b33a11d4085f94804ca090fe7ef3b03`, `aa6c0af208d7606d710aef10c881c8de75d1e3c2`; 2026-10-28 19:27:08 Asia/Kolkata). Independent QA [T182 review](reviews/T182_QA_Review.md) Approved with comments, zero blocking findings, four non-blocking advisories (QA-T182-IMPL-ADV-01 through ADV-04). Dedicated PR 3 proposes T182 Done and synchronizes queue, state, and delivery calendar. Calendar actual start `2026-10-28`, completion `2026-10-28`, 1 inclusive day, variance -1 day Early vs 2026-10-29 planned finish. Milestone forecasts remain unchanged. T183 completion remains preserved. This closeout candidate is not durable until independent closeout QA and protected merge. Required ADRs #12/#15/#16/#17/#20 unresolved; ADR-0043/0047 Proposed; sole Alembic migration frontier `b155caa6d4e1`.
+
+## 2026-10-28 — T184 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T184 — Tenant-Scoped Property Search in the Matter Workspace** on 2026-10-28 under `PROJECT_WORKFLOW.md §3.1` ([Issue #401](https://github.com/Intelligentclown/Legal_DMS/issues/401)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T183"`
+- `latestTaskAuthorized = "T184"`
+- `inProgressTransitions = []`
+
+**Authorized future PR 2 scope (only after PR 1 protected merge):**
+1. Extend `GET /api/v1/properties` with an optional `search` query parameter.
+2. Support searches against existing `survey_number`, `sub_division_number` and `registration_number` fields.
+3. Apply organization-scoped filtering before pagination and filtered total-count calculation.
+4. Replace current-page-only Property search in the Matter workspace with server-side search.
+5. Handle loading, empty results, errors, retry, pagination and stale asynchronous responses.
+6. Preserve existing Matter–Property link, list and unlink contracts and idempotency.
+7. Enforce `properties:read` and `matters:write` permission boundaries and cross-tenant isolation.
+8. Native Windows Electron changed-path search-and-link operational verification.
+
+**Acceptance criteria for eventual implementation (AC-01 through AC-10):**
+- **AC-01:** Search finds matching Properties beyond the initially loaded page.
+- **AC-02:** Survey, subdivision and registration-number searches return correct organization-scoped matches.
+- **AC-03:** Pagination totals reflect the filtered collection.
+- **AC-04:** Empty search preserves existing list behavior.
+- **AC-05:** Loading, no-match, error and retry states are correct.
+- **AC-06:** Linking creates exactly one canonical association; replay is idempotent.
+- **AC-07:** Cross-tenant search disclosure and association are prevented.
+- **AC-08:** `properties:read` and `matters:write` permission boundaries are enforced.
+- **AC-09:** Stale asynchronous results cannot produce incorrect selection or linking.
+- **AC-10:** Native Windows Electron changed-path search-and-link verification passes.
+
+Preserve relevant existing Property, Matter–Property and Matter–Party regressions.
+
+**Explicit restrictions & non-authorization boundaries:**
+- Authorization PR 1 contains governance and planning registration only.
+- No backend, frontend, Electron or database product implementation.
+- Installation boundary: Operational-fresh only.
+- No new Property or Party detail/editing pages, participant mutation, taxonomy or lifecycle changes, database migrations, new storage architecture, Gujarat-records module, government workflows, finance, reporting or legacy-installation support.
+- Unresolved Required ADRs #12, #15, #16, #17, and #20 remain unresolved and must not be implicitly resolved or bypassed. The bounded T184 scope does not require new architectural decisions because it uses existing schema, existing ADR-0021 tenant boundary enforcement, ADR-0022 RBAC permissions (`properties:read`, `matters:write`), ADR-0024 property model, ADR-0025 survey fields, and ADR-0037 Matter-Property association contracts. Proposed ADR-0043 and ADR-0047 remain Proposed.
+- Preserve sole Alembic migration frontier `b155caa6d4e1`.
+- Preserve Full M1 Operational Acceptance for internal office dogfooding only.
+- No M2 milestone acceptance or production release claims.
+- No unapproved delivery-forecast changes (M2: 2026-12-31, M3: 2027-02-28 remain unchanged).
+- Candidate state: `latestTaskDone=T183`, `latestTaskAuthorized=T184`, `inProgressTransitions=[]`. T184 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
