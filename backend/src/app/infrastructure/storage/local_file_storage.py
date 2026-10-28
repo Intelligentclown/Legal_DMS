@@ -10,7 +10,9 @@ async client instead.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from app.application.errors.exceptions import NotFoundError
 from app.application.interfaces.file_storage import FileStorage, StoredFile
@@ -37,7 +39,21 @@ class LocalFileStorage(FileStorage):
     ) -> StoredFile:
         target = self._resolve(path)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(content)
+        temporary_path: Path | None = None
+        try:
+            # Write beside the final target so ``replace`` is atomic on the
+            # configured filesystem.  ``write_bytes`` alone can expose a
+            # partially-written blob and does not request a physical flush.
+            with NamedTemporaryFile(dir=target.parent, delete=False) as temporary:
+                temporary_path = Path(temporary.name)
+                temporary.write(content)
+                temporary.flush()
+                os.fsync(temporary.fileno())
+            os.replace(temporary_path, target)
+        except BaseException:
+            if temporary_path is not None:
+                temporary_path.unlink(missing_ok=True)
+            raise
         return StoredFile(path=path, size=len(content), content_type=content_type)
 
     async def read(self, path: str) -> bytes:
