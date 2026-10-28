@@ -2008,6 +2008,66 @@
         "approved_qa_publication_head": "195c9c1ca5c5e405a8e2e3d925b0108accb181ee",
         "actual_start_evidence": "T183 evidence note docs/reviews/T183_Implementation_Evidence.md records Date: 2026-10-28; implementation commit c50f366 authored 2026-10-28 16:23:13 +0530; substantive candidate commit c50f366bbd95ca06a077069069a31a7fb38f6ae4; PR #397 opened 2026-10-28; Independent QA review docs/reviews/T183_QA_Review.md dated 2026-10-28."
       }
+    },
+    {
+      "id": "T184",
+      "title": "Tenant-Scoped Property Search in the Matter Workspace",
+      "milestone": "M2",
+      "lane": "ux",
+      "dependencies": {
+        "finish_to_start": [
+          "T182",
+          "T183"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-10-28",
+      "planned_finish": "2026-10-31",
+      "planned_duration": 4,
+      "forecast_start": "2026-10-28",
+      "forecast_finish": "2026-10-31",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T184 is an owner-approved task enabling tenant-scoped Property search in the Matter workspace. T182 and T183 are the completed finish-to-start predecessors. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
