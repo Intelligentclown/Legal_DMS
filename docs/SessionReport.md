@@ -4519,3 +4519,39 @@ Prepared dedicated post-implementation governance closeout PR under `PROJECT_WOR
 - **Exclusions:** No product implementation or modification; no database migrations or schema alterations; no application-process locking; no changes to Required ADRs `[12, 15, 16, 17, 20]` (remain unresolved) or Proposed ADRs (0043, 0047); no changes to provisional milestone dates (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31, M3 2027-02-28); no successor task authorization.
 - **Candidate State:** `latestTaskDone=T183`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`. T183 is proposed Done; durable Done requires independent closeout QA and protected merge.
 - **Mandatory STOP Boundary:** Do not merge this closeout PR. Do not authorize T184. Stop after publishing closeout PR.
+
+## Session: 2026-10-28 — T182 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+**Assigned Role:** Documentation Manager
+**Task:** T182 — M2 Document Physical Storage Durability, Restart Recovery and Current-Head Backend Certification
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Dedicated Governance Closeout PR 3 of 3
+**Authorization Issue:** [GitHub Issue #393](https://github.com/Intelligentclown/Legal_DMS/issues/393)
+**Authorization PR:** [GitHub PR #394](https://github.com/Intelligentclown/Legal_DMS/pull/394) (merged `6720bcd281533ec2badc3ee3e7b92a0c12c52cb2`)
+**Implementation PR:** [GitHub PR #399](https://github.com/Intelligentclown/Legal_DMS/pull/399) (merged `421652eeb5a6062b3b8d3ee41e75d8df1efbc2a4`; ordered parents `012796947b33a11d4085f94804ca090fe7ef3b03`, `aa6c0af208d7606d710aef10c881c8de75d1e3c2`; UTC `2026-10-28T13:57:08Z` = `2026-10-28 19:27:08 Asia/Kolkata`)
+**Implementation Head & QA Publication:** Substantive `83aba6beac01610a43db26d7acd7d890df7ac101`, QA publication head `aa6c0af208d7606d710aef10c881c8de75d1e3c2`
+**QA Decision:** Approved with comments (zero blocking findings, 4 non-blocking advisories), artifact [`docs/reviews/T182_QA_Review.md`](reviews/T182_QA_Review.md)
+**Protected Main Baseline:** `421652eeb5a6062b3b8d3ee41e75d8df1efbc2a4`
+**Branch:** `docs/t182-governance-closeout`
+
+### 1. Published Action
+Prepared dedicated post-implementation governance closeout PR under `PROJECT_WORKFLOW.md §3.1` PR 3 of 3 following protected merge of T182 Implementation PR #399.
+- Verified protected `main` baseline SHA `421652eeb5a6062b3b8d3ee41e75d8df1efbc2a4` and implementation merge provenance.
+- Verified completion of all substantive implementation deliverables: `backend/src/app/infrastructure/storage/local_file_storage.py` (+17/-1), `backend/tests/unit/test_local_file_storage.py` (+44/-0), `backend/tests/integration/test_t182_physical_document_storage.py` (+567/-0), `docs/reviews/T182_Implementation_Evidence.md` (+89/-0), and `docs/ImplementationLog/Stage3/Phase57.md` (+81/-0).
+- Verified full backend-suite certification against clean isolated PostgreSQL 16 (937 passed, 21 skipped, 87 warnings, 0 failed in 499.48s, exit code 0).
+- Verified native Windows Electron physical upload/download/restart smoke on host filesystem (`README.md`, 4,018 bytes, SHA-256 `96510b473aa5544edecb4e06cdc12104f6008e0758d52e133da9cae72c596aee`).
+- Registered T182 completion in `IMPLEMENTATION_QUEUE.md`: status advances from `Authorized` to `Done`, recording implementation PR #399, protected merge SHA `421652eeb5a6062b3b8d3ee41e75d8df1efbc2a4`, parents, QA Decision Approved with comments, and candidate state.
+- Preserved completed T183 remediation provenance in `IMPLEMENTATION_QUEUE.md` and `docs/delivery_calendar.json`.
+- Synchronized `PROJECT_STATE.json`: `latestTaskDone="T183"`, `latestTaskAuthorized="T183"`, `inProgressTransitions=[]`, and appended `completionProvenance["T182"]`.
+- Synchronized `docs/delivery_calendar.json`: recorded actual start `2026-10-28`, actual completion `2026-10-28`, actual elapsed 1 inclusive day, planned finish used `2026-10-29`, variance `-1` day Early, classification `Early`, critical at completion `false`, milestone impact `0`, finalization impact `0`, recalculated `2026-10-28`, and full completion evidence dictionary.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Advisory Disposition
+- **QA-T182-IMPL-ADV-01 (Context Manifest Test Debt):** Documented pre-existing hardcoded `'T170'` assertion failure in `scripts/tests/test_current_context_manifest.py:30` dating from T171; preserved without out-of-scope test modification.
+- **QA-T182-IMPL-ADV-02 (JWT Test-Fixture Short-Key Warnings):** 77 PyJWT `InsecureKeyLengthWarning` warnings in legacy unit test fixtures use short test secrets. T182 production code and integration fixtures use compliant keys; preserved without out-of-scope test modifications, deferred to future test maintenance.
+- **QA-T182-IMPL-ADV-03 (Disposable Electron Operator Property Permission):** Disposable test operator used for native Electron smoke lacked `properties:read`, causing auxiliary console errors on the matter property side-panel. Document Version upload, versioning, download, and restart recovery operated cleanly and were unaffected.
+- **QA-T182-IMPL-ADV-04 (Upcoming T182 PR 3 Governance Closeout):** Fulfilled by publication of this dedicated governance closeout PR.
+
+### 3. Preserved Invariants and Exclusions
+- **Exclusions:** No product implementation or modification; no database migrations or schema alterations; no application-process locking; no changes to Required ADRs `[12, 15, 16, 17, 20]` (remain unresolved) or Proposed ADRs (0043, 0047); no changes to provisional milestone dates (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31, M3 2027-02-28); no successor task authorization.
+- **Candidate State:** `latestTaskDone=T183`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`. T182 is proposed Done; durable Done requires independent closeout QA and protected merge.
+- **Mandatory STOP Boundary:** Do not merge this closeout PR. Do not authorize T184. Stop after publishing closeout PR.
