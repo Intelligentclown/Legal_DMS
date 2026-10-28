@@ -4,6 +4,7 @@ touches the real project directory.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,49 @@ class TestLocalFileStorage:
         await storage.save("a/b/c/deep.txt", b"x")
 
         assert await storage.exists("a/b/c/deep.txt")
+
+    async def test_save_flushes_the_physical_file_before_atomic_publish(
+        self, storage: LocalFileStorage, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        calls: list[int] = []
+        original_fsync = os.fsync
+
+        def recording_fsync(fd: int) -> None:
+            calls.append(fd)
+            original_fsync(fd)
+
+        monkeypatch.setattr(os, "fsync", recording_fsync)
+
+        await storage.save("durable.bin", b"durable")
+
+        assert calls
+        assert await storage.read("durable.bin") == b"durable"
+
+    async def test_write_failure_removes_staged_artifact_and_never_publishes_target(
+        self, storage: LocalFileStorage, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        def fail_fsync(_fd: int) -> None:
+            raise OSError("t182 staged-write failure")
+
+        monkeypatch.setattr(os, "fsync", fail_fsync)
+        with pytest.raises(OSError, match="staged-write failure"):
+            await storage.save("fail/target.bin", b"partial")
+        assert not await storage.exists("fail/target.bin")
+        assert not list((tmp_path / "storage-root" / "fail").glob("tmp*"))
+
+    async def test_replace_failure_preserves_existing_target_and_cleans_staging(
+        self, storage: LocalFileStorage, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        await storage.save("existing.bin", b"known-good")
+
+        def fail_replace(_source, _target) -> None:
+            raise OSError("t182 replacement failure")
+
+        monkeypatch.setattr(os, "replace", fail_replace)
+        with pytest.raises(OSError, match="replacement failure"):
+            await storage.save("existing.bin", b"new-content")
+        assert await storage.read("existing.bin") == b"known-good"
+        assert not list((tmp_path / "storage-root").glob("tmp*"))
 
     async def test_read_missing_file_raises_not_found(self, storage: LocalFileStorage) -> None:
         with pytest.raises(NotFoundError):
