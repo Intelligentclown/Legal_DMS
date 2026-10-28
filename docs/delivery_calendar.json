@@ -1912,7 +1912,7 @@
           "movement": 0,
           "direction": "unchanged"
         },
-        "reason": "T182 is an owner-approved task addressing M2 document physical storage durability, restart recovery, and current-head backend certification. T181 is the completed finish-to-start predecessor; final backend certification is blocked by the independently reproduced allocator defect; T183 remediation unblocks T182 certification upon protected merge. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
+        "reason": "T182 is an owner-approved task addressing M2 document physical storage durability, restart recovery, and current-head backend certification. T181 and T183 are completed finish-to-start predecessors; T183 protected merge removes the allocator defect; T182 requires branch reconciliation against updated protected main and clean isolated PostgreSQL 16 full-suite recertification prior to PR 2 publication. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged; no milestone actual is reconciled and no forecast changes occur."
       },
       "actual_start": null,
       "actual_completion": null,
@@ -1975,17 +1975,28 @@
         },
         "reason": "T183 is an owner-approved task addressing PostgreSQL file-number allocator concurrency remediation discovered during T182 certification. T181 is the completed finish-to-start predecessor; T182 is defect evidence; T183 remediation unblocks T182 backend certification. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-28",
+      "actual_completion": "2026-10-28",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-31",
+      "variance": -3,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-28",
+      "completion_evidence": {
+        "implementation_pr": 397,
+        "protected_merge_sha": "f4e100dfed25dc76a2af9bc86b243bb36c960430",
+        "protected_merge_parents": [
+          "c592f9e2ba49b117004f0d2db14906e4c0cb43cf",
+          "195c9c1ca5c5e405a8e2e3d925b0108accb181ee"
+        ],
+        "merged_at_utc": "2026-10-28T11:58:29Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "195c9c1ca5c5e405a8e2e3d925b0108accb181ee",
+        "actual_start_evidence": "T183 evidence note docs/reviews/T183_Implementation_Evidence.md records Date: 2026-10-28; implementation commit c50f366 authored 2026-10-28 16:23:13 +0530; substantive candidate commit c50f366bbd95ca06a077069069a31a7fb38f6ae4; PR #397 opened 2026-10-28; Independent QA review docs/reviews/T183_QA_Review.md dated 2026-10-28."
+      }
     }
   ],
   "history": [
