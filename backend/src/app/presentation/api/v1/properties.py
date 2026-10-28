@@ -176,13 +176,14 @@ async def list_properties(
     service: PropertyServiceDep,
     page: int = 1,
     page_size: int = DEFAULT_PAGE_SIZE,
+    search: str | None = None,
 ) -> ApiResponse[list[PropertyRead]]:
     organization_id = _require_organization(current_user)
     request = PageRequest(page=page, page_size=page_size)
     properties = await service.list_in_organization(
-        organization_id, limit=request.limit, offset=request.offset
+        organization_id, search=search, limit=request.limit, offset=request.offset
     )
-    total = await service.count_in_organization(organization_id)
+    total = await service.count_in_organization(organization_id, search=search)
     reads = [_to_read(property_, list(await service.owners(property_))) for property_ in properties]
     page_result = PageResult.create(reads, total=total, request=request)
     response = paginated_response(page_result)

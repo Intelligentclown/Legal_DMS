@@ -113,14 +113,28 @@ class PropertyService:
         return property_
 
     async def list_in_organization(
-        self, organization_id: UUID, *, limit: int = 100, offset: int = 0
+        self,
+        organization_id: UUID,
+        *,
+        search: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
     ) -> Sequence[Property]:
         return await self._repository.list_in_organization(
-            organization_id, limit=limit, offset=offset
+            organization_id, search=self._normalized_search(search), limit=limit, offset=offset
         )
 
-    async def count_in_organization(self, organization_id: UUID) -> int:
-        return await self._repository.count_in_organization(organization_id)
+    async def count_in_organization(
+        self, organization_id: UUID, *, search: str | None = None
+    ) -> int:
+        return await self._repository.count_in_organization(
+            organization_id, search=self._normalized_search(search)
+        )
+
+    @staticmethod
+    def _normalized_search(search: str | None) -> str | None:
+        """Keep absent and whitespace-only searches backward-compatible."""
+        return search.strip() or None if search is not None else None
 
     async def owners(self, property_: Property) -> Sequence[PropertyOwner]:
         return await self._repository.list_owners(property_.id, property_.organization_id)
