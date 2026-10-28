@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.interfaces.file_repository import FileRepository
@@ -52,20 +53,35 @@ class SqlAlchemyFileRepository(SqlAlchemyRepository[File], FileRepository):
     async def allocate_and_add(self, file: File) -> File:
         # PostgreSQL's conflict update locks only this Matter's counter row.
         # The enclosing request transaction commits/rolls back both statements.
-        async with self._session.begin_nested():
-            result = await self._session.execute(
-                text("""
-                INSERT INTO file_number_sequences (matter_id, organization_id, next_number)
-                VALUES (:matter_id, :organization_id, 2)
-                ON CONFLICT ON CONSTRAINT uq_file_number_sequences_organization_id_matter_id
-                DO UPDATE
-                SET next_number = file_number_sequences.next_number + 1
-                WHERE file_number_sequences.organization_id = EXCLUDED.organization_id
-                RETURNING next_number - 1
-            """),
-                {"matter_id": file.matter_id, "organization_id": file.organization_id},
-            )
-            file.file_number = int(result.scalar_one())
-            self._session.add(file)
-            await self._session.flush()
+        stmt = text("""
+            INSERT INTO file_number_sequences (matter_id, organization_id, next_number)
+            VALUES (:matter_id, :organization_id, 2)
+            ON CONFLICT (matter_id)
+            DO UPDATE
+            SET next_number = file_number_sequences.next_number + 1
+            WHERE file_number_sequences.organization_id = EXCLUDED.organization_id
+            RETURNING next_number - 1
+        """)
+        params = {"matter_id": file.matter_id, "organization_id": file.organization_id}
+
+        try:
+            async with self._session.begin_nested():
+                result = await self._session.execute(stmt, params)
+                file.file_number = int(result.scalar_one())
+                self._session.add(file)
+                await self._session.flush()
+        except IntegrityError as exc:
+            # PostgreSQL 16 speculative insertion evaluates secondary unique indexes with
+            # UNIQUE_CHECK_YES. When concurrent first allocations collide on the redundant
+            # composite unique constraint uq_file_number_sequences_organization_id_matter_id,
+            # the savepoint unwinds cleanly and a single immediate retry against the
+            # now-existing row executes the atomic DO UPDATE path under row lock.
+            if "uq_file_number_sequences_organization_id_matter_id" in str(exc):
+                async with self._session.begin_nested():
+                    result = await self._session.execute(stmt, params)
+                    file.file_number = int(result.scalar_one())
+                    self._session.add(file)
+                    await self._session.flush()
+            else:
+                raise
         return file
