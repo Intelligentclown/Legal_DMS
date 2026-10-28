@@ -4484,3 +4484,38 @@ Registered the Project Owner's explicit approval of **T183 — PostgreSQL File-N
 - **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31 actual null, M3 2027-02-28 actual null) remain unchanged.
 - **Candidate State:** `latestTaskDone=T181`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`.
 - **Mandatory STOP Boundary:** T183 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.
+
+## Session: 2026-10-28 — T183 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+**Assigned Role:** Documentation Manager
+**Task:** T183 — PostgreSQL File-Number Allocator Concurrency Remediation
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Dedicated Governance Closeout PR 3 of 3
+**Authorization Issue:** [GitHub Issue #395](https://github.com/Intelligentclown/Legal_DMS/issues/395)
+**Authorization PR:** [GitHub PR #396](https://github.com/Intelligentclown/Legal_DMS/pull/396) (merged `c592f9e2ba49b117004f0d2db14906e4c0cb43cf`)
+**Implementation PR:** [GitHub PR #397](https://github.com/Intelligentclown/Legal_DMS/pull/397) (merged `f4e100dfed25dc76a2af9bc86b243bb36c960430`; ordered parents `c592f9e2ba49b117004f0d2db14906e4c0cb43cf`, `195c9c1ca5c5e405a8e2e3d925b0108accb181ee`; UTC `2026-10-28T11:58:29Z` = `2026-10-28 17:28:29 Asia/Kolkata`)
+**Implementation Head & QA Publication:** Substantive `c50f366bbd95ca06a077069069a31a7fb38f6ae4`, QA publication head `195c9c1ca5c5e405a8e2e3d925b0108accb181ee`
+**QA Decision:** Approved with comments (zero blocking findings, 4 non-blocking advisories), artifact [`docs/reviews/T183_QA_Review.md`](reviews/T183_QA_Review.md)
+**Protected Main Baseline:** `f4e100dfed25dc76a2af9bc86b243bb36c960430`
+**Branch:** `docs/t183-governance-closeout`
+
+### 1. Published Action
+Prepared dedicated post-implementation governance closeout PR under `PROJECT_WORKFLOW.md §3.1` PR 3 of 3 following protected merge of T183 Implementation PR #397.
+- Verified protected `main` baseline SHA `f4e100dfed25dc76a2af9bc86b243bb36c960430` and implementation merge provenance.
+- Verified completion of all substantive implementation deliverables: `backend/src/app/infrastructure/persistence/sqlalchemy_file_repository.py` (+48/-16), `backend/tests/integration/test_t183_file_number_allocator_concurrency.py` (+302/-0), and `docs/reviews/T183_Implementation_Evidence.md` (+154/-0).
+- Verified full backend-suite certification against clean isolated PostgreSQL 16 (925 passed, 21 skipped, 87 warnings, 0 failed in 492.48s, exit code 0).
+- Registered T183 completion in `IMPLEMENTATION_QUEUE.md`: status advances from `Authorized` to `Done`, recording implementation PR #397, protected merge SHA `f4e100dfed25dc76a2af9bc86b243bb36c960430`, parents, QA Decision Approved with comments, and candidate state.
+- Preserved T182 in `IMPLEMENTATION_QUEUE.md` and `docs/delivery_calendar.json` as `Authorized` and incomplete; noted that T183 protected merge removes the allocator defect, but T182 requires branch reconciliation against updated protected main and clean isolated PostgreSQL 16 full-suite recertification prior to PR 2 publication. Preserved worktree `codex/t182-storage-durability` untouched.
+- Synchronized `PROJECT_STATE.json`: `latestTaskDone="T183"`, `latestTaskAuthorized="T183"`, `inProgressTransitions=[]`, and appended `completionProvenance["T183"]`.
+- Synchronized `docs/delivery_calendar.json`: recorded actual start `2026-10-28`, actual completion `2026-10-28`, actual elapsed 1 inclusive day, planned finish used `2026-10-31`, variance `-3` days Early, classification `Early`, critical at completion `false`, milestone impact `0`, finalization impact `0`, recalculated `2026-10-28`, and full completion evidence dictionary.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Advisory Disposition
+- **QA-T183-IMPL-ADV-01 (GFM Line-Break Trailing Whitespace):** Recognized standard GFM two-space hard line breaks in implementation evidence; cosmetic observation, non-blocking.
+- **QA-T183-IMPL-ADV-02 (Context Manifest Test Debt):** Documented pre-existing hardcoded `'T170'` assertion failure in `scripts/tests/test_current_context_manifest.py:30` dating from T171; preserved without out-of-scope test modification.
+- **QA-T183-IMPL-ADV-03 (Redundant Unique Constraint Remediation):** Preserved secondary unique constraint `uq_file_number_sequences_organization_id_matter_id`; deferred removal to a future task authorizing database migrations.
+- **QA-T183-IMPL-ADV-04 (T182 Reconciliation Protocol):** Preserved T182 branch `codex/t182-storage-durability` untouched; recorded mandatory protocol requiring T182 reconciliation against updated protected main and fresh isolated PostgreSQL 16 full backend suite certification before T182 Implementation PR 2 publication.
+
+### 3. Preserved Invariants and Exclusions
+- **Exclusions:** No product implementation or modification; no database migrations or schema alterations; no application-process locking; no changes to Required ADRs `[12, 15, 16, 17, 20]` (remain unresolved) or Proposed ADRs (0043, 0047); no changes to provisional milestone dates (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31, M3 2027-02-28); no successor task authorization.
+- **Candidate State:** `latestTaskDone=T183`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`. T183 is proposed Done; durable Done requires independent closeout QA and protected merge.
+- **Mandatory STOP Boundary:** Do not merge this closeout PR. Do not authorize T184. Stop after publishing closeout PR.
