@@ -1914,17 +1914,28 @@
         },
         "reason": "T182 is an owner-approved task addressing M2 document physical storage durability, restart recovery, and current-head backend certification. T181 and T183 are completed finish-to-start predecessors; T183 protected merge removes the allocator defect; T182 requires branch reconciliation against updated protected main and clean isolated PostgreSQL 16 full-suite recertification prior to PR 2 publication. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged; no milestone actual is reconciled and no forecast changes occur."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-28",
+      "actual_completion": "2026-10-28",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-10-29",
+      "variance": -1,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-28",
+      "completion_evidence": {
+        "implementation_pr": 399,
+        "protected_merge_sha": "421652eeb5a6062b3b8d3ee41e75d8df1efbc2a4",
+        "protected_merge_parents": [
+          "012796947b33a11d4085f94804ca090fe7ef3b03",
+          "aa6c0af208d7606d710aef10c881c8de75d1e3c2"
+        ],
+        "merged_at_utc": "2026-10-28T13:57:08Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "aa6c0af208d7606d710aef10c881c8de75d1e3c2",
+        "actual_start_evidence": "T182 evidence note docs/reviews/T182_Implementation_Evidence.md records Execution date: 2026-10-28; implementation commit 83aba6b authored 2026-10-28 18:37:27 +0530; substantive candidate commit 83aba6beac01610a43db26d7acd7d890df7ac101; PR #399 opened 2026-10-28; Independent QA review docs/reviews/T182_QA_Review.md dated 2026-10-28."
+      }
     },
     {
       "id": "T183",
