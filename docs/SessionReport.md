@@ -4457,3 +4457,30 @@ Registered the Project Owner's explicit approval of **T182 — M2 Document Physi
 - **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31 actual null, M3 2027-02-28 actual null) remain unchanged.
 - **Candidate State:** `latestTaskDone=T181`, `latestTaskAuthorized=T182`, `inProgressTransitions=[]`.
 - **Mandatory STOP Boundary:** T182 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.
+
+## Session: 2026-10-28 — T183 Authorization Publication (PROJECT_WORKFLOW.md §3.1 PR 1 of 3)
+
+**Assigned Role:** Documentation Manager  
+**Task:** T183 — PostgreSQL File-Number Allocator Concurrency Remediation  
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Authorization PR 1 of 3  
+**Authorization:** [GitHub Issue #395](https://github.com/Intelligentclown/Legal_DMS/issues/395) (Project Owner decision granted 2026-10-28, Asia/Kolkata)  
+**Baseline:** Protected `main` at `6720bcd281533ec2badc3ee3e7b92a0c12c52cb2` (T182 Authorization PR #394)  
+**Branch:** `docs/t183-authorization-calendar`  
+
+### 1. Published Action
+Registered the Project Owner's explicit approval of **T183 — PostgreSQL File-Number Allocator Concurrency Remediation** through the repository's standard three-PR governance lifecycle (`PROJECT_WORKFLOW.md §3.1` PR 1 of 3).
+- Verified protected `main` baseline SHA `6720bcd281533ec2badc3ee3e7b92a0c12c52cb2` and governance frontier (`latestTaskDone=T181`, `latestTaskAuthorized=T182`, `inProgressTransitions=[]`).
+- Verified that the governance model and calendar schema permit authorization of a separate remediation task while T182 remains open (precedents T176/T175, T168/T167, T158-T159/T157, T99-T100/T98).
+- Allocated next sequential task identifier T183.
+- Created durable pre-implementation authorization record on GitHub ([Issue #395](https://github.com/Intelligentclown/Legal_DMS/issues/395)).
+- Registered T183 as `Authorized` in `IMPLEMENTATION_QUEUE.md` with complete approved scope, acceptance criteria (AC-01 through AC-07), exclusions, resources, and candidate state; recorded T182 certification blocked status and preserved branch `codex/t182-storage-durability`.
+- Synchronized `PROJECT_STATE.json` (`latestTaskAuthorized="T183"`, `latestTaskDone="T181"`, `inProgressTransitions=[]`).
+- Registered structured delivery-calendar record in `docs/delivery_calendar.json` with finish-to-start predecessor T181 (Done), defect evidence T182, updated T182 finish-to-start dependency to include T183, planned window 2026-10-28 through 2026-10-31 (4 days), null actuals/completion fields, and zero milestone forecast movement.
+- Synchronized calendar narrative in `docs/DELIVERY_CALENDAR.md`, handover in `docs/AI_HANDOVER.md`, and project status in `docs/ProjectStatus.md`.
+
+### 2. Preserved Invariants and Exclusions
+- **Exclusions:** The authorization PR must not modify existing milestone baselines, forecasts, actual dates, or historical calendar events; must not declare M2 or M3 accepted; must not modify production application code, database schema, migrations, tests, security policies, or ADR statuses; must not modify ADR-0027; must not repair accepted manifest test debt; and must not modify T182 storage implementation.
+- **Architectural & Security Invariants:** Required ADRs `[12, 15, 16, 17, 20]` unresolved; ADR-0043 and ADR-0047 Proposed; sole Alembic migration frontier `b155caa6d4e1`; existing tenant/RLS/RBAC protections; and Full M1 Operational Acceptance for internal office dogfooding only.
+- **Calendar Invariants:** Provisional milestone forecasts (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31 actual null, M3 2027-02-28 actual null) remain unchanged.
+- **Candidate State:** `latestTaskDone=T181`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`.
+- **Mandatory STOP Boundary:** T183 is Authorized, not Done. No implementation or forecast modification is performed. Independent QA, CI, collaborator approval, and protected merge are required before proceeding to implementation PR 2.

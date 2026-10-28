@@ -1983,3 +1983,51 @@ The Project Owner explicitly approved **T182 — M2 Document Physical Storage Du
 - Preserve migration frontier `b155caa6d4e1`.
 - Preserve Full M1 Operational Acceptance for internal office dogfooding only.
 - Candidate state: `latestTaskDone=T181`, `latestTaskAuthorized=T182`, `inProgressTransitions=[]`. T182 is Authorized, not Done. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
+
+## 2026-10-28 — T183 Authorization & Calendar Registration (Candidate PR 1 of 3)
+
+The Project Owner explicitly approved **T183 — PostgreSQL File-Number Allocator Concurrency Remediation** on 2026-10-28 under `PROJECT_WORKFLOW.md §3.1` ([Issue #395](https://github.com/Intelligentclown/Legal_DMS/issues/395)). This authorization PR (PR 1 of 3) performs governance registration and calendar synchronization only.
+
+**Governance Frontier:**
+- `latestTaskDone = "T181"`
+- `latestTaskAuthorized = "T183"`
+- `inProgressTransitions = []`
+
+**Authorized future PR 2 scope (only after PR 1 protected merge):**
+1. Align the PostgreSQL upsert conflict arbiter in `SqlAlchemyFileRepository` with the existing `matter_id` primary key constraint on `file_number_sequences` (`pk_file_number_sequences`) per ADR-0027, replacing the misaligned `uq_file_number_sequences_organization_id_matter_id` conflict target.
+2. Preserve single-statement atomic allocation semantics without application-level distributed or in-process locks.
+3. Preserve transaction and rollback semantics under `get_db()` (`ADR/0020`), ensuring an aborted or rolled-back File creation does not burn sequence numbers.
+4. Verify concurrent first-allocation uniqueness under multi-transaction race conditions on clean PostgreSQL 16.
+5. Verify rollback and number reuse semantics.
+6. Add repeated PostgreSQL 16 concurrency regression test coverage against live isolated PostgreSQL 16.
+7. Require a clean full backend test-suite result.
+8. Require Comprehensive / Risk Tier 1 Independent QA.
+
+**Acceptance criteria for eventual implementation (AC-01 through AC-07):**
+- **AC-01 (Conflict Arbiter Alignment):** The PostgreSQL upsert conflict arbiter in `SqlAlchemyFileRepository` targets the `matter_id` primary key (`pk_file_number_sequences` / `ON CONFLICT (matter_id)`) per ADR-0027, eliminating concurrent initialization collisions.
+- **AC-02 (Single-Statement Atomic Allocation):** File-number generation executes in a single atomic SQL statement returning the allocated counter without application-level locks.
+- **AC-03 (Transaction & Rollback Semantics):** Sequence counter increment and File creation share the same database transaction boundary; failed or rolled back File creation releases/rolls back the counter without burning numbers.
+- **AC-04 (Concurrent First-Allocation Uniqueness):** Concurrent first-allocation attempts for the same Matter on clean PostgreSQL 16 allocate distinct sequential numbers without unique-constraint or primary-key collisions.
+- **AC-05 (Rollback & Reuse Verification):** Rolled back allocation attempts allow subsequent allocation attempts to reuse the rolled-back sequence number.
+- **AC-06 (Repeated Concurrency Regression Coverage):** Multi-worker/multi-session concurrency regression tests pass repeatedly against clean isolated PostgreSQL 16 without flakes or deadlocks.
+- **AC-07 (Full Backend Suite Certification):** The complete backend test suite runs cleanly with zero failures and is certified against isolated PostgreSQL 16 at candidate HEAD.
+
+**Explicit restrictions & non-authorization boundaries:**
+- Authorization PR 1 contains governance and planning registration only.
+- No backend, frontend, Electron or database product implementation.
+- No schema or Alembic migration changes (table schema and constraints remain unchanged).
+- No application-process locking (e.g., `asyncio.Lock`).
+- No broad retry loops.
+- No new API endpoints or route changes.
+- No unrelated allocator or repository refactoring.
+- No ADR-0027 modification (ADR-0027 remains authoritative).
+- No context-manifest test maintenance (`QA-T182-AUTH-ADV-01` baseline debt preserved).
+- No T182 storage implementation changes.
+- No changes to Required ADR decisions or statuses (#12, #15, #16, #17, #20 remain unresolved).
+- No changes to Proposed ADR-0043 or ADR-0047 (remain Proposed).
+- No M2 milestone acceptance or production release claims.
+- No unapproved delivery-forecast changes (M2: 2026-12-31, M3: 2027-02-28 remain unchanged).
+- Preserve migration frontier `b155caa6d4e1`.
+- Preserve Full M1 Operational Acceptance for internal office dogfooding only.
+- Preserve T182 branch `codex/t182-storage-durability` unmodified.
+- Candidate state: `latestTaskDone=T181`, `latestTaskAuthorized=T183`, `inProgressTransitions=[]`. Both T182 and T183 are Authorized, not Done. T182 certification remains blocked pending T183 protected merge. Implementation PR 2 begins only after this PR completes Independent QA, exact-head CI, collaborator approval, and protected merge.
