@@ -4613,3 +4613,32 @@ Prepared dedicated post-implementation governance closeout PR under `PROJECT_WOR
 - **Exclusions:** No product implementation or modification; no database migrations or schema alterations; no changes to Required ADRs `[12, 15, 16, 17, 20]` (remain unresolved) or Proposed ADRs (0043, 0047); no changes to provisional milestone dates (M1 2026-11-15 actual 2026-10-25, M2 2026-12-31, M3 2027-02-28); no successor task authorization (do not authorize T185).
 - **Candidate State:** `latestTaskDone=T184`, `latestTaskAuthorized=T184`, `inProgressTransitions=[]`. T184 is proposed Done; durable Done requires independent closeout QA and protected merge.
 - **Mandatory STOP Boundary:** Do not merge this closeout PR. Do not authorize T185. Stop after publishing closeout PR.
+
+
+## Session: 2026-10-31 — T185 Dedicated Governance Closeout (PROJECT_WORKFLOW.md §3.1 PR 3 of 3)
+
+**Assigned Role:** Documentation Manager  
+**Task:** T185 — Required ADR #12: Workflow vs Government Status  
+**Lifecycle:** `PROJECT_WORKFLOW.md §3.1` — Governance Closeout PR 3 of 3  
+**Implementation PR:** [#407](https://github.com/Intelligentclown/Legal_DMS/pull/407) (merged at `f0816ea57fd85c2dea862a299c89f4a756bd9971`; ordered parents `3e902bd978d9655cb6942e4ed5a1213cd145eb65`, `ed6280f566dd7ea0630d8a84bd3d69186d4d20af`)  
+**Authorization:** Issue [#405](https://github.com/Intelligentclown/Legal_DMS/issues/405), authorization PR [#406](https://github.com/Intelligentclown/Legal_DMS/pull/406)  
+**QA Decision:** Approved with comments; zero blocking findings; four non-blocking advisories; artifact `docs/reviews/T185_QA_Review.md`, exact candidate `ac2d1a269d3b90bde951234ffa24a83463e2022a`, publication head `ed6280f566dd7ea0630d8a84bd3d69186d4d20af`  
+**Protected Baseline:** `f0816ea57fd85c2dea862a299c89f4a756bd9971`  
+**Branch:** `docs/t185-governance-closeout`  
+
+### 1. Published Closeout Candidate
+- Verified protected `main` at `f0816ea57fd85c2dea862a299c89f4a756bd9971`, exact PR #407 merge SHA, ordered parents and merge timestamp.
+- Marked T185 Done in `IMPLEMENTATION_QUEUE.md`, recording PR #407, merge provenance and QA publication evidence.
+- Synchronized `PROJECT_STATE.json`: `latestTaskDone="T185"`, `latestTaskAuthorized="T185"`, removed the T185 `inProgressTransitions` declaration, recorded Required ADR #12 as resolved and retained unresolved Required ADRs [15, 16, 17, 20].
+- Updated Schema V3 calendar actuals and completion evidence: actual start/completion `2026-10-31`, one inclusive day, planned finish `2026-11-05`, variance `-5` days (**Early**); no milestone forecast movement.
+- Appended bounded closeout context to `docs/DELIVERY_CALENDAR.md`, `docs/AI_HANDOVER.md`, `docs/ProjectStatus.md` and this report; historical records were retained.
+
+### 2. Preserved Invariants
+- No application, schema, migration, API, UI, Electron, RLS/RBAC or runtime changes.
+- ADR-0048 decision unchanged; Required ADRs #15/#16/#17/#20 remain unresolved.
+- No successor task authorization; no Independent QA of this closeout and no merge performed.
+
+### 3. Validation and STOP
+- Structural JSON and provenance consistency checked during candidate preparation.
+- Governance and delivery-calendar validators are required on this closeout candidate's CI; results are pending publication of the PR and its exact-head workflows.
+- **STOP:** This is a closeout candidate only. Do not treat T185 as durably Done until independent closeout QA and protected PR 3 merge. Do not authorize a successor task.

@@ -2127,17 +2127,28 @@
         },
         "reason": "T185 is an owner-authorized Required ADR #12 architecture task in the M2 workflow lane. T181 is its completed finish-to-start readiness predecessor. Dates are provisional planning placeholders only; Software Architect, Independent QA and governance resource availability and effort remain Unknown. The downstream dependency/capacity network is incomplete, so no critical-path or milestone movement is claimed. All official milestone baselines, forecasts and actuals remain unchanged."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-31",
+      "actual_completion": "2026-10-31",
+      "actual_elapsed": 1,
+      "planned_finish_used": "2026-11-05",
+      "variance": -5,
+      "classification": "Early",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-31",
+      "completion_evidence": {
+        "implementation_pr": 407,
+        "protected_merge_sha": "f0816ea57fd85c2dea862a299c89f4a756bd9971",
+        "protected_merge_parents": [
+          "3e902bd978d9655cb6942e4ed5a1213cd145eb65",
+          "ed6280f566dd7ea0630d8a84bd3d69186d4d20af"
+        ],
+        "merged_at_utc": "2026-10-31T11:13:35Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "ed6280f566dd7ea0630d8a84bd3d69186d4d20af",
+        "actual_start_evidence": "T185 authorization PR #406 protected-merged 2026-10-31T10:41:31Z; substantive architecture candidate ac2d1a269d3b90bde951234ffa24a83463e2022a authored 2026-10-31T10:52:42Z and PR #407 opened 2026-10-31T10:53:36Z; Independent QA publication commit ed6280f566dd7ea0630d8a84bd3d69186d4d20af authored 2026-10-31T11:00:50Z; see docs/reviews/T185_QA_Review.md."
+      }
     }
   ],
   "history": [
