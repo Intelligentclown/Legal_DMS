@@ -2057,17 +2057,28 @@
         },
         "reason": "T184 is an owner-approved task enabling tenant-scoped Property search in the Matter workspace. T182 and T183 are the completed finish-to-start predecessors. Milestone baselines, forecasts, actuals, and historical calendar events remain unchanged at authorization; no milestone actual is reconciled and no forecast changes occur."
       },
-      "actual_start": null,
-      "actual_completion": null,
-      "actual_elapsed": null,
-      "planned_finish_used": null,
-      "variance": null,
-      "classification": null,
-      "critical_at_completion": null,
-      "milestone_impact": null,
-      "finalization_impact": null,
-      "recalculated": null,
-      "completion_evidence": null
+      "actual_start": "2026-10-28",
+      "actual_completion": "2026-10-31",
+      "actual_elapsed": 4,
+      "planned_finish_used": "2026-10-31",
+      "variance": 0,
+      "classification": "On Time",
+      "critical_at_completion": false,
+      "milestone_impact": 0,
+      "finalization_impact": 0,
+      "recalculated": "2026-10-31",
+      "completion_evidence": {
+        "implementation_pr": 403,
+        "protected_merge_sha": "08673bf3ec2d5976c6b496e4f5f1673934114aa4",
+        "protected_merge_parents": [
+          "d25f3f2d49120cae6af57800383a49a1a0b619da",
+          "87762ba5fd0f483d8f5a228c6b7483e108c3d341"
+        ],
+        "merged_at_utc": "2026-10-31T08:43:11Z",
+        "timezone": "Asia/Kolkata",
+        "approved_qa_publication_head": "87762ba5fd0f483d8f5a228c6b7483e108c3d341",
+        "actual_start_evidence": "T184 Phase 58 log docs/ImplementationLog/Stage3/Phase58.md records Started: 2026-10-28; implementation commit 07fba07 authored 2026-10-28 21:21:27 +0530; substantive candidate commit 3780f05b3d39498d0ea4428ba7a3c4d90e974504; PR #403 opened 2026-10-28; Independent QA final re-review docs/reviews/T184_QA_Review.md dated 2026-10-31."
+      }
     }
   ],
   "history": [
