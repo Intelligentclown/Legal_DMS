@@ -159,6 +159,118 @@ def _payload(party: Party, address: Address) -> dict[str, object]:
 
 
 @pytest.mark.asyncio
+async def test_list_search_filters_before_pagination_and_stays_tenant_scoped(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    headers, organization = await _headers(client, session, "properties:read")
+    other_headers, other_organization = await _headers(client, session, "properties:read")
+
+    # This match is deliberately after the first five unfiltered rows.  The
+    # search must execute in SQL before pagination, not on the current page.
+    filler_properties = [
+        Property(
+            id=uuid4(),
+            organization_id=organization.id,
+            survey_number=f"FILLER-{index}-{uuid4()}",
+        )
+        for index in range(6)
+    ]
+    survey_match = Property(
+        id=uuid4(),
+        organization_id=organization.id,
+        survey_number="SURVEY-SEARCH-UNIQUE",
+    )
+    subdivision_match = Property(
+        id=uuid4(),
+        organization_id=organization.id,
+        survey_number=f"ORDINARY-{uuid4()}",
+        sub_division_number="SUBDIVISION-SEARCH-UNIQUE",
+    )
+    registration_match = Property(
+        id=uuid4(),
+        organization_id=organization.id,
+        survey_number=f"ORDINARY-{uuid4()}",
+        registration_number="REGISTRATION-SEARCH-UNIQUE",
+    )
+    foreign_match = Property(
+        id=uuid4(),
+        organization_id=other_organization.id,
+        survey_number="SURVEY-SEARCH-FOREIGN",
+    )
+    session.add_all(
+        [*filler_properties, survey_match, subdivision_match, registration_match, foreign_match]
+    )
+    await session.flush()
+
+    survey_response = await client.get(
+        _PATH,
+        params={"search": "survey-search-unique", "page": 1, "page_size": 1},
+        headers=headers,
+    )
+    assert survey_response.status_code == 200
+    assert [item["id"] for item in survey_response.json()["data"]] == [str(survey_match.id)]
+    assert survey_response.json()["meta"]["pagination"] == {
+        "page": 1,
+        "page_size": 1,
+        "total": 1,
+        "total_pages": 1,
+    }
+
+    subdivision_response = await client.get(
+        _PATH, params={"search": "subdivision-search-unique"}, headers=headers
+    )
+    assert [item["id"] for item in subdivision_response.json()["data"]] == [
+        str(subdivision_match.id)
+    ]
+
+    registration_response = await client.get(
+        _PATH, params={"search": "registration-search-unique"}, headers=headers
+    )
+    assert [item["id"] for item in registration_response.json()["data"]] == [
+        str(registration_match.id)
+    ]
+
+    # The shared prefix demonstrates OR matching across all supported fields,
+    # while the foreign row proves the predicate never expands the tenant scope.
+    shared_response = await client.get(_PATH, params={"search": "search"}, headers=headers)
+    assert {item["id"] for item in shared_response.json()["data"]} == {
+        str(survey_match.id),
+        str(subdivision_match.id),
+        str(registration_match.id),
+    }
+    assert shared_response.json()["meta"]["pagination"]["total"] == 3
+    assert (
+        await client.get(_PATH, params={"search": "survey-search"}, headers=other_headers)
+    ).json()["data"] == [
+        {
+            "id": str(foreign_match.id),
+            "property_type": "agricultural",
+            "survey_number": "SURVEY-SEARCH-FOREIGN",
+            "sub_division_number": None,
+            "area_value": None,
+            "area_unit": None,
+            "address_id": None,
+            "village_id": None,
+            "registration_number": None,
+            "owners": [],
+        }
+    ]
+
+    # Omitted, explicitly empty, and whitespace-only search preserve the list contract.
+    unfiltered = await client.get(_PATH, params={"page_size": 100}, headers=headers)
+    empty = await client.get(_PATH, params={"page_size": 100, "search": ""}, headers=headers)
+    whitespace = await client.get(
+        _PATH, params={"page_size": 100, "search": "   "}, headers=headers
+    )
+    assert empty.json() == unfiltered.json() == whitespace.json()
+
+    denied_headers, _ = await _headers(client, session, "properties:write")
+    assert (
+        await client.get(_PATH, params={"search": "survey-search-unique"}, headers=denied_headers)
+    ).status_code == 403
+
+
+@pytest.mark.asyncio
 async def test_canonical_create_has_party_only_owners_and_is_scoped(
     client: AsyncClient, session: AsyncSession
 ) -> None:

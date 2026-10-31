@@ -81,6 +81,7 @@ export function MatterDetailPage() {
   const [unlinkError, setUnlinkError] = useState<unknown>(null);
   const [isLinkingProperty, setIsLinkingProperty] = useState(false);
   const [unlinkingPropertyId, setUnlinkingPropertyId] = useState<string | null>(null);
+  const normalizedPropertySearch = propertySearch.trim();
 
   const context = useAsyncResource<MatterContext>(`matter:${matterId}`, async () => {
     if (!matterId) {
@@ -115,25 +116,25 @@ export function MatterDetailPage() {
     return listMatterProperties(matterId);
   });
 
-  const availableProperties = useAsyncResource(`properties:${propertiesPage}`, () =>
-    listProperties({ page: propertiesPage }),
+  const availableProperties = useAsyncResource(
+    `properties:${propertiesPage}:${normalizedPropertySearch}`,
+    () =>
+      listProperties(
+        normalizedPropertySearch
+          ? { page: propertiesPage, search: normalizedPropertySearch }
+          : { page: propertiesPage },
+      ),
   );
-  const filteredProperties =
-    availableProperties.data?.items.filter((property) =>
-      propertyLabel(property)
-        .toLocaleLowerCase()
-        .includes(propertySearch.trim().toLocaleLowerCase()),
-    ) ?? [];
 
   function handlePropertyPageChange(page: number) {
     setPropertiesPage(page);
-    setPropertySearch("");
     setSelectedPropertyId("");
     setAssociationError(null);
   }
 
   function handlePropertySearch(value: string) {
     setPropertySearch(value);
+    setPropertiesPage(1);
     setSelectedPropertyId("");
     setAssociationError(null);
   }
@@ -270,7 +271,7 @@ export function MatterDetailPage() {
             label="Property"
             value={selectedPropertyId}
             onChange={setSelectedPropertyId}
-            options={filteredProperties.map((property) => ({
+            options={(availableProperties.data?.items ?? []).map((property) => ({
               value: property.id,
               label: propertyLabel(property),
             }))}
@@ -282,14 +283,38 @@ export function MatterDetailPage() {
             hint="Only properties visible in your organization are available."
           />
           <TextField
-            label="Search properties on this page"
+            label="Search properties"
             value={propertySearch}
             onChange={handlePropertySearch}
-            placeholder="Survey number or property type"
-            disabled={availableProperties.isLoading || isLinkingProperty}
-            hint="Use Previous or Next to search another page of the existing Property API."
+            placeholder="Survey, subdivision, or registration number"
+            disabled={isLinkingProperty}
+            hint="Searches the Property register in your organization."
           />
           <ErrorMessage error={availableProperties.error} title="Could not load properties" />
+          {availableProperties.error ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={availableProperties.reload}
+              disabled={isLinkingProperty}
+            >
+              Retry property search
+            </Button>
+          ) : null}
+          {availableProperties.isLoading ? <LoadingSpinner label="Loading properties…" /> : null}
+          {availableProperties.data && availableProperties.data.items.length === 0 ? (
+            <EmptyState
+              title={
+                normalizedPropertySearch ? "No matching properties" : "No properties available"
+              }
+              description={
+                normalizedPropertySearch
+                  ? "Try a different survey, subdivision, or registration number."
+                  : "No tenant-visible properties are available to link."
+              }
+            />
+          ) : null}
           <ErrorMessage error={associationError} title="Could not link property" />
           <div className="flex flex-wrap items-center gap-3">
             <Button

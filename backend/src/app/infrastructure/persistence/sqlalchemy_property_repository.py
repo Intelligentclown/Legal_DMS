@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.interfaces.property_repository import PropertyRepository
@@ -28,23 +28,40 @@ class SqlAlchemyPropertyRepository(SqlAlchemyRepository[Property], PropertyRepos
         return result.scalar_one_or_none()
 
     async def list_in_organization(
-        self, organization_id: UUID, *, limit: int = 100, offset: int = 0
+        self,
+        organization_id: UUID,
+        *,
+        search: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
     ) -> Sequence[Property]:
-        result = await self._session.execute(
-            select(Property)
-            .where(Property.organization_id == organization_id)
-            .limit(limit)
-            .offset(offset)
-        )
+        statement = select(Property).where(Property.organization_id == organization_id)
+        if search is not None:
+            statement = statement.where(self._search_predicate(search))
+        result = await self._session.execute(statement.limit(limit).offset(offset))
         return result.scalars().all()
 
-    async def count_in_organization(self, organization_id: UUID) -> int:
-        result = await self._session.execute(
+    async def count_in_organization(
+        self, organization_id: UUID, *, search: str | None = None
+    ) -> int:
+        statement = (
             select(func.count())
             .select_from(Property)
             .where(Property.organization_id == organization_id)
         )
+        if search is not None:
+            statement = statement.where(self._search_predicate(search))
+        result = await self._session.execute(statement)
         return result.scalar_one()
+
+    @staticmethod
+    def _search_predicate(search: str):
+        pattern = f"%{search}%"
+        return or_(
+            Property.survey_number.ilike(pattern),
+            Property.sub_division_number.ilike(pattern),
+            Property.registration_number.ilike(pattern),
+        )
 
     async def list_owners(
         self, property_id: UUID, organization_id: UUID

@@ -31,14 +31,21 @@ class PropertyRepository(AbstractRepository[Property], ABC):
 
     @abstractmethod
     async def list_in_organization(
-        self, organization_id: UUID, *, limit: int = 100, offset: int = 0
+        self,
+        organization_id: UUID,
+        *,
+        search: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
     ) -> Sequence[Property]:
-        """T135: every Property in `organization_id`, paginated."""
+        """Every Property in `organization_id` matching the optional search, paginated."""
         ...
 
     @abstractmethod
-    async def count_in_organization(self, organization_id: UUID) -> int:
-        """T135: total Property count in `organization_id`, for pagination."""
+    async def count_in_organization(
+        self, organization_id: UUID, *, search: str | None = None
+    ) -> int:
+        """Total matching Property count in `organization_id`, for pagination."""
         ...
 
     @abstractmethod
