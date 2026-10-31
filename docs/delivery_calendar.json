@@ -2,7 +2,7 @@
   "schema_version": 3,
   "activation_task_number": 157,
   "project_timezone": "Asia/Kolkata",
-  "as_of": "2026-10-20",
+  "as_of": "2026-10-31",
   "calendar_convention": "inclusive",
   "status": "provisional planning baseline; not an implementation authorization",
   "milestones": [
@@ -2079,6 +2079,65 @@
         "approved_qa_publication_head": "87762ba5fd0f483d8f5a228c6b7483e108c3d341",
         "actual_start_evidence": "T184 Phase 58 log docs/ImplementationLog/Stage3/Phase58.md records Started: 2026-10-28; implementation commit 07fba07 authored 2026-10-28 21:21:27 +0530; substantive candidate commit 3780f05b3d39498d0ea4428ba7a3c4d90e974504; PR #403 opened 2026-10-28; Independent QA final re-review docs/reviews/T184_QA_Review.md dated 2026-10-31."
       }
+    },
+    {
+      "id": "T185",
+      "title": "Required ADR #12 — Workflow vs Government Status",
+      "milestone": "M2",
+      "lane": "workflow",
+      "dependencies": {
+        "finish_to_start": [
+          "T181"
+        ],
+        "defect_evidence": []
+      },
+      "critical_path": {
+        "is_critical": false,
+        "slack_days": 0
+      },
+      "planned_start": "2026-11-02",
+      "planned_finish": "2026-11-05",
+      "planned_duration": 4,
+      "forecast_start": "2026-11-02",
+      "forecast_finish": "2026-11-05",
+      "forecast_impact": {
+        "M1": {
+          "old": "2026-11-15",
+          "new": "2026-11-15",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M2": {
+          "old": "2026-12-31",
+          "new": "2026-12-31",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "M3": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "overall_finalization": {
+          "old": "2027-02-28",
+          "new": "2027-02-28",
+          "movement": 0,
+          "direction": "unchanged"
+        },
+        "reason": "T185 is an owner-authorized Required ADR #12 architecture task in the M2 workflow lane. T181 is its completed finish-to-start readiness predecessor. Dates are provisional planning placeholders only; Software Architect, Independent QA and governance resource availability and effort remain Unknown. The downstream dependency/capacity network is incomplete, so no critical-path or milestone movement is claimed. All official milestone baselines, forecasts and actuals remain unchanged."
+      },
+      "actual_start": null,
+      "actual_completion": null,
+      "actual_elapsed": null,
+      "planned_finish_used": null,
+      "variance": null,
+      "classification": null,
+      "critical_at_completion": null,
+      "milestone_impact": null,
+      "finalization_impact": null,
+      "recalculated": null,
+      "completion_evidence": null
     }
   ],
   "history": [
@@ -2863,6 +2922,7 @@
     "T164 architecture actual start/completion 2026-10-19 from substantive commit 09b738e4e417a2b6e21ddb3b229271b1c8cf21b6 and protected PR #317 merge 5875b71137299a2be7f16d0fa2826efbdbb34c15 at 2026-10-19T12:33:18Z. One inclusive day, -2 days Early; baseline start/finish 2026-10-20/21 preserved. T163 predecessor protected closeout completed earlier on the same date; date-only schedule cannot express intraday ordering, and no baseline is rewritten. Noncritical 25-day date-to-M1 margin is not validated capacity slack. T164 architecture PR #317 protected-merged 2026-10-19, two days before original planned finish. ADR-0047 remains Proposed and unimplemented; DEF-T163-01/02 and BLK-T163-01 remain open, M1 NOT READY. Incomplete downstream dependency/capacity network provides no justified milestone or finalization acceleration; retain provisional low-confidence forecasts. T164 Done remains prospective pending PR 3 Independent QA and protected merge; T165 not authorized. T163 protected closeout PR #315 merged 2026-10-19 at 11:26:19Z; prior candidate-era assumptions are historical, superseded by this event.",
     "T165 owner-authorized 2026-10-19 as M1 operational-fresh schema compatibility remediation of DEF-T163-01 under Proposed ADR-0047; existing ux stabilization lane reused because schema v2 has no backend lane. Planned 2026-10-20 through 2026-10-23 inclusive, finish-to-start T164 Done; provisional 23-day date-to-M1 margin is not validated network slack. Authorization creates no actuals, completion or milestone history; all forecasts unchanged. DEF-T163-02 and BLK-T163-01 remain open, M1 NOT READY.",
     "T165 execution started 2026-10-19 according to Phase46; PR #321 protected implementation merge 736f8dc34234f8940a615bb13acdc86d22afe17b at 2026-10-19T15:13:09Z establishes calendar-local completion 2026-10-19, elapsed one inclusive day, -4 days Early against immutable 2026-10-23 planned finish. Proposed Done awaits separate closeout QA and protected merge. DEF-T163-01 remediated in merged candidate, operational acceptance pending; DEF-T163-02 and BLK-T163-01 unresolved, M1 NOT READY. Provisional M1/M2/M3/finalization forecasts retain zero movement because downstream network/capacity is incomplete.",
-    "T167 owner-authorized 2026-10-20 (Issue #330) for QA-T166-NB-01 Alembic audit logger and QA-T165-ADV-01 synthetic tenant fixture corrections and complete backend suite certification, ordinary §3, Comprehensive / Risk Tier 1 QA. M2 preparation registered under existing milestone M2 and ux stabilization lane (no backend lane in schema v2), planned 2026-10-21 to 2026-10-24 inclusive, 4 days, finish-to-start T166 Done; T165 is defect evidence only. Noncritical 68-day date-to-M2 margin is provisional, not validated critical-path slack. Actuals and completion evidence null; no authorization-time history event or forecast movement. M1/M2/M3/finalization forecasts unchanged; Required ADRs [12,15,16,17,20], ADR-0047 Proposed, sole migration frontier b155caa6d4e1 retained. QA-T165-ADV-02 excluded."
+    "T167 owner-authorized 2026-10-20 (Issue #330) for QA-T166-NB-01 Alembic audit logger and QA-T165-ADV-01 synthetic tenant fixture corrections and complete backend suite certification, ordinary §3, Comprehensive / Risk Tier 1 QA. M2 preparation registered under existing milestone M2 and ux stabilization lane (no backend lane in schema v2), planned 2026-10-21 to 2026-10-24 inclusive, 4 days, finish-to-start T166 Done; T165 is defect evidence only. Noncritical 68-day date-to-M2 margin is provisional, not validated critical-path slack. Actuals and completion evidence null; no authorization-time history event or forecast movement. M1/M2/M3/finalization forecasts unchanged; Required ADRs [12,15,16,17,20], ADR-0047 Proposed, sole migration frontier b155caa6d4e1 retained. QA-T165-ADV-02 excluded.",
+    "T185 owner-authorized 2026-10-31 (Issue #405) for Required ADR #12 Workflow vs Government Status, §3.1 authorization PR 1/3 only. M2 workflow lane; provisional calendar window 2026-11-02 to 2026-11-05 inclusive, not a resource-backed commitment; T181 is the completed finish-to-start prerequisite. Software Architect, Independent QA and governance capacity and effort remain Unknown pending confirmation. No milestone forecast movement, actuals, completion evidence, ADR decision or product implementation is created by authorization. Required ADRs [12,15,16,17,20] remain unresolved until the separately commissioned architecture PR is independently QA-approved and protected-merged."
   ]
 }
